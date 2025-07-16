@@ -5,17 +5,20 @@
 ## ✅ Pre-Setup Checklist
 
 **Required Tools:**
+
 - [ ] Node.js v18+ installed
 - [ ] Git installed
 - [ ] VS Code installed
 
 **For iOS Development (macOS only):**
+
 - [ ] Xcode installed (Mac App Store)
 - [ ] Command Line Tools: `xcode-select --install`
 - [ ] Homebrew installed
 - [ ] CocoaPods: `brew install cocoapods`
 
 **For Android Development (optional):**
+
 - [ ] Java JDK 17+ installed (`brew install --cask zulu@17`)
 - [ ] Android Studio installed (`brew install --cask android-studio`)
 - [ ] Android SDK configured via Android Studio
@@ -58,8 +61,9 @@ npm run android
 ## 🔧 VS Code Tasks
 
 Press `Cmd+Shift+P` → "Tasks: Run Task":
+
 - Start Metro Bundler
-- Run on iOS Simulator  
+- Run on iOS Simulator
 - Clean Metro Cache
 - Install iOS Pods
 
@@ -67,7 +71,7 @@ Press `Cmd+Shift+P` → "Tasks: Run Task":
 
 **Port busy:** `./start-metro.sh`  
 **iOS build fails:** Clean Xcode + reinstall pods  
-**Cache issues:** `npx react-native start --reset-cache`  
+**Cache issues:** `npx react-native start --reset-cache`
 
 ## 📚 Key Files
 
@@ -77,4 +81,5 @@ Press `Cmd+Shift+P` → "Tasks: Run Task":
 - `README.md` - Project overview
 
 ---
+
 **Ready to code! 🎉**

@@ -34,11 +34,13 @@ brew install --cask android-studio
 ### Step 3: Android Studio Initial Setup
 
 1. **Open Android Studio** from Applications or run:
+
    ```bash
    open -a "Android Studio"
    ```
 
 2. **Complete Setup Wizard:**
+
    - Choose "Standard" installation
    - Accept all license agreements
    - Let it download Android SDK, platform-tools, and emulator
@@ -62,6 +64,7 @@ export PATH=$PATH:$ANDROID_HOME/tools/bin
 ```
 
 Apply changes:
+
 ```bash
 source ~/.zshrc
 ```
@@ -69,10 +72,12 @@ source ~/.zshrc
 ### Step 5: Create Android Virtual Device (AVD)
 
 1. **Open AVD Manager:**
+
    - In Android Studio: `Tools` → `AVD Manager`
    - Or click the AVD Manager icon in the toolbar
 
 2. **Create Virtual Device:**
+
    - Click "Create Virtual Device"
    - Choose "Phone" → "Pixel 7" (recommended)
    - Select system image: **API 34 (Android 14)** with Google APIs
@@ -140,6 +145,7 @@ npm run android
 ### Issue 1: `adb not found`
 
 **Solution:**
+
 ```bash
 # Add platform-tools to PATH
 export PATH=$PATH:$ANDROID_HOME/platform-tools
@@ -154,6 +160,7 @@ $ANDROID_HOME/platform-tools/adb devices
 **Error:** `No emulators found as an output of emulator -list-avds`
 
 **Solution:**
+
 1. Open Android Studio
 2. Go to `Tools` → `AVD Manager`
 3. Create a new Virtual Device (see Step 5 above)
@@ -164,6 +171,7 @@ $ANDROID_HOME/platform-tools/adb devices
 **Error:** `Unable to locate a Java Runtime`
 
 **Solution:**
+
 ```bash
 # Install Java JDK
 brew install --cask zulu@17
@@ -177,6 +185,7 @@ java -version
 **Error:** License acceptance required
 
 **Solution:**
+
 ```bash
 # Accept all SDK licenses
 yes | sdkmanager --licenses
@@ -204,6 +213,7 @@ adb reverse tcp:8082 tcp:8082
 ### Issue 6: Gradle Build Failures
 
 **Solution:**
+
 ```bash
 cd MirrorCollectiveApp/android
 
@@ -217,6 +227,7 @@ cd .. && npx react-native run-android
 ### Issue 7: Emulator Performance Issues
 
 **Solutions:**
+
 - **Increase RAM:** AVD Manager → Edit AVD → Advanced → RAM: 4096 MB
 - **Enable Hardware Acceleration:** Ensure Intel HAXM or Apple Silicon support
 - **Close other apps:** Free up system resources
@@ -227,6 +238,7 @@ cd .. && npx react-native run-android
 ### Daily Development:
 
 1. **Start Emulator:**
+
    ```bash
    # Via Android Studio (recommended)
    open -a "Android Studio"
@@ -234,12 +246,14 @@ cd .. && npx react-native run-android
    ```
 
 2. **Start Metro:**
+
    ```bash
    cd MirrorCollectiveApp
    ./start-metro.sh  # Uses smart port management
    ```
 
 3. **Run Android App:**
+
    ```bash
    npm run android
    ```
@@ -252,6 +266,7 @@ cd .. && npx react-native run-android
 ### VS Code Tasks for Android:
 
 Use `Cmd+Shift+P` → "Tasks: Run Task":
+
 - **Run on Android Emulator** - Build and run Android
 - **Clean Android Build** - Clear Gradle cache
 - **Start Android Emulator** - Launch emulator

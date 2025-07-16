@@ -84,23 +84,27 @@ cd MirrorCollectiveApp && npm run ios
 ### 📋 Manual Setup Steps
 
 1. **Install Dependencies**
+
    ```bash
    cd MirrorCollectiveApp
    npm install
    ```
 
 2. **Install iOS Dependencies** (iOS only)
+
    ```bash
    cd ios && pod install && cd ..
    ```
 
 3. **Start Metro Bundler**
+
    ```bash
    npm start
    # Or use our smart script: ./start-metro.sh
    ```
 
 4. **Run on iOS** (macOS only)
+
    ```bash
    npm run ios
    # Or specific simulator:
@@ -108,13 +112,14 @@ cd MirrorCollectiveApp && npm run ios
    ```
 
 5. **Run on Android**
+
    ```bash
    # 1. Start Android emulator first (via Android Studio)
    # Tools → AVD Manager → Start your emulator
-   
+
    # 2. Verify emulator is running
    adb devices
-   
+
    # 3. Run the app
    npm run android
    ```

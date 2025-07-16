@@ -3,6 +3,7 @@
 ## ✅ Current Status
 
 Your local Git repository is set up and ready! You have:
+
 - ✅ Initial commit created with all project files
 - ✅ Comprehensive .gitignore files configured
 - ✅ No remote repository conflicts
@@ -15,11 +16,13 @@ Your local Git repository is set up and ready! You have:
 ### Step 1: Create Repository on GitHub
 
 1. **Go to GitHub** and create a new repository:
+
    ```
    👉 https://github.com/new
    ```
 
 2. **Repository Settings:**
+
    - **Repository name:** `mirror-collective-app` (or your preferred name)
    - **Description:** "Cross-platform React Native mobile app with iOS/Android support"
    - **Visibility:** Private or Public (your choice)
@@ -91,8 +94,9 @@ Your repository includes:
 ## 🔒 Security Notes
 
 The .gitignore files are configured to exclude:
+
 - ✅ **Environment variables** (.env files)
-- ✅ **Signing keys** (*.keystore, *.p12, *.mobileprovision)
+- ✅ **Signing keys** (_.keystore, _.p12, \*.mobileprovision)
 - ✅ **IDE settings** (except VS Code tasks/launch configs)
 - ✅ **Build artifacts** (build/, node_modules/)
 - ✅ **Local configuration** (local.properties, etc.)
@@ -103,12 +107,14 @@ The .gitignore files are configured to exclude:
 Once you've created and connected your GitHub repository:
 
 1. **Verify the connection:**
+
    ```bash
    git remote -v
    # Should show your GitHub repository URL
    ```
 
 2. **Future commits:**
+
    ```bash
    git add .
    git commit -m "Your commit message"
@@ -135,20 +141,26 @@ For team development, consider:
 ## 🆘 Troubleshooting
 
 ### Issue: "No configured push destination"
+
 **This is normal!** It means you haven't connected to GitHub yet.
 **Solution:** Follow Steps 1-2 above to create and connect your GitHub repository.
 
 ### Issue: "Permission denied (publickey)"
+
 **Solution:** Set up SSH keys or use HTTPS instead
+
 ```bash
 git remote set-url origin https://github.com/YOUR_USERNAME/REPO_NAME.git
 ```
 
 ### Issue: "Repository not found"
+
 **Solution:** Double-check the repository name and your access rights
 
 ### Issue: "Updates were rejected"
+
 **Solution:** This shouldn't happen with a new repository, but if it does:
+
 ```bash
 git pull origin main --allow-unrelated-histories
 ```

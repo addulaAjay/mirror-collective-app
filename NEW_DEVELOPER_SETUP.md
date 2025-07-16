@@ -7,17 +7,20 @@
 Before you start, make sure you have these tools installed:
 
 ### Required for All Platforms:
+
 - [ ] **Node.js** (v18 or higher) - [Download here](https://nodejs.org/)
 - [ ] **Git** - [Download here](https://git-scm.com/)
 - [ ] **VS Code** (recommended) - [Download here](https://code.visualstudio.com/)
 
 ### For iOS Development (macOS only):
+
 - [ ] **Xcode** (latest version from Mac App Store)
 - [ ] **Xcode Command Line Tools**: Run `xcode-select --install`
 - [ ] **Homebrew** - [Install here](https://brew.sh/)
 - [ ] **CocoaPods**: Run `brew install cocoapods`
 
 ### For Android Development (Optional):
+
 - [ ] **Java JDK 17+** - [Download here](https://www.oracle.com/java/technologies/downloads/) or `brew install --cask zulu@17`
 - [ ] **Android Studio** - [Download here](https://developer.android.com/studio) or `brew install --cask android-studio`
 - [ ] **Android SDK** (installed via Android Studio)
@@ -47,6 +50,7 @@ chmod +x setup.sh
 ```
 
 **What this script does:**
+
 - Installs npm dependencies
 - Sets up iOS CocoaPods (on macOS)
 - Configures the development environment
@@ -84,15 +88,17 @@ npm start
 ### Step 5: Run the App
 
 #### iOS (macOS only):
+
 ```bash
 # Default simulator
 npm run ios
 
-# Specific simulator  
+# Specific simulator
 npx react-native run-ios --simulator="iPhone 15 Pro"
 ```
 
 #### Android (requires Android setup):
+
 ```bash
 # 1. Start Android emulator first (via Android Studio)
 # Tools → AVD Manager → Start emulator
@@ -137,7 +143,7 @@ Press `Cmd+Shift+P` → "Tasks: Run Task" to access:
 
 - **Start Metro Bundler** - Start development server
 - **Run on iOS Simulator** - Build and run iOS
-- **Run on Android Emulator** - Build and run Android  
+- **Run on Android Emulator** - Build and run Android
 - **Clean Metro Cache** - Clear bundler cache
 - **Install iOS Pods** - Update iOS dependencies
 - **Lint Code** - Run ESLint
@@ -149,6 +155,7 @@ Press `Cmd+Shift+P` → "Tasks: Run Task" to access:
 **Error:** `Error: listen EADDRINUSE: address already in use :::8081`
 
 **Solution:**
+
 ```bash
 # Use our port management script
 ./start-metro.sh
@@ -162,6 +169,7 @@ npx react-native start --port 8082
 **Error:** `"xcodebuild" exited with error code '70'`
 
 **Solution:**
+
 ```bash
 cd MirrorCollectiveApp/ios
 xcodebuild clean -workspace MirrorCollectiveApp.xcworkspace -scheme MirrorCollectiveApp
@@ -174,6 +182,7 @@ cd .. && npx react-native run-ios
 **Error:** Pod-related errors
 
 **Solution:**
+
 ```bash
 cd MirrorCollectiveApp/ios
 pod deintegrate
@@ -186,6 +195,7 @@ cd ..
 **Error:** Bundling errors or old code showing
 
 **Solution:**
+
 ```bash
 npx react-native start --reset-cache
 ```
@@ -195,6 +205,7 @@ npx react-native start --reset-cache
 **Error:** Java/Android SDK not found
 
 **Solution:**
+
 1. Install Java JDK 11+
 2. Install Android Studio
 3. Set up Android SDK
@@ -239,9 +250,10 @@ If you've completed all steps successfully:
 ✅ Metro bundler is running  
 ✅ iOS app is running on simulator  
 ✅ You can see the Mirror Collective welcome screen  
-✅ Hot reload is working when you make changes  
+✅ Hot reload is working when you make changes
 
 **Next Steps:**
+
 1. Read through `DEVELOPMENT.md` for detailed documentation
 2. Explore the `App.tsx` file to understand the code structure
 3. Try making small changes and see them update live
@@ -250,10 +262,12 @@ If you've completed all steps successfully:
 ## 🆘 Need Help?
 
 1. **Check existing documentation:**
+
    - `README.md` - Project overview
    - `DEVELOPMENT.md` - Detailed development guide
 
 2. **Common commands:**
+
    ```bash
    ./start-metro.sh           # Smart Metro startup
    npm run ios               # Run iOS app
