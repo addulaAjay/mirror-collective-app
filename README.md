@@ -66,6 +66,7 @@ MirrorCollectiveApp/
 - **📋 [Quick Start Checklist](QUICK_START_CHECKLIST.md)** - 5-minute overview
 - **🚀 [New Developer Setup Guide](NEW_DEVELOPER_SETUP.md)** - Complete step-by-step instructions
 - **🛠 [Development Guide](DEVELOPMENT.md)** - Detailed development workflows
+- **🔧 [Git Setup Guide](GIT_SETUP.md)** - Repository setup and GitHub integration
 
 ### ⚡ Quick Setup (Experienced Developers)
 
