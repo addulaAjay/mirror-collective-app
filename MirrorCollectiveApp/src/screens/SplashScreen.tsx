@@ -16,19 +16,19 @@ const SplashScreen: React.FC<SplashProps> = ({ navigation }) => {
   }, [navigation]);
   return (
     <ImageBackground
-      source={require('../assets/dark_mode_shimmer_bg.png')}
+      source={require('../../assets/dark_mode_shimmer_bg.png')}
       style={styles.container}
       imageStyle={styles.backgroundImage}
     >
       <View style={styles.logoContainer}>
         <Image
-          source={require('../assets/Mirror_Collective_Logo_RGB.png')}
+          source={require('../../assets/Mirror_Collective_Logo_RGB.png')}
           style={styles.logo}
           resizeMode="contain"
         />
         <Text style={styles.title}>
           <Text style={styles.italic}>The </Text>
-          MIRROR{"\n"}COLLECTIVE
+          MIRROR{'\n'}COLLECTIVE
         </Text>
       </View>
     </ImageBackground>
