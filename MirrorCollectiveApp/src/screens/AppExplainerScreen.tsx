@@ -24,7 +24,7 @@ const AppExplainerScreen: React.FC<Props> = ({ navigation }) => {
   }, [navigation]);
   return (
     <ImageBackground
-      source={require('../assets/dark_mode_shimmer_bg.png')}
+      source={require('../../assets/dark_mode_shimmer_bg.png')}
       style={styles.container}
       imageStyle={styles.backgroundImage}
     >

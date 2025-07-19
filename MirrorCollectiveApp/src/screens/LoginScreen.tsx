@@ -13,7 +13,7 @@ import AuthButton from '../components/AuthButton';
 const LoginScreen = ({ navigation }: any) => {
   return (
     <ImageBackground
-      source={require('../assets/dark_mode_shimmer_bg.png')}
+      source={require('../../assets/dark_mode_shimmer_bg.png')}
       style={styles.container}
       resizeMode="cover"
     >

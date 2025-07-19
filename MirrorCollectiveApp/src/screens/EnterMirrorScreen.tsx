@@ -23,7 +23,7 @@ const EnterMirrorScreen: React.FC<Props> = ({ navigation }) => {
 
   return (
     <ImageBackground
-      source={require('../assets/dark_mode_bg_5.png')}
+      source={require('../../assets/dark_mode_bg_5.png')}
       style={styles.container}
       imageStyle={styles.bgImage}
     >
@@ -36,11 +36,11 @@ const EnterMirrorScreen: React.FC<Props> = ({ navigation }) => {
         activeOpacity={0.8}
       >
         <Image
-          source={require('../assets/Asset_4@2x-8.png')}
+          source={require('../../assets/Asset_4@2x-8.png')}
           style={styles.asset4}
         />
         <Image
-          source={require('../assets/Asset_3@2x-8.png')}
+          source={require('../../assets/Asset_3@2x-8.png')}
           style={styles.asset3}
         />
         <View style={styles.ellipseGlow} />

@@ -4,7 +4,7 @@ import { View, Image, Text, StyleSheet } from 'react-native';
 const LogoHeader = () => (
   <View style={styles.container}>
     <Image
-      source={require('../assets/Mirror_Collective_Logo_RGB.png')}
+      source={require('../../assets/Mirror_Collective_Logo_RGB.png')}
       style={styles.logo}
     />
     <Text style={styles.text}>
