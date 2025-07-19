@@ -1,31 +1,34 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
-  Image,
   Text,
   StyleSheet,
   Dimensions,
   ImageBackground,
 } from 'react-native';
 
-const AppExplainerScreen = () => {
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { RootStackParamList } from '../../App'; // Adjust the path if needed
+import LogoHeader from '../components/LogoHeader';
+
+type Props = {
+  navigation: NativeStackNavigationProp<RootStackParamList, 'AppExplanation'>;
+};
+const AppExplainerScreen: React.FC<Props> = ({ navigation }) => {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      navigation.replace('Login'); // navigates after 10 seconds
+    }, 2000); // 10,000 ms = 10 seconds
+
+    return () => clearTimeout(timer); // cleanup
+  }, [navigation]);
   return (
     <ImageBackground
       source={require('../assets/dark_mode_shimmer_bg.png')}
       style={styles.container}
       imageStyle={styles.backgroundImage}
     >
-      {/* Header */}
-      <View style={styles.header}>
-        <Image
-          source={require('../assets/Mirror_Collective_Logo_RGB.png')}
-          style={styles.logo}
-        />
-        <Text style={styles.headerText}>
-          <Text style={styles.italic}>The </Text>
-          MIRROR COLLECTIVE
-        </Text>
-      </View>
+      <LogoHeader />
 
       {/* Video Section */}
       <View style={styles.videoFrame}>
@@ -96,6 +99,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
     borderRadius: 12,
+    marginTop: 90,
   },
   videoText: {
     width: 169,

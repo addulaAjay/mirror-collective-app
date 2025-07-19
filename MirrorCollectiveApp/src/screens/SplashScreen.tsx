@@ -10,7 +10,7 @@ const SplashScreen: React.FC<SplashProps> = ({ navigation }) => {
   useEffect(() => {
     const timer = setTimeout(() => {
       navigation.replace('EnterMirror'); // navigates after 10 seconds
-    }, 10000); // 10,000 ms = 10 seconds
+    }, 2000); // 10,000 ms = 10 seconds
 
     return () => clearTimeout(timer); // cleanup
   }, [navigation]);
