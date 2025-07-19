@@ -2,7 +2,6 @@ import React from 'react';
 import {
   View,
   Image,
-  Text,
   StyleSheet,
   Dimensions,
   ImageBackground,
@@ -11,6 +10,7 @@ import {
 
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../App'; // Adjust the path if needed
+import LogoHeader from '../components/LogoHeader';
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'EnterMirror'>;
@@ -20,7 +20,6 @@ const EnterMirrorScreen: React.FC<Props> = ({ navigation }) => {
   const handlePress = () => {
     navigation.navigate('AppExplanation'); // Navigate to explanation screen
   };
-  
 
   return (
     <ImageBackground
@@ -28,20 +27,14 @@ const EnterMirrorScreen: React.FC<Props> = ({ navigation }) => {
       style={styles.container}
       imageStyle={styles.bgImage}
     >
-      {/* Header Logo + Text */}
-      <View style={styles.header}>
-        <Image
-          source={require('../assets/Mirror_Collective_Logo_RGB.png')}
-          style={styles.logo}
-        />
-        <Text style={styles.headerText}>
-          <Text style={styles.italic}>The </Text>
-          MIRROR COLLECTIVE
-        </Text>
-      </View>
+      <LogoHeader />
 
       {/* Mirror Frame Layers */}
-      <TouchableOpacity style={styles.mirrorGroup} onPress={handlePress} activeOpacity={0.8}>
+      <TouchableOpacity
+        style={styles.mirrorGroup}
+        onPress={handlePress}
+        activeOpacity={0.8}
+      >
         <Image
           source={require('../assets/Asset_4@2x-8.png')}
           style={styles.asset4}
@@ -49,10 +42,8 @@ const EnterMirrorScreen: React.FC<Props> = ({ navigation }) => {
         <Image
           source={require('../assets/Asset_3@2x-8.png')}
           style={styles.asset3}
-
         />
         <View style={styles.ellipseGlow} />
-        
       </TouchableOpacity>
     </ImageBackground>
   );
