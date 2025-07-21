@@ -1,15 +1,10 @@
 import React, { useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ImageBackground,
-} from 'react-native';
+import { View, Text, StyleSheet, ImageBackground } from 'react-native';
 
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../App';
 import LogoHeader from '../components/LogoHeader';
-import { typography, colors, shadows } from '../styles/typography';
+import { typography, shadows } from '../styles/typography';
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'AppExplanation'>;

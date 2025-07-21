@@ -1,4 +1,11 @@
-import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useReducer,
+  useEffect,
+  ReactNode,
+  useRef,
+} from 'react';
 import apiService from '../services/apiService';
 
 // Types
@@ -27,7 +34,11 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
-  resetPassword: (email: string, resetCode: string, newPassword: string) => Promise<void>;
+  resetPassword: (
+    email: string,
+    resetCode: string,
+    newPassword: string,
+  ) => Promise<void>;
   refreshAuth: () => Promise<void>;
   clearError: () => void;
 }
@@ -99,74 +110,190 @@ interface AuthProviderProps {
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
+  const isMountedRef = useRef(true);
+  const initializationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Initialize authentication state
+  // Safe dispatch that checks if component is still mounted
+  const safeDispatch = (action: AuthAction) => {
+    if (isMountedRef.current) {
+      dispatch(action);
+    }
+  };
+
+  // Initialize authentication state with enhanced error handling
   useEffect(() => {
+    let isInitializing = true;
+
     const initializeAuth = async () => {
       try {
-        dispatch({ type: 'SET_LOADING', payload: true });
+        if (!isMountedRef.current) return;
 
-        // Check if user is authenticated
-        const isAuth = await apiService.isAuthenticated();
-        
+        safeDispatch({ type: 'SET_LOADING', payload: true });
+
+        // Add progressive delays to prevent race conditions
+        await new Promise(resolve => setTimeout(resolve, 100));
+        if (!isMountedRef.current) return;
+
+        // Check if user is authenticated with enhanced timeout handling
+        let isAuth = false;
+        try {
+          const authCheckPromise = apiService.isAuthenticated();
+          const timeoutPromise = new Promise<boolean>((_, reject) => {
+            setTimeout(() => reject(new Error('Auth check timeout')), 10000);
+          });
+
+          isAuth = await Promise.race([authCheckPromise, timeoutPromise]);
+        } catch (error) {
+          if (__DEV__) {
+            console.warn(
+              'Auth check failed, assuming not authenticated:',
+              error,
+            );
+          }
+          isAuth = false;
+        }
+
+        if (!isMountedRef.current || !isInitializing) return;
+
         if (isAuth) {
-          // Try to get user profile
+          // Try to get user profile with enhanced error handling
           try {
             const profileResponse = await apiService.getUserProfile();
+            if (!isMountedRef.current || !isInitializing) return;
+
             if (profileResponse.success && profileResponse.user) {
-              dispatch({ type: 'LOGIN_SUCCESS', payload: profileResponse.user });
+              safeDispatch({
+                type: 'LOGIN_SUCCESS',
+                payload: profileResponse.user,
+              });
             } else {
-              // Clear invalid authentication
-              await apiService.clearTokens();
-              dispatch({ type: 'LOGOUT_SUCCESS' });
+              throw new Error('Invalid profile response');
             }
-          } catch (error) {
-            // Token might be expired, try to refresh
+          } catch (profileError) {
+            if (__DEV__) {
+              console.warn(
+                'Profile fetch failed, trying token refresh:',
+                profileError,
+              );
+            }
+
+            if (!isMountedRef.current || !isInitializing) return;
+
+            // Attempt token refresh
             try {
               const refreshResponse = await apiService.refreshToken();
-              if (refreshResponse.success && refreshResponse.accessToken && refreshResponse.refreshToken) {
+              if (!isMountedRef.current || !isInitializing) return;
+
+              if (
+                refreshResponse.success &&
+                refreshResponse.accessToken &&
+                refreshResponse.refreshToken
+              ) {
                 await apiService.storeTokens({
                   accessToken: refreshResponse.accessToken,
                   refreshToken: refreshResponse.refreshToken,
                 });
 
-                // Try to get profile again
-                const profileResponse = await apiService.getUserProfile();
-                if (profileResponse.success && profileResponse.user) {
-                  dispatch({ type: 'LOGIN_SUCCESS', payload: profileResponse.user });
+                if (!isMountedRef.current || !isInitializing) return;
+
+                // Retry profile fetch
+                const retryProfileResponse = await apiService.getUserProfile();
+                if (!isMountedRef.current || !isInitializing) return;
+
+                if (retryProfileResponse.success && retryProfileResponse.user) {
+                  safeDispatch({
+                    type: 'LOGIN_SUCCESS',
+                    payload: retryProfileResponse.user,
+                  });
                 } else {
-                  throw new Error('Failed to get user profile after refresh');
+                  throw new Error('Profile fetch failed after refresh');
                 }
               } else {
-                throw new Error('Failed to refresh token');
+                throw new Error('Token refresh failed');
               }
             } catch (refreshError) {
-              // Clear invalid authentication
-              await apiService.clearTokens();
-              dispatch({ type: 'LOGOUT_SUCCESS' });
+              if (__DEV__) {
+                console.warn(
+                  'Token refresh failed, clearing auth:',
+                  refreshError,
+                );
+              }
+              // Clear tokens safely
+              try {
+                await apiService.clearTokens();
+              } catch (tokenClearError) {
+                if (__DEV__) {
+                  console.warn('Token clear failed:', tokenClearError);
+                }
+              }
+              if (isMountedRef.current && isInitializing) {
+                safeDispatch({ type: 'LOGOUT_SUCCESS' });
+              }
             }
           }
         } else {
-          dispatch({ type: 'LOGOUT_SUCCESS' });
+          if (isMountedRef.current && isInitializing) {
+            safeDispatch({ type: 'LOGOUT_SUCCESS' });
+          }
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
-        await apiService.clearTokens();
-        dispatch({ type: 'LOGOUT_SUCCESS' });
+        // Clear any potentially corrupted state
+        try {
+          await apiService.clearTokens();
+        } catch (tokensClearError) {
+          if (__DEV__) {
+            console.warn(
+              'Error clearing tokens during error handling:',
+              tokensClearError,
+            );
+          }
+        }
+        if (isMountedRef.current && isInitializing) {
+          safeDispatch({ type: 'LOGOUT_SUCCESS' });
+        }
       } finally {
-        dispatch({ type: 'SET_LOADING', payload: false });
-        dispatch({ type: 'SET_INITIALIZED', payload: true });
+        if (isMountedRef.current && isInitializing) {
+          safeDispatch({ type: 'SET_LOADING', payload: false });
+          safeDispatch({ type: 'SET_INITIALIZED', payload: true });
+        }
+        isInitializing = false;
       }
     };
 
+    // Set timeout to force initialization completion if needed
+    initializationTimeoutRef.current = setTimeout(() => {
+      if (__DEV__) {
+        console.warn('Auth initialization timeout, forcing completion');
+      }
+      if (isMountedRef.current && isInitializing) {
+        isInitializing = false;
+        safeDispatch({ type: 'SET_LOADING', payload: false });
+        safeDispatch({ type: 'SET_INITIALIZED', payload: true });
+        safeDispatch({ type: 'LOGOUT_SUCCESS' });
+      }
+    }, 15000); // 15 second timeout
+
     initializeAuth();
+
+    // Cleanup function
+    return () => {
+      isMountedRef.current = false;
+      isInitializing = false;
+      if (initializationTimeoutRef.current) {
+        clearTimeout(initializationTimeoutRef.current);
+        initializationTimeoutRef.current = null;
+      }
+    };
   }, []);
 
-  // Sign Up
+  // Sign Up with enhanced error handling
   const signUp = async (fullName: string, email: string, password: string) => {
+    if (!isMountedRef.current) return;
+
     try {
-      dispatch({ type: 'SET_LOADING', payload: true });
-      dispatch({ type: 'CLEAR_ERROR' });
+      safeDispatch({ type: 'SET_LOADING', payload: true });
+      safeDispatch({ type: 'CLEAR_ERROR' });
 
       const response = await apiService.signUp({
         fullName: fullName.trim(),
@@ -178,115 +305,176 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         throw new Error(response.message || 'Registration failed');
       }
 
-      // Note: User will need to verify email before being fully authenticated
-      dispatch({ type: 'SET_LOADING', payload: false });
+      safeDispatch({ type: 'SET_LOADING', payload: false });
     } catch (error: any) {
-      dispatch({ type: 'SET_ERROR', payload: error.message || 'Registration failed' });
+      if (isMountedRef.current) {
+        safeDispatch({
+          type: 'SET_ERROR',
+          payload: error.message || 'Registration failed',
+        });
+      }
       throw error;
     }
   };
 
-  // Sign In
+  // Sign In with enhanced error handling
   const signIn = async (email: string, password: string) => {
+    if (!isMountedRef.current) return;
+
     try {
-      dispatch({ type: 'SET_LOADING', payload: true });
-      dispatch({ type: 'CLEAR_ERROR' });
+      safeDispatch({ type: 'SET_LOADING', payload: true });
+      safeDispatch({ type: 'CLEAR_ERROR' });
 
       const response = await apiService.signIn({
         email: email.toLowerCase().trim(),
         password,
       });
 
-      if (response.success && response.user && response.accessToken && response.refreshToken) {
+      if (
+        response.success &&
+        response.user &&
+        response.accessToken &&
+        response.refreshToken
+      ) {
         // Store tokens
         await apiService.storeTokens({
           accessToken: response.accessToken,
           refreshToken: response.refreshToken,
         });
 
-        dispatch({ type: 'LOGIN_SUCCESS', payload: response.user });
+        if (isMountedRef.current) {
+          safeDispatch({ type: 'LOGIN_SUCCESS', payload: response.user });
+        }
       } else {
         throw new Error(response.message || 'Login failed');
       }
     } catch (error: any) {
-      dispatch({ type: 'SET_ERROR', payload: error.message || 'Login failed' });
+      if (isMountedRef.current) {
+        safeDispatch({
+          type: 'SET_ERROR',
+          payload: error.message || 'Login failed',
+        });
+      }
       throw error;
     }
   };
 
-  // Sign Out
+  // Sign Out with enhanced error handling
   const signOut = async () => {
-    try {
-      dispatch({ type: 'SET_LOADING', payload: true });
+    if (!isMountedRef.current) return;
 
-      // Call backend logout endpoint
+    try {
+      safeDispatch({ type: 'SET_LOADING', payload: true });
+
+      // Call backend logout endpoint (don't fail if it doesn't work)
       try {
         await apiService.signOut();
       } catch (error) {
-        // Continue with local logout even if server logout fails
-        console.warn('Server logout failed:', error);
+        if (__DEV__) {
+          console.warn(
+            'Server logout failed, continuing with local logout:',
+            error,
+          );
+        }
       }
 
       // Clear local storage
       await apiService.clearTokens();
-      
-      dispatch({ type: 'LOGOUT_SUCCESS' });
+
+      if (isMountedRef.current) {
+        safeDispatch({ type: 'LOGOUT_SUCCESS' });
+      }
     } catch (error: any) {
       console.error('Logout error:', error);
-      // Force logout locally even if server call fails
-      await apiService.clearTokens();
-      dispatch({ type: 'LOGOUT_SUCCESS' });
+      // Force logout locally even if something fails
+      try {
+        await apiService.clearTokens();
+      } catch (clearTokensError) {
+        if (__DEV__) {
+          console.warn(
+            'Error clearing tokens during logout:',
+            clearTokensError,
+          );
+        }
+      }
+      if (isMountedRef.current) {
+        safeDispatch({ type: 'LOGOUT_SUCCESS' });
+      }
     }
   };
 
-  // Forgot Password
+  // Other methods with similar enhanced error handling
   const forgotPassword = async (email: string) => {
-    try {
-      dispatch({ type: 'SET_LOADING', payload: true });
-      dispatch({ type: 'CLEAR_ERROR' });
+    if (!isMountedRef.current) return;
 
-      const response = await apiService.forgotPassword(email.toLowerCase().trim());
+    try {
+      safeDispatch({ type: 'SET_LOADING', payload: true });
+      safeDispatch({ type: 'CLEAR_ERROR' });
+
+      const response = await apiService.forgotPassword(
+        email.toLowerCase().trim(),
+      );
 
       if (!response.success) {
         throw new Error(response.message || 'Failed to send reset email');
       }
 
-      dispatch({ type: 'SET_LOADING', payload: false });
+      safeDispatch({ type: 'SET_LOADING', payload: false });
     } catch (error: any) {
-      dispatch({ type: 'SET_ERROR', payload: error.message || 'Failed to send reset email' });
+      if (isMountedRef.current) {
+        safeDispatch({
+          type: 'SET_ERROR',
+          payload: error.message || 'Failed to send reset email',
+        });
+      }
       throw error;
     }
   };
 
-  // Reset Password
-  const resetPassword = async (email: string, resetCode: string, newPassword: string) => {
+  const resetPassword = async (
+    email: string,
+    resetCode: string,
+    newPassword: string,
+  ) => {
+    if (!isMountedRef.current) return;
+
     try {
-      dispatch({ type: 'SET_LOADING', payload: true });
-      dispatch({ type: 'CLEAR_ERROR' });
+      safeDispatch({ type: 'SET_LOADING', payload: true });
+      safeDispatch({ type: 'CLEAR_ERROR' });
 
       const response = await apiService.resetPassword(
         email.toLowerCase().trim(),
         resetCode.trim(),
-        newPassword
+        newPassword,
       );
 
       if (!response.success) {
         throw new Error(response.message || 'Failed to reset password');
       }
 
-      dispatch({ type: 'SET_LOADING', payload: false });
+      safeDispatch({ type: 'SET_LOADING', payload: false });
     } catch (error: any) {
-      dispatch({ type: 'SET_ERROR', payload: error.message || 'Failed to reset password' });
+      if (isMountedRef.current) {
+        safeDispatch({
+          type: 'SET_ERROR',
+          payload: error.message || 'Failed to reset password',
+        });
+      }
       throw error;
     }
   };
 
-  // Refresh Authentication
   const refreshAuth = async () => {
+    if (!isMountedRef.current) return;
+
     try {
       const profileResponse = await apiService.getUserProfile();
-      if (profileResponse.success && profileResponse.user) {
-        dispatch({ type: 'SET_USER', payload: profileResponse.user });
+      if (
+        profileResponse.success &&
+        profileResponse.user &&
+        isMountedRef.current
+      ) {
+        safeDispatch({ type: 'SET_USER', payload: profileResponse.user });
       }
     } catch (error) {
       console.error('Failed to refresh auth:', error);
@@ -294,9 +482,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-  // Clear Error
   const clearError = () => {
-    dispatch({ type: 'CLEAR_ERROR' });
+    if (isMountedRef.current) {
+      safeDispatch({ type: 'CLEAR_ERROR' });
+    }
   };
 
   const contextValue: AuthContextType = {
@@ -311,9 +500,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   return (
-    <AuthContext.Provider value={contextValue}>
-      {children}
-    </AuthContext.Provider>
+    <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
   );
 };
 
@@ -325,5 +512,9 @@ export const useAuth = (): AuthContextType => {
   }
   return context;
 };
+
+// Keep both exports for backward compatibility during transition
+export const useSafeAuth = useAuth;
+export const SafeAuthProvider = AuthProvider;
 
 export default AuthContext;
