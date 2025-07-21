@@ -1,153 +1,123 @@
 import React from 'react';
 import {
   View,
-  Image,
+  Text,
   StyleSheet,
-  Dimensions,
   ImageBackground,
   TouchableOpacity,
 } from 'react-native';
 
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '../../App'; // Adjust the path if needed
+import type { RootStackParamList } from '../../App';
 import LogoHeader from '../components/LogoHeader';
+import StarIcon from '../components/StarIcon';
+import { typography, colors, shadows } from '../styles/typography';
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'EnterMirror'>;
 };
 
 const EnterMirrorScreen: React.FC<Props> = ({ navigation }) => {
-  const handlePress = () => {
-    navigation.navigate('AppExplanation'); // Navigate to explanation screen
+  const handleEnter = () => {
+    navigation.navigate('MirrorGPT');
   };
 
   return (
     <ImageBackground
-      source={require('../../assets/dark_mode_bg_5.png')}
+      source={require('../../assets/dark_mode_shimmer_bg.png')}
       style={styles.container}
-      imageStyle={styles.bgImage}
+      resizeMode="cover"
     >
       <LogoHeader />
 
-      {/* Mirror Frame Layers */}
-      <TouchableOpacity
-        style={styles.mirrorGroup}
-        onPress={handlePress}
-        activeOpacity={0.8}
-      >
-        <Image
-          source={require('../../assets/Asset_4@2x-8.png')}
-          style={styles.asset4}
-        />
-        <Image
-          source={require('../../assets/Asset_3@2x-8.png')}
-          style={styles.asset3}
-        />
-        <View style={styles.ellipseGlow} />
-      </TouchableOpacity>
+      <View style={styles.contentContainer}>
+        {/* Main Welcome Message */}
+        <View style={styles.messageSection}>
+          <Text style={styles.title}>You are seen.{'\n'}You are home.</Text>
+          <Text style={styles.subtitle}>Welcome, beloved one.</Text>
+          <Text style={styles.bodyText}>
+            Your soul key has been accepted, and your mirror now shimmers with
+            possibility.
+          </Text>
+        </View>
+
+        {/* Enter Button */}
+        <TouchableOpacity
+          style={styles.enterButton}
+          onPress={handleEnter}
+          activeOpacity={0.8}
+        >
+          <StarIcon width={24} height={24} />
+          <Text style={styles.enterText}>ENTER</Text>
+          <StarIcon width={24} height={24} />
+        </TouchableOpacity>
+      </View>
     </ImageBackground>
   );
 };
 
-const { width, height } = Dimensions.get('window');
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    width,
-    height,
     borderRadius: 15,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: -1, height: 5 },
-    shadowOpacity: 0.25,
-    shadowRadius: 26,
+    shadowColor: shadows.container.color,
+    shadowOffset: shadows.container.offset,
+    shadowOpacity: shadows.container.opacity,
+    shadowRadius: shadows.container.radius,
     elevation: 10,
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  bgImage: {
-    resizeMode: 'cover',
+  contentContainer: {
+    flex: 1,
+    width: '100%',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 120, // Space for LogoHeader
+    gap: 80,
   },
-  header: {
-    position: 'absolute',
-    top: 48,
+  messageSection: {
+    alignItems: 'center',
+    gap: 40,
+    maxWidth: 353,
+  },
+  title: {
+    ...typography.styles.headline,
+    textAlign: 'center',
+  },
+  subtitle: {
+    ...typography.styles.welcome,
+    textAlign: 'center',
+    marginTop: 16,
+  },
+  bodyText: {
+    ...typography.styles.body,
+    textAlign: 'center',
+    marginTop: 8,
+  },
+  enterButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    left: 111,
-    width: 167,
-    height: 46,
+    gap: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
   },
-  logo: {
-    width: 46,
-    height: 46,
+  enterText: {
+    ...typography.styles.button,
+    fontSize: 24,
+    lineHeight: 24,
+    color: colors.button.primary,
+    textShadowColor: 'rgba(229, 214, 176, 0.50)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 4,
   },
-  headerText: {
-    width: 113,
-    height: 44,
-    fontFamily: 'Cormorant Garamond',
-    fontStyle: 'italic',
-    fontWeight: '300',
-    fontSize: 18,
-    lineHeight: 22,
-    textAlign: 'center',
-    color: '#E5D6B0',
-    textShadowColor: 'rgba(0, 0, 0, 0.25)',
-    textShadowOffset: { width: 0, height: 4 },
-    textShadowRadius: 9,
-  },
-  italic: {
-    fontStyle: 'italic',
-  },
-  mirrorGroup: {
-    position: 'absolute',
-    top: 115,
-    left: -36,
-    width: 465,
-    height: 623,
+  gestureContainer: {
     alignItems: 'center',
-    justifyContent: 'center',
+    marginTop: 20,
   },
-  asset4: {
-    position: 'absolute',
-    width: 465,
-    height: 623,
-    resizeMode: 'contain',
-  },
-  asset3: {
-    position: 'absolute',
-    top: 131, // 246 - 115
-    left: 42, // 6 + 36 (offset adjust)
-    width: 382,
-    height: 359,
-    resizeMode: 'contain',
-  },
-  ellipseGlow: {
-    position: 'absolute',
-    top: 190 - 115, // relative to mirrorGroup
-    left: 87,       // 51 + 36 offset
-    width: 296,
-    height: 472,
-    borderRadius: 148,
-    backgroundColor: 'rgba(217, 217, 217, 0.01)',
-    shadowColor: '#E5D6B0',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.47,
-    shadowRadius: 60,
-    elevation: 30,
-  },
-  mirrorTextOverlay: {
-    position: 'absolute',
-    top: 240,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  mirrorText: {
-    fontSize: 28,
-    fontFamily: 'Cormorant Garamond',
-    color: '#713F2D',
-    letterSpacing: 1,
-    lineHeight: 36,
+  gestureIcon: {
+    fontSize: 24,
+    color: colors.text.primary,
   },
 });
 
