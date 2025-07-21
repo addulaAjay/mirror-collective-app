@@ -8,10 +8,10 @@ import {
 } from 'react-native';
 
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '../../App';
+import type { RootStackParamList } from '../types';
 import LogoHeader from '../components/LogoHeader';
 import StarIcon from '../components/StarIcon';
-import { typography, colors, shadows } from '../styles/typography';
+import { typography, colors } from '../styles/typography';
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'EnterMirror'>;
@@ -19,7 +19,7 @@ type Props = {
 
 const EnterMirrorScreen: React.FC<Props> = ({ navigation }) => {
   const handleEnter = () => {
-    navigation.navigate('MirrorGPT');
+    navigation.navigate('MirrorChat');
   };
 
   return (
@@ -59,12 +59,6 @@ const EnterMirrorScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    borderRadius: 15,
-    shadowColor: shadows.container.color,
-    shadowOffset: shadows.container.offset,
-    shadowOpacity: shadows.container.opacity,
-    shadowRadius: shadows.container.radius,
-    elevation: 10,
     alignItems: 'center',
     justifyContent: 'center',
   },

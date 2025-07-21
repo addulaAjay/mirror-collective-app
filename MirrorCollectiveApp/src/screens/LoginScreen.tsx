@@ -12,7 +12,7 @@ import {
 import LogoHeader from '../components/LogoHeader';
 import TextInputField from '../components/TextInputField';
 import StarIcon from '../components/StarIcon';
-import apiService from '../services/apiService';
+import { authApiService } from '../services/api';
 import { typography } from '../styles/typography';
 
 const LoginScreen = ({ navigation }: any) => {
@@ -43,17 +43,19 @@ const LoginScreen = ({ navigation }: any) => {
     setIsLoading(true);
 
     try {
-      const response = await apiService.signIn({
+      const response = await authApiService.signIn({
         email: email.toLowerCase().trim(),
         password,
       });
-      console.log('SignIn response:', response);
+      if (__DEV__) {
+        console.log('SignIn response:', response);
+      }
       if (response.success && response.data && response.data.tokens) {
         // Store authentication tokens
-        await apiService.storeTokens(response.data.tokens);
+        await authApiService.storeTokens(response.data.tokens);
 
         // Check if user is verified
-        if (response.data.user && !response.data.user.emailVerified) {
+        if (response.data.user && !response.data.user.isVerified) {
           Alert.alert(
             'Email Verification Required',
             'Please verify your email address to continue.',
@@ -192,7 +194,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 40,
-    paddingTop: 80,
+    paddingTop: 120, // Space for LogoHeader (48 + 46 + 26 margin)
     gap: 40,
     width: '100%',
     maxWidth: 313,

@@ -2,8 +2,8 @@ import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, ImageBackground, Image } from 'react-native';
 
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '../../App';
-import { typography, shadows } from '../styles/typography';
+import type { RootStackParamList } from '../types';
+import { typography } from '../styles/typography';
 type SplashProps = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'Splash'>;
 };
@@ -11,7 +11,17 @@ type SplashProps = {
 const SplashScreen: React.FC<SplashProps> = ({ navigation }) => {
   useEffect(() => {
     const timer = setTimeout(() => {
-      navigation.replace('MirrorAnimation');
+      try {
+        navigation.replace('MirrorAnimation');
+      } catch (error) {
+        console.error('Navigation error in SplashScreen:', error);
+        // Fallback navigation attempt
+        try {
+          navigation.navigate('MirrorAnimation');
+        } catch (fallbackError) {
+          console.error('Fallback navigation also failed:', fallbackError);
+        }
+      }
     }, 3000); // Show for 3 seconds
 
     return () => clearTimeout(timer); // cleanup
@@ -37,12 +47,6 @@ const SplashScreen: React.FC<SplashProps> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    borderRadius: 15,
-    shadowColor: shadows.container.color,
-    shadowOffset: shadows.container.offset,
-    shadowOpacity: shadows.container.opacity,
-    shadowRadius: shadows.container.radius,
-    elevation: 10,
     alignItems: 'center',
     justifyContent: 'center',
   },

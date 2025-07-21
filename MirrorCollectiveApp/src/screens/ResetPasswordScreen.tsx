@@ -3,7 +3,7 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
+  ImageBackground,
   TouchableOpacity,
   Alert,
   KeyboardAvoidingView,
@@ -12,19 +12,23 @@ import {
 } from 'react-native';
 import LogoHeader from '../components/LogoHeader';
 import TextInputField from '../components/TextInputField';
-import AuthButton from '../components/AuthButton';
+import StarIcon from '../components/StarIcon';
 import { useAuth } from '../context/AuthContext';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { typography, colors } from '../styles/typography';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RouteProp } from '@react-navigation/native';
-import type { RootStackParamList } from '../../App';
+import type { RootStackParamList } from '../types';
 
 type ResetPasswordScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
   'ResetPassword'
 >;
 
-type ResetPasswordScreenRouteProp = RouteProp<RootStackParamList, 'ResetPassword'>;
+type ResetPasswordScreenRouteProp = RouteProp<
+  RootStackParamList,
+  'ResetPassword'
+>;
 
 const ResetPasswordScreen = () => {
   const [resetCode, setResetCode] = useState('');
@@ -32,12 +36,13 @@ const ResetPasswordScreen = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-  const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] = useState(false);
+  const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] =
+    useState(false);
 
   const { resetPassword, state } = useAuth();
   const navigation = useNavigation<ResetPasswordScreenNavigationProp>();
   const route = useRoute<ResetPasswordScreenRouteProp>();
-  
+
   const { email } = route.params;
 
   const validatePassword = (password: string) => {
@@ -75,7 +80,7 @@ const ResetPasswordScreen = () => {
     if (!validatePassword(newPassword)) {
       Alert.alert(
         'Weak Password',
-        'Password must be at least 8 characters long and contain uppercase, lowercase, number, and special character'
+        'Password must be at least 8 characters long and contain uppercase, lowercase, number, and special character',
       );
       return;
     }
@@ -88,7 +93,7 @@ const ResetPasswordScreen = () => {
     try {
       setIsLoading(true);
       await resetPassword(email, resetCode.trim(), newPassword);
-      
+
       Alert.alert(
         'Password Reset Successful',
         'Your password has been reset successfully. Please log in with your new password.',
@@ -97,7 +102,7 @@ const ResetPasswordScreen = () => {
             text: 'OK',
             onPress: () => navigation.navigate('Login'),
           },
-        ]
+        ],
       );
     } catch (error: any) {
       Alert.alert('Error', error.message || 'Failed to reset password');
@@ -111,156 +116,216 @@ const ResetPasswordScreen = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardAvoidingView}
+    <KeyboardAvoidingView
+      style={styles.keyboardContainer}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <ImageBackground
+        source={require('../../assets/dark_mode_shimmer_bg.png')}
+        style={styles.container}
+        resizeMode="cover"
       >
-        <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContainer}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
           <LogoHeader />
 
-          <View style={styles.content}>
-            <Text style={styles.title}>Reset Your Password</Text>
-            <Text style={styles.subtitle}>
-              Enter the 6-digit code sent to{'\n'}
-              <Text style={styles.emailText}>{email}</Text>
-            </Text>
+          <View style={styles.contentContainer}>
+            {/* Header Section */}
+            <View style={styles.headerSection}>
+              <Text style={styles.title}>Reset Your Password</Text>
+              <Text style={styles.subtitle}>
+                Enter the 6-digit code sent to{'\n'}
+                <Text style={styles.emailText}>{email}</Text>
+              </Text>
+            </View>
 
-            <View style={styles.formContainer}>
-              <TextInputField
-                placeholder="6-digit reset code"
-                value={resetCode}
-                onChangeText={setResetCode}
-                keyboardType="numeric"
-                autoCapitalize="none"
-                autoComplete="off"
-              />
+            {/* Form Section */}
+            <View style={styles.formSection}>
+              {/* Reset Code Field */}
+              <View style={styles.fieldContainer}>
+                <Text style={styles.fieldLabel}>Reset Code</Text>
+                <TextInputField
+                  placeholder="6-digit reset code"
+                  value={resetCode}
+                  onChangeText={setResetCode}
+                  keyboardType="numeric"
+                  autoCapitalize="none"
+                  autoComplete="off"
+                />
+              </View>
 
-              <TextInputField
-                placeholder="New password"
-                value={newPassword}
-                onChangeText={setNewPassword}
-                secureTextEntry={!isPasswordVisible}
-                autoCapitalize="none"
-                autoComplete="password"
-                showPasswordToggle={true}
-                isPasswordVisible={isPasswordVisible}
-                onTogglePassword={() => setIsPasswordVisible(!isPasswordVisible)}
-              />
+              {/* New Password Field */}
+              <View style={styles.fieldContainer}>
+                <Text style={styles.fieldLabel}>New Password</Text>
+                <TextInputField
+                  placeholder="Enter new password"
+                  value={newPassword}
+                  onChangeText={setNewPassword}
+                  secureTextEntry={!isPasswordVisible}
+                  autoCapitalize="none"
+                  autoComplete="password"
+                  showPasswordToggle={true}
+                  isPasswordVisible={isPasswordVisible}
+                  onTogglePassword={() =>
+                    setIsPasswordVisible(!isPasswordVisible)
+                  }
+                />
+              </View>
 
-              <TextInputField
-                placeholder="Confirm new password"
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                secureTextEntry={!isConfirmPasswordVisible}
-                autoCapitalize="none"
-                autoComplete="password"
-                showPasswordToggle={true}
-                isPasswordVisible={isConfirmPasswordVisible}
-                onTogglePassword={() => setIsConfirmPasswordVisible(!isConfirmPasswordVisible)}
-              />
+              {/* Confirm Password Field */}
+              <View style={styles.fieldContainer}>
+                <Text style={styles.fieldLabel}>Confirm Password</Text>
+                <TextInputField
+                  placeholder="Confirm new password"
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                  secureTextEntry={!isConfirmPasswordVisible}
+                  autoCapitalize="none"
+                  autoComplete="password"
+                  showPasswordToggle={true}
+                  isPasswordVisible={isConfirmPasswordVisible}
+                  onTogglePassword={() =>
+                    setIsConfirmPasswordVisible(!isConfirmPasswordVisible)
+                  }
+                />
+              </View>
 
               <Text style={styles.passwordRequirements}>
-                Password must be at least 8 characters with uppercase, lowercase, number, and special character
+                Password must be at least 8 characters with uppercase,
+                lowercase, number, and special character
               </Text>
 
               {state.error && (
                 <Text style={styles.errorText}>{state.error}</Text>
               )}
 
-              <AuthButton
-                title="Reset Password"
+              {/* Reset Password Button */}
+              <TouchableOpacity
+                style={styles.enterButton}
                 onPress={handleResetPassword}
-                isLoading={isLoading}
                 disabled={isLoading}
-              />
+                activeOpacity={0.8}
+              >
+                <StarIcon width={24} height={24} />
+                <Text style={styles.enterText}>
+                  {isLoading ? 'RESETTING...' : 'RESET PASSWORD'}
+                </Text>
+                <StarIcon width={24} height={24} />
+              </TouchableOpacity>
             </View>
 
-            <TouchableOpacity onPress={handleBackToLogin} style={styles.backLink}>
+            {/* Back to Login */}
+            <TouchableOpacity
+              onPress={handleBackToLogin}
+              style={styles.backLink}
+            >
               <Text style={styles.backLinkText}>
-                Remember your password? <Text style={styles.linkText}>Sign In</Text>
+                Remember your password?{' '}
+                <Text style={styles.linkText}>Sign In</Text>
               </Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+      </ImageBackground>
+    </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
+  keyboardContainer: {
+    flex: 1,
+  },
   container: {
     flex: 1,
-    backgroundColor: '#1B1B1D',
-  },
-  keyboardAvoidingView: {
-    flex: 1,
+    borderRadius: 15,
+    shadowColor: '#000',
+    shadowOffset: { width: -1, height: 5 },
+    shadowOpacity: 0.25,
+    shadowRadius: 26,
+    elevation: 10,
   },
   scrollContainer: {
     flexGrow: 1,
     justifyContent: 'center',
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-  },
-  content: {
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingTop: 40,
+    paddingVertical: 20,
+  },
+  contentContainer: {
+    flex: 1,
+    width: '100%',
+    alignItems: 'center',
+    paddingHorizontal: 40,
+    paddingTop: 120, // Space for LogoHeader (48 + 46 + 26 margin)
+    gap: 40,
+  },
+  headerSection: {
+    alignItems: 'center',
+    gap: 8,
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
+    ...typography.styles.title,
     textAlign: 'center',
-    marginBottom: 12,
-    fontFamily: 'CormorantGaramond-Bold',
   },
   subtitle: {
-    fontSize: 16,
-    color: '#B0B0B0',
+    ...typography.styles.body,
     textAlign: 'center',
-    marginBottom: 40,
     lineHeight: 24,
-    fontFamily: 'CormorantGaramond-Regular',
   },
   emailText: {
-    color: '#FFFFFF',
+    color: colors.text.accent,
     fontWeight: '600',
   },
-  formContainer: {
+  formSection: {
     width: '100%',
-    maxWidth: 320,
-    marginBottom: 30,
+    gap: 12,
+  },
+  fieldContainer: {
+    width: '100%',
+    gap: 4,
+  },
+  fieldLabel: {
+    ...typography.styles.label,
+    paddingLeft: 8,
   },
   passwordRequirements: {
-    fontSize: 12,
-    color: '#808080',
+    ...typography.styles.caption,
     textAlign: 'center',
     marginTop: 10,
     marginBottom: 20,
     lineHeight: 16,
-    fontFamily: 'CormorantGaramond-Regular',
   },
   errorText: {
+    ...typography.styles.bodySmall,
     color: '#FF6B6B',
-    fontSize: 14,
     textAlign: 'center',
     marginTop: 10,
     marginBottom: 10,
-    fontFamily: 'CormorantGaramond-Regular',
+  },
+  enterButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+    justifyContent: 'center',
+    marginTop: 20,
+  },
+  enterText: {
+    ...typography.styles.button,
+    textShadowColor: 'rgba(245, 230, 184, 0.50)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 4,
   },
   backLink: {
     marginTop: 20,
   },
   backLinkText: {
-    fontSize: 16,
-    color: '#B0B0B0',
+    ...typography.styles.body,
     textAlign: 'center',
-    fontFamily: 'CormorantGaramond-Regular',
   },
   linkText: {
-    color: '#8B7355',
-    fontWeight: '600',
+    ...typography.styles.linkLarge,
   },
 });
 
