@@ -13,7 +13,7 @@ import {
 import LogoHeader from '../components/LogoHeader';
 import TextInputField from '../components/TextInputField';
 import AuthButton from '../components/AuthButton';
-import apiService from '../services/apiService';
+import { authApiService } from '../services/api';
 import { typography } from '../styles/typography';
 
 interface SignUpScreenProps {
@@ -65,7 +65,7 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
     if (!hasUpperCase || !hasLowerCase || !hasNumbers || !hasSpecialChar) {
       Alert.alert(
         'Weak Password',
-        'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character'
+        'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character',
       );
       return false;
     }
@@ -84,9 +84,9 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
     }
 
     setIsLoading(true);
-    
+
     try {
-      const response = await apiService.signUp({
+      const response = await authApiService.signUp({
         fullName: fullName.trim(),
         email: email.toLowerCase().trim(),
         password,
@@ -99,21 +99,26 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
           [
             {
               text: 'Continue',
-              onPress: () => navigation.navigate('VerifyEmail', { 
-                email: email.toLowerCase().trim(),
-                fullName: fullName.trim(),
-              }),
+              onPress: () =>
+                navigation.navigate('VerifyEmail', {
+                  email: email.toLowerCase().trim(),
+                  fullName: fullName.trim(),
+                }),
             },
-          ]
+          ],
         );
       } else {
-        Alert.alert('Registration Failed', response.message || response.error || 'Please try again');
+        Alert.alert(
+          'Registration Failed',
+          response.message || response.error || 'Please try again',
+        );
       }
     } catch (error: any) {
       console.error('Sign up error:', error);
       Alert.alert(
         'Registration Failed',
-        error.message || 'Unable to create your account. Please check your connection and try again.'
+        error.message ||
+          'Unable to create your account. Please check your connection and try again.',
       );
     } finally {
       setIsLoading(false);
@@ -125,7 +130,7 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
   };
 
   return (
-    <KeyboardAvoidingView 
+    <KeyboardAvoidingView
       style={styles.keyboardContainer}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
@@ -134,18 +139,20 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
         style={styles.container}
         resizeMode="cover"
       >
-        <ScrollView 
+        <ScrollView
           contentContainerStyle={styles.scrollContainer}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
           <LogoHeader />
-          
+
           <View style={styles.contentContainer}>
             {/* Header Section */}
             <View style={styles.headerSection}>
               <Text style={styles.title}>Getting Started</Text>
-              <Text style={styles.subtitle}>Let's set up your sacred space</Text>
+              <Text style={styles.subtitle}>
+                Let's set up your sacred space
+              </Text>
             </View>
 
             {/* Form Section */}
@@ -199,7 +206,9 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
                   secureTextEntry={!showConfirmPassword}
                   showPasswordToggle={true}
                   isPasswordVisible={showConfirmPassword}
-                  onTogglePassword={() => setShowConfirmPassword(!showConfirmPassword)}
+                  onTogglePassword={() =>
+                    setShowConfirmPassword(!showConfirmPassword)
+                  }
                 />
               </View>
             </View>
@@ -214,7 +223,9 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
 
             {/* Login Link */}
             <View style={styles.loginContainer}>
-              <Text style={styles.loginText}>Already part of the Mirror Collective?</Text>
+              <Text style={styles.loginText}>
+                Already part of the Mirror Collective?
+              </Text>
               <TouchableOpacity onPress={navigateToLogin} disabled={isLoading}>
                 <Text style={styles.loginLink}>Sign in here</Text>
               </TouchableOpacity>

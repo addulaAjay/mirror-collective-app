@@ -9,11 +9,11 @@ import {
   TextInput,
 } from 'react-native';
 import LogoHeader from '../components/LogoHeader';
-import apiService from '../services/apiService';
+import { authApiService } from '../services/api';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RouteProp } from '@react-navigation/native';
-import type { RootStackParamList } from '../../App';
+import type { RootStackParamList } from '../types';
 import { typography, colors, shadows } from '../styles/typography';
 
 type VerifyEmailScreenNavigationProp = NativeStackNavigationProp<
@@ -59,17 +59,12 @@ const VerifyEmailScreen = () => {
     }
 
     try {
-      const response = await apiService.verifyEmail(
+      const response = await authApiService.verifyEmail({
         email,
-        verificationCode.trim(),
-      );
+        code: verificationCode.trim(),
+      });
 
       if (response.success) {
-        // Store authentication tokens if provided
-        if (response.data?.tokens) {
-          await apiService.storeTokens(response.data.tokens);
-        }
-
         Alert.alert(
           'Welcome to the Mirror Collective!',
           'Your sacred space is ready. Let the journey begin.',
@@ -111,7 +106,7 @@ const VerifyEmailScreen = () => {
     setIsResending(true);
 
     try {
-      const response = await apiService.resendVerificationCode(email);
+      const response = await authApiService.resendVerificationCode(email);
 
       if (response.success) {
         setCountdown(60); // 60 second cooldown

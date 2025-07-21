@@ -2,8 +2,10 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import ErrorBoundary from './src/components/ErrorBoundary';
+import { ChatErrorBoundary } from './src/components/error';
 import { AuthProvider } from './src/context/AuthContext';
 import useAppStateHandler from './src/hooks/useAppStateHandler';
+import type { RootStackParamList } from './src/types';
 
 // Import your screens
 import SplashScreen from './src/screens/SplashScreen';
@@ -11,29 +13,20 @@ import MirrorAnimationScreen from './src/screens/MirrorAnimationScreen';
 import EnterMirrorScreen from './src/screens/EnterMirrorScreen';
 import AppExplainerScreen from './src/screens/AppExplainerScreen';
 import LoginScreen from './src/screens/LoginScreen';
-import MirrorChatScreen from './src/screens/Mirror-chat-screen';
+import MirrorChatScreen from './src/screens/MirrorChatScreen';
 import SignUpScreen from './src/screens/SignUpScreen';
 import VerifyEmailScreen from './src/screens/VerifyEmailScreen';
 import ForgotPasswordScreen from './src/screens/ForgotPasswordScreen';
 import ResetPasswordScreen from './src/screens/ResetPasswordScreen';
-import MirrorGPTScreen from './src/screens/MirrorGPTScreen';
-
-// Define navigation types
-export type RootStackParamList = {
-  Splash: undefined;
-  MirrorAnimation: undefined;
-  EnterMirror: undefined;
-  AppExplanation: undefined;
-  Login: undefined;
-  MirrorChat: undefined;
-  SignUp: undefined;
-  VerifyEmail: { email: string; fullName: string };
-  ForgotPassword: undefined;
-  ResetPassword: { email: string };
-  MirrorGPT: undefined;
-};
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
+
+// Wrapped MirrorChat component with error boundary
+const MirrorChatWithErrorBoundary = () => (
+  <ChatErrorBoundary>
+    <MirrorChatScreen />
+  </ChatErrorBoundary>
+);
 
 // Authentication-aware navigator
 const AppNavigator = () => {
@@ -49,12 +42,11 @@ const AppNavigator = () => {
       <Stack.Screen name="EnterMirror" component={EnterMirrorScreen} />
       <Stack.Screen name="AppExplanation" component={AppExplainerScreen} />
       <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="MirrorChat" component={MirrorChatScreen} />
+      <Stack.Screen name="MirrorChat" component={MirrorChatWithErrorBoundary} />
       <Stack.Screen name="SignUp" component={SignUpScreen} />
       <Stack.Screen name="VerifyEmail" component={VerifyEmailScreen} />
       <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
       <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
-      <Stack.Screen name="MirrorGPT" component={MirrorGPTScreen} />
     </Stack.Navigator>
   );
 };

@@ -15,7 +15,7 @@ import StarIcon from '../components/StarIcon';
 import { useAuth } from '../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '../../App';
+import type { RootStackParamList } from '../types';
 import { typography, colors, shadows } from '../styles/typography';
 
 type ForgotPasswordScreenNavigationProp = NativeStackNavigationProp<
@@ -196,7 +196,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 40,
-    paddingTop: 80,
+    paddingTop: 120, // Space for LogoHeader (48 + 46 + 26 margin)
     gap: 40,
     width: '100%',
     maxWidth: 313,
