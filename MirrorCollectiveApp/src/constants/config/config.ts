@@ -6,7 +6,7 @@ export const API_CONFIG = {
       ? 'http://10.0.2.2:3000'
       : 'http://localhost:3000',
   ENDPOINTS: {
-    MIRROR_CHAT: '/api/mirror-chat',
+    MIRROR_CHAT: '/api/chat/mirror',
     AUTH: {
       LOGIN: '/api/auth/login',
       SIGNUP: '/api/auth/register',
