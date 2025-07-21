@@ -6,18 +6,14 @@ import React, {
   ReactNode,
   useRef,
 } from 'react';
-import apiService from '../services/apiService';
+import { authApiService } from '../services/api';
 
 // Types
 interface UserProfile {
   id: string;
   email: string;
-  firstName: string;
-  lastName: string;
-  provider: 'cognito' | 'google';
-  emailVerified: boolean;
-  createdAt: string;
-  updatedAt: string;
+  fullName: string;
+  isVerified: boolean;
 }
 
 interface AuthState {
@@ -137,7 +133,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         // Check if user is authenticated with enhanced timeout handling
         let isAuth = false;
         try {
-          const authCheckPromise = apiService.isAuthenticated();
+          const authCheckPromise = authApiService.isAuthenticated();
           const timeoutPromise = new Promise<boolean>((_, reject) => {
             setTimeout(() => reject(new Error('Auth check timeout')), 10000);
           });
@@ -158,13 +154,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         if (isAuth) {
           // Try to get user profile with enhanced error handling
           try {
-            const profileResponse = await apiService.getUserProfile();
+            const profileResponse = await authApiService.getUserProfile();
             if (!isMountedRef.current || !isInitializing) return;
 
-            if (profileResponse.success && profileResponse.user) {
+            if (profileResponse.success && profileResponse.data?.user) {
               safeDispatch({
                 type: 'LOGIN_SUCCESS',
-                payload: profileResponse.user,
+                payload: profileResponse.data.user,
               });
             } else {
               throw new Error('Invalid profile response');
@@ -181,29 +177,28 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
             // Attempt token refresh
             try {
-              const refreshResponse = await apiService.refreshToken();
+              const refreshResponse = await authApiService.refreshToken();
               if (!isMountedRef.current || !isInitializing) return;
 
               if (
                 refreshResponse.success &&
-                refreshResponse.accessToken &&
-                refreshResponse.refreshToken
+                refreshResponse.data?.tokens
               ) {
-                await apiService.storeTokens({
-                  accessToken: refreshResponse.accessToken,
-                  refreshToken: refreshResponse.refreshToken,
+                await authApiService.storeTokens({
+                  accessToken: refreshResponse.data.tokens.accessToken,
+                  refreshToken: refreshResponse.data.tokens.refreshToken,
                 });
 
                 if (!isMountedRef.current || !isInitializing) return;
 
                 // Retry profile fetch
-                const retryProfileResponse = await apiService.getUserProfile();
+                const retryProfileResponse = await authApiService.getUserProfile();
                 if (!isMountedRef.current || !isInitializing) return;
 
-                if (retryProfileResponse.success && retryProfileResponse.user) {
+                if (retryProfileResponse.success && retryProfileResponse.data?.user) {
                   safeDispatch({
                     type: 'LOGIN_SUCCESS',
-                    payload: retryProfileResponse.user,
+                    payload: retryProfileResponse.data.user,
                   });
                 } else {
                   throw new Error('Profile fetch failed after refresh');
@@ -220,7 +215,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
               }
               // Clear tokens safely
               try {
-                await apiService.clearTokens();
+                await authApiService.clearTokens();
               } catch (tokenClearError) {
                 if (__DEV__) {
                   console.warn('Token clear failed:', tokenClearError);
@@ -240,7 +235,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         console.error('Auth initialization error:', error);
         // Clear any potentially corrupted state
         try {
-          await apiService.clearTokens();
+          await authApiService.clearTokens();
         } catch (tokensClearError) {
           if (__DEV__) {
             console.warn(
@@ -295,7 +290,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       safeDispatch({ type: 'SET_LOADING', payload: true });
       safeDispatch({ type: 'CLEAR_ERROR' });
 
-      const response = await apiService.signUp({
+      const response = await authApiService.signUp({
         fullName: fullName.trim(),
         email: email.toLowerCase().trim(),
         password,
@@ -325,25 +320,24 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       safeDispatch({ type: 'SET_LOADING', payload: true });
       safeDispatch({ type: 'CLEAR_ERROR' });
 
-      const response = await apiService.signIn({
+      const response = await authApiService.signIn({
         email: email.toLowerCase().trim(),
         password,
       });
 
       if (
         response.success &&
-        response.user &&
-        response.accessToken &&
-        response.refreshToken
+        response.data?.user &&
+        response.data?.tokens
       ) {
         // Store tokens
-        await apiService.storeTokens({
-          accessToken: response.accessToken,
-          refreshToken: response.refreshToken,
+        await authApiService.storeTokens({
+          accessToken: response.data.tokens.accessToken,
+          refreshToken: response.data.tokens.refreshToken,
         });
 
         if (isMountedRef.current) {
-          safeDispatch({ type: 'LOGIN_SUCCESS', payload: response.user });
+          safeDispatch({ type: 'LOGIN_SUCCESS', payload: response.data.user });
         }
       } else {
         throw new Error(response.message || 'Login failed');
@@ -368,7 +362,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
       // Call backend logout endpoint (don't fail if it doesn't work)
       try {
-        await apiService.signOut();
+        await authApiService.signOut();
       } catch (error) {
         if (__DEV__) {
           console.warn(
@@ -379,7 +373,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       }
 
       // Clear local storage
-      await apiService.clearTokens();
+      await authApiService.clearTokens();
 
       if (isMountedRef.current) {
         safeDispatch({ type: 'LOGOUT_SUCCESS' });
@@ -388,7 +382,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       console.error('Logout error:', error);
       // Force logout locally even if something fails
       try {
-        await apiService.clearTokens();
+        await authApiService.clearTokens();
       } catch (clearTokensError) {
         if (__DEV__) {
           console.warn(
@@ -411,7 +405,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       safeDispatch({ type: 'SET_LOADING', payload: true });
       safeDispatch({ type: 'CLEAR_ERROR' });
 
-      const response = await apiService.forgotPassword(
+      const response = await authApiService.forgotPassword(
         email.toLowerCase().trim(),
       );
 
@@ -442,11 +436,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       safeDispatch({ type: 'SET_LOADING', payload: true });
       safeDispatch({ type: 'CLEAR_ERROR' });
 
-      const response = await apiService.resetPassword(
-        email.toLowerCase().trim(),
-        resetCode.trim(),
+      const response = await authApiService.resetPassword({
+        email: email.toLowerCase().trim(),
+        resetCode: resetCode.trim(),
         newPassword,
-      );
+      });
 
       if (!response.success) {
         throw new Error(response.message || 'Failed to reset password');
@@ -468,13 +462,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     if (!isMountedRef.current) return;
 
     try {
-      const profileResponse = await apiService.getUserProfile();
+      const profileResponse = await authApiService.getUserProfile();
       if (
         profileResponse.success &&
-        profileResponse.user &&
+        profileResponse.data?.user &&
         isMountedRef.current
       ) {
-        safeDispatch({ type: 'SET_USER', payload: profileResponse.user });
+        safeDispatch({ type: 'SET_USER', payload: profileResponse.data.user });
       }
     } catch (error) {
       console.error('Failed to refresh auth:', error);

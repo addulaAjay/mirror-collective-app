@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { View, StyleSheet, ImageBackground, Image } from 'react-native';
 
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '../../App';
+import type { RootStackParamList } from '../types';
 import LogoHeader from '../components/LogoHeader';
 import { shadows } from '../styles/typography';
 
@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
     shadowRadius: shadows.container.radius,
     elevation: 10,
     alignItems: 'center',
-    paddingTop: 48,
+    paddingTop: 120, // Space for LogoHeader (48 + 46 + 26 margin)
     paddingHorizontal: 42,
   },
   mirrorContainer: {
