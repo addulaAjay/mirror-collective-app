@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import LogoHeader from '../components/LogoHeader';
 import TextInputField from '../components/TextInputField';
-import AuthButton from '../components/AuthButton';
+import StarIcon from '../components/StarIcon';
 import { authApiService } from '../services/api';
 import { typography } from '../styles/typography';
 
@@ -214,12 +214,18 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
             </View>
 
             {/* Continue Button */}
-            <AuthButton
-              title="Continue"
+            <TouchableOpacity
+              style={styles.enterButton}
               onPress={handleSignUp}
-              isLoading={isLoading}
               disabled={isLoading}
-            />
+              activeOpacity={0.8}
+            >
+              <StarIcon width={24} height={24} />
+              <Text style={styles.enterText}>
+                {isLoading ? 'CREATING...' : 'CONTINUE'}
+              </Text>
+              <StarIcon width={24} height={24} />
+            </TouchableOpacity>
 
             {/* Login Link */}
             <View style={styles.loginContainer}>
@@ -287,6 +293,19 @@ const styles = StyleSheet.create({
   fieldLabel: {
     ...typography.styles.label,
     paddingLeft: 8,
+  },
+  enterButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+    justifyContent: 'center',
+    marginTop: 20,
+  },
+  enterText: {
+    ...typography.styles.button,
+    textShadowColor: 'rgba(245, 230, 184, 0.50)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 4,
   },
   loginContainer: {
     alignItems: 'center',

@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_CONFIG } from '../../constants/config';
 import type { ApiResponse, ApiError } from '../../types';
+import { ApiErrorHandler } from './errorHandler';
 
 export class BaseApiService {
   private readonly baseUrl: string;
@@ -19,6 +20,7 @@ export class BaseApiService {
   ): Promise<ApiResponse<T>> {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+    let response: Response | undefined;
 
     try {
       const headers: Record<string, string> = {
@@ -42,30 +44,56 @@ export class BaseApiService {
         config.body = JSON.stringify(data);
       }
 
-      const response = await fetch(`${this.baseUrl}${endpoint}`, config);
-      const responseData = await response.json();
+      response = await fetch(`${this.baseUrl}${endpoint}`, config);
+
+      let responseData;
+      try {
+        responseData = await response.json();
+      } catch (parseError) {
+        // Handle cases where response is not valid JSON
+        clearTimeout(timeoutId);
+        if (!response.ok) {
+          throw this.createApiError(
+            `Server error: ${response.statusText}`,
+            response.status,
+          );
+        }
+        // For successful responses that aren't JSON, return empty object
+        return {} as ApiResponse<T>;
+      }
 
       clearTimeout(timeoutId);
 
       if (!response.ok) {
+        // For auth endpoints and client errors, return error response instead of throwing
+        if (ApiErrorHandler.shouldHandleGracefully(endpoint, response.status)) {
+          return responseData;
+        }
         throw this.createApiError(responseData, response.status);
       }
 
       return responseData;
     } catch (error) {
       clearTimeout(timeoutId);
-      
-      if (error instanceof Error) {
-        if (error.name === 'AbortError') {
-          throw this.createApiError('Request timeout', 408);
-        }
-        
-        if (error.message.includes('Network request failed')) {
-          throw this.createApiError('Network error. Please check your connection.', 0);
-        }
+
+      // Use centralized error handling for system errors
+      const errorResponse = ApiErrorHandler.handleSystemError(error, {
+        endpoint,
+        method,
+        statusCode: response?.status,
+        originalError: error,
+      });
+
+      // If it's a graceful endpoint, return the error response
+      if (ApiErrorHandler.shouldHandleGracefully(endpoint)) {
+        return errorResponse;
       }
 
-      throw error;
+      // Otherwise, throw the error
+      throw this.createApiError(
+        errorResponse.message || 'Unknown error',
+        errorResponse.error as any,
+      );
     }
   }
 

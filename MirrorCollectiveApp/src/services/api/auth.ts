@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BaseApiService } from './base';
 import { API_CONFIG } from '../../constants/config';
+import { ApiErrorHandler } from './errorHandler';
 import type {
   AuthCredentials,
   SignUpData,
@@ -29,84 +30,103 @@ interface SimpleResponse {
 
 export class AuthApiService extends BaseApiService {
   async signUp(data: SignUpData): Promise<ApiResponse<SimpleResponse>> {
-    return this.makeRequest<SimpleResponse>(
+    const response = await this.makeRequest<any>(
       API_CONFIG.ENDPOINTS.AUTH.SIGNUP,
       'POST',
       data,
+    );
+    return ApiErrorHandler.handleApiResponse<SimpleResponse>(
+      response,
+      'Account created successfully',
+      'SignUpError',
     );
   }
 
   async signIn(
     credentials: AuthCredentials,
   ): Promise<ApiResponse<AuthResponse>> {
-    const response = await this.makeRequest<AuthResponse>(
+    const response = await this.makeRequest<any>(
       API_CONFIG.ENDPOINTS.AUTH.LOGIN,
       'POST',
       credentials,
     );
-    // Login response doesn't have success field, so we wrap it
-    return {
-      success: true,
-      data: response.data,
-      message: response.message,
-      error: response.error,
-    };
+    return ApiErrorHandler.handleApiResponse<AuthResponse>(
+      response,
+      'Login successful',
+      'AuthenticationError',
+    );
   }
 
   async verifyEmail(
     data: VerifyEmailData,
   ): Promise<ApiResponse<SimpleResponse>> {
-    return this.makeRequest<SimpleResponse>(
+    const response = await this.makeRequest<any>(
       API_CONFIG.ENDPOINTS.AUTH.VERIFY_EMAIL,
       'POST',
       data,
     );
+    return ApiErrorHandler.handleApiResponse<SimpleResponse>(
+      response,
+      'Email verified successfully',
+      'VerificationError',
+    );
   }
 
   async forgotPassword(email: string): Promise<ApiResponse> {
-    return this.makeRequest(API_CONFIG.ENDPOINTS.AUTH.FORGOT_PASSWORD, 'POST', {
-      email,
-    });
+    const response = await this.makeRequest<any>(
+      API_CONFIG.ENDPOINTS.AUTH.FORGOT_PASSWORD,
+      'POST',
+      { email },
+    );
+    return ApiErrorHandler.handleApiResponse(
+      response,
+      'Reset email sent successfully',
+      'ForgotPasswordError',
+    );
   }
 
   async resetPassword(data: ResetPasswordData): Promise<ApiResponse> {
-    return this.makeRequest(
+    const response = await this.makeRequest<any>(
       API_CONFIG.ENDPOINTS.AUTH.RESET_PASSWORD,
       'POST',
       data,
     );
+    return ApiErrorHandler.handleApiResponse(
+      response,
+      'Password reset successfully',
+      'ResetPasswordError',
+    );
   }
 
   async resendVerificationCode(email: string): Promise<ApiResponse> {
-    try {
-      const response = await fetch(
-        API_CONFIG.ENDPOINTS.AUTH.RESEND_VERIFICATION_CODE,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ email }),
-        },
-      );
-      const data = await response.json();
-      return {
-        success: response.ok,
-        data: data,
-        message: data?.message,
-      };
-    } catch (error: any) {
-      return {
-        success: false,
-        message: error?.message || 'Network error',
-      };
-    }
+    const response = await this.makeRequest<any>(
+      API_CONFIG.ENDPOINTS.AUTH.RESEND_VERIFICATION_CODE,
+      'POST',
+      { email },
+    );
+    return ApiErrorHandler.handleApiResponse(
+      response,
+      'Verification code sent successfully',
+      'VerificationError',
+    );
   }
 
   async signOut(): Promise<ApiResponse> {
-    const result = await this.makeRequest('/auth/logout', 'POST', {}, true);
+    const response = await this.makeRequest<any>(
+      '/auth/logout',
+      'POST',
+      {},
+      true,
+    );
+
+    // Always clear tokens, regardless of API response
     await this.clearTokens();
-    return result;
+
+    return ApiErrorHandler.handleApiResponse(
+      response,
+      'Signed out successfully',
+      'SignOutError',
+    );
   }
 
   // Token management
@@ -158,21 +178,26 @@ export class AuthApiService extends BaseApiService {
   async refreshToken(): Promise<ApiResponse<AuthResponse>> {
     const refreshToken = await AsyncStorage.getItem('refreshToken');
     if (!refreshToken) {
-      throw new Error('No refresh token available');
+      return ApiErrorHandler.createErrorResponse<AuthResponse>(
+        'No refresh token available',
+        'RefreshTokenError',
+      );
     }
-    
-    const response = await this.makeRequest<AuthResponse>(
-      '/auth/refresh',
-      'POST',
-      { refreshToken },
+
+    const response = await this.makeRequest<any>('/auth/refresh', 'POST', {
+      refreshToken,
+    });
+
+    // If token refresh fails, clear stored tokens
+    if (response && response.success === false) {
+      await this.clearTokens();
+    }
+
+    return ApiErrorHandler.handleApiResponse<AuthResponse>(
+      response,
+      'Token refreshed successfully',
+      'RefreshTokenError',
     );
-    
-    return {
-      success: true,
-      data: response.data,
-      message: response.message,
-      error: response.error,
-    };
   }
 }
 
