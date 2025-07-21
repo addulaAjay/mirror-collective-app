@@ -1,11 +1,10 @@
-import React, { useRef, useState } from 'react';
+import React from 'react';
 import {
   TextInput,
   StyleSheet,
   View,
   TouchableOpacity,
   Text,
-  Platform,
 } from 'react-native';
 import { typography, colors, shadows } from '../styles/typography';
 
@@ -34,55 +33,22 @@ const TextInputField = ({
   isPasswordVisible = false,
   onTogglePassword,
 }: Props) => {
-  const inputRef = useRef<TextInput>(null);
-  const [selection, setSelection] = useState({ start: 0, end: 0 });
-
-  const handleChangeText = (text: string) => {
-    if (onChangeText) {
-      onChangeText(text);
-    }
-    // Update selection to be at the end of new text
-    const newPosition = text.length;
-    setSelection({ start: newPosition, end: newPosition });
-  };
-
-  const handleFocus = () => {
-    // When focusing on an empty field, cursor should be at position 0 for center alignment
-    if (!value || value.length === 0) {
-      setSelection({ start: 0, end: 0 });
-      setTimeout(() => {
-        inputRef.current?.setSelection(0, 0);
-      }, 50);
-    } else {
-      // If there's text, place cursor at the end
-      const textLength = value.length;
-      setSelection({ start: textLength, end: textLength });
-    }
-  };
-
-  const handleSelectionChange = (event: any) => {
-    setSelection(event.nativeEvent.selection);
-  };
+  // Determine text alignment - center when empty or has text
+  const textAlign = 'center';
 
   return (
     <View style={styles.container}>
       <TextInput
-        ref={inputRef}
         placeholder={placeholder}
         placeholderTextColor={colors.text.muted}
         secureTextEntry={secureTextEntry}
-        style={styles.input}
+        style={[styles.input, { textAlign }]}
         value={value}
-        onChangeText={handleChangeText}
+        onChangeText={onChangeText}
         keyboardType={keyboardType}
         autoCapitalize={autoCapitalize}
         autoComplete={autoComplete}
-        textAlign="center"
-        onFocus={handleFocus}
-        onSelectionChange={handleSelectionChange}
-        selection={selection}
-        multiline={false}
-        selectTextOnFocus={false}
+        textAlign={textAlign}
       />
       {showPasswordToggle && (
         <TouchableOpacity
@@ -121,14 +87,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     textAlignVertical: 'center',
     includeFontPadding: false,
-    paddingTop: 0,
-    paddingBottom: 0,
-    height: '100%',
-    // Force cursor to be visible and centered
-    ...(Platform.OS === 'android' && {
-      textAlign: 'center',
-      textAlignVertical: 'center',
-    }),
   },
   eyeIcon: {
     position: 'absolute',
