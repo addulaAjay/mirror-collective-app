@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BaseApiService } from './base';
 import { API_CONFIG } from '../../constants/config';
 import { ApiErrorHandler } from './errorHandler';
+import { tokenManager } from '../tokenManager';
 import type {
   AuthCredentials,
   SignUpData,
@@ -134,41 +135,15 @@ export class AuthApiService extends BaseApiService {
     accessToken: string;
     refreshToken: string;
   }): Promise<void> {
-    try {
-      await Promise.all([
-        AsyncStorage.setItem('accessToken', tokens.accessToken),
-        AsyncStorage.setItem('refreshToken', tokens.refreshToken),
-        AsyncStorage.setItem('isAuthenticated', 'true'),
-      ]);
-    } catch (error) {
-      throw new Error('Failed to store authentication tokens');
-    }
+    return await tokenManager.storeTokens(tokens);
   }
 
   async clearTokens(): Promise<void> {
-    try {
-      await AsyncStorage.multiRemove([
-        'accessToken',
-        'refreshToken',
-        'isAuthenticated',
-      ]);
-    } catch (error) {
-      console.error('Error clearing tokens:', error);
-    }
+    return await tokenManager.clearTokens();
   }
 
   async isAuthenticated(): Promise<boolean> {
-    try {
-      const [isAuth, accessToken] = await Promise.all([
-        AsyncStorage.getItem('isAuthenticated'),
-        AsyncStorage.getItem('accessToken'),
-      ]);
-
-      return isAuth === 'true' && accessToken !== null;
-    } catch (error) {
-      console.error('Error checking authentication:', error);
-      return false;
-    }
+    return await tokenManager.isAuthenticated();
   }
 
   async getUserProfile(): Promise<ApiResponse<{ user: any }>> {

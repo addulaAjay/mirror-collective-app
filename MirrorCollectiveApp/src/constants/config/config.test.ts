@@ -14,12 +14,18 @@ describe('API_CONFIG', () => {
   });
 
   it('has all required endpoints', () => {
-    expect(API_CONFIG.ENDPOINTS.MIRROR_CHAT).toBe('/api/mirror-chat');
+    expect(API_CONFIG.ENDPOINTS.MIRROR_CHAT).toBe('/api/chat/mirror');
     expect(API_CONFIG.ENDPOINTS.AUTH.LOGIN).toBe('/api/auth/login');
-    expect(API_CONFIG.ENDPOINTS.AUTH.SIGNUP).toBe('/api/auth/signup');
-    expect(API_CONFIG.ENDPOINTS.AUTH.VERIFY_EMAIL).toBe('/api/auth/verify-email');
-    expect(API_CONFIG.ENDPOINTS.AUTH.FORGOT_PASSWORD).toBe('/api/auth/forgot-password');
-    expect(API_CONFIG.ENDPOINTS.AUTH.RESET_PASSWORD).toBe('/api/auth/reset-password');
+    expect(API_CONFIG.ENDPOINTS.AUTH.SIGNUP).toBe('/api/auth/register');
+    expect(API_CONFIG.ENDPOINTS.AUTH.VERIFY_EMAIL).toBe(
+      '/api/auth/confirm-email',
+    );
+    expect(API_CONFIG.ENDPOINTS.AUTH.FORGOT_PASSWORD).toBe(
+      '/api/auth/forgot-password',
+    );
+    expect(API_CONFIG.ENDPOINTS.AUTH.RESET_PASSWORD).toBe(
+      '/api/auth/reset-password',
+    );
   });
 
   it('has correct timeout value', () => {
