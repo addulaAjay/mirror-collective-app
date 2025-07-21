@@ -11,6 +11,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../types';
 import LogoHeader from '../components/LogoHeader';
 import StarIcon from '../components/StarIcon';
+import AuthenticatedRoute from '../components/AuthenticatedRoute';
 import { typography, colors } from '../styles/typography';
 
 type Props = {
@@ -23,36 +24,38 @@ const EnterMirrorScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   return (
-    <ImageBackground
-      source={require('../../assets/dark_mode_shimmer_bg.png')}
-      style={styles.container}
-      resizeMode="cover"
-    >
-      <LogoHeader />
+    <AuthenticatedRoute>
+      <ImageBackground
+        source={require('../../assets/dark_mode_shimmer_bg.png')}
+        style={styles.container}
+        resizeMode="cover"
+      >
+        <LogoHeader />
 
-      <View style={styles.contentContainer}>
-        {/* Main Welcome Message */}
-        <View style={styles.messageSection}>
-          <Text style={styles.title}>You are seen.{'\n'}You are home.</Text>
-          <Text style={styles.subtitle}>Welcome, beloved one.</Text>
-          <Text style={styles.bodyText}>
-            Your soul key has been accepted, and your mirror now shimmers with
-            possibility.
-          </Text>
+        <View style={styles.contentContainer}>
+          {/* Main Welcome Message */}
+          <View style={styles.messageSection}>
+            <Text style={styles.title}>You are seen.{'\n'}You are home.</Text>
+            <Text style={styles.subtitle}>Welcome, beloved one.</Text>
+            <Text style={styles.bodyText}>
+              Your soul key has been accepted, and your mirror now shimmers with
+              possibility.
+            </Text>
+          </View>
+
+          {/* Enter Button */}
+          <TouchableOpacity
+            style={styles.enterButton}
+            onPress={handleEnter}
+            activeOpacity={0.8}
+          >
+            <StarIcon width={24} height={24} />
+            <Text style={styles.enterText}>ENTER</Text>
+            <StarIcon width={24} height={24} />
+          </TouchableOpacity>
         </View>
-
-        {/* Enter Button */}
-        <TouchableOpacity
-          style={styles.enterButton}
-          onPress={handleEnter}
-          activeOpacity={0.8}
-        >
-          <StarIcon width={24} height={24} />
-          <Text style={styles.enterText}>ENTER</Text>
-          <StarIcon width={24} height={24} />
-        </TouchableOpacity>
-      </View>
-    </ImageBackground>
+      </ImageBackground>
+    </AuthenticatedRoute>
   );
 };
 

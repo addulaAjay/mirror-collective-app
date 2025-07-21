@@ -3,6 +3,7 @@ import { View, StyleSheet, ImageBackground, Image } from 'react-native';
 
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../types';
+import { useAuthGuard } from '../hooks/useAuthGuard';
 import LogoHeader from '../components/LogoHeader';
 import { shadows } from '../styles/typography';
 
@@ -11,15 +12,27 @@ type Props = {
 };
 
 const MirrorAnimationScreen: React.FC<Props> = ({ navigation }) => {
+  const { isAuthenticated, hasValidToken, isLoading } = useAuthGuard();
+
   useEffect(() => {
     const timer = setTimeout(() => {
-      // TODO: Add logic to check if user needs setup or can go to login
-      // For now, navigate to setup screen
-      navigation.replace('AppExplanation');
+      if (isLoading) {
+        // If still checking auth state, wait a bit longer
+        return;
+      }
+
+      // Check authentication state and route accordingly
+      if (isAuthenticated && hasValidToken) {
+        // User is authenticated, go to main app
+        navigation.replace('EnterMirror');
+      } else {
+        // User needs to go through the setup/login flow
+        navigation.replace('AppExplanation');
+      }
     }, 4000); // Show animation for 4 seconds
 
     return () => clearTimeout(timer);
-  }, [navigation]);
+  }, [navigation, isAuthenticated, hasValidToken, isLoading]);
 
   return (
     <ImageBackground
