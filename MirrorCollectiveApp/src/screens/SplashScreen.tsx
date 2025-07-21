@@ -11,7 +11,17 @@ type SplashProps = {
 const SplashScreen: React.FC<SplashProps> = ({ navigation }) => {
   useEffect(() => {
     const timer = setTimeout(() => {
-      navigation.replace('MirrorAnimation');
+      try {
+        navigation.replace('MirrorAnimation');
+      } catch (error) {
+        console.error('Navigation error in SplashScreen:', error);
+        // Fallback navigation attempt
+        try {
+          navigation.navigate('MirrorAnimation');
+        } catch (fallbackError) {
+          console.error('Fallback navigation also failed:', fallbackError);
+        }
+      }
     }, 3000); // Show for 3 seconds
 
     return () => clearTimeout(timer); // cleanup

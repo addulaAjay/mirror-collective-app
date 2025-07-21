@@ -31,9 +31,9 @@ const ForgotPasswordScreen = () => {
   const { forgotPassword, state } = useAuth();
   const navigation = useNavigation<ForgotPasswordScreenNavigationProp>();
 
-  const validateEmail = (email: string) => {
+  const validateEmail = (emailAddress: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+    return emailRegex.test(emailAddress);
   };
 
   const handleForgotPassword = async () => {
@@ -57,9 +57,10 @@ const ForgotPasswordScreen = () => {
         [
           {
             text: 'OK',
-            onPress: () => navigation.navigate('ResetPassword', { email: email.trim() }),
+            onPress: () =>
+              navigation.navigate('ResetPassword', { email: email.trim() }),
           },
-        ]
+        ],
       );
     } catch (error: any) {
       Alert.alert('Error', error.message || 'Failed to send reset code');
@@ -106,7 +107,10 @@ const ForgotPasswordScreen = () => {
               <StarIcon width={24} height={24} />
             </TouchableOpacity>
 
-            <TouchableOpacity onPress={handleBackToLogin} style={styles.backLink}>
+            <TouchableOpacity
+              onPress={handleBackToLogin}
+              style={styles.backLink}
+            >
               <Text style={styles.backLinkText}>Back to Login</Text>
             </TouchableOpacity>
           </View>
@@ -130,7 +134,8 @@ const ForgotPasswordScreen = () => {
         <View style={styles.contentContainer}>
           <Text style={styles.title}>Forgotten your way back?</Text>
           <Text style={styles.subtitle}>
-            Enter your email address and we'll send you a code to reset your password.
+            Enter your email address and we'll send you a code to reset your
+            password.
           </Text>
 
           <View style={styles.formContainer}>
@@ -143,9 +148,7 @@ const ForgotPasswordScreen = () => {
               autoComplete="email"
             />
 
-            {state.error && (
-              <Text style={styles.errorText}>{state.error}</Text>
-            )}
+            {state.error && <Text style={styles.errorText}>{state.error}</Text>}
 
             <TouchableOpacity
               style={styles.enterButton}
@@ -163,7 +166,8 @@ const ForgotPasswordScreen = () => {
 
           <TouchableOpacity onPress={handleBackToLogin} style={styles.backLink}>
             <Text style={styles.backLinkText}>
-              Remember your password? <Text style={styles.linkText}>Sign In</Text>
+              Remember your password?{' '}
+              <Text style={styles.linkText}>Sign In</Text>
             </Text>
           </TouchableOpacity>
         </View>

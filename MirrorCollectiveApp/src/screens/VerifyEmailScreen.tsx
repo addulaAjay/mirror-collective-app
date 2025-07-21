@@ -53,8 +53,10 @@ const VerifyEmailScreen = () => {
 
     setIsVerifying(true);
 
-    console.log('VerifyEmailScreen - verificationCode:', verificationCode);
-    console.log('VerifyEmailScreen - email:', email);
+    if (__DEV__) {
+      console.log('VerifyEmailScreen - verificationCode:', verificationCode);
+      console.log('VerifyEmailScreen - email:', email);
+    }
 
     try {
       const response = await apiService.verifyEmail(

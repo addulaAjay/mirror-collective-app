@@ -24,7 +24,10 @@ type ResetPasswordScreenNavigationProp = NativeStackNavigationProp<
   'ResetPassword'
 >;
 
-type ResetPasswordScreenRouteProp = RouteProp<RootStackParamList, 'ResetPassword'>;
+type ResetPasswordScreenRouteProp = RouteProp<
+  RootStackParamList,
+  'ResetPassword'
+>;
 
 const ResetPasswordScreen = () => {
   const [resetCode, setResetCode] = useState('');
@@ -32,12 +35,13 @@ const ResetPasswordScreen = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-  const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] = useState(false);
+  const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] =
+    useState(false);
 
   const { resetPassword, state } = useAuth();
   const navigation = useNavigation<ResetPasswordScreenNavigationProp>();
   const route = useRoute<ResetPasswordScreenRouteProp>();
-  
+
   const { email } = route.params;
 
   const validatePassword = (password: string) => {
@@ -75,7 +79,7 @@ const ResetPasswordScreen = () => {
     if (!validatePassword(newPassword)) {
       Alert.alert(
         'Weak Password',
-        'Password must be at least 8 characters long and contain uppercase, lowercase, number, and special character'
+        'Password must be at least 8 characters long and contain uppercase, lowercase, number, and special character',
       );
       return;
     }
@@ -88,7 +92,7 @@ const ResetPasswordScreen = () => {
     try {
       setIsLoading(true);
       await resetPassword(email, resetCode.trim(), newPassword);
-      
+
       Alert.alert(
         'Password Reset Successful',
         'Your password has been reset successfully. Please log in with your new password.',
@@ -97,7 +101,7 @@ const ResetPasswordScreen = () => {
             text: 'OK',
             onPress: () => navigation.navigate('Login'),
           },
-        ]
+        ],
       );
     } catch (error: any) {
       Alert.alert('Error', error.message || 'Failed to reset password');
@@ -145,7 +149,9 @@ const ResetPasswordScreen = () => {
                 autoComplete="password"
                 showPasswordToggle={true}
                 isPasswordVisible={isPasswordVisible}
-                onTogglePassword={() => setIsPasswordVisible(!isPasswordVisible)}
+                onTogglePassword={() =>
+                  setIsPasswordVisible(!isPasswordVisible)
+                }
               />
 
               <TextInputField
@@ -157,11 +163,14 @@ const ResetPasswordScreen = () => {
                 autoComplete="password"
                 showPasswordToggle={true}
                 isPasswordVisible={isConfirmPasswordVisible}
-                onTogglePassword={() => setIsConfirmPasswordVisible(!isConfirmPasswordVisible)}
+                onTogglePassword={() =>
+                  setIsConfirmPasswordVisible(!isConfirmPasswordVisible)
+                }
               />
 
               <Text style={styles.passwordRequirements}>
-                Password must be at least 8 characters with uppercase, lowercase, number, and special character
+                Password must be at least 8 characters with uppercase,
+                lowercase, number, and special character
               </Text>
 
               {state.error && (
@@ -176,9 +185,13 @@ const ResetPasswordScreen = () => {
               />
             </View>
 
-            <TouchableOpacity onPress={handleBackToLogin} style={styles.backLink}>
+            <TouchableOpacity
+              onPress={handleBackToLogin}
+              style={styles.backLink}
+            >
               <Text style={styles.backLinkText}>
-                Remember your password? <Text style={styles.linkText}>Sign In</Text>
+                Remember your password?{' '}
+                <Text style={styles.linkText}>Sign In</Text>
               </Text>
             </TouchableOpacity>
           </View>

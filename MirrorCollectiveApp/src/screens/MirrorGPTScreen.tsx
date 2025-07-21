@@ -26,7 +26,7 @@ interface Message {
   timestamp: Date;
 }
 
-const MirrorGPTScreen: React.FC<Props> = ({ navigation }) => {
+const MirrorGPTScreen: React.FC<Props> = ({ navigation: _navigation }) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -47,7 +47,7 @@ const MirrorGPTScreen: React.FC<Props> = ({ navigation }) => {
       };
       setMessages([...messages, newMessage]);
       setInputText('');
-      
+
       // Simulate MirrorGPT response
       setTimeout(() => {
         const response: Message = {
@@ -62,7 +62,7 @@ const MirrorGPTScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   return (
-    <KeyboardAvoidingView 
+    <KeyboardAvoidingView
       style={styles.keyboardContainer}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
@@ -72,40 +72,44 @@ const MirrorGPTScreen: React.FC<Props> = ({ navigation }) => {
         resizeMode="cover"
       >
         <LogoHeader />
-        
+
         <View style={styles.contentContainer}>
           {/* Main Chat Container */}
           <View style={styles.chatContainer}>
             {/* Header */}
             <Text style={styles.title}>MirrorGPT</Text>
-            
+
             {/* Messages Area */}
-            <ScrollView 
+            <ScrollView
               style={styles.messagesContainer}
               showsVerticalScrollIndicator={false}
               contentContainerStyle={styles.messagesContent}
             >
-              {messages.map((message) => (
+              {messages.map(message => (
                 <View
                   key={message.id}
                   style={[
                     styles.messageContainer,
-                    message.isUser ? styles.userMessageContainer : styles.assistantMessageContainer,
+                    message.isUser
+                      ? styles.userMessageContainer
+                      : styles.assistantMessageContainer,
                   ]}
                 >
-                  {!message.isUser && (
-                    <View style={styles.assistantIcon} />
-                  )}
+                  {!message.isUser && <View style={styles.assistantIcon} />}
                   <View
                     style={[
                       styles.messageBubble,
-                      message.isUser ? styles.userMessageBubble : styles.assistantMessageBubble,
+                      message.isUser
+                        ? styles.userMessageBubble
+                        : styles.assistantMessageBubble,
                     ]}
                   >
                     <Text
                       style={[
                         styles.messageText,
-                        message.isUser ? styles.userMessageText : styles.assistantMessageText,
+                        message.isUser
+                          ? styles.userMessageText
+                          : styles.assistantMessageText,
                       ]}
                     >
                       {message.text}
@@ -114,7 +118,7 @@ const MirrorGPTScreen: React.FC<Props> = ({ navigation }) => {
                 </View>
               ))}
             </ScrollView>
-            
+
             {/* Input Container */}
             <View style={styles.inputContainer}>
               <View style={styles.inputWrapper}>
@@ -128,15 +132,20 @@ const MirrorGPTScreen: React.FC<Props> = ({ navigation }) => {
                   multiline
                   onSubmitEditing={sendMessage}
                 />
-                <TouchableOpacity onPress={sendMessage} style={styles.sendButton}>
+                <TouchableOpacity
+                  onPress={sendMessage}
+                  style={styles.sendButton}
+                >
                   <View style={styles.sendIcon} />
                 </TouchableOpacity>
               </View>
             </View>
           </View>
-          
+
           {/* Bottom Prompt */}
-          <Text style={styles.bottomPrompt}>What are you grateful for today?</Text>
+          <Text style={styles.bottomPrompt}>
+            What are you grateful for today?
+          </Text>
         </View>
       </ImageBackground>
     </KeyboardAvoidingView>
@@ -179,8 +188,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 19,
     elevation: 8,
-    // Gradient background effect
-    backgroundImage: 'linear-gradient(180deg, #9baac2 0%, rgba(155, 170, 194, 0.05) 100%)',
+    // Gradient background effect not supported in StyleSheet; use a gradient component if needed
   },
   title: {
     ...typography.styles.title,

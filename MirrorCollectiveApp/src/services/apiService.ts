@@ -147,7 +147,9 @@ class ApiService {
     email: string,
     verificationCode: string,
   ): Promise<AuthResponse> {
-    console.log('Verifying email with:', { email, verificationCode });
+    if (__DEV__) {
+      console.log('Verifying email with:', { email, verificationCode });
+    }
 
     // Check what field name your backend expects:
     // Option 1: verificationCode
@@ -160,7 +162,9 @@ class ApiService {
       code: verificationCode, // Convert string to number
     };
 
-    console.log('Payload being sent:', JSON.stringify(payload));
+    if (__DEV__) {
+      console.log('Payload being sent:', JSON.stringify(payload));
+    }
     return this.makeRequest('/auth/confirm-email', 'POST', payload);
   }
 
@@ -196,9 +200,18 @@ class ApiService {
   // Token Management
   async storeTokens(tokens: { accessToken: string; refreshToken: string }) {
     try {
-      await AsyncStorage.setItem('accessToken', tokens.accessToken);
-      await AsyncStorage.setItem('refreshToken', tokens.refreshToken);
-      await AsyncStorage.setItem('isAuthenticated', 'true');
+      // Add timeout to prevent hanging
+      const storePromise = Promise.all([
+        AsyncStorage.setItem('accessToken', tokens.accessToken),
+        AsyncStorage.setItem('refreshToken', tokens.refreshToken),
+        AsyncStorage.setItem('isAuthenticated', 'true'),
+      ]);
+
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('AsyncStorage timeout')), 5000);
+      });
+
+      await Promise.race([storePromise, timeoutPromise]);
     } catch (error) {
       console.error('Error storing tokens:', error);
       throw new Error('Failed to store authentication tokens');
@@ -207,13 +220,21 @@ class ApiService {
 
   async clearTokens() {
     try {
-      await AsyncStorage.multiRemove([
+      // Add timeout to prevent hanging
+      const clearPromise = AsyncStorage.multiRemove([
         'accessToken',
         'refreshToken',
         'isAuthenticated',
       ]);
+
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('AsyncStorage timeout')), 5000);
+      });
+
+      await Promise.race([clearPromise, timeoutPromise]);
     } catch (error) {
       console.error('Error clearing tokens:', error);
+      // Don't throw error here, as clearing tokens should always succeed from user perspective
     }
   }
 
@@ -222,14 +243,21 @@ class ApiService {
     refreshToken: string | null;
   }> {
     try {
-      const [accessToken, refreshToken] = await AsyncStorage.multiGet([
-        'accessToken',
-        'refreshToken',
-      ]);
+      // Add timeout to prevent hanging
+      const getPromise = AsyncStorage.multiGet(['accessToken', 'refreshToken']);
+
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('AsyncStorage timeout')), 5000);
+      });
+
+      const result = (await Promise.race([getPromise, timeoutPromise])) as [
+        [string, string | null],
+        [string, string | null],
+      ];
 
       return {
-        accessToken: accessToken[1],
-        refreshToken: refreshToken[1],
+        accessToken: result[0][1],
+        refreshToken: result[1][1],
       };
     } catch (error) {
       console.error('Error retrieving tokens:', error);
@@ -239,10 +267,27 @@ class ApiService {
 
   async isAuthenticated(): Promise<boolean> {
     try {
-      const isAuth = await AsyncStorage.getItem('isAuthenticated');
-      const { accessToken } = await this.getStoredTokens();
-      return isAuth === 'true' && accessToken !== null;
+      // Add timeout to prevent hanging
+      const getPromise = Promise.all([
+        AsyncStorage.getItem('isAuthenticated'),
+        this.getStoredTokens(),
+      ]);
+
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('AsyncStorage timeout')), 5000);
+      });
+
+      const [isAuth, tokens] = (await Promise.race([
+        getPromise,
+        timeoutPromise,
+      ])) as [
+        string | null,
+        { accessToken: string | null; refreshToken: string | null },
+      ];
+
+      return isAuth === 'true' && tokens.accessToken !== null;
     } catch (error) {
+      console.error('Error checking authentication:', error);
       return false;
     }
   }

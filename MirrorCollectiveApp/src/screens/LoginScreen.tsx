@@ -47,7 +47,9 @@ const LoginScreen = ({ navigation }: any) => {
         email: email.toLowerCase().trim(),
         password,
       });
-      console.log('SignIn response:', response);
+      if (__DEV__) {
+        console.log('SignIn response:', response);
+      }
       if (response.success && response.data && response.data.tokens) {
         // Store authentication tokens
         await apiService.storeTokens(response.data.tokens);
