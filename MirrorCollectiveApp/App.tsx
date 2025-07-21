@@ -9,6 +9,7 @@ import MirrorAnimationScreen from './src/screens/MirrorAnimationScreen';
 import EnterMirrorScreen from './src/screens/EnterMirrorScreen';
 import AppExplainerScreen from './src/screens/AppExplainerScreen';
 import LoginScreen from './src/screens/LoginScreen';
+import MirrorChatScreen from './src/screens/Mirror-chat-screen';
 import SignUpScreen from './src/screens/SignUpScreen';
 import VerifyEmailScreen from './src/screens/VerifyEmailScreen';
 import ForgotPasswordScreen from './src/screens/ForgotPasswordScreen';
@@ -26,6 +27,7 @@ export type RootStackParamList = {
   EnterMirror: undefined;
   AppExplanation: undefined;
   Login: undefined;
+  MirrorChat: undefined;
   SignUp: undefined;
   VerifyEmail: { email: string; fullName: string };
   ForgotPassword: undefined;
@@ -53,6 +55,7 @@ const AppNavigator = () => {
       <Stack.Screen name="EnterMirror" component={EnterMirrorScreen} />
       <Stack.Screen name="AppExplanation" component={AppExplainerScreen} />
       <Stack.Screen name="Login" component={LoginScreen} />
+        <Stack.Screen name="MirrorChat" component={MirrorChatScreen} />
       <Stack.Screen name="SignUp" component={SignUpScreen} />
       <Stack.Screen name="VerifyEmail" component={VerifyEmailScreen} />
       <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
