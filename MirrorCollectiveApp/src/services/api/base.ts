@@ -1,7 +1,7 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_CONFIG } from '../../constants/config';
 import type { ApiResponse, ApiError } from '../../types';
 import { ApiErrorHandler } from './errorHandler';
+import { tokenManager } from '../tokenManager';
 
 export class BaseApiService {
   private readonly baseUrl: string;
@@ -28,7 +28,7 @@ export class BaseApiService {
       };
 
       if (requiresAuth) {
-        const token = await this.getAuthToken();
+        const token = await tokenManager.getValidToken();
         if (token) {
           headers.Authorization = `Bearer ${token}`;
         }
@@ -94,15 +94,6 @@ export class BaseApiService {
         errorResponse.message || 'Unknown error',
         errorResponse.error as any,
       );
-    }
-  }
-
-  private async getAuthToken(): Promise<string | null> {
-    try {
-      return await AsyncStorage.getItem('accessToken');
-    } catch (error) {
-      console.error('Error retrieving auth token:', error);
-      return null;
     }
   }
 

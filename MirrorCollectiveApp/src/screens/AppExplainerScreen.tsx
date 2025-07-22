@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ImageBackground } from 'react-native';
 
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../types';
+import { useAuthGuard } from '../hooks/useAuthGuard';
 import LogoHeader from '../components/LogoHeader';
 import { typography, shadows } from '../styles/typography';
 
@@ -10,15 +11,27 @@ type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'AppExplanation'>;
 };
 const AppExplainerScreen: React.FC<Props> = ({ navigation }) => {
+  const { isAuthenticated, hasValidToken, isLoading } = useAuthGuard();
+
   useEffect(() => {
     const timer = setTimeout(() => {
-      // TODO: Add logic to check if user needs setup vs login
-      // For now, navigate to login screen
-      navigation.replace('Login');
-    }, 5000); // Show video for 5 seconds
+      if (isLoading) {
+        // If still checking auth state, wait a bit longer
+        return;
+      }
+
+      // Check authentication state and route accordingly
+      if (isAuthenticated && hasValidToken) {
+        // User is authenticated, go to main app
+        navigation.replace('EnterMirror');
+      } else {
+        // User needs to login or sign up
+        navigation.replace('Login');
+      }
+    }, 5000); // Show explainer for 5 seconds
 
     return () => clearTimeout(timer);
-  }, [navigation]);
+  }, [navigation, isAuthenticated, hasValidToken, isLoading]);
   return (
     <ImageBackground
       source={require('../../assets/dark_mode_shimmer_bg.png')}

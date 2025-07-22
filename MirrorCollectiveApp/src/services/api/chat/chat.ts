@@ -7,9 +7,10 @@ export class ChatApiService extends BaseApiService {
     const response = await this.makeRequest<{ reply: string }>(
       API_CONFIG.ENDPOINTS.MIRROR_CHAT,
       'POST',
-      request
+      request,
+      true, // Requires authentication - Bearer token
     );
-    
+
     return {
       success: response.success,
       data: response.data,
