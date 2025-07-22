@@ -1,28 +1,20 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, View, ActivityIndicator } from 'react-native';
-import { typography, shadows } from '../styles/typography';
+import { TouchableOpacity, Text, StyleSheet, View } from 'react-native';
 
 interface Props {
   onPress: () => void;
   title: string;
-  isLoading?: boolean;
-  disabled?: boolean;
 }
 
-const AuthButton = ({ onPress, title, isLoading = false, disabled = false }: Props) => (
+const AuthButton = ({ onPress, title }: Props) => (
   <TouchableOpacity
     onPress={onPress}
-    style={[styles.container, (disabled || isLoading) && styles.disabled]}
+    style={styles.container}
     activeOpacity={0.8}
-    disabled={disabled || isLoading}
   >
-    <View style={[styles.dot, (disabled || isLoading) && styles.dotDisabled]} />
-    {isLoading ? (
-      <ActivityIndicator size="small" color="#E5D6B0" />
-    ) : (
-      <Text style={[styles.text, (disabled || isLoading) && styles.textDisabled]}>{title}</Text>
-    )}
-    <View style={[styles.dot, (disabled || isLoading) && styles.dotDisabled]} />
+    <View style={styles.dot} />
+    <Text style={styles.text}>{title}</Text>
+    <View style={styles.dot} />
   </TouchableOpacity>
 );
 
@@ -35,32 +27,25 @@ const styles = StyleSheet.create({
     height: 30,
     marginVertical: 30,
   },
-  disabled: {
-    opacity: 0.6,
-  },
   text: {
-    ...typography.styles.button,
-    textShadowColor: shadows.text.color,
-    textShadowOffset: shadows.text.offset,
-    textShadowRadius: shadows.text.radius,
-  },
-  textDisabled: {
-    color: 'rgba(229, 214, 176, 0.6)',
+    fontFamily: 'CormorantGaramond-Regular',
+    fontSize: 28,
+    textTransform: 'uppercase',
+    color: '#E5D6B0',
+    textShadowColor: 'rgba(229, 214, 176, 0.5)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 4,
   },
   dot: {
     width: 16,
     height: 16,
     borderRadius: 8,
     backgroundColor: '#E5D6B0',
-    shadowColor: shadows.button.color,
-    shadowOffset: shadows.button.offset,
-    shadowOpacity: shadows.button.opacity,
-    shadowRadius: shadows.button.radius,
+    shadowColor: '#E5D6B0',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 1,
+    shadowRadius: 4,
     elevation: 4,
-  },
-  dotDisabled: {
-    backgroundColor: 'rgba(229, 214, 176, 0.6)',
-    shadowColor: 'rgba(229, 214, 176, 0.6)',
   },
 });
 

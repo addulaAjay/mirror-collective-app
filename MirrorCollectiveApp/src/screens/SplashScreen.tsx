@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ImageBackground, Image } from 'react-native';
 
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../types';
-import { typography } from '../styles/typography';
+
 type SplashProps = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'Splash'>;
 };
@@ -15,17 +15,17 @@ const SplashScreen: React.FC<SplashProps> = ({ navigation }) => {
         navigation.replace('MirrorAnimation');
       } catch (error) {
         console.error('Navigation error in SplashScreen:', error);
-        // Fallback navigation attempt
         try {
           navigation.navigate('MirrorAnimation');
         } catch (fallbackError) {
           console.error('Fallback navigation also failed:', fallbackError);
         }
       }
-    }, 3000); // Show for 3 seconds
+    }, 3000);
 
-    return () => clearTimeout(timer); // cleanup
+    return () => clearTimeout(timer);
   }, [navigation]);
+
   return (
     <ImageBackground
       source={require('../../assets/dark_mode_shimmer_bg.png')}
@@ -38,7 +38,7 @@ const SplashScreen: React.FC<SplashProps> = ({ navigation }) => {
           style={styles.logo}
           resizeMode="contain"
         />
-        <Text style={styles.title}>The MIRROR COLLECTIVE</Text>
+        <Text style={styles.title}>The MIRROR{'\n'}COLLECTIVE</Text>
       </View>
     </ImageBackground>
   );
@@ -60,17 +60,20 @@ const styles = StyleSheet.create({
     shadowColor: 'rgba(229, 214, 176, 0.86)',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 1,
-    shadowRadius: 32,
+    shadowRadius: 5,
     elevation: 8,
   },
   title: {
-    ...typography.styles.logoText,
+    fontFamily: 'CormorantGaramond-Italic',
+    fontStyle: 'italic',
+    fontWeight: '300',
+    fontSize: 35,
+    lineHeight: 42,
     textAlign: 'center',
-    textShadowColor: 'rgba(0, 0, 0, 0.25)',
+    color: '#E5D6B0',
+    // textShadowColor: 'rgba(0, 0, 0, 0.25)',
     textShadowOffset: { width: 0, height: 4 },
     textShadowRadius: 9,
-    width: 233,
-    textTransform: 'none',
   },
 });
 

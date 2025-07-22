@@ -146,6 +146,7 @@ const ForgotPasswordScreen = () => {
               keyboardType="email-address"
               autoCapitalize="none"
               autoComplete="email"
+              size="small"
             />
 
             {state.error && <Text style={styles.errorText}>{state.error}</Text>}
@@ -196,18 +197,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 40,
-    paddingTop: 120, // Space for LogoHeader (48 + 46 + 26 margin)
-    gap: 40,
+    gap: 20,
     width: '100%',
     maxWidth: 313,
   },
   title: {
     ...typography.styles.title,
     textAlign: 'center',
+    fontFamily: 'CormorantGaramond-Italic',
   },
   subtitle: {
     ...typography.styles.body,
     textAlign: 'center',
+    fontFamily: 'CormorantGaramond-LightItalic',
+    fontStyle: 'italic',
   },
   emailText: {
     color: colors.text.accent,
@@ -246,10 +249,13 @@ const styles = StyleSheet.create({
   backLinkText: {
     ...typography.styles.body,
     textAlign: 'center',
+    fontFamily: 'CormorantGaramond-Italic',
   },
   linkText: {
     ...typography.styles.linkLarge,
     fontWeight: '600',
+    fontFamily: 'CormorantGaramond-LightItalic',
+    fontStyle: 'italic',
   },
 });
 

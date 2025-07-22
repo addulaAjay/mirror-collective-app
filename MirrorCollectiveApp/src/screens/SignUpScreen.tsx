@@ -161,11 +161,13 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
               <View style={styles.fieldContainer}>
                 <Text style={styles.fieldLabel}>Full Name</Text>
                 <TextInputField
+                  size="small"
                   placeholder="Your Soul name"
                   value={fullName}
                   onChangeText={setFullName}
                   autoCapitalize="words"
                   autoComplete="name"
+                  placeholderAlign="left"
                 />
               </View>
 
@@ -173,12 +175,14 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
               <View style={styles.fieldContainer}>
                 <Text style={styles.fieldLabel}>Email</Text>
                 <TextInputField
+                  size="small"
                   placeholder="Email address"
                   value={email}
                   onChangeText={setEmail}
                   keyboardType="email-address"
                   autoCapitalize="none"
                   autoComplete="email"
+                  placeholderAlign="left"
                 />
               </View>
 
@@ -186,6 +190,7 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
               <View style={styles.fieldContainer}>
                 <Text style={styles.fieldLabel}>Password</Text>
                 <TextInputField
+                  size="small"
                   placeholder="Enter password"
                   value={password}
                   onChangeText={setPassword}
@@ -193,6 +198,7 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
                   showPasswordToggle={true}
                   isPasswordVisible={showPassword}
                   onTogglePassword={() => setShowPassword(!showPassword)}
+                  placeholderAlign="left"
                 />
               </View>
 
@@ -200,12 +206,14 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
               <View style={styles.fieldContainer}>
                 <Text style={styles.fieldLabel}>Confirm password</Text>
                 <TextInputField
+                  size="small"
                   placeholder="Re-enter password to confirm"
                   value={confirmPassword}
                   onChangeText={setConfirmPassword}
                   secureTextEntry={!showConfirmPassword}
                   showPasswordToggle={true}
                   isPasswordVisible={showConfirmPassword}
+                  placeholderAlign="left"
                   onTogglePassword={() =>
                     setShowConfirmPassword(!showConfirmPassword)
                   }
@@ -306,6 +314,9 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(245, 230, 184, 0.50)',
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 4,
+    ...typography.styles.button,
+    fontFamily: 'CormorantGaramond-Light',
+    fontSize: 20,
   },
   loginContainer: {
     alignItems: 'center',

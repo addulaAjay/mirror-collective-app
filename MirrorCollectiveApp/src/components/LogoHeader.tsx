@@ -30,6 +30,9 @@ const styles = StyleSheet.create({
   },
   text: {
     ...typography.styles.logoText,
+    fontFamily: 'CormorantGaramond-Italic',
+    fontSize: 18,
+    fontStyle: 'italic',
     textShadowColor: 'rgba(0, 0, 0, 0.25)',
     textShadowOffset: { width: 0, height: 4 },
     textShadowRadius: 9,
