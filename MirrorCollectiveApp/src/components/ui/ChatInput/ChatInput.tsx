@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { COLORS, SHADOWS, SPACING } from '../../../constants';
 import { theme } from '../../../theme';
+import { Image } from 'react-native';
 
 interface ChatInputProps {
   value: string;
@@ -27,7 +28,10 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.iconButton} disabled={disabled}>
-        <Text style={styles.iconText}>＋</Text>
+        <Image
+          source={require('../../../../assets/add_circle.png')}
+          style={styles.iconImage}
+        />
       </TouchableOpacity>
 
       <TextInput
@@ -53,7 +57,10 @@ export const ChatInput: React.FC<ChatInputProps> = ({
               : styles.enabledText,
           ]}
         >
-          ➤
+          <Image
+            source={require('../../../../assets/send.png')}
+            style={styles.iconImage}
+          />
         </Text>
       </TouchableOpacity>
     </View>
@@ -64,7 +71,7 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#d9d9d9',
+    backgroundColor: 'linear-gradient(0deg, rgba(217, 217, 217, 0.15) 0%, rgba(155, 170, 194, 0.15) 100%)',
     borderRadius: 13,
     paddingHorizontal: SPACING.MD,
     paddingVertical: SPACING.MD,
@@ -77,6 +84,11 @@ const styles = StyleSheet.create({
   iconButton: {
     padding: SPACING.XS,
   },
+  iconImage: {
+    width: 28,
+    height: 28,
+    tintColor: COLORS.TEXT.TERTIARY,
+  },
 
   iconText: {
     ...theme.typography.styles.body,
@@ -87,7 +99,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     ...theme.typography.styles.input,
-    color: COLORS.TEXT.TERTIARY,
+    color: COLORS.TEXT.WHITE,
     marginHorizontal: SPACING.SM,
     maxHeight: 100,
   },
@@ -102,7 +114,7 @@ const styles = StyleSheet.create({
   },
 
   enabledText: {
-    color: COLORS.TEXT.SECONDARY,
+    color: COLORS.TEXT.TERTIARY,
   },
 
   disabledText: {

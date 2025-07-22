@@ -38,16 +38,20 @@ const styles = StyleSheet.create({
   
   userBubble: {
     backgroundColor: COLORS.BACKGROUND.USER_BUBBLE,
+    marginTop: 14,
     alignSelf: 'flex-end',
-    borderWidth: 0.5,
+    borderWidth: 1,
     borderColor: COLORS.BORDER.SECONDARY,
+    borderBottomRightRadius: 0,
   },
   
   systemBubble: {
     backgroundColor: COLORS.BACKGROUND.SYSTEM_BUBBLE,
+    marginTop: 14,
     alignSelf: 'flex-start',
-    borderWidth: 0.25,
-    borderColor: COLORS.BORDER.PRIMARY,
+    borderWidth: 1,
+    borderColor: COLORS.BORDER.GOLD,
+    borderBottomLeftRadius: 0,
   },
   
   text: {
@@ -55,10 +59,13 @@ const styles = StyleSheet.create({
   },
   
   userText: {
+    fontSize: 17,
     color: COLORS.TEXT.USER_MESSAGE,
   },
   
   systemText: {
+    fontFamily: 'CormorantGaramond-MediumItalic',
+    fontSize: 17,
     color: COLORS.TEXT.SYSTEM_MESSAGE,
   },
 });
