@@ -154,6 +154,7 @@ const ResetPasswordScreen = () => {
                   keyboardType="numeric"
                   autoCapitalize="none"
                   autoComplete="off"
+                  size="small"
                 />
               </View>
 
@@ -169,6 +170,7 @@ const ResetPasswordScreen = () => {
                   autoComplete="password"
                   showPasswordToggle={true}
                   isPasswordVisible={isPasswordVisible}
+                  size="small"
                   onTogglePassword={() =>
                     setIsPasswordVisible(!isPasswordVisible)
                   }
@@ -187,6 +189,7 @@ const ResetPasswordScreen = () => {
                   autoComplete="password"
                   showPasswordToggle={true}
                   isPasswordVisible={isConfirmPasswordVisible}
+                  size="small"
                   onTogglePassword={() =>
                     setIsConfirmPasswordVisible(!isConfirmPasswordVisible)
                   }

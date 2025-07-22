@@ -253,10 +253,15 @@ const styles = StyleSheet.create({
   },
   title: {
     ...typography.styles.title,
+    fontFamily: 'CormorantGaramond-LightItalic',
+    fontStyle: 'italic',
+    fontSize: 28,
     textAlign: 'center',
   },
   subtitle: {
     ...typography.styles.body,
+    fontFamily: 'CormorantGaramond-Light',
+    fontSize: 20,
     textAlign: 'center',
   },
   codeSection: {
@@ -273,12 +278,13 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background.input,
     ...typography.styles.input,
     fontSize: 24,
-    letterSpacing: 8,
+    lineHeight: 30,
     shadowColor: shadows.input.color,
     shadowOffset: shadows.input.offset,
     shadowOpacity: shadows.input.opacity,
     shadowRadius: shadows.input.radius,
   },
+
   verifyButton: {
     borderRadius: 8,
     borderWidth: 0.5,
@@ -303,9 +309,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 20,
     textTransform: 'none',
+    color: 'rgba(110, 80, 80, 0.6)',
   },
   verifyButtonTextDisabled: {
-    color: 'rgba(229, 214, 176, 0.6)',
+    color: 'rgba(110, 80, 4, 0.6)',
   },
   resendSection: {
     alignItems: 'center',
@@ -340,7 +347,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 20,
     textTransform: 'none',
-    color: '#E5D6B0',
+    color: 'rgba(110, 80, 4, 0.6)',
   },
   resendButtonTextDisabled: {
     color: 'rgba(229, 214, 176, 0.6)',

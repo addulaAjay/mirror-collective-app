@@ -73,6 +73,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingVertical: 236,
     paddingHorizontal: 70,
+    top: -40,
   },
   videoText: {
     ...typography.styles.title,

@@ -1,5 +1,11 @@
-import React, { useEffect } from 'react';
-import { View, StyleSheet, ImageBackground, Image } from 'react-native';
+import React, { useCallback } from 'react';
+import {
+  View,
+  StyleSheet,
+  ImageBackground,
+  Image,
+  TouchableOpacity,
+} from 'react-native';
 
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../types';
@@ -12,27 +18,15 @@ type Props = {
 };
 
 const MirrorAnimationScreen: React.FC<Props> = ({ navigation }) => {
-  const { isAuthenticated, hasValidToken, isLoading } = useAuthGuard();
+  const { isAuthenticated, hasValidToken } = useAuthGuard();
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (isLoading) {
-        // If still checking auth state, wait a bit longer
-        return;
-      }
-
-      // Check authentication state and route accordingly
-      if (isAuthenticated && hasValidToken) {
-        // User is authenticated, go to main app
-        navigation.replace('EnterMirror');
-      } else {
-        // User needs to go through the setup/login flow
-        navigation.replace('AppExplanation');
-      }
-    }, 4000); // Show animation for 4 seconds
-
-    return () => clearTimeout(timer);
-  }, [navigation, isAuthenticated, hasValidToken, isLoading]);
+  const handleEnter = useCallback(() => {
+    if (isAuthenticated && hasValidToken) {
+      navigation.replace('EnterMirror');
+    } else {
+      navigation.replace('AppExplanation');
+    }
+  }, [isAuthenticated, hasValidToken, navigation]);
 
   return (
     <ImageBackground
@@ -47,7 +41,7 @@ const MirrorAnimationScreen: React.FC<Props> = ({ navigation }) => {
         <View style={styles.glowEffect} />
 
         {/* Mirror frame/border */}
-        <View style={styles.mirrorFrame}>
+        <TouchableOpacity onPress={handleEnter} style={styles.mirrorFrame}>
           {/* Mirror reflection assets */}
           <Image
             source={require('../../assets/Asset_4@2x-8.png')}
@@ -59,7 +53,7 @@ const MirrorAnimationScreen: React.FC<Props> = ({ navigation }) => {
             style={styles.mirrorAsset2}
             resizeMode="contain"
           />
-        </View>
+        </TouchableOpacity>
       </View>
     </ImageBackground>
   );
@@ -83,6 +77,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
+    top: -40,
   },
   glowEffect: {
     position: 'absolute',

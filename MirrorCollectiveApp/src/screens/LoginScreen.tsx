@@ -120,6 +120,7 @@ const LoginScreen = ({ navigation }: any) => {
 
           <View style={styles.formContainer}>
             <TextInputField
+              size="normal"
               placeholder="Username"
               value={email}
               onChangeText={setEmail}
@@ -129,6 +130,7 @@ const LoginScreen = ({ navigation }: any) => {
             />
 
             <TextInputField
+              size="normal"
               placeholder="Password"
               value={password}
               onChangeText={setPassword}
@@ -194,7 +196,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 40,
-    paddingTop: 120, // Space for LogoHeader (48 + 46 + 26 margin)
     gap: 40,
     width: '100%',
     maxWidth: 313,
@@ -203,6 +204,8 @@ const styles = StyleSheet.create({
     ...typography.styles.title,
     textAlign: 'center',
     marginBottom: 20,
+    fontFamily: 'CormorantGaramond-LightItalic',
+    fontSize: 32,
   },
   formContainer: {
     gap: 12,
@@ -212,7 +215,7 @@ const styles = StyleSheet.create({
   enterButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
+    gap: 10,
     justifyContent: 'center',
     marginTop: 20,
   },
@@ -221,25 +224,42 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(245, 230, 184, 0.50)',
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 4,
+    lineHeight: 35,
+    fontFamily: 'CormorantGaramond-Light',
+    fontSize: 28,
   },
   forgotPasswordContainer: {
-    marginTop: 15,
+    marginTop: 0,
   },
   forgotPasswordText: {
-    ...typography.styles.link,
-    textAlign: 'center',
+    fontFamily: 'CormorantGaramond-LightItalic',
+    fontStyle: 'italic',
+    fontSize: 20,
+    lineHeight: 25,
+    color: '#E5D6B0',
+    textDecorationLine: 'underline' as const,
   },
   signupContainer: {
     alignItems: 'center',
     gap: 8,
-    marginTop: 20,
+    marginTop: 0,
   },
   signupText: {
-    ...typography.styles.body,
+    fontFamily: 'CormorantGaramond-LightItalic',
+    fontStyle: 'italic',
+    fontSize: 20,
+    lineHeight: 25,
     textAlign: 'center',
+    width: 313,
+    color: '#FDFDF9',
   },
   signupLink: {
-    ...typography.styles.linkLarge,
+    fontFamily: 'CormorantGaramond-LightItalic',
+    fontStyle: 'italic',
+    fontSize: 24,
+    lineHeight: 25,
+    color: '#E5D6B0',
+    textDecorationLine: 'underline' as const,
   },
 });
 
