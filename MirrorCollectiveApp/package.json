@@ -7,12 +7,25 @@
     "ios": "react-native run-ios",
     "lint": "eslint .",
     "start": "react-native start",
-    "test": "jest"
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "clean:ios": "rm -rf node_modules ios/Pods ios/Podfile.lock && npm install && cd ios && pod install && cd ..",
+    "clean:android": "cd android && ./gradlew clean && cd .. && npm run android"
   },
   "dependencies": {
+    "@react-native-async-storage/async-storage": "^2.2.0",
+    "@react-native/gradle-plugin": "^0.80.1",
+    "@react-native/new-app-screen": "0.80.1",
+    "@react-navigation/native": "^7.1.14",
+    "@react-navigation/native-stack": "^7.3.21",
     "react": "19.1.0",
     "react-native": "0.80.1",
-    "@react-native/new-app-screen": "0.80.1"
+    "react-native-gesture-handler": "^2.27.1",
+    "react-native-safe-area-context": "^5.5.2",
+    "react-native-screens": "^4.13.1",
+    "react-native-svg": "^15.12.0"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
@@ -25,14 +38,19 @@
     "@react-native/eslint-config": "0.80.1",
     "@react-native/metro-config": "0.80.1",
     "@react-native/typescript-config": "0.80.1",
+    "@testing-library/react-native": "^13.2.0",
     "@types/jest": "^29.5.13",
     "@types/react": "^19.1.0",
     "@types/react-test-renderer": "^19.1.0",
+    "@vitest/ui": "^3.2.4",
     "eslint": "^8.19.0",
     "jest": "^29.6.3",
+    "jsdom": "^26.1.0",
     "prettier": "2.8.8",
+    "react-native-asset": "^2.1.1",
     "react-test-renderer": "19.1.0",
-    "typescript": "5.0.4"
+    "typescript": "5.0.4",
+    "vitest": "^3.2.4"
   },
   "engines": {
     "node": ">=18"

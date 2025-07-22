@@ -1,195 +1,93 @@
-/**
- * Mirror Collective App
- * Cross-platform React Native Mobile Application
- *
- * @format
- */
-
 import React from 'react';
-import {
-  SafeAreaView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  View,
-  ScrollView,
-  TouchableOpacity,
-  useColorScheme,
-  Alert,
-} from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import ErrorBoundary from './src/components/ErrorBoundary';
+import { ChatErrorBoundary } from './src/components/error';
+import { AuthProvider } from './src/context/AuthContext';
+import useAppStateHandler from './src/hooks/useAppStateHandler';
+import type { RootStackParamList } from './src/types';
 
-function App() {
-  const isDarkMode = useColorScheme() === 'dark';
+// Import your screens
+import SplashScreen from './src/screens/SplashScreen';
+import MirrorAnimationScreen from './src/screens/MirrorAnimationScreen';
+import EnterMirrorScreen from './src/screens/EnterMirrorScreen';
+import AppExplainerScreen from './src/screens/AppExplainerScreen';
+import LoginScreen from './src/screens/LoginScreen';
+import MirrorChatScreen from './src/screens/MirrorChatScreen';
+import SignUpScreen from './src/screens/SignUpScreen';
+import VerifyEmailScreen from './src/screens/VerifyEmailScreen';
+import ForgotPasswordScreen from './src/screens/ForgotPasswordScreen';
+import ResetPasswordScreen from './src/screens/ResetPasswordScreen';
 
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? '#121212' : '#FFFFFF',
-    flex: 1,
-  };
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
-  const textStyle = {
-    color: isDarkMode ? '#FFFFFF' : '#000000',
-  };
+// Wrapped MirrorChat component with error boundary
+const MirrorChatWithErrorBoundary = () => (
+  <ChatErrorBoundary>
+    <MirrorChatScreen />
+  </ChatErrorBoundary>
+);
 
-  const handleGetStarted = () => {
-    Alert.alert(
-      'Welcome!',
-      'This is your new React Native app running on both iOS and Android!',
-      [{ text: 'OK', style: 'default' }],
-    );
-  };
+// Authentication-aware navigator
+const AppNavigator = () => {
+  return (
+    <Stack.Navigator
+      initialRouteName="Splash"
+      screenOptions={{
+        headerShown: false, // Hide headers for full-screen look
+      }}
+    >
+      <Stack.Screen name="Splash" component={SplashScreen} />
+      <Stack.Screen name="MirrorAnimation" component={MirrorAnimationScreen} />
+      <Stack.Screen name="EnterMirror" component={EnterMirrorScreen} />
+      <Stack.Screen name="AppExplanation" component={AppExplainerScreen} />
+      <Stack.Screen name="Login" component={LoginScreen} />
+      <Stack.Screen name="MirrorChat" component={MirrorChatWithErrorBoundary} />
+      <Stack.Screen name="SignUp" component={SignUpScreen} />
+      <Stack.Screen name="VerifyEmail" component={VerifyEmailScreen} />
+      <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+      <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
+    </Stack.Navigator>
+  );
+};
+
+const App = () => {
+  // Handle app state changes for better crash recovery
+  useAppStateHandler({
+    onForeground: () => {
+      if (__DEV__) {
+        console.log('App came to foreground');
+      }
+    },
+    onBackground: () => {
+      if (__DEV__) {
+        console.log('App went to background');
+      }
+    },
+  });
 
   return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}
-        contentContainerStyle={styles.scrollContainer}
-      >
-        <View style={styles.container}>
-          <View style={styles.header}>
-            <Text style={[styles.title, textStyle]}>🚀 Mirror Collective</Text>
-            <Text style={[styles.subtitle, textStyle]}>
-              Cross-Platform Mobile App
-            </Text>
-          </View>
-
-          <View style={styles.content}>
-            <View
-              style={[
-                styles.card,
-                isDarkMode ? styles.cardDark : styles.cardLight,
-              ]}
-            >
-              <Text style={[styles.cardTitle, textStyle]}>✨ Features</Text>
-              <Text style={[styles.cardText, textStyle]}>
-                • Native iOS & Android Support{'\n'}• TypeScript Integration
-                {'\n'}• Modern React Hooks{'\n'}• Dark & Light Mode{'\n'}• Hot
-                Reload Development
-              </Text>
-            </View>
-
-            <View
-              style={[
-                styles.card,
-                isDarkMode ? styles.cardDark : styles.cardLight,
-              ]}
-            >
-              <Text style={[styles.cardTitle, textStyle]}>🛠 Development</Text>
-              <Text style={[styles.cardText, textStyle]}>
-                Ready for development with all the tools you need to build
-                amazing mobile experiences.
-              </Text>
-            </View>
-
-            <TouchableOpacity style={styles.button} onPress={handleGetStarted}>
-              <Text style={styles.buttonText}>Get Started</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.footer}>
-            <Text style={[styles.footerText, textStyle]}>
-              Built with React Native {'\n'}
-              Supporting iOS & Android
-            </Text>
-          </View>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+    <ErrorBoundary>
+      <AuthProvider>
+        <NavigationContainer
+          onStateChange={state => {
+            // Optional: Log navigation state changes for debugging
+            if (__DEV__) {
+              console.log('Navigation state changed:', state);
+            }
+          }}
+          onReady={() => {
+            // Optional: Log when navigation is ready
+            if (__DEV__) {
+              console.log('Navigation container is ready');
+            }
+          }}
+        >
+          <AppNavigator />
+        </NavigationContainer>
+      </AuthProvider>
+    </ErrorBoundary>
   );
-}
-
-const styles = StyleSheet.create({
-  scrollContainer: {
-    flexGrow: 1,
-  },
-  container: {
-    flex: 1,
-    padding: 20,
-    justifyContent: 'space-between',
-  },
-  header: {
-    alignItems: 'center',
-    marginTop: 40,
-    marginBottom: 40,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: 18,
-    opacity: 0.7,
-    textAlign: 'center',
-  },
-  content: {
-    flex: 1,
-  },
-  card: {
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  cardLight: {
-    backgroundColor: '#F5F5F5',
-  },
-  cardDark: {
-    backgroundColor: '#1E1E1E',
-  },
-  cardTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    marginBottom: 12,
-  },
-  cardText: {
-    fontSize: 16,
-    lineHeight: 24,
-    opacity: 0.8,
-  },
-  button: {
-    backgroundColor: '#007AFF',
-    borderRadius: 25,
-    paddingVertical: 15,
-    paddingHorizontal: 30,
-    alignItems: 'center',
-    marginTop: 20,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  buttonText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  footer: {
-    alignItems: 'center',
-    marginTop: 40,
-    marginBottom: 20,
-  },
-  footerText: {
-    fontSize: 14,
-    textAlign: 'center',
-    opacity: 0.6,
-  },
-});
+};
 
 export default App;
