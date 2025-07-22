@@ -9,6 +9,7 @@ import {
   ScrollView,
 } from 'react-native';
 import LogoHeader from '../components/LogoHeader';
+import AuthenticatedRoute from '../components/AuthenticatedRoute';
 import { MessageBubble, ChatInput, LoadingIndicator } from '../components/ui';
 import { useChat } from '../hooks/useChat';
 import {
@@ -25,54 +26,56 @@ export default function MirrorChatScreen() {
     useChat();
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar
-        translucent
-        backgroundColor="transparent"
-        barStyle="light-content"
-      />
+    <AuthenticatedRoute>
+      <SafeAreaView style={styles.safeArea}>
+        <StatusBar
+          translucent
+          backgroundColor="transparent"
+          barStyle="light-content"
+        />
 
-      <ImageBackground
-        source={require('../../assets/dark_mode_shimmer_bg.png')}
-        style={styles.background}
-        resizeMode="cover"
-      >
-        <LogoHeader />
+        <ImageBackground
+          source={require('../../assets/dark_mode_shimmer_bg.png')}
+          style={styles.background}
+          resizeMode="cover"
+        >
+          <LogoHeader />
 
-        {/* Chat “card” */}
-        <View style={styles.chatContainer}>
-          <Text style={styles.chatTitle}>MirrorGPT</Text>
+          {/* Chat “card” */}
+          <View style={styles.chatContainer}>
+            <Text style={styles.chatTitle}>MirrorGPT</Text>
 
-          <ScrollView
-            ref={scrollViewRef}
-            style={styles.messagesWrapper}
-            contentContainerStyle={styles.messagesContent}
-            showsVerticalScrollIndicator={false}
-            onContentSizeChange={() =>
-              scrollViewRef.current?.scrollToEnd({ animated: true })
-            }
-          >
-            {messages.map(message => (
-              <MessageBubble key={message.id} message={message} />
-            ))}
-            {loading && <LoadingIndicator />}
-          </ScrollView>
+            <ScrollView
+              ref={scrollViewRef}
+              style={styles.messagesWrapper}
+              contentContainerStyle={styles.messagesContent}
+              showsVerticalScrollIndicator={false}
+              onContentSizeChange={() =>
+                scrollViewRef.current?.scrollToEnd({ animated: true })
+              }
+            >
+              {messages.map(message => (
+                <MessageBubble key={message.id} message={message} />
+              ))}
+              {loading && <LoadingIndicator />}
+            </ScrollView>
 
-          <ChatInput
-            value={draft}
-            onChangeText={setDraft}
-            onSend={sendMessage}
-            disabled={loading}
-          />
-        </View>
+            <ChatInput
+              value={draft}
+              onChangeText={setDraft}
+              onSend={sendMessage}
+              disabled={loading}
+            />
+          </View>
 
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>
-            What are you grateful for today?
-          </Text>
-        </View>
-      </ImageBackground>
-    </SafeAreaView>
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>
+              What are you grateful for today?
+            </Text>
+          </View>
+        </ImageBackground>
+      </SafeAreaView>
+    </AuthenticatedRoute>
   );
 }
 
