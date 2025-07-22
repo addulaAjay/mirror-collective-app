@@ -21,7 +21,7 @@ const messagesToConversationHistory = (messages: Message[]): ConversationHistory
 
 export const useChat = () => {
   const [messages, setMessages] = useState<Message[]>([
-    createMessage('The Mirror reflects…', 'system'),
+    createMessage('🌜The Mirror reflects…', 'system'),
   ]);
   const [draft, setDraft] = useState('');
   const [loading, setLoading] = useState(false);

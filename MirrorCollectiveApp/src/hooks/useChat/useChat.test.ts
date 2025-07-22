@@ -96,7 +96,7 @@ describe('useChat', () => {
       message: 'Hello',
       conversationHistory: [{
         role: 'system',
-        content: 'The Mirror reflects…',
+        content: '🌜The Mirror reflects…',
       }],
     });
     

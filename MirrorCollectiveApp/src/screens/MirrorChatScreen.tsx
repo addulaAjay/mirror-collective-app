@@ -97,9 +97,9 @@ const styles = StyleSheet.create({
 
   footerText: {
     fontFamily: 'CormorantGaramond-Italic',
-    fontSize: 20,
+    fontSize: 24,
     lineHeight: 24,
-    color: COLORS.TEXT.USER_MESSAGE,
+    color: COLORS.TEXT.SYSTEM_MESSAGE,
     paddingTop: SPACING.MD,
     textAlign: 'center',
   },

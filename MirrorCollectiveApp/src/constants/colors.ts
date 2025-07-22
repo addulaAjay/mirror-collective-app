@@ -11,8 +11,8 @@ export const COLORS = {
     PRIMARY: '#000',
     CHAT_CONTAINER: 'rgba(155, 170, 194, 0.15)',
     INPUT: '#d9d9d9',
-    USER_BUBBLE: '#d9d9d9',
-    SYSTEM_BUBBLE: '#c59d5f',
+    USER_BUBBLE: '#D8C278',
+    SYSTEM_BUBBLE: 'transparent',
     OVERLAY: 'rgba(0, 0, 0, 0.3)',
   },
   
@@ -20,11 +20,11 @@ export const COLORS = {
   TEXT: {
     PRIMARY: '#1a2238',
     SECONDARY: '#9baac2',
-    TERTIARY: 'rgba(163, 179, 204, 0.50)',
+    TERTIARY: 'rgba(186, 194, 207, 0.5)',
     WHITE: '#ffffff',
-    TITLE: '#e5e3dd',
-    USER_MESSAGE: '#e5d6b0',
-    SYSTEM_MESSAGE: '#1a2238',
+    TITLE: '#e2e0daff',
+    USER_MESSAGE: '#070707ff',
+    SYSTEM_MESSAGE: '#D8C278',
     LOADING: '#ccc',
   },
   
@@ -32,6 +32,7 @@ export const COLORS = {
   BORDER: {
     PRIMARY: '#1a2238',
     SECONDARY: '#9baac2',
+    GOLD: '#D8C278'
   },
   
   // Status colors
