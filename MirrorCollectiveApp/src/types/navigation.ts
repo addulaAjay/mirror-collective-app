@@ -9,6 +9,9 @@ export type RootStackParamList = {
   VerifyEmail: { email: string; fullName: string };
   ForgotPassword: undefined;
   ResetPassword: { email: string };
+  QuizWelcome: undefined;
+  QuizTuning: undefined;
+  QuizQuestions: undefined;
 };
 
 export type ScreenName = keyof RootStackParamList;
