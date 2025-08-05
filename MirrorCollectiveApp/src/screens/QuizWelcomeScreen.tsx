@@ -1,7 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, ImageBackground, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import LogoHeader from '../components/LogoHeader';
 import GradientButton from '../components/GradientButton';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 // import type { RouteProp } from '@react-navigation/native';
@@ -15,24 +14,36 @@ const QuizWelcomeScreen = () => {
   const navigation = useNavigation<QuizWelcomeScreenNavigationProp>();
   // const route = useRoute<QuizWelcomeScreenRouteProp>();
   return (
-    <View style={styles.container}>
-      <LogoHeader />
-      <View style={styles.content}>
-        <Text style={styles.title}>WELCOME</Text>
-        <Text style={styles.description}>
-          This isn’t a quiz. It’s a reflection of you.
-        </Text>
-        <Text style={styles.description}>
-          Take a moment to look where you are right now. Please explore your
-          feelings and the one force guiding you.
-        </Text>
-        <Text style={styles.emphasis}>Let the Mirror listen.</Text>
+    <ImageBackground
+      source={require('../../assets/dark_mode_shimmer_bg.png')}
+      style={styles.container}
+      imageStyle={styles.backgroundImage}
+    >
+      <Image
+        source={require('../../assets/Mirror_Collective_Logo_RGB.png')}
+        style={styles.logo}
+      />
+      <View style={styles.card}>
+        <View style={styles.content}>
+          <Text style={styles.title}>WELCOME</Text>
+          <Text style={styles.description}>This isn’t a quiz.</Text>
+          <Text style={styles.description}>It’s a reflection of you.</Text>
+          <Text style={styles.description}>
+            Take a moment to look into your life right now.
+          </Text>
+          <Text style={styles.description}>
+            Pause to explore your feelings and the core forces guiding you.
+          </Text>
+          <Text style={styles.emphasis}>Let the Mirror listen.</Text>
+        </View>
+      </View>
+      <View style={styles.buttonContainer}>
         <GradientButton
           title="BEGIN"
           onPress={() => navigation.navigate('QuizQuestions')}
         />
       </View>
-    </View>
+    </ImageBackground>
   );
 };
 
@@ -41,32 +52,78 @@ export default QuizWelcomeScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0B0F1C',
-    padding: 24,
+    paddingHorizontal: 24,
     justifyContent: 'center',
+    alignItems: 'center',
+  },
+  backgroundImage: {
+    resizeMode: 'cover',
+  },
+  card: {
+    width: 345,
+    height: 429,
+    padding: 20,
+    gap: 20,
+    borderRadius: 20,
+    backgroundColor: 'rgba(155, 170, 194, 0.1)',
+    borderColor: '#1A2238',
+    borderWidth: 0.25,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 5,
+    // backdropFilter: 'blur(1px)',
   },
   content: {
-    marginTop: 60,
+    width: 305,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 30,
   },
   title: {
-    fontSize: 28,
-    color: '#FFF',
-    fontFamily: 'CormorantGaramond-Bold',
-    marginBottom: 12,
+    fontFamily: 'Cormorant Garamond',
+    fontWeight: '300',
+    fontSize: 32,
+    lineHeight: 32,
+    color: '#F2E2B1',
     textAlign: 'center',
+    textShadowColor: 'rgba(0, 0, 0, 0.25)',
+    textShadowOffset: { width: 0, height: 4 },
+    textShadowRadius: 4,
   },
   description: {
-    fontSize: 18,
-    color: '#EEE',
-    fontFamily: 'CormorantGaramond-Regular',
-    marginBottom: 16,
+    fontFamily: 'Cormorant Garamond',
+    fontStyle: 'italic',
+    fontWeight: '300',
+    fontSize: 24,
+    lineHeight: 29,
+    color: '#FDFDF9',
     textAlign: 'center',
   },
   emphasis: {
-    fontSize: 16,
-    color: '#FFD700',
+    fontFamily: 'Cormorant Garamond',
     fontStyle: 'italic',
+    fontWeight: '500',
+    fontSize: 28,
+    lineHeight: 32,
+    color: '#F2E2B1',
     textAlign: 'center',
-    marginBottom: 32,
+    textShadowColor: 'rgba(0, 0, 0, 0.25)',
+    textShadowOffset: { width: 0, height: 4 },
+    textShadowRadius: 4,
   },
+  logo: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'flex-start',
+    padding: 0,
+    gap: 10, // Only supported in newer React Native versions or via `columnGap`/`rowGap` in libraries like Tamagui
+
+    width: 100,
+    height: 100,
+
+    // Optional flex positioning (if part of a flex parent)
+    flexGrow: 0,
+  },
+  buttonContainer: { alignItems: 'center', margin: 10 },
 });
