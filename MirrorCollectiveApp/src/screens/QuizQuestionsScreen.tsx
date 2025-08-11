@@ -5,6 +5,7 @@ import {
   FlatList,
   StyleSheet,
   ImageBackground,
+  Dimensions,
 } from 'react-native';
 import LogoHeader from '../components/LogoHeader';
 import GradientButton from '../components/GradientButton';
@@ -15,11 +16,14 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../types';
 import ImageOptionButton from '../components/ImageOptionButton';
+import { typography } from '../styles/typography';
 
 type QuizQuestionsScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
   'QuizQuestions'
 >;
+
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 const QuizQuestionsScreen = () => {
   const navigation = useNavigation<QuizQuestionsScreenNavigationProp>();
@@ -85,34 +89,38 @@ const QuizQuestionsScreen = () => {
           <ProgressBar progress={(currentIndex + 1) / questions.length} />
         </View>
         <Text style={styles.question}>{currentQuestion.question}</Text>
-        {currentQuestion.type === 'text' ? (
-          <FlatList
-            data={currentQuestion.options}
-            keyExtractor={keyExtractor}
-            renderItem={renderItem}
-            contentContainerStyle={styles.list}
-            showsVerticalScrollIndicator={false}
-          />
-        ) : (
-          <View style={styles.imageGrid}>
-            {currentQuestion.options.map((item: any, index: number) => (
-              <ImageOptionButton
-                key={item.label || index}
-                image={imageMap[item.image as keyof typeof imageMap]}
-                selected={selected === item.label}
-                onPress={() => setSelected(item.label)}
+        <View style={styles.contentArea}>
+          <View style={styles.optionsContainer}>
+            {currentQuestion.type === 'text' ? (
+              <FlatList
+                data={currentQuestion.options}
+                keyExtractor={keyExtractor}
+                renderItem={renderItem}
+                contentContainerStyle={styles.list}
+                showsVerticalScrollIndicator={false}
               />
-            ))}
+            ) : (
+              <View style={styles.imageGrid}>
+                {currentQuestion.options.map((item: any, index: number) => (
+                  <ImageOptionButton
+                    key={item.label || index}
+                    image={imageMap[item.image as keyof typeof imageMap]}
+                    selected={selected === item.label}
+                    onPress={() => setSelected(item.label)}
+                  />
+                ))}
+              </View>
+            )}
           </View>
-        )}
 
-        <View style={styles.nextWrap}>
-          <GradientButton
-            title={isLast ? 'Finish' : 'Next'}
-            onPress={handleNext}
-            disabled={!selected}
-            style={{ width: 87, height: 48 }}
-          />
+          <View style={styles.nextWrap}>
+            <GradientButton
+              title={isLast ? 'Finish' : 'Next'}
+              onPress={handleNext}
+              disabled={!selected}
+              style={{ width: 87, height: 48 }}
+            />
+          </View>
         </View>
       </View>
     </ImageBackground>
@@ -131,49 +139,61 @@ const styles = StyleSheet.create({
 
   container: {
     flex: 1,
-    paddingHorizontal: 24,
-    paddingTop: 40,
+    paddingHorizontal: Math.max(20, screenWidth * 0.05),
+    paddingTop: Math.max(40, screenHeight * 0.05),
     alignItems: 'center',
-    flexDirection: 'column',
   },
   imageGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-around',
-    rowGap: 32,
-    columnGap: 24,
-    paddingVertical: 24,
-    paddingHorizontal: 12,
+    rowGap: Math.max(24, screenHeight * 0.03),
+    columnGap: Math.max(16, screenWidth * 0.04),
+    paddingVertical: Math.max(24, screenHeight * 0.03),
+    paddingHorizontal: Math.max(12, screenWidth * 0.03),
   },
 
   question: {
-    width: 345,
-    fontFamily: 'CormorantGaramond-Italic',
-    fontSize: 24,
-    lineHeight: 29,
-    fontWeight: '500',
-    color: '#F2E2B1',
+    ...typography.styles.title,
+    width: Math.min(screenWidth * 0.9, 400),
     textAlign: 'center',
-    marginTop: 10,
-    marginBottom: 14,
-    textShadowColor: 'rgba(0,0,0,0.35)', // improves contrast on light patches
+    marginTop: Math.max(10, screenHeight * 0.015),
+    marginBottom: Math.max(14, screenHeight * 0.02),
+    textShadowColor: 'rgba(0,0,0,0.35)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
   },
 
-  list: { width: 345, paddingBottom: 24 },
+  list: {
+    width: '100%',
+    paddingBottom: Math.max(24, screenHeight * 0.03),
+    alignItems: 'center',
+    flexGrow: 0,
+  },
   optionButton: { marginBottom: 16 },
 
-  nextWrap: {
-    width: 345,
+  contentArea: {
+    flex: 1,
+    width: '100%',
+    justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 20,
-    marginBottom: 16,
+  },
+  optionsContainer: {
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: Math.max(20, screenHeight * 0.02),
+  },
+  nextWrap: {
+    width: '100%',
+    alignItems: 'center',
+    marginTop: Math.max(24, screenHeight * 0.03),
+    paddingBottom: Math.max(20, screenHeight * 0.025),
   },
   progressWrap: {
     width: '100%',
-    marginTop: 80,
-    marginBottom: 10,
+    marginTop: Math.max(100, screenHeight * 0.12),
+    marginBottom: Math.max(15, screenHeight * 0.02),
     alignItems: 'center',
   },
 });

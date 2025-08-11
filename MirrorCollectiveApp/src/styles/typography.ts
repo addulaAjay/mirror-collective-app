@@ -4,7 +4,7 @@ export const typography = {
     secondary: 'CormorantGaramond-Regular', // Secondary serif
     fallback: 'Georgia', // System fallback
   },
-  
+
   sizes: {
     xs: 12,
     sm: 14,
@@ -15,7 +15,7 @@ export const typography = {
     '3xl': 28,
     '4xl': 32,
   },
-  
+
   lineHeights: {
     xs: 18,
     sm: 20,
@@ -26,7 +26,7 @@ export const typography = {
     '3xl': 36,
     '4xl': 42,
   },
-  
+
   weights: {
     light: '300',
     regular: '400',
@@ -34,7 +34,7 @@ export const typography = {
     semibold: '600',
     bold: '700',
   },
-  
+
   styles: {
     // Main Headlines - Large elegant serif italic
     headline: {
@@ -44,7 +44,7 @@ export const typography = {
       color: '#F5E6B8', // Warm gold/cream
       letterSpacing: 0.5,
     },
-    
+
     // Page Titles - Elegant serif regular
     title: {
       fontFamily: 'CormorantGaramond-Regular',
@@ -53,7 +53,7 @@ export const typography = {
       color: '#F5E6B8',
       letterSpacing: 0.3,
     },
-    
+
     // Subheadings - Same serif family, regular
     subtitle: {
       fontFamily: 'CormorantGaramond-Regular',
@@ -61,7 +61,7 @@ export const typography = {
       lineHeight: 26,
       color: '#F0F0F0', // Light cream/off-white
     },
-    
+
     // Subheading for welcome messages
     welcome: {
       fontFamily: 'CormorantGaramond-Regular',
@@ -69,7 +69,7 @@ export const typography = {
       lineHeight: 24,
       color: '#F0F0F0',
     },
-    
+
     // Body text - Clean serif
     body: {
       fontFamily: 'CormorantGaramond-Regular',
@@ -77,7 +77,7 @@ export const typography = {
       lineHeight: 24,
       color: '#E5E5E5', // Light gray/cream
     },
-    
+
     // Body text small
     bodySmall: {
       fontFamily: 'CormorantGaramond-Regular',
@@ -85,7 +85,7 @@ export const typography = {
       lineHeight: 22,
       color: '#E5E5E5',
     },
-    
+
     // Italic body text
     bodyItalic: {
       fontFamily: 'CormorantGaramond-Italic',
@@ -93,7 +93,7 @@ export const typography = {
       lineHeight: 24,
       color: '#E5E5E5',
     },
-    
+
     // Header logo text - Small caps style
     logoText: {
       fontFamily: 'CormorantGaramond-Regular',
@@ -103,7 +103,7 @@ export const typography = {
       textTransform: 'uppercase' as const,
       letterSpacing: 1.5,
     },
-    
+
     // Call-to-action buttons
     button: {
       fontFamily: 'CormorantGaramond-SemiBold',
@@ -113,7 +113,7 @@ export const typography = {
       textTransform: 'uppercase' as const,
       letterSpacing: 2,
     },
-    
+
     // Input fields
     input: {
       fontFamily: 'CormorantGaramond-Regular',
@@ -121,7 +121,7 @@ export const typography = {
       lineHeight: 20,
       color: '#F0F0F0',
     },
-    
+
     // Input placeholders
     inputPlaceholder: {
       fontFamily: 'CormorantGaramond-MediumItalic',
@@ -129,7 +129,7 @@ export const typography = {
       lineHeight: 20,
       color: '#A0A0A0',
     },
-    
+
     // Links
     link: {
       fontFamily: 'CormorantGaramond-Regular',
@@ -138,7 +138,7 @@ export const typography = {
       color: '#F5E6B8',
       textDecorationLine: 'underline' as const,
     },
-    
+
     // Large links
     linkLarge: {
       fontFamily: 'CormorantGaramond-Medium',
@@ -147,15 +147,15 @@ export const typography = {
       color: '#F5E6B8',
       textDecorationLine: 'underline' as const,
     },
-    
+
     // Labels
     label: {
-      fontFamily: 'CormorantGaramond-Medium',
+      fontFamily: 'CormorantGaramond-Italic',
       fontSize: 14,
       lineHeight: 20,
       color: '#F0F0F0',
     },
-    
+
     // Caption text
     caption: {
       fontFamily: 'CormorantGaramond-Regular',
@@ -176,17 +176,17 @@ export const colors = {
     muted: 'rgba(240, 240, 240, 0.5)',
     placeholder: '#A0A0A0',
   },
-  
+
   background: {
     primary: 'transparent',
     input: 'rgba(217, 217, 217, 0.01)',
   },
-  
+
   border: {
     primary: '#F0F0F0',
     input: '#F0F0F0',
   },
-  
+
   button: {
     primary: '#F5E6B8', // Bright gold/yellow for buttons
     disabled: 'rgba(245, 230, 184, 0.6)',
@@ -199,21 +199,21 @@ export const shadows = {
     offset: { width: 0, height: 0 },
     radius: 4,
   },
-  
+
   button: {
     color: '#E5D6B0',
     offset: { width: 0, height: 0 },
     opacity: 1,
     radius: 4,
   },
-  
+
   input: {
     color: '#000',
     offset: { width: 0, height: 4 },
     opacity: 0.25,
     radius: 12,
   },
-  
+
   container: {
     color: '#000',
     offset: { width: -1, height: 5 },

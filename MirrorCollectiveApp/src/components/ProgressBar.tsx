@@ -1,6 +1,8 @@
 // components/ProgressBar.tsx
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Dimensions } from 'react-native';
+
+const { width: screenWidth } = Dimensions.get('window');
 
 export default function ProgressBar({ progress = 0 }) {
   return (
@@ -16,25 +18,26 @@ export default function ProgressBar({ progress = 0 }) {
 
 const styles = StyleSheet.create({
   wrap: {
-    width: 352.27,
-    height: 8.77,
-    marginBottom: 20,
+    width: Math.min(screenWidth * 0.9, 400),
+    height: Math.max(8, screenWidth * 0.02),
+    marginBottom: Math.max(16, screenWidth * 0.04),
     alignItems: 'center',
   },
   track: {
     width: '100%',
-    height: 8.77,
-    borderRadius: 365,
-    borderWidth: 0.73,
+    height: '100%',
+    borderRadius: 100,
+    borderWidth: 1,
     borderColor: '#9BAAC2',
     backgroundColor: 'rgba(155,170,194,0.10)',
     overflow: 'hidden',
   },
   fill: {
-    height: 7.31,
-    marginTop: 0.73,
-    marginLeft: 0.73,
-    borderRadius: 5.85,
-    backgroundColor: '#DCC79E', // fallback
+    height: '100%',
+    borderRadius: 100,
+    backgroundColor: '#DCC79E',
+    marginLeft: 1,
+    marginTop: 1,
+    width: 'auto',
   },
 });
