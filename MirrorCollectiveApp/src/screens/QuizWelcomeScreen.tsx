@@ -1,15 +1,18 @@
 import React from 'react';
-import { View, Text, StyleSheet, ImageBackground, Image } from 'react-native';
+import { View, Text, StyleSheet, ImageBackground, Image, Dimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import GradientButton from '../components/GradientButton';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 // import type { RouteProp } from '@react-navigation/native';
 import type { RootStackParamList } from '../types';
+import { typography } from '../styles/typography';
 type QuizWelcomeScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
   'QuizWelcome'
 >;
 // type QuizWelcomeScreenRouteProp = RouteProp<RootStackParamList, 'QuizWelcome'>;
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+
 const QuizWelcomeScreen = () => {
   const navigation = useNavigation<QuizWelcomeScreenNavigationProp>();
   // const route = useRoute<QuizWelcomeScreenRouteProp>();
@@ -52,19 +55,22 @@ export default QuizWelcomeScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 24,
-    justifyContent: 'center',
+    paddingHorizontal: Math.max(24, screenWidth * 0.06),
+    justifyContent: 'space-evenly',
     alignItems: 'center',
+    paddingTop: Math.max(40, screenHeight * 0.05),
+    paddingBottom: Math.max(30, screenHeight * 0.04),
   },
   backgroundImage: {
     resizeMode: 'cover',
   },
   card: {
-    width: 345,
-    height: 429,
-    padding: 20,
-    gap: 20,
-    borderRadius: 20,
+    width: Math.min(screenWidth * 0.9, 400),
+    minHeight: screenHeight * 0.45,
+    maxHeight: screenHeight * 0.65,
+    padding: Math.max(20, screenWidth * 0.05),
+    gap: Math.max(15, screenHeight * 0.02),
+    borderRadius: Math.max(16, screenWidth * 0.04),
     backgroundColor: 'rgba(155, 170, 194, 0.1)',
     borderColor: '#1A2238',
     borderWidth: 0.25,
@@ -72,58 +78,43 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
     shadowRadius: 5,
-    // backdropFilter: 'blur(1px)',
   },
   content: {
-    width: 305,
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 30,
+    gap: Math.max(20, screenHeight * 0.025),
   },
   title: {
-    fontFamily: 'Cormorant Garamond',
-    fontWeight: '300',
-    fontSize: 32,
-    lineHeight: 32,
-    color: '#F2E2B1',
+    ...typography.styles.headline,
     textAlign: 'center',
     textShadowColor: 'rgba(0, 0, 0, 0.25)',
     textShadowOffset: { width: 0, height: 4 },
     textShadowRadius: 4,
   },
   description: {
-    fontFamily: 'Cormorant Garamond',
-    fontStyle: 'italic',
-    fontWeight: '300',
+    ...typography.styles.bodyItalic,
     fontSize: 24,
     lineHeight: 29,
-    color: '#FDFDF9',
     textAlign: 'center',
   },
   emphasis: {
-    fontFamily: 'Cormorant Garamond',
-    fontStyle: 'italic',
-    fontWeight: '500',
+    ...typography.styles.title,
     fontSize: 28,
     lineHeight: 32,
-    color: '#F2E2B1',
+    fontFamily: 'CormorantGaramond-MediumItalic',
     textAlign: 'center',
     textShadowColor: 'rgba(0, 0, 0, 0.25)',
     textShadowOffset: { width: 0, height: 4 },
     textShadowRadius: 4,
   },
   logo: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'flex-start',
-    padding: 0,
-    gap: 10, // Only supported in newer React Native versions or via `columnGap`/`rowGap` in libraries like Tamagui
-
-    width: 100,
-    height: 100,
-
-    // Optional flex positioning (if part of a flex parent)
-    flexGrow: 0,
+    width: Math.min(screenWidth * 0.2, 100),
+    height: Math.min(screenWidth * 0.2, 100),
+    flexShrink: 0,
   },
-  buttonContainer: { alignItems: 'center', margin: 10 },
+  buttonContainer: {
+    alignItems: 'center',
+    width: '100%',
+  },
 });

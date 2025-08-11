@@ -5,7 +5,10 @@ import {
   StyleSheet,
   View,
   ViewStyle,
+  Dimensions,
 } from 'react-native';
+
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 interface Props {
   label: string;
@@ -33,15 +36,15 @@ export default OptionButton;
 const styles = StyleSheet.create({
   button: {
     flexDirection: 'row',
-    alignItems: 'flex-start', // Aligns circle + label at top if multi-line
-    padding: 8,
-    gap: 16,
-    width: 320,
-    minHeight: 64, // Allow growth for multi-line text
+    alignItems: 'center',
+    padding: Math.max(12, screenWidth * 0.03),
+    gap: Math.max(12, screenWidth * 0.03),
+    width: Math.min(screenWidth * 0.85, 400),
+    minHeight: Math.max(60, screenHeight * 0.07),
     backgroundColor: 'rgba(253, 253, 249, 0.01)',
     borderWidth: 0.25,
     borderColor: '#9BAAC2',
-    borderRadius: 13,
+    borderRadius: Math.max(12, screenWidth * 0.03),
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
@@ -50,19 +53,20 @@ const styles = StyleSheet.create({
   },
 
   circle: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    width: Math.max(18, screenWidth * 0.045),
+    height: Math.max(18, screenWidth * 0.045),
+    borderRadius: Math.max(9, screenWidth * 0.0225),
     borderWidth: 1.5,
     borderColor: '#F4EFE4',
     alignItems: 'center',
     justifyContent: 'center',
+    flexShrink: 0,
   },
 
   radio: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+    width: Math.max(8, screenWidth * 0.02),
+    height: Math.max(8, screenWidth * 0.02),
+    borderRadius: Math.max(4, screenWidth * 0.01),
     backgroundColor: 'transparent',
   },
 
@@ -74,8 +78,8 @@ const styles = StyleSheet.create({
     flex: 1,
     flexWrap: 'wrap',
     fontFamily: 'CormorantGaramond-Regular',
-    fontSize: 20,
-    lineHeight: 24,
+    fontSize: Math.min(Math.max(18, screenWidth * 0.045), 22),
+    lineHeight: Math.min(Math.max(22, screenWidth * 0.055), 28),
     color: '#F4EFE4',
   },
 });

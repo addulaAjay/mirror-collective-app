@@ -5,7 +5,10 @@ import {
   StyleSheet,
   ViewStyle,
   View,
+  Dimensions,
 } from 'react-native';
+
+const { width: screenWidth } = Dimensions.get('window');
 
 interface Props {
   title: string;
@@ -33,11 +36,11 @@ const GradientButton = ({ title, onPress, disabled, style }: Props) => {
 
 const styles = StyleSheet.create({
   button: {
-    width: 110,
-    height: 48,
-    borderRadius: 13,
-    paddingVertical: 8,
-    paddingHorizontal: 20,
+    minWidth: Math.max(120, screenWidth * 0.3),
+    height: Math.max(48, screenWidth * 0.12),
+    borderRadius: Math.max(12, screenWidth * 0.03),
+    paddingVertical: Math.max(8, screenWidth * 0.02),
+    paddingHorizontal: Math.max(20, screenWidth * 0.05),
     justifyContent: 'center',
     alignItems: 'center',
 
