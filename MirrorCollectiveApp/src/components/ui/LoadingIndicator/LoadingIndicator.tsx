@@ -9,14 +9,14 @@ interface LoadingIndicatorProps {
 }
 
 export const LoadingIndicator: React.FC<LoadingIndicatorProps> = ({
-  message = "…thinking…",
+  message = '…thinking…',
   showSpinner = false,
 }) => {
   return (
     <View style={styles.container}>
       {showSpinner && (
-        <ActivityIndicator 
-          size="small" 
+        <ActivityIndicator
+          size="small"
           color={COLORS.TEXT.LOADING}
           style={styles.spinner}
           testID="loading-spinner"
@@ -34,14 +34,13 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     marginVertical: SPACING.XS,
   },
-  
+
   spinner: {
     marginRight: SPACING.SM,
   },
-  
+
   text: {
     ...theme.typography.styles.body,
     color: COLORS.TEXT.LOADING,
-    fontStyle: 'italic',
   },
 });

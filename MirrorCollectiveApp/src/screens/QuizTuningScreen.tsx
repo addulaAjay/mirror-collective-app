@@ -6,13 +6,13 @@ import {
   ImageBackground,
   TouchableOpacity,
   Dimensions,
+  Image,
 } from 'react-native';
 import LogoHeader from '../components/LogoHeader';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../types';
 import StarIcon from '../components/StarIcon';
-import { typography } from '../styles/typography';
 
 type QuizTuningScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -33,22 +33,34 @@ const QuizTuningScreen = () => {
       <View style={styles.container}>
         <LogoHeader />
 
-        <View style={styles.content}>
-          <Text style={styles.title}>MirrorGPT is tuning...</Text>
+        <View style={styles.titleContainer}>
+          <Text style={styles.title}>MIRROR GPT IS{'\n'}TUNING...</Text>
+        </View>
+
+        <View style={styles.mirrorContainer}>
+          <Image
+            source={require('../assets/oval-mirror-golden-frame.png')}
+            style={styles.mirrorImage}
+            resizeMode="contain"
+          />
+        </View>
+
+        <View style={styles.messageContainer}>
           <Text style={styles.message}>Your reflection has been received.</Text>
-          <Text style={styles.message}>
-            As you shift, grow, and evolve, the Mirror will reflect with you.
+          <Text style={styles.subMessage}>
+            As you shift, grow, and evolve,{'\n'}the Mirror will reflect with
+            you.
           </Text>
         </View>
 
         <TouchableOpacity
-          style={styles.bottomWrap}
+          style={styles.enterButton}
           onPress={() => navigation.navigate('MirrorChat')}
           activeOpacity={0.8}
         >
-          <StarIcon width={24} height={24} />
+          <StarIcon width={20} height={20} />
           <Text style={styles.enterText}>ENTER</Text>
-          <StarIcon width={24} height={24} />
+          <StarIcon width={20} height={20} />
         </TouchableOpacity>
       </View>
     </ImageBackground>
@@ -63,62 +75,79 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    paddingHorizontal: Math.max(24, screenWidth * 0.06),
-    paddingTop: Math.max(50, screenHeight * 0.06),
-    paddingBottom: Math.max(40, screenHeight * 0.05),
-    justifyContent: 'space-between',
+    paddingHorizontal: Math.max(40, screenWidth * 0.102),
+    paddingTop: Math.max(48, screenHeight * 0.056),
+    paddingBottom: Math.max(30, screenHeight * 0.035),
     alignItems: 'center',
   },
   bgImage: {
     resizeMode: 'cover',
+  },
+  titleContainer: {
+    alignItems: 'center',
+    marginTop: Math.max(60, screenHeight * 0.1),
+    marginBottom: Math.max(60, screenHeight * 0.07),
+  },
+  title: {
+    fontFamily: 'CormorantGaramond-Light',
+    fontSize: Math.min(screenWidth * 0.082, 32),
+    fontWeight: '300',
+    lineHeight: Math.min(screenWidth * 0.082, 32),
+    color: '#E5D6B0',
+    textAlign: 'center',
+    textShadowColor: '#E5D6B0',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 8,
+  },
+  mirrorContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: Math.max(10, screenHeight * 0.01),
+  },
+  mirrorImage: {
+    width: Math.min(screenWidth * 0.7, 275),
+    height: Math.min(screenHeight * 0.5, 400),
+    shadowColor: '#E5D6B0',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 40,
+  },
+  messageContainer: {
+    alignItems: 'center',
+    marginBottom: Math.max(80, screenHeight * 0.09),
+  },
+  message: {
+    fontFamily: 'CormorantGaramond-Light',
+    fontSize: Math.min(screenWidth * 0.051, 20),
+    fontWeight: '300',
+    color: '#FDFDF9',
+    textAlign: 'center',
+    marginBottom: Math.max(10, screenHeight * 0.025),
+  },
+  subMessage: {
+    fontFamily: 'CormorantGaramond-LightItalic',
+    fontSize: Math.min(screenWidth * 0.051, 20),
+    color: '#FDFDF9',
+    textAlign: 'center',
+    lineHeight: Math.min(screenWidth * 0.064, 25),
   },
   enterButton: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Math.max(12, screenWidth * 0.03),
     justifyContent: 'center',
-    marginTop: Math.max(30, screenHeight * 0.035),
+    position: 'absolute',
+    bottom: Math.max(40, screenHeight * 0.05),
+    alignSelf: 'center',
   },
   enterText: {
-    ...typography.styles.button,
-    fontSize: Math.min(Math.max(24, screenWidth * 0.062), 28),
-    lineHeight: Math.min(Math.max(30, screenWidth * 0.075), 35),
-    textShadowColor: 'rgba(245, 230, 184, 0.6)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 6,
-  },
-  content: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: Math.max(18, screenHeight * 0.022),
-    paddingVertical: Math.max(20, screenHeight * 0.025),
-    maxWidth: Math.min(screenWidth * 0.9, 400),
-  },
-  title: {
-    ...typography.styles.headline,
-    fontSize: Math.min(Math.max(32, screenWidth * 0.082), 40),
-    lineHeight: Math.min(Math.max(40, screenWidth * 0.1), 48),
+    fontFamily: 'CormorantGaramond-Light',
+    fontSize: Math.min(screenWidth * 0.056, 22),
+    fontWeight: '300',
+    color: '#E5D6B0',
     textAlign: 'center',
-    marginBottom: Math.max(24, screenHeight * 0.03),
-    textShadowColor: 'rgba(0, 0, 0, 0.4)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 6,
-  },
-  message: {
-    ...typography.styles.subtitle,
-    fontSize: Math.min(Math.max(18, screenWidth * 0.047), 22),
-    textAlign: 'center',
-    lineHeight: Math.min(Math.max(24, screenWidth * 0.062), 28),
-    maxWidth: Math.min(screenWidth * 0.85, 350),
-    marginBottom: Math.max(8, screenHeight * 0.01),
-  },
-  bottomWrap: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: Math.max(12, screenWidth * 0.03),
-    justifyContent: 'center',
-    marginTop: Math.max(40, screenHeight * 0.05),
-    paddingVertical: Math.max(20, screenHeight * 0.025),
+    textShadowColor: '#E5D6B0',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 8,
   },
 });
