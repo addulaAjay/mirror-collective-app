@@ -8,7 +8,7 @@ import {
   Dimensions,
 } from 'react-native';
 
-const { width: screenWidth } = Dimensions.get('window');
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 interface Props {
   title: string;
@@ -23,11 +23,9 @@ const GradientButton = ({ title, onPress, disabled, style }: Props) => {
       activeOpacity={0.85}
       onPress={onPress}
       disabled={disabled}
-      style={[style, disabled && { opacity: 0.6 }]}
+      style={[styles.container, style, disabled && styles.disabled]}
     >
       <View style={styles.button}>
-        {/* subtle inner highlight */}
-        <View pointerEvents="none" style={styles.innerGlow} />
         <Text style={styles.text}>{title}</Text>
       </View>
     </TouchableOpacity>
@@ -35,50 +33,51 @@ const GradientButton = ({ title, onPress, disabled, style }: Props) => {
 };
 
 const styles = StyleSheet.create({
+  container: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   button: {
-    minWidth: Math.max(120, screenWidth * 0.3),
-    height: Math.max(48, screenWidth * 0.12),
-    borderRadius: Math.max(12, screenWidth * 0.03),
-    paddingVertical: Math.max(8, screenWidth * 0.02),
-    paddingHorizontal: Math.max(20, screenWidth * 0.05),
+    minWidth: Math.max(screenWidth * 0.26, 102), // Minimum width to accommodate different text lengths
+    minHeight: Math.max(screenHeight * 0.056, 48), // Minimum height for touch target
+    borderRadius: 13, // Exact 13px from Figma
+    paddingHorizontal: Math.max(20, screenWidth * 0.051), // Exact 20px padding from Figma layout9
+    paddingVertical: Math.max(8, screenHeight * 0.009), // Exact 8px padding from Figma layout9
     justifyContent: 'center',
     alignItems: 'center',
-
-    // border
-    borderWidth: 0.25,
-    borderColor: '#9BAAC2',
-
-    // shadow (iOS) + elevation (Android)
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 19,
-    elevation: 6,
-    overflow: 'hidden', // keeps innerGlow inside rounded corners
+    position: 'relative',
+    
+    // Only keep the outer border from Figma - remove conflicting borders
+    borderWidth: 0.25, // Exact stroke width from Figma
+    borderColor: '#9BAAC2', // Exact stroke2 color from Figma
+    
+    // Primary shadow effect (golden glow)
+    shadowColor: 'rgba(229, 214, 176, 0.23)',
+    shadowOffset: { width: 1, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 38,
+    elevation: 15,
+    
+    // Simple background
+    backgroundColor: 'rgba(253, 253, 249, 0.15)',
   },
-
-  // soft center glow to mimic frosted/blurred highlight
-  innerGlow: {
-    position: 'absolute',
-    top: 2,
-    left: 2,
-    right: 2,
-    bottom: 2,
-    borderRadius: 11,
-    backgroundColor: 'rgba(229,214,176,0.12)',
-  },
-
   text: {
-    // Figma: Cormorant Garamond, 24/32, gold with slight shadow
-    fontFamily: 'CormorantGaramond-SemiBold',
-    fontSize: 24,
-    lineHeight: 32,
-    color: '#F2E2B1',
+    fontFamily: 'CormorantGaramond-Medium', // Exact font from Figma
+    fontSize: Math.min(screenWidth * 0.051, 20), // Proportional to 32px height in Figma (20px text)
+    fontWeight: '500', // Medium weight from Figma
+    lineHeight: Math.min(screenWidth * 0.061, 24), // Tight line height for button text
+    color: '#F2E2B1', // Exact fill6 color from Figma
     textAlign: 'center',
-    textShadowColor: 'rgba(0,0,0,0.25)',
+    textShadowColor: 'rgba(0, 0, 0, 0.25)', // Exact effect3 shadow from Figma
     textShadowOffset: { width: 0, height: 4 },
     textShadowRadius: 4,
-    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5, // Slight letter spacing for better readability
+    includeFontPadding: false, // Remove extra padding that might cause clipping
+    textAlignVertical: 'center', // Ensure vertical centering
+  },
+  disabled: {
+    opacity: 0.6,
   },
 });
 

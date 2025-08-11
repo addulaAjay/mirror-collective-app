@@ -67,7 +67,7 @@ const TextInputField = ({
         autoComplete={autoComplete}
         style={[
           styles.input,
-          size == 'normal' ? styles.size_normal : styles.size_small,
+          size === 'normal' ? styles.size_normal : styles.size_small,
         ]}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
