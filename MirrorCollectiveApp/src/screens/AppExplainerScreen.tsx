@@ -77,7 +77,6 @@ const styles = StyleSheet.create({
   },
   videoText: {
     ...typography.styles.title,
-    fontStyle: 'italic',
     color: '#000000',
     textAlign: 'center',
     width: 169,

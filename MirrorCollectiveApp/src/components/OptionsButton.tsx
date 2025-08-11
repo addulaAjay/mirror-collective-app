@@ -3,12 +3,11 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  View,
   ViewStyle,
   Dimensions,
 } from 'react-native';
 
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+const { width: screenWidth } = Dimensions.get('window');
 
 interface Props {
   label: string;
@@ -22,12 +21,11 @@ const OptionButton = ({ label, selected, onPress, style }: Props) => {
     <TouchableOpacity
       onPress={onPress}
       activeOpacity={0.9}
-      style={[styles.button, style]}
+      style={[styles.button, selected && styles.buttonSelected, style]}
     >
-      <View style={styles.circle}>
-        <View style={[styles.radio, selected && styles.radioSelected]} />
-      </View>
-      <Text style={styles.label}>{label}</Text>
+      <Text style={[styles.label, selected && styles.labelSelected]}>
+        {label}
+      </Text>
     </TouchableOpacity>
   );
 };
@@ -35,63 +33,70 @@ const OptionButton = ({ label, selected, onPress, style }: Props) => {
 export default OptionButton;
 const styles = StyleSheet.create({
   button: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: Math.max(8, screenHeight * 0.009), // Exact 8px padding from Figma layout7
-    paddingHorizontal: Math.max(16, screenWidth * 0.041), // Exact 16px padding from Figma layout7
-    gap: Math.max(16, screenWidth * 0.041), // Exact 16px gap from Figma layout7
-    width: Math.min(screenWidth * 0.796, 313), // Exact 313px width from Figma
-    height: Math.max(64, screenHeight * 0.075), // Exact 64px height from Figma
-    // Exact gradient background from Figma fill4
-    backgroundColor: 'rgba(253, 253, 249, 0.71)', // Using first stop of gradient as fallback
-    borderWidth: 0.25, // Exact stroke width from Figma stroke2
-    borderColor: '#9BAAC2', // Exact stroke2 color from Figma
-    borderRadius: 13, // Exact border radius from Figma
-    // Exact shadow effects from Figma effect6
-    shadowColor: 'rgba(229, 214, 176, 0.23)',
-    shadowOffset: { width: 1, height: 4 },
-    shadowOpacity: 1,
-    shadowRadius: 38,
-    elevation: 8,
-  },
-
-  circle: {
-    width: 16, // Smaller radio button to match Figma proportions
-    height: 16,
-    borderRadius: 8,
-    borderWidth: 1.5,
-    borderColor: '#F4EFE4', // Exact fill5 color from Figma
-    alignItems: 'center',
+    flexDirection: 'row', // Match Figma layout horizontal mode
     justifyContent: 'center',
-    flexShrink: 0,
+    alignItems: 'center',
+    paddingVertical: 8, // Exact from Figma CSS
+    paddingHorizontal: 8, // Exact padding: 8px from non-selected Figma CSS
+    gap: 16, // Exact gap from Figma
+    width: Math.min(screenWidth * 0.796, 313), // Exact 313px width from Figma
+    height: 64, // Exact 64px height from Figma
+    // Exact gradient background from non-selected Figma: linear-gradient(360deg, rgba(253, 253, 249, 0.0355) 0%, rgba(253, 253, 249, 0.005) 100%)
+    backgroundColor: 'rgba(253, 253, 249, 0.02)', // Average of non-selected gradient as fallback
+    borderWidth: 0.25, // Exact stroke width from Figma
+    borderColor: '#9BAAC2', // Exact stroke color from Figma
+    borderRadius: 13, // Exact border radius from Figma
+    // Exact dual shadow from non-selected Figma: 0px 4px 19px 4px rgba(0, 0, 0, 0.1), 1px 4px 38px 2px rgba(229, 214, 176, 0.17)
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 19,
+    //elevation: 8,
   },
 
-  radio: {
-    width: 8, // Inner radio circle
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: 'transparent',
-  },
-
-  radioSelected: {
-    backgroundColor: '#F4EFE4', // Exact fill5 color from Figma
-    shadowColor: '#F4EFE4',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.4,
-    shadowRadius: 6,
+  buttonSelected: {
+    // Exact gradient background from selected Figma: linear-gradient(360deg, rgba(253, 253, 249, 0.2485) 0%, rgba(253, 253, 249, 0.035) 100%)
+    backgroundColor: 'rgba(253, 253, 249, 0.14)', // Average of gradient as fallback
+    borderColor: '#9BAAC2',
+    borderWidth: 0.25,
+    paddingHorizontal: 16, // Selected state has padding: 8px 16px from Figma CSS
+    // Exact dual shadow from selected Figma: 0px 4px 19px 4px rgba(0, 0, 0, 0.1), 1px 4px 38px 2px rgba(229, 214, 176, 0.23)
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 19,
+    //elevation: 15, // Higher elevation for selected state
   },
 
   label: {
-    flex: 1,
-    flexWrap: 'wrap',
     fontFamily: 'CormorantGaramond-Light', // Match Figma typography
-    fontSize: Math.min(screenWidth * 0.041, 16), // Proportional to text in Figma
-    fontWeight: '300', // Light weight
-    lineHeight: Math.min(screenWidth * 0.051, 20), // Tight line height for multi-line text
-    color: '#F4EFE4', // Exact fill5 color from Figma
-    textAlign: 'left',
-    textShadowColor: '#E5D6B0', // Exact effect5 glow from Figma
+    fontSize: Math.min(screenWidth * 0.051, 20), // Exact 20px from Figma CSS
+    fontWeight: '300', // Exact font-weight: 300 from Figma
+    lineHeight: Math.min(screenWidth * 0.061, 24), // Exact line-height: 24px from Figma
+    color: '#F4EFE4', // Exact color from Figma
+    textAlign: 'center', // Exact text-align: center from Figma CSS
+    // Exact text-shadow: 0px 0px 8px #E5D6B0 from Figma
+    textShadowColor: '#E5D6B0',
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 8,
+    width: 297, // Exact width: 297px from non-selected Figma CSS
+    height: 48, // Exact height: 48px from Figma
+    flex: 1, // flex-grow: 1 from Figma CSS
+  },
+
+  labelSelected: {
+    // Selected text uses exact styling from selected state Figma CSS
+    fontFamily: 'CormorantGaramond-Light',
+    fontSize: Math.min(screenWidth * 0.051, 20), // Exact 20px
+    fontWeight: '300',
+    lineHeight: Math.min(screenWidth * 0.061, 24), // Exact 24px
+    color: '#F4EFE4',
+    textAlign: 'center', // Center align for selected state
+    textShadowColor: '#E5D6B0',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 8, // Exact 8px from Figma
+    width: 281, // Exact width: 281px from selected Figma CSS
+    height: 48,
+    flex: 1,
   },
 });
