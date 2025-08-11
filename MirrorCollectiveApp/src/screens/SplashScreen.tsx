@@ -1,5 +1,14 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, ImageBackground, Image } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ImageBackground,
+  Image,
+  Dimensions,
+} from 'react-native';
+
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../types';
@@ -38,7 +47,7 @@ const SplashScreen: React.FC<SplashProps> = ({ navigation }) => {
           style={styles.logo}
           resizeMode="contain"
         />
-        <Text style={styles.title}>The MIRROR{'\n'}COLLECTIVE</Text>
+        <Text style={styles.title}>The MIRROR COLLECTIVE</Text>
       </View>
     </ImageBackground>
   );
@@ -49,31 +58,32 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingHorizontal: Math.max(24, screenWidth * 0.06),
   },
   logoContainer: {
     alignItems: 'center',
-    gap: 25,
+    gap: Math.max(20, screenHeight * 0.025),
   },
   logo: {
-    width: 175,
-    height: 175,
+    width: Math.min(Math.max(screenWidth * 0.35, 120), 175),
+    height: Math.min(Math.max(screenWidth * 0.35, 120), 175),
     shadowColor: 'rgba(229, 214, 176, 0.86)',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 1,
-    shadowRadius: 5,
+    shadowRadius: Math.max(5, screenWidth * 0.015),
     elevation: 8,
   },
   title: {
-    fontFamily: 'CormorantGaramond-Italic',
-    fontStyle: 'italic',
-    fontWeight: '300',
-    fontSize: 35,
-    lineHeight: 42,
-    textAlign: 'center',
-    color: '#E5D6B0',
-    // textShadowColor: 'rgba(0, 0, 0, 0.25)',
-    textShadowOffset: { width: 0, height: 4 },
-    textShadowRadius: 9,
+    fontFamily: 'CormorantGaramond-Light', // Exact font from Figma
+    fontWeight: '300', // Light weight (300)
+    fontSize: Math.min(Math.max(screenWidth * 0.08, 28), 35), // Target 35px from Figma
+    lineHeight: Math.min(Math.max(screenWidth * 0.095, 34), 42), // Target ~42px from Figma
+    textAlign: 'center', // CENTER alignment from Figma
+    color: '#E5D6B0', // Exact color from Figma
+    textShadowOffset: { width: 0, height: 4 }, // Exact offset from Figma
+    textShadowRadius: 9, // Exact blur from Figma
+    textShadowColor: 'rgba(0, 0, 0, 0.25)', // Exact shadow color from Figma
+    textTransform: 'none', // Keep original case
   },
 });
 

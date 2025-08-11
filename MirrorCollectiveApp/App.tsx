@@ -34,7 +34,7 @@ const MirrorChatWithErrorBoundary = () => (
 const AppNavigator = () => {
   return (
     <Stack.Navigator
-      initialRouteName="QuizWelcome"
+      initialRouteName="Splash"
       screenOptions={{
         headerShown: false, // Hide headers for full-screen look
       }}
