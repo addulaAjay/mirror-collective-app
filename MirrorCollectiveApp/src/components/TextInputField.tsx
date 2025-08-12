@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   Text,
 } from 'react-native';
-import { typography, colors, shadows } from '../styles/typography';
+import { typography, colors } from '../styles/typography';
 
 interface Props {
   placeholder: string;
@@ -20,7 +20,7 @@ interface Props {
   isPasswordVisible?: boolean;
   onTogglePassword?: () => void;
   placeholderAlign?: 'center' | 'left' | 'right';
-  size: 'small' | 'normal';
+  size: 'small' | 'normal' | 'medium';
 }
 
 const TextInputField = ({
@@ -67,7 +67,11 @@ const TextInputField = ({
         autoComplete={autoComplete}
         style={[
           styles.input,
-          size === 'normal' ? styles.size_normal : styles.size_small,
+          size === 'normal'
+            ? styles.size_normal
+            : size === 'medium'
+            ? styles.size_medium
+            : styles.size_small,
         ]}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
@@ -91,24 +95,25 @@ const styles = StyleSheet.create({
     width: 313,
     borderRadius: 8,
     borderWidth: 0.5,
-    borderColor: colors.border.input,
-    backgroundColor: colors.background.input,
+    borderColor: '#FDFDF9',
+    backgroundColor: 'rgba(58, 74, 92, 0.3)',
     paddingHorizontal: 15,
     justifyContent: 'center',
-    shadowColor: shadows.input.color,
-    shadowOffset: shadows.input.offset,
-    shadowOpacity: shadows.input.opacity,
-    shadowRadius: shadows.input.radius,
+    shadowColor: 'rgba(0, 0, 0, 0.2)',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 4,
     flexDirection: 'row',
     alignItems: 'center',
   },
   size_normal: {
     height: 48,
-    marginBottom: 12,
+  },
+  size_medium: {
+    height: 44,
   },
   size_small: {
     height: 35,
-    marginBottom: 8,
   },
   input: {
     flex: 1,
@@ -123,7 +128,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
-    ...typography.styles.input,
+    ...typography.styles.inputPlaceholder,
     zIndex: 1,
     pointerEvents: 'none',
   },

@@ -223,16 +223,16 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
 
             {/* Continue Button */}
             <TouchableOpacity
-              style={styles.enterButton}
+              style={styles.continueButton}
               onPress={handleSignUp}
               disabled={isLoading}
               activeOpacity={0.8}
             >
-              <StarIcon width={24} height={24} />
-              <Text style={styles.enterText}>
-                {isLoading ? 'CREATING...' : 'CONTINUE'}
+              <StarIcon width={20} height={20} />
+              <Text style={styles.continueText}>
+                {isLoading ? 'Creating...' : 'Continue'}
               </Text>
-              <StarIcon width={24} height={24} />
+              <StarIcon width={20} height={20} />
             </TouchableOpacity>
 
             {/* Login Link */}
@@ -275,8 +275,8 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     paddingHorizontal: 44,
-    paddingTop: 120, // Space for LogoHeader (48 + 46 + 26 margin)
-    gap: 40,
+    paddingTop: 120,
+    gap: 32,
   },
   headerSection: {
     alignItems: 'center',
@@ -284,6 +284,7 @@ const styles = StyleSheet.create({
   },
   title: {
     ...typography.styles.title,
+    fontSize: 32,
     textAlign: 'center',
   },
   subtitle: {
@@ -292,31 +293,33 @@ const styles = StyleSheet.create({
   },
   formSection: {
     width: '100%',
-    gap: 12,
+    gap: 20,
   },
   fieldContainer: {
     width: '100%',
-    gap: 4,
+    gap: 8,
   },
   fieldLabel: {
     ...typography.styles.label,
-    paddingLeft: 8,
+    paddingLeft: 4,
+    fontSize: 20,
   },
-  enterButton: {
+  continueButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
+    gap: 12,
     justifyContent: 'center',
-    marginTop: 20,
+    marginTop: 40,
+    paddingVertical: 4,
   },
-  enterText: {
-    ...typography.styles.button,
-    textShadowColor: 'rgba(245, 230, 184, 0.50)',
+  continueText: {
+    fontFamily: 'CormorantGaramond-Medium',
+    fontSize: 24,
+    fontWeight: '500',
+    color: '#E5D6B0',
+    textShadowColor: 'rgba(229, 214, 176, 0.5)',
     textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 4,
-    ...typography.styles.button,
-    fontFamily: 'CormorantGaramond-Light',
-    fontSize: 20,
+    textShadowRadius: 8,
   },
   loginContainer: {
     alignItems: 'center',
