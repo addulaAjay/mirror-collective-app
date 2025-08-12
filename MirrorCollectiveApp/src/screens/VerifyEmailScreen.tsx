@@ -254,7 +254,6 @@ const styles = StyleSheet.create({
   title: {
     ...typography.styles.title,
     fontFamily: 'CormorantGaramond-LightItalic',
-    fontStyle: 'italic',
     fontSize: 28,
     textAlign: 'center',
   },

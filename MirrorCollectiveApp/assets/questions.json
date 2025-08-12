@@ -1,0 +1,57 @@
+[
+  {
+    "id": 1,
+    "question": "Which kind of moment makes you feel most alive?",
+    "options": [
+      "A quiet aha when something finally clicks",
+      "Sitting with someone and just being there for them",
+      "Doing something brave, even if it scares me",
+      "Laying out a plan and watching it unfold like magic"
+    ],
+    "type": "text"
+  },
+  {
+    "id": 2,
+    "question": "What kind of pull feels like it's calling you right now?",
+    "options": [
+      { "label": "Candle", "image": "candle" },
+      { "label": "Lightning", "image": "lightning" },
+      { "label": "Crystal", "image": "crystal" },
+      { "label": "Tree", "image": "tree" }
+    ],
+    "type": "image"
+  },
+  {
+    "id": 3,
+    "question": "Which of these speaks to your heart the most right now?",
+    "options": [
+      "I want to understand myself better",
+      "I want to feel more connected and grounded",
+      "I want to be brave and aligned with my truth",
+      "I want to create a life that reflects my soul’s vision"
+    ],
+    "type": "text"
+  },
+  {
+    "id": 4,
+    "question": "How do you offer support when someone is hurting?",
+    "options": [
+      "I give them clarity or insight they didn’t see before",
+      "I hold space and make them feel truly heard",
+      "I give them the push to be bold and take action",
+      "I help them see the bigger picture and move forward"
+    ],
+    "type": "text"
+  },
+  {
+    "id": 5,
+    "question": "Which truth feels most true for you right now?",
+    "options": [
+      "I’m here to learn and grow",
+      "I’m here to care and connect",
+      "I’m here to live out my soul",
+      "I’m here to build something meaningful"
+    ],
+    "type": "text"
+  }
+]

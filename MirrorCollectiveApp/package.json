@@ -12,7 +12,11 @@
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
     "clean:ios": "rm -rf node_modules ios/Pods ios/Podfile.lock && npm install && cd ios && pod install && cd ..",
-    "clean:android": "cd android && ./gradlew clean && cd .. && npm run android"
+    "clean:android": "cd android && ./gradlew clean && cd .. && npm run android",
+    "build:ios:archive": "xcodebuild -workspace ios/MirrorCollectiveApp.xcworkspace -scheme MirrorCollectiveApp -configuration Release -sdk iphoneos -archivePath ios/build/MirrorCollectiveApp.xcarchive clean archive",
+    "build:ios:ipa": "xcodebuild -exportArchive -archivePath ios/build/MirrorCollectiveApp.xcarchive -exportOptionsPlist ios/build/ExportOptions.plist -exportPath ios/build",
+    "distribute:ios": "firebase appdistribution:distribute ios/build/MirrorCollectiveApp.ipa --app 1:410727302750:ios:950f1c0f109ffe753516cf --release-notes 'Automated build'",
+    "android:deep-clean": "bash ./android-clean.sh"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^2.2.0",
@@ -20,6 +24,8 @@
     "@react-native/new-app-screen": "0.80.1",
     "@react-navigation/native": "^7.1.14",
     "@react-navigation/native-stack": "^7.3.21",
+    "@react-native-firebase/app": "^21.5.0",
+    "@react-native-firebase/app-distribution": "^21.5.0",
     "react": "19.1.0",
     "react-native": "0.80.1",
     "react-native-gesture-handler": "^2.27.1",

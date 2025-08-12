@@ -210,7 +210,6 @@ const styles = StyleSheet.create({
     ...typography.styles.body,
     textAlign: 'center',
     fontFamily: 'CormorantGaramond-LightItalic',
-    fontStyle: 'italic',
   },
   emailText: {
     color: colors.text.accent,
@@ -255,7 +254,6 @@ const styles = StyleSheet.create({
     ...typography.styles.linkLarge,
     fontWeight: '600',
     fontFamily: 'CormorantGaramond-LightItalic',
-    fontStyle: 'italic',
   },
 });
 

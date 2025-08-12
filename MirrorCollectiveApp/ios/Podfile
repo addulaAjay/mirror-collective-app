@@ -1,5 +1,8 @@
 require_relative '../node_modules/react-native/scripts/react_native_pods'
 
+# Enable modular headers to allow Swift pods (FirebaseCoreInternal) to be imported when using static libraries
+use_modular_headers!
+
 platform :ios, min_ios_version_supported
 prepare_react_native_project!
 
@@ -16,6 +19,10 @@ target 'MirrorCollectiveApp' do
     :path => config[:reactNativePath],
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
+
+  # Firebase pods (added for App + App Distribution)
+  pod 'Firebase/Core'
+  pod 'FirebaseAppDistribution'
 
   post_install do |installer|
     react_native_post_install(

@@ -18,7 +18,10 @@ import SignUpScreen from './src/screens/SignUpScreen';
 import VerifyEmailScreen from './src/screens/VerifyEmailScreen';
 import ForgotPasswordScreen from './src/screens/ForgotPasswordScreen';
 import ResetPasswordScreen from './src/screens/ResetPasswordScreen';
-
+import QuizWelcomeScreen from './src/screens/QuizWelcomeScreen';
+import QuizTuningScreen from './src/screens/QuizTuningScreen';
+import QuizQuestionsScreen from './src/screens/QuizQuestionsScreen';
+import ArchetypeScreen from './src/screens/ArchetypeScreen';
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 // Wrapped MirrorChat component with error boundary
@@ -47,6 +50,10 @@ const AppNavigator = () => {
       <Stack.Screen name="VerifyEmail" component={VerifyEmailScreen} />
       <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
       <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
+      <Stack.Screen name="QuizQuestions" component={QuizQuestionsScreen} />
+      <Stack.Screen name="QuizTuning" component={QuizTuningScreen} />
+      <Stack.Screen name="QuizWelcome" component={QuizWelcomeScreen} />
+      <Stack.Screen name="Archetype" component={ArchetypeScreen} />
     </Stack.Navigator>
   );
 };
