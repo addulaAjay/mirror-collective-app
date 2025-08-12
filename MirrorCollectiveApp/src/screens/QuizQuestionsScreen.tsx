@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
   },
 
   question: {
-    fontFamily: 'CormorantGaramond-Light', // Match Figma typography
+    fontFamily: 'CormorantGaramond-Italic', // Match Figma typography
     fontSize: Math.min(screenWidth * 0.061, 24), // Proportional to text size in Figma
     fontWeight: '300',
     lineHeight: Math.min(screenWidth * 0.072, 28), // Tight line height
