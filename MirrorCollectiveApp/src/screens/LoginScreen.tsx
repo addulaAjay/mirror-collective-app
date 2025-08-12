@@ -233,7 +233,6 @@ const styles = StyleSheet.create({
   },
   forgotPasswordText: {
     fontFamily: 'CormorantGaramond-LightItalic',
-    fontStyle: 'italic',
     fontSize: 20,
     lineHeight: 25,
     color: '#E5D6B0',
@@ -246,7 +245,6 @@ const styles = StyleSheet.create({
   },
   signupText: {
     fontFamily: 'CormorantGaramond-LightItalic',
-    fontStyle: 'italic',
     fontSize: 20,
     lineHeight: 25,
     textAlign: 'center',
@@ -255,7 +253,6 @@ const styles = StyleSheet.create({
   },
   signupLink: {
     fontFamily: 'CormorantGaramond-LightItalic',
-    fontStyle: 'italic',
     fontSize: 24,
     lineHeight: 25,
     color: '#E5D6B0',
