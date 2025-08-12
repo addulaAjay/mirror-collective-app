@@ -26,7 +26,7 @@ const GradientButton = ({ title, onPress, disabled, style }: Props) => {
       style={[styles.container, style, disabled && styles.disabled]}
     >
       <View style={styles.button}>
-        <Text style={styles.text}>{title}</Text>
+        <Text style={styles.text} numberOfLines={1}>{title}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   button: {
-    minWidth: Math.max(screenWidth * 0.26, 102), // Minimum width to accommodate different text lengths
+    minWidth: Math.max(screenWidth * 0.3, 120), // Increased width for "Finish" text
     minHeight: Math.max(screenHeight * 0.056, 48), // Minimum height for touch target
     borderRadius: 13, // Exact 13px from Figma
     paddingHorizontal: Math.max(20, screenWidth * 0.051), // Exact 20px padding from Figma layout9
@@ -75,6 +75,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5, // Slight letter spacing for better readability
     includeFontPadding: false, // Remove extra padding that might cause clipping
     textAlignVertical: 'center', // Ensure vertical centering
+    flexShrink: 0, // Prevent text shrinking
   },
   disabled: {
     opacity: 0.6,

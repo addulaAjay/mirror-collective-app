@@ -33,25 +33,24 @@ const OptionButton = ({ label, selected, onPress, style }: Props) => {
 export default OptionButton;
 const styles = StyleSheet.create({
   button: {
-    flexDirection: 'row', // Match Figma layout horizontal mode
+    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 8, // Exact from Figma CSS
-    paddingHorizontal: 8, // Exact padding: 8px from non-selected Figma CSS
-    gap: 16, // Exact gap from Figma
-    width: Math.min(screenWidth * 0.796, 313), // Exact 313px width from Figma
-    height: 64, // Exact 64px height from Figma
-    // Exact gradient background from non-selected Figma: linear-gradient(360deg, rgba(253, 253, 249, 0.0355) 0%, rgba(253, 253, 249, 0.005) 100%)
-    backgroundColor: 'rgba(253, 253, 249, 0.02)', // Average of non-selected gradient as fallback
-    borderWidth: 0.25, // Exact stroke width from Figma
-    borderColor: '#9BAAC2', // Exact stroke color from Figma
-    borderRadius: 13, // Exact border radius from Figma
-    // Exact dual shadow from non-selected Figma: 0px 4px 19px 4px rgba(0, 0, 0, 0.1), 1px 4px 38px 2px rgba(229, 214, 176, 0.17)
+    paddingVertical: 8,
+    paddingHorizontal: 8,
+    gap: 16,
+    width: Math.min(screenWidth * 0.796, 313),
+    height: 64,
+    backgroundColor: 'rgba(253, 253, 249, 0.0177)', // More accurate average of gradient (0.0355 + 0.005)/2
+    borderWidth: 0.25,
+    borderColor: '#9BAAC2',
+    borderRadius: 13,
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 19,
-    //elevation: 8,
+    // Additional shadow for the second effect
+    elevation: 0, // Remove elevation to rely on shadowColor
   },
 
   buttonSelected: {
@@ -88,7 +87,6 @@ const styles = StyleSheet.create({
     // Selected text uses exact styling from selected state Figma CSS
     fontFamily: 'CormorantGaramond-Light',
     fontSize: Math.min(screenWidth * 0.051, 20), // Exact 20px
-    fontWeight: '300',
     lineHeight: Math.min(screenWidth * 0.061, 24), // Exact 24px
     color: '#F4EFE4',
     textAlign: 'center', // Center align for selected state
