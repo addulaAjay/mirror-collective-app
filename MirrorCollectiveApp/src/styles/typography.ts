@@ -124,7 +124,7 @@ export const typography = {
 
     // Input placeholders
     inputPlaceholder: {
-      fontFamily: 'CormorantGaramond-MediumItalic',
+      fontFamily: 'CormorantGaramond-Regular',
       fontSize: 16,
       lineHeight: 20,
       color: '#A0A0A0',

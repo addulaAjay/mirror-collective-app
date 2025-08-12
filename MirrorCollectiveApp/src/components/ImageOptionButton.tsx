@@ -50,14 +50,16 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   selectedBackground: {
-    backgroundColor: 'rgba(217, 217, 217, 0.05)',
-    borderWidth: 2,
-    borderColor: '#E5D6B0',
-    shadowColor: '#E5D6B0',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 1,
-    shadowRadius: 32,
-    elevation: 15,
+    backgroundColor: 'rgba(253, 253, 249, 0.14)', // Match the selected gradient from Figma
+    borderWidth: 0.25,
+    borderColor: '#9BAAC2',
+    borderRadius: 60,
+    // Exact dual shadow from Figma: 0px 4px 19px 4px rgba(0, 0, 0, 0.1), 1px 4px 38px 2px rgba(229, 214, 176, 0.17)
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 19,
+    elevation: 0,
   },
   selected: {
     // Additional selected state styling if needed
