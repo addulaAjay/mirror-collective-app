@@ -8,6 +8,7 @@ import {
   SafeAreaView,
   ScrollView,
 } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import LogoHeader from '../components/LogoHeader';
 import AuthenticatedRoute from '../components/AuthenticatedRoute';
 import { MessageBubble, ChatInput, LoadingIndicator } from '../components/ui';
@@ -40,34 +41,42 @@ export default function MirrorChatScreen() {
           resizeMode="cover"
         >
           <LogoHeader />
+          <LinearGradient
+            colors={[
+              'rgba(155, 170, 194, 0.01)', // top
+              'rgba(155, 170, 194, 0.18)', // bottom
+            ]}
+            start={{ x: 0.5, y: 0 }}
+            end={{ x: 0.5, y: 1 }}
+            style={styles.messagesWrapper}
+          >
+            {/* Chat “card” */}
+            <View style={styles.chatContainer}>
 
-          {/* Chat “card” */}
-          <View style={styles.chatContainer}>
-            <Text style={styles.chatTitle}>MirrorGPT</Text>
+              <Text style={styles.chatTitle}>MirrorGPT</Text>
+              <ScrollView
+                ref={scrollViewRef}
+                style={styles.messagesWrapper}
+                contentContainerStyle={styles.messagesContent}
+                showsVerticalScrollIndicator={false}
+                onContentSizeChange={() =>
+                  scrollViewRef.current?.scrollToEnd({ animated: true })
+                }
+              >
+                {messages.map(message => (
+                  <MessageBubble key={message.id} message={message} />
+                ))}
+                {loading && <LoadingIndicator />}
+              </ScrollView>
+              <ChatInput
+                value={draft}
+                onChangeText={setDraft}
+                onSend={sendMessage}
+                disabled={loading}
+              />
 
-            <ScrollView
-              ref={scrollViewRef}
-              style={styles.messagesWrapper}
-              contentContainerStyle={styles.messagesContent}
-              showsVerticalScrollIndicator={false}
-              onContentSizeChange={() =>
-                scrollViewRef.current?.scrollToEnd({ animated: true })
-              }
-            >
-              {messages.map(message => (
-                <MessageBubble key={message.id} message={message} />
-              ))}
-              {loading && <LoadingIndicator />}
-            </ScrollView>
-
-            <ChatInput
-              value={draft}
-              onChangeText={setDraft}
-              onSend={sendMessage}
-              disabled={loading}
-            />
-          </View>
-
+            </View>
+          </LinearGradient>
           <View style={styles.footer}>
             <Text style={styles.footerText}>
               What are you grateful for today?
@@ -75,7 +84,7 @@ export default function MirrorChatScreen() {
           </View>
         </ImageBackground>
       </SafeAreaView>
-    </AuthenticatedRoute>
+    </AuthenticatedRoute >
   );
 }
 
@@ -95,7 +104,7 @@ const styles = StyleSheet.create({
 
   footer: {
     paddingHorizontal: SPACING.XL,
-    paddingBottom: SPACING.XL,
+    paddingBottom: 55,
   },
 
   footerText: {
@@ -109,19 +118,23 @@ const styles = StyleSheet.create({
 
   chatContainer: {
     width: '100%',
-    height: SCREEN_DIMENSIONS.HEIGHT * 0.65,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: SPACING.XL,
-    padding: SPACING.LG,
+    height: SCREEN_DIMENSIONS.HEIGHT * 0.72,
+    borderRadius: SPACING.LG,
+    padding: SPACING.XL,
     marginTop: SPACING.XL,
-    marginBottom: SPACING.LG,
+    marginBottom: SPACING.SM,
     alignSelf: 'center',
     justifyContent: 'space-between',
+
     ...SHADOWS.LIGHT,
   },
 
   chatTitle: {
     ...theme.typography.styles.title,
+    fontFamily: 'CormorantGaramond-Regular',
+    fontSize: 24,
+    fontWeight: '400',
+    lineHeight: 32,
     color: COLORS.TEXT.TITLE,
     textAlign: 'center',
     textDecorationLine: 'underline',
@@ -130,6 +143,8 @@ const styles = StyleSheet.create({
 
   messagesWrapper: {
     flex: 1,
+    borderRadius: SPACING.LG,
+    overflow: 'hidden',
   },
 
   messagesContent: {
