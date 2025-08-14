@@ -107,8 +107,8 @@ const styles = StyleSheet.create({
     marginBottom: Math.max(40, screenHeight * 0.047),
   },
   logo: {
-    width: Math.min(screenWidth * 0.2, 80),
-    height: Math.min(screenWidth * 0.2, 80),
+    width: Math.min(screenWidth * 0.3, 100),
+    height: Math.min(screenWidth * 0.3, 100),
   },
   welcomeContainer: {
     alignItems: 'center',
@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
   description: {
     fontSize: Math.min(screenWidth * 0.061, 24), // Exact 24px from Figma
     textAlign: 'center',
-    lineHeight: Math.min(screenWidth * 0.074, 29), // Exact 29.06px line height from Figma
+    lineHeight: Math.min(screenWidth * 0.074, 24), // Exact 29.06px line height from Figma
     maxWidth: Math.min(screenWidth * 0.695, 273), // Exact 273px width from Figma
   },
   regularText: {
@@ -159,12 +159,12 @@ const styles = StyleSheet.create({
     color: '#FDFDF9', // Exact white color from Figma (style 22)
   },
   italicHighlight: {
-    fontFamily: 'CormorantGaramond-MediumItalic', // Light Italic from Figma
+    fontFamily: 'CormorantGaramond-Italic', // Light Italic from Figma
     fontWeight: '300',
     color: '#F2E2B1', // Exact highlight color from Figma (style 57, 73)
   },
   mediumItalicHighlight: {
-    fontFamily: 'CormorantGaramond-MediumItalic', // Medium Italic from Figma
+    fontFamily: 'CormorantGaramond-Italic', // Medium Italic from Figma
     fontWeight: '500',
     color: '#F2E2B1', // Exact highlight color from Figma (style 41)
   },
@@ -177,12 +177,12 @@ const styles = StyleSheet.create({
     textShadowRadius: 4, // Exact 4px blur from Figma
   },
   emphasisText: {
-    fontFamily: 'CormorantGaramond-MediumItalic', // Medium Italic from Figma
+    fontFamily: 'CormorantGaramond-Italic', // Medium Italic from Figma
     fontWeight: '500',
     color: '#F2E2B1', // Exact highlight color from Figma
   },
   mirrorHighlight: {
-    fontFamily: 'CormorantGaramond-SemiBoldItalic', // SemiBold Italic for "Mirror" (style 74)
+    fontFamily: 'CormorantGaramond-Italic', // SemiBold Italic for "Mirror" (style 74)
     fontWeight: '600',
     color: '#F2E2B1', // Exact highlight color from Figma
   },

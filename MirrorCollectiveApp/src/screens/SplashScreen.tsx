@@ -65,8 +65,8 @@ const styles = StyleSheet.create({
     gap: Math.max(20, screenHeight * 0.025),
   },
   logo: {
-    width: Math.min(Math.max(screenWidth * 0.35, 120), 175),
-    height: Math.min(Math.max(screenWidth * 0.35, 120), 175),
+    width: Math.min(Math.max(screenWidth * 0.5, 220), 300),
+    height: Math.min(Math.max(screenWidth * 0.5, 220), 300),
     shadowColor: 'rgba(229, 214, 176, 0.86)',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 1,

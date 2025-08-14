@@ -94,7 +94,11 @@ const QuizQuestionsScreen = () => {
 
         {/* Progress Bar - exact positioning from Figma */}
         <View style={styles.progressWrap}>
-          <ProgressBar progress={(currentIndex + 1) / questions.length} />
+          <ProgressBar
+            progress={
+              currentIndex === 0 ? 0.001 : (currentIndex + 1) / questions.length
+            }
+          />
         </View>
 
         {/* Question */}
