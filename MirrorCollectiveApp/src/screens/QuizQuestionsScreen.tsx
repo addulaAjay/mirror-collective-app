@@ -11,12 +11,17 @@ import GradientButton from '../components/GradientButton';
 import OptionButton from '../components/OptionsButton';
 import ProgressBar from '../components/ProgressBar';
 import LogoHeader from '../components/LogoHeader';
-import questions from '../../assets/questions.json';
+import questionsData from '../../assets/questions.json';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../types';
 import ImageOptionButton from '../components/ImageOptionButton';
-import { getArchetypeByAnswers } from '../data/archetypes';
+import {
+  calculateQuizResult,
+  createUserAnswer,
+  type QuizData,
+  type UserAnswer,
+} from '../utils/archetypeScoring';
 // Typography styles are now defined directly in component styles
 
 type QuizQuestionsScreenNavigationProp = NativeStackNavigationProp<
@@ -30,7 +35,11 @@ const QuizQuestionsScreen = () => {
   const navigation = useNavigation<QuizQuestionsScreenNavigationProp>();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selected, setSelected] = useState<string | { icon: any } | null>(null);
-  const [answers, setAnswers] = useState<any[]>([]);
+  const [answers, setAnswers] = useState<UserAnswer[]>([]);
+
+  // Extract questions array from the new structure
+  const quizData = questionsData as QuizData;
+  const questions = quizData.questions;
 
   const currentQuestion = questions[currentIndex];
   const isLast = currentIndex === questions.length - 1;
@@ -39,15 +48,68 @@ const QuizQuestionsScreen = () => {
     lightning: require('../../assets/lightning.png'),
     tree: require('../../assets/tree.png'),
     crystal: require('../../assets/crystal.png'),
+    golden_thread: require('../../assets/tree.png'), // placeholder - need golden_thread image
   };
   const handleNext = () => {
     if (!selected) return;
-    const newAnswers = [...answers, selected];
+
+    // Find the selected option to get archetype and other details
+    const selectedOption = currentQuestion.options.find(option => {
+      if (currentQuestion.type === 'text') {
+        return option.text === selected;
+      } else {
+        return option.label === selected;
+      }
+    });
+
+    if (!selectedOption) return;
+
+    // Find the option index
+    const optionIndex = currentQuestion.options.findIndex(option => {
+      if (currentQuestion.type === 'text') {
+        return option.text === selected;
+      } else {
+        return option.label === selected;
+      }
+    });
+
+    // Create proper UserAnswer object
+    const userAnswer = createUserAnswer(
+      currentQuestion.id,
+      currentQuestion.question,
+      selectedOption,
+      optionIndex,
+    );
+
+    const newAnswers = [...answers, userAnswer];
     setAnswers(newAnswers);
     setSelected(null);
+
     if (isLast) {
-      const archetype = getArchetypeByAnswers(newAnswers);
-      navigation.navigate('Archetype', { archetype });
+      // Use new scoring system
+      const quizResult = calculateQuizResult(newAnswers, quizData);
+
+      // Map archetype name to full archetype object from questions.json
+      const archetypeKey = quizResult.finalArchetype.toLowerCase();
+      const archetypeData = quizData.archetypes[archetypeKey];
+
+      // Static image mapping for React Native (dynamic require not supported)
+      const archetypeImages = {
+        'seeker-archetype.png': require('../assets/seeker-archetype.png'),
+        'guardian-archetype.png': require('../assets/guardian-archetype.png'),
+        'flamebearer-archetype.png': require('../assets/flamebearer-archetype.png'),
+        'weaver-archetype.png': require('../assets/weaver-archetype.png'),
+      };
+      
+      const archetypeWithImage = {
+        ...archetypeData,
+        image: archetypeImages[archetypeData.imagePath as keyof typeof archetypeImages],
+      };
+
+      navigation.navigate('Archetype', {
+        archetype: archetypeWithImage,
+        quizResult, // Pass the full result for potential future use
+      });
     } else {
       setCurrentIndex(currentIndex + 1);
     }
@@ -57,9 +119,9 @@ const QuizQuestionsScreen = () => {
     if (currentQuestion.type === 'text') {
       return (
         <OptionButton
-          label={item}
-          selected={selected === item}
-          onPress={() => setSelected(item)}
+          label={item.text}
+          selected={selected === item.text}
+          onPress={() => setSelected(item.text)}
           style={styles.optionButton}
         />
       );
@@ -77,7 +139,7 @@ const QuizQuestionsScreen = () => {
 
   const keyExtractor = (item: any, index: number) => {
     if (currentQuestion.type === 'text') {
-      return item;
+      return item.text;
     } else {
       return item.label || index.toString();
     }
