@@ -101,6 +101,10 @@ const styles = StyleSheet.create({
     ...theme.typography.styles.input,
     color: COLORS.TEXT.WHITE,
     marginHorizontal: SPACING.SM,
+    fontFamily: 'CormorantGaramond-Italic',
+    fontSize: 17,
+    lineHeight: 24,
+    fontWeight: '400',
     maxHeight: 100,
   },
 
@@ -110,7 +114,7 @@ const styles = StyleSheet.create({
 
   sendText: {
     ...theme.typography.styles.body,
-    fontSize: 18,
+    fontSize: 30,
   },
 
   enabledText: {
@@ -118,7 +122,12 @@ const styles = StyleSheet.create({
   },
 
   disabledText: {
-    color: COLORS.TEXT.SECONDARY,
+    color: 'rgba(163, 179, 204, 0.50)',
+    textAlign: 'center',
+    fontFamily: 'CormorantGaramond-Italic',
+    fontSize: 17,
+    lineHeight: 24,
+    fontWeight: '400',
     opacity: 0.5,
   },
 });

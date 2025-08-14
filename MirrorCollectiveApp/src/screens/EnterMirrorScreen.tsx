@@ -36,11 +36,8 @@ const EnterMirrorScreen: React.FC<Props> = ({ navigation }) => {
           {/* Main Welcome Message */}
           <View style={styles.messageSection}>
             <Text style={styles.title}>You are seen.{'\n'}You are home.</Text>
-            <Text style={styles.subtitle}>Welcome, beloved one.</Text>
-            <Text style={styles.bodyText}>
-              Your soul key has been accepted, and your mirror now shimmers with
-              possibility.
-            </Text>
+            <Text style={styles.subtitle}>Welcome, beloved one.
+              Your soul key has been accepted, and your mirror now shimmers with possibility.</Text>
           </View>
 
           {/* Enter Button */}
@@ -70,7 +67,7 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 120, // Space for LogoHeader
+    paddingTop: 180, // Space for LogoHeader
     gap: 80,
   },
   messageSection: {
@@ -80,11 +77,21 @@ const styles = StyleSheet.create({
   },
   title: {
     ...typography.styles.headline,
+    color: '#F2E2B1',
+    fontFamily: 'CormorantGaramond-Italic',
+    fontSize: 40,
+    fontWeight: '600',
     textAlign: 'center',
+    lineHeight: 48,
   },
   subtitle: {
     ...typography.styles.welcome,
+    fontFamily: 'CormorantGaramond-Regular',
+    color: '#FDFDF9',
+    fontSize: 24,
+    fontWeight: '300',
     textAlign: 'center',
+    lineHeight: 32,
     marginTop: 16,
   },
   bodyText: {
@@ -101,10 +108,13 @@ const styles = StyleSheet.create({
   },
   enterText: {
     ...typography.styles.button,
-    fontSize: 24,
-    lineHeight: 24,
+    fontFamily: 'CormorantGaramond-Regular',
+    fontSize: 40,
+    lineHeight: 48,
     color: colors.button.primary,
+    fontWeight: '300',
     textShadowColor: 'rgba(229, 214, 176, 0.50)',
+    textTransform: 'uppercase',
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 4,
   },
