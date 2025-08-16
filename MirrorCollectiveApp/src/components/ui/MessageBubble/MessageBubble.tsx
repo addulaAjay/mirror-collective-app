@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
   bubble: {
     paddingVertical: SPACING.SM,
     paddingHorizontal: SPACING.MD,
-    borderRadius: BORDER_RADIUS.LG,
+    borderRadius: BORDER_RADIUS.SM,
     marginVertical: SPACING.XS,
     maxWidth: '80%',
     ...SHADOWS.MEDIUM,
