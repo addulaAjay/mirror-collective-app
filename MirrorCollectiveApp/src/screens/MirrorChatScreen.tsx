@@ -41,46 +41,49 @@ export default function MirrorChatScreen() {
           resizeMode="cover"
         >
           <LogoHeader />
-          <LinearGradient
-            colors={[
-              'rgba(155, 170, 194, 0.01)', // top
-              'rgba(155, 170, 194, 0.18)', // bottom
-            ]}
-            start={{ x: 0.5, y: 0 }}
-            end={{ x: 0.5, y: 1 }}
-            style={styles.messagesWrapper}
-          >
-            {/* Chat “card” */}
-            <View style={styles.chatContainer}>
 
-              <Text style={styles.chatTitle}>MirrorGPT</Text>
-              <ScrollView
-                ref={scrollViewRef}
-                style={styles.messagesWrapper}
-                contentContainerStyle={styles.messagesContent}
-                showsVerticalScrollIndicator={false}
-                onContentSizeChange={() =>
-                  scrollViewRef.current?.scrollToEnd({ animated: true })
-                }
-              >
-                {messages.map(message => (
-                  <MessageBubble key={message.id} message={message} />
-                ))}
-                {loading && <LoadingIndicator />}
-              </ScrollView>
-              <ChatInput
-                value={draft}
-                onChangeText={setDraft}
-                onSend={sendMessage}
-                disabled={loading}
-              />
+          <View style={styles.chatWrapper}>
+            <LinearGradient
+              colors={[
+                'rgba(155, 170, 194, 0.01)', // top
+                'rgba(155, 170, 194, 0.18)', // bottom
+              ]}
+              start={{ x: 0.5, y: 0 }}
+              end={{ x: 0.5, y: 1 }}
+              style={styles.GradientWrapper}
+            >
+              {/* Chat "card" */}
+              <View style={styles.chatContainer}>
 
+                <Text style={styles.chatTitle}>MirrorGPT</Text>
+                <ScrollView
+                  ref={scrollViewRef}
+                  style={styles.messagesWrapper}
+                  contentContainerStyle={styles.messagesContent}
+                  showsVerticalScrollIndicator={false}
+                  onContentSizeChange={() =>
+                    scrollViewRef.current?.scrollToEnd({ animated: true })
+                  }
+                >
+                  {messages.map(message => (
+                    <MessageBubble key={message.id} message={message} />
+                  ))}
+                  {loading && <LoadingIndicator />}
+                </ScrollView>
+                <ChatInput
+                  value={draft}
+                  onChangeText={setDraft}
+                  onSend={sendMessage}
+                  disabled={loading}
+                />
+
+              </View>
+            </LinearGradient>
+            <View>
+              <Text style={styles.footerText}>
+                What are you grateful for today?
+              </Text>
             </View>
-          </LinearGradient>
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>
-              What are you grateful for today?
-            </Text>
           </View>
         </ImageBackground>
       </SafeAreaView>
@@ -102,17 +105,20 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
   },
 
-  footer: {
-    paddingHorizontal: SPACING.XL,
-    paddingBottom: 55,
+  chatWrapper: {
+    flex: 1,
+    width: '100%',
+    paddingRight: 20,
+    paddingLeft: 20,
   },
 
   footerText: {
-    fontFamily: 'CormorantGaramond-Italic',
-    fontSize: 24,
-    lineHeight: 24,
+    fontFamily: 'CormorantGaramond-Regular',
+    fontSize: 20,
+    lineHeight: 28,
     color: COLORS.TEXT.SYSTEM_MESSAGE,
-    paddingTop: SPACING.MD,
+    paddingTop: 50,
+    paddingBottom: 15,
     textAlign: 'center',
   },
 
@@ -144,7 +150,11 @@ const styles = StyleSheet.create({
   messagesWrapper: {
     flex: 1,
     borderRadius: SPACING.LG,
-    overflow: 'hidden',
+  },
+
+  GradientWrapper: {
+    flex: 1,
+    borderRadius: SPACING.XL,
   },
 
   messagesContent: {
@@ -152,4 +162,6 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     paddingVertical: SPACING.SM,
   },
+
+
 });
