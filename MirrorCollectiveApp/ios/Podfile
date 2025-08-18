@@ -1,16 +1,16 @@
 require_relative '../node_modules/react-native/scripts/react_native_pods'
 
 # Enable modular headers to allow Swift pods (FirebaseCoreInternal) to be imported when using static libraries
-use_modular_headers!
+# use_modular_headers!
 
 platform :ios, min_ios_version_supported
 prepare_react_native_project!
 
-linkage = ENV['USE_FRAMEWORKS']
-if linkage != nil
-  Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
-  use_frameworks! :linkage => linkage.to_sym
-end
+# linkage = ENV['USE_FRAMEWORKS']
+# if linkage != nil
+#   Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
+#   use_frameworks! :linkage => linkage.to_sym
+# end
 
 target 'MirrorCollectiveApp' do
   config = use_native_modules!
@@ -21,8 +21,14 @@ target 'MirrorCollectiveApp' do
   )
 
   # Firebase pods (added for App + App Distribution)
-  pod 'Firebase/Core'
-  pod 'FirebaseAppDistribution'
+  # pod 'Firebase/Core'
+  # pod 'FirebaseAppDistribution'
+  # pod 'Firebase/Core'
+  pod 'FirebaseCore', :modular_headers => true
+  pod 'FirebaseInstallations', :modular_headers => true
+  pod 'GoogleUtilities', :modular_headers => true
+  pod 'PromisesObjC', :modular_headers => true
+  pod 'GoogleUtilities', :modular_headers => true # Example for a specific pod
 
   post_install do |installer|
     react_native_post_install(
@@ -30,5 +36,33 @@ target 'MirrorCollectiveApp' do
       config[:reactNativePath],
       :mac_catalyst_enabled => false
     )
+
+    # Pods that should NOT define their own module to avoid name collisions
+    disable_modules = %w[
+      React-RuntimeCore
+      React-RuntimeHermes
+      React-jsitooling
+      React-jsinspector
+      React-jsinspectorcdp
+      React-jsinspectortracing
+      React-jsinspectornetwork
+    ]
+
+    installer.pods_project.targets.each do |t|
+      t.build_configurations.each do |c|
+        c.build_settings['CLANG_ENABLE_MODULES'] = 'YES'   
+
+        # Relax non-modular includes (avoids the other errors you pasted)
+        c.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
+        c.build_settings['GCC_TREAT_WARNINGS_AS_ERRORS'] = 'NO'
+        c.build_settings['CLANG_WARN_STRICT_PROTOTYPES'] = 'NO'
+
+        # Kill duplicate module definitions for the React runtime family
+        if disable_modules.include?(t.name)
+          c.build_settings['DEFINES_MODULE'] = 'NO'
+        end
+      end
+    end
   end
+
 end
