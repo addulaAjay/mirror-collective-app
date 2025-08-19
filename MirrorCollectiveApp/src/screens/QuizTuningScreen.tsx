@@ -55,7 +55,7 @@ const QuizTuningScreen = () => {
 
         <TouchableOpacity
           style={styles.enterButton}
-          onPress={() => navigation.navigate('MirrorChat')}
+          onPress={() => navigation.navigate('SignUp')}
           activeOpacity={0.8}
         >
           <StarIcon width={20} height={20} />

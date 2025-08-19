@@ -15,6 +15,9 @@ export const API_CONFIG = {
       RESET_PASSWORD: '/api/auth/reset-password',
       RESEND_VERIFICATION_CODE: '/api/auth/resend-verification-code',
     },
+    QUIZ: {
+      SUBMIT: '/api/quiz/submit',
+    },
   },
   TIMEOUT: 10000,
 };

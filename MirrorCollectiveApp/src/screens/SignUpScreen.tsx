@@ -13,8 +13,8 @@ import {
 import LogoHeader from '../components/LogoHeader';
 import TextInputField from '../components/TextInputField';
 import StarIcon from '../components/StarIcon';
-import { authApiService } from '../services/api';
 import { typography } from '../styles/typography';
+import { authApiService, quizApiService } from '../services/api';
 
 interface SignUpScreenProps {
   navigation: any;
@@ -107,6 +107,25 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
             },
           ],
         );
+
+        const archetypeRoute = navigation.getState().routes.find((r: any) => r.name === 'Archetype');
+        const params = archetypeRoute?.params;
+        const userAnswers = params?.quizResult?.userAnswers || {};
+        try {
+          console.log('try');
+          const quizResponse = await quizApiService.sendQuiz({
+            userId: "",
+            answers: userAnswers,
+          });
+          if (quizResponse.success) {
+            console.log('Quiz submitted successfully:', quizResponse.data);
+          }
+        } catch (error) {
+          console.error('Quiz submission error:', error);
+        } finally {
+          console.log('finally');
+        }
+
       } else {
         Alert.alert(
           'Registration Failed',
@@ -118,7 +137,7 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
       Alert.alert(
         'Registration Failed',
         error.message ||
-          'Unable to create your account. Please check your connection and try again.',
+        'Unable to create your account. Please check your connection and try again.',
       );
     } finally {
       setIsLoading(false);
