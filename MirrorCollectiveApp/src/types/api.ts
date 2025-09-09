@@ -53,6 +53,7 @@ export interface QuizSubmissionRequest {
   completedAt: string;
   archetypeResult: ArchetypeResult;
   quizVersion?: string;
+  detailedResult?: any; // Store the complete QuizResult for later server submission
 }
 
 export interface QuizSubmissionResponse {

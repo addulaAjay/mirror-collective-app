@@ -22,7 +22,8 @@ import {
   type QuizData,
   type UserAnswer,
 } from '../utils/archetypeScoring';
-import { QuizStorageService } from '../services';
+import { QuizStorageService } from '../services/quizStorageService';
+import type { QuizSubmissionRequest } from '../types';
 // Typography styles are now defined directly in component styles
 
 type QuizQuestionsScreenNavigationProp = NativeStackNavigationProp<
@@ -100,7 +101,7 @@ const QuizQuestionsScreen = () => {
     setSelected(null);
 
     if (isLast) {
-      // Use new scoring system
+      // Use new scoring system to calculate quiz result
       const quizResult = calculateQuizResult(newAnswers, quizData);
 
       // Map archetype name to full archetype object from questions.json
@@ -120,6 +121,61 @@ const QuizQuestionsScreen = () => {
         image:
           archetypeImages[
             archetypeData.imagePath as keyof typeof archetypeImages
+          ],
+      };
+
+      // Store quiz results temporarily until user registration
+      try {
+        const quizSubmission: QuizSubmissionRequest = {
+          answers: newAnswers.map(answer => ({
+            questionId: answer.questionId,
+            question: answer.question,
+            answer:
+              answer.selectedOption.text || answer.selectedOption.label || '',
+            answeredAt: new Date().toISOString(),
+            type: questions.find(q => q.id === answer.questionId)?.type as
+              | 'text'
+              | 'image',
+          })),
+          completedAt: new Date().toISOString(),
+          archetypeResult: {
+            id: archetypeWithImage.id,
+            name: archetypeWithImage.name,
+            title: archetypeWithImage.title,
+          },
+          quizVersion: '1.0',
+          // Store the detailed quiz result for future use
+          detailedResult: quizResult,
+        };
+
+      // Static image mapping for React Native (dynamic require not supported)
+      const archetypeImages = {
+        'seeker-archetype.png': require('../assets/seeker-archetype.png'),
+        'guardian-archetype.png': require('../assets/guardian-archetype.png'),
+        'flamebearer-archetype.png': require('../assets/flamebearer-archetype.png'),
+        'weaver-archetype.png': require('../assets/weaver-archetype.png'),
+      };
+
+        // Navigate to archetype screen with calculated result
+        navigation.navigate('Archetype', {
+          archetype: archetypeWithImage,
+          quizResult, // Pass the full calculated result
+        });
+      } catch (error) {
+        console.error('Failed to store quiz results temporarily:', error);
+        // Show error but still allow navigation
+        Alert.alert(
+          'Storage Error',
+          'Unable to save your quiz results temporarily. Your archetype will still be shown, but please complete registration to save your results.',
+          [
+            {
+              text: 'Continue',
+              onPress: () =>
+                navigation.navigate('Archetype', {
+                  archetype: archetypeWithImage,
+                  quizResult,
+                }),
+            },
           ],
       };
 
