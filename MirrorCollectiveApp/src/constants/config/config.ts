@@ -18,10 +18,10 @@ export const API_CONFIG = {
       REFRESH: '/api/auth/refresh',
     },
     QUIZ: {
-      SUBMIT: '/api/mirrorgpt/quiz/submit',
+      SUBMIT: '/api/quiz/submit',
     },
-    SESSION: {
-      GREETING: '/api/mirrorgpt/session/greeting',
+    REGISTER_DEVICE: {
+      REGISTER: '/api/register-device',
     },
   },
   TIMEOUT: 10000,
