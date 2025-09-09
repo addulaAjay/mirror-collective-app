@@ -3,7 +3,7 @@ import { Platform } from 'react-native';
 export const API_CONFIG = {
   HOST:
     Platform.OS === 'android'
-      ? 'http://10.0.2.2:3000'
+      ? 'http://10.0.2.2:8001'
       : 'http://localhost:3000',
   ENDPOINTS: {
     MIRROR_CHAT: '/api/chat/mirror',
@@ -17,6 +17,9 @@ export const API_CONFIG = {
     },
     QUIZ: {
       SUBMIT: '/api/quiz/submit',
+    },
+    REGISTER_DEVICE: {
+      REGISTER: '/api/register-device',
     },
   },
   TIMEOUT: 10000,
