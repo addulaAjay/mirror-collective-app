@@ -13,6 +13,7 @@ import LogoHeader from '../components/LogoHeader';
 import TextInputField from '../components/TextInputField';
 import StarIcon from '../components/StarIcon';
 import { authApiService } from '../services/api';
+import { QuizStorageService } from '../services/quizStorageService';
 import { typography } from '../styles/typography';
 
 const LoginScreen = ({ navigation }: any) => {
@@ -71,6 +72,24 @@ const LoginScreen = ({ navigation }: any) => {
             ],
           );
           return;
+        }
+
+        // Submit any pending quiz results after successful login (for verified users)
+        try {
+          const quizSubmitted =
+            await QuizStorageService.submitPendingQuizResults();
+          if (__DEV__) {
+            console.log(
+              'Quiz submission after login:',
+              quizSubmitted ? 'Success' : 'Failed or no quiz',
+            );
+          }
+        } catch (quizError) {
+          // Log quiz submission error but don't block user flow
+          console.error(
+            'Failed to submit quiz results after login:',
+            quizError,
+          );
         }
 
         // Navigate to main app
