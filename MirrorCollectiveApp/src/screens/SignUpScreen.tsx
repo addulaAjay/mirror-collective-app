@@ -180,13 +180,15 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
               <View style={styles.fieldContainer}>
                 <Text style={styles.fieldLabel}>Full Name</Text>
                 <TextInputField
-                  size="small"
+                  size="medium"
                   placeholder="Your Soul name"
                   value={fullName}
                   onChangeText={setFullName}
                   autoCapitalize="words"
                   autoComplete="name"
                   placeholderAlign="left"
+                  placeholderFontFamily="regular"
+                  inputTextStyle="gold-regular"
                 />
               </View>
 
@@ -194,7 +196,7 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
               <View style={styles.fieldContainer}>
                 <Text style={styles.fieldLabel}>Email</Text>
                 <TextInputField
-                  size="small"
+                  size="medium"
                   placeholder="Email address"
                   value={email}
                   onChangeText={setEmail}
@@ -202,6 +204,8 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
                   autoCapitalize="none"
                   autoComplete="email"
                   placeholderAlign="left"
+                  placeholderFontFamily="regular"
+                  inputTextStyle="gold-regular"
                 />
               </View>
 
@@ -209,7 +213,7 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
               <View style={styles.fieldContainer}>
                 <Text style={styles.fieldLabel}>Password</Text>
                 <TextInputField
-                  size="small"
+                  size="medium"
                   placeholder="Enter password"
                   value={password}
                   onChangeText={setPassword}
@@ -218,6 +222,8 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
                   isPasswordVisible={showPassword}
                   onTogglePassword={() => setShowPassword(!showPassword)}
                   placeholderAlign="left"
+                  placeholderFontFamily="regular"
+                  inputTextStyle="gold-regular"
                 />
               </View>
 
@@ -225,7 +231,7 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
               <View style={styles.fieldContainer}>
                 <Text style={styles.fieldLabel}>Confirm password</Text>
                 <TextInputField
-                  size="small"
+                  size="medium"
                   placeholder="Re-enter password to confirm"
                   value={confirmPassword}
                   onChangeText={setConfirmPassword}
@@ -233,6 +239,8 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
                   showPasswordToggle={true}
                   isPasswordVisible={showConfirmPassword}
                   placeholderAlign="left"
+                  placeholderFontFamily="regular"
+                  inputTextStyle="gold-regular"
                   onTogglePassword={() =>
                     setShowConfirmPassword(!showConfirmPassword)
                   }
@@ -303,12 +311,22 @@ const styles = StyleSheet.create({
   },
   title: {
     ...typography.styles.title,
+    textShadowColor: 'rgba(0, 0, 0, 0.25)',
+    textShadowOffset: { width: 0, height: 4 },
+    textShadowRadius: 4,
     fontSize: 32,
+    fontWeight: '300',
     textAlign: 'center',
+    lineHeight: 38,
   },
   subtitle: {
     ...typography.styles.subtitle,
+    color: '#FDFDF9',
+    fontFamily: 'CormorantGaramond-Italic',
     textAlign: 'center',
+    fontSize: 24,
+    fontWeight: '300',
+    lineHeight: 30,
   },
   formSection: {
     width: '100%',
