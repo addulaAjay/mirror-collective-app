@@ -108,7 +108,7 @@ const LoginScreen = ({ navigation }: any) => {
       Alert.alert(
         'Sign In Failed',
         error.message ||
-        'Unable to sign in. Please check your connection and try again.',
+          'Unable to sign in. Please check your connection and try again.',
       );
     } finally {
       setIsLoading(false);
@@ -280,10 +280,6 @@ const styles = StyleSheet.create({
     color: '#E5D6B0',
     textDecorationLine: 'underline' as const,
     textDecorationStyle: 'solid' as const,
-    textDecorationSkipInk: 'auto' as const,
-    textDecorationThickness: 'auto' as const,
-    textUnderlineOffset: 'auto' as const,
-    textUnderlinePosition: 'from-font' as const,
   },
 });
 
