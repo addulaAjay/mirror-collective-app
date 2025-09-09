@@ -17,15 +17,21 @@ describe('ChatApiService', () => {
   it('sends chat message successfully', async () => {
     const mockRequest: ChatRequest = {
       message: 'Hello',
-      conversationHistory: [
-        { role: 'user', content: 'Previous message' },
-        { role: 'system', content: 'Previous response' },
-      ],
+      session_id: 'test-session-123',
+      conversation_id: null,
+      include_archetype_analysis: true,
+      use_enhanced_response: true,
     };
 
     const mockResponse = {
       success: true,
-      data: { reply: 'Hello! How can I help you?' },
+      data: {
+        response: 'Hello! How can I help you?',
+        session_id: 'test-session-123',
+        conversation_id: 'conv-456',
+        archetype_analysis: null,
+        confidence_breakdown: null,
+      },
     };
 
     mockFetch.mockResolvedValueOnce({
@@ -43,17 +49,17 @@ describe('ChatApiService', () => {
           'Content-Type': 'application/json',
         }),
         body: JSON.stringify(mockRequest),
-      })
+      }),
     );
 
     expect(result.success).toBe(true);
-    expect(result.data?.reply).toBe('Hello! How can I help you?');
+    expect(result.data?.response).toBe('Hello! How can I help you?');
   });
 
   it('handles API error response', async () => {
     const mockRequest: ChatRequest = {
       message: 'Hello',
-      conversationHistory: [],
+      session_id: 'test-session-123',
     };
 
     const mockErrorResponse = {
@@ -73,18 +79,20 @@ describe('ChatApiService', () => {
   it('handles network error', async () => {
     const mockRequest: ChatRequest = {
       message: 'Hello',
-      conversationHistory: [],
+      session_id: 'test-session-123',
     };
 
     mockFetch.mockRejectedValueOnce(new Error('Network error'));
 
-    await expect(chatService.sendMessage(mockRequest)).rejects.toThrow('Network error');
+    await expect(chatService.sendMessage(mockRequest)).rejects.toThrow(
+      'Network error',
+    );
   });
 
   it('handles timeout', async () => {
     const mockRequest: ChatRequest = {
       message: 'Hello',
-      conversationHistory: [],
+      session_id: 'test-session-123',
     };
 
     // Mock a hanging request
@@ -96,12 +104,18 @@ describe('ChatApiService', () => {
   it('includes correct headers in request', async () => {
     const mockRequest: ChatRequest = {
       message: 'Hello',
-      conversationHistory: [],
+      session_id: 'test-session-123',
     };
 
     const mockResponse = {
       success: true,
-      data: { reply: 'Response' },
+      data: {
+        response: 'Response',
+        session_id: 'test-session-123',
+        conversation_id: 'conv-456',
+        archetype_analysis: null,
+        confidence_breakdown: null,
+      },
     };
 
     mockFetch.mockResolvedValueOnce({
@@ -117,7 +131,7 @@ describe('ChatApiService', () => {
         headers: expect.objectContaining({
           'Content-Type': 'application/json',
         }),
-      })
+      }),
     );
   });
 });
