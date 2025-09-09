@@ -3,10 +3,11 @@ import { Platform } from 'react-native';
 export const API_CONFIG = {
   HOST:
     Platform.OS === 'android'
-      ? 'http://10.0.2.2:8001'
-      : 'http://localhost:3000',
+      ? 'https://f8lzhthj1l.execute-api.us-east-1.amazonaws.com'
+      : 'https://f8lzhthj1l.execute-api.us-east-1.amazonaws.com',
   ENDPOINTS: {
-    MIRROR_CHAT: '/api/chat/mirror',
+    // Updated chat endpoint to match MirrorGPT API
+    MIRROR_CHAT: '/api/mirrorgpt/chat',
     AUTH: {
       LOGIN: '/api/auth/login',
       SIGNUP: '/api/auth/register',
@@ -14,6 +15,13 @@ export const API_CONFIG = {
       FORGOT_PASSWORD: '/api/auth/forgot-password',
       RESET_PASSWORD: '/api/auth/reset-password',
       RESEND_VERIFICATION_CODE: '/api/auth/resend-verification-code',
+      REFRESH: '/api/auth/refresh',
+    },
+    QUIZ: {
+      SUBMIT: '/api/mirrorgpt/quiz/submit',
+    },
+    SESSION: {
+      GREETING: '/api/mirrorgpt/session/greeting',
     },
     QUIZ: {
       SUBMIT: '/api/quiz/submit',

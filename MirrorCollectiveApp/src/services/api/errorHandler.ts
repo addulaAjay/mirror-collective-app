@@ -12,6 +12,9 @@ export type ApiErrorType =
   | 'TimeoutError'
   | 'ServerError'
   | 'ValidationError'
+  | 'QuizSubmissionError'
+  | 'SessionError'
+  | 'ChatError'
   | 'UnknownError';
 
 export interface ErrorContext {
@@ -141,6 +144,9 @@ export class ApiErrorHandler {
       TimeoutError: 'Request timeout. Please try again.',
       ServerError: 'Server error. Please try again later.',
       ValidationError: 'Invalid input. Please check your data.',
+      QuizSubmissionError: 'Failed to submit quiz results. Please try again.',
+      SessionError: 'Session error. Please try again.',
+      ChatError: 'Chat error. Please try again.',
       UnknownError: 'An unexpected error occurred. Please try again.',
     };
 
