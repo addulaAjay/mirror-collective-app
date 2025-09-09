@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
@@ -22,8 +22,23 @@ import {
 import { theme } from '../theme';
 
 export default function MirrorChatScreen() {
-  const { messages, draft, loading, scrollViewRef, sendMessage, setDraft } =
-    useChat();
+  const {
+    messages,
+    draft,
+    loading,
+    greetingLoaded,
+    scrollViewRef,
+    initializeSession,
+    sendMessage,
+    setDraft,
+  } = useChat();
+
+  // Initialize session when component mounts
+  useEffect(() => {
+    if (!greetingLoaded) {
+      initializeSession();
+    }
+  }, [greetingLoaded, initializeSession]);
 
   return (
     <AuthenticatedRoute>

@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import LogoHeader from '../components/LogoHeader';
 import { authApiService } from '../services/api';
+import { QuizStorageService } from '../services/quizStorageService';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RouteProp } from '@react-navigation/native';
@@ -61,10 +62,28 @@ const VerifyEmailScreen = () => {
     try {
       const response = await authApiService.verifyEmail({
         email,
-        code: verificationCode.trim(),
+        verificationCode: verificationCode.trim(),
       });
 
       if (response.success) {
+        // Submit any pending quiz results after successful verification
+        try {
+          const quizSubmitted =
+            await QuizStorageService.submitPendingQuizResults();
+          if (__DEV__) {
+            console.log(
+              'Quiz submission after verification:',
+              quizSubmitted ? 'Success' : 'Failed or no quiz',
+            );
+          }
+        } catch (quizError) {
+          // Log quiz submission error but don't block user flow
+          console.error(
+            'Failed to submit quiz results after verification:',
+            quizError,
+          );
+        }
+
         Alert.alert(
           'Welcome to the Mirror Collective!',
           'Your sacred space is ready. Let the journey begin.',

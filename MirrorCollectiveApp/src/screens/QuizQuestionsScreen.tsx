@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   StyleSheet,
   ImageBackground,
   Dimensions,
+  Alert,
 } from 'react-native';
 import GradientButton from '../components/GradientButton';
 import OptionButton from '../components/OptionsButton';
@@ -17,6 +18,8 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../types';
 import ImageOptionButton from '../components/ImageOptionButton';
 import { getArchetypeByAnswers } from '../data/archetypes';
+import { QuizStorageService } from '../services/quizStorageService';
+import type { QuizSubmissionRequest } from '../types';
 // Typography styles are now defined directly in component styles
 
 type QuizQuestionsScreenNavigationProp = NativeStackNavigationProp<
@@ -32,6 +35,19 @@ const QuizQuestionsScreen = () => {
   const [selected, setSelected] = useState<string | { icon: any } | null>(null);
   const [answers, setAnswers] = useState<any[]>([]);
 
+  // Reset any previous quiz state when component mounts
+  useEffect(() => {
+    const resetPreviousQuizState = async () => {
+      try {
+        await QuizStorageService.resetQuizState();
+      } catch (error) {
+        console.error('Failed to reset previous quiz state:', error);
+      }
+    };
+
+    resetPreviousQuizState();
+  }, []);
+
   const currentQuestion = questions[currentIndex];
   const isLast = currentIndex === questions.length - 1;
   const imageMap = {
@@ -40,17 +56,56 @@ const QuizQuestionsScreen = () => {
     tree: require('../../assets/tree.png'),
     crystal: require('../../assets/crystal.png'),
   };
-  const handleNext = () => {
+  const handleNext = async () => {
     if (!selected) return;
     const newAnswers = [...answers, selected];
     setAnswers(newAnswers);
-    setSelected(null);
+
     if (isLast) {
       const archetype = getArchetypeByAnswers(newAnswers);
-      navigation.navigate('Archetype', { archetype });
+
+      // Store quiz results temporarily until user registration
+      try {
+        const quizSubmission: QuizSubmissionRequest = {
+          answers: newAnswers.map((answer, index) => ({
+            questionId: questions[index].id,
+            question: questions[index].question,
+            answer: typeof answer === 'string' ? answer : answer,
+            answeredAt: new Date().toISOString(),
+            type: questions[index].type as 'text' | 'image',
+          })),
+          completedAt: new Date().toISOString(),
+          archetypeResult: {
+            id: archetype.id,
+            name: archetype.name,
+            title: archetype.title,
+          },
+          quizVersion: '1.0',
+        };
+
+        // Store temporarily - will be submitted after successful registration
+        await QuizStorageService.storePendingQuizResults(quizSubmission);
+
+        // Navigate to archetype screen
+        navigation.navigate('Archetype', { archetype });
+      } catch (error) {
+        console.error('Failed to store quiz results temporarily:', error);
+        // Show error but still allow navigation
+        Alert.alert(
+          'Storage Error',
+          'Unable to save your quiz results temporarily. Your archetype will still be shown, but please complete registration to save your results.',
+          [
+            {
+              text: 'Continue',
+              onPress: () => navigation.navigate('Archetype', { archetype }),
+            },
+          ],
+        );
+      }
     } else {
       setCurrentIndex(currentIndex + 1);
     }
+    setSelected(null);
   };
 
   const renderItem = ({ item }: any) => {
