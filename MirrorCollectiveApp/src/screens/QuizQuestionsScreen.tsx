@@ -6,7 +6,6 @@ import {
   StyleSheet,
   ImageBackground,
   Dimensions,
-  Alert,
 } from 'react-native';
 import GradientButton from '../components/GradientButton';
 import OptionButton from '../components/OptionsButton';
@@ -23,6 +22,7 @@ import {
   type QuizData,
   type UserAnswer,
 } from '../utils/archetypeScoring';
+import { QuizStorageService } from '../services';
 // Typography styles are now defined directly in component styles
 
 type QuizQuestionsScreenNavigationProp = NativeStackNavigationProp<
