@@ -66,9 +66,18 @@ const App = () => {
         console.log('App came to foreground');
       }
     },
-    onBackground: () => {
+    onBackground: async () => {
       if (__DEV__) {
-        console.log('App went to background');
+        console.log('App went to background - clearing authentication');
+      }
+      // Clear authentication tokens when app goes to background
+      // This ensures the user will need to login again when returning to the app
+      try {
+        const { authApiService } = await import('./src/services/api');
+        await authApiService.clearTokens();
+        console.log('Authentication cleared on background');
+      } catch (error) {
+        console.warn('Failed to clear auth on background:', error);
       }
     },
   });
