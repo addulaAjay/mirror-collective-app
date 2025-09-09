@@ -5,20 +5,5 @@ export interface Message {
   timestamp?: Date;
 }
 
-export interface ChatResponse {
-  success: boolean;
-  data?: {
-    reply: string;
-  };
-  error?: string;
-}
-
-export interface ConversationHistoryItem {
-  role: 'user' | 'system';
-  content: string;
-}
-
-export interface ChatRequest {
-  message: string;
-  conversationHistory: ConversationHistoryItem[];
-}
+// ChatRequest and ChatResponse are now defined in api.ts
+// Keeping only the Message interface here for UI components
