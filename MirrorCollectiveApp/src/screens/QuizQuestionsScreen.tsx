@@ -115,21 +115,27 @@ const QuizQuestionsScreen = () => {
         'flamebearer-archetype.png': require('../assets/flamebearer-archetype.png'),
         'weaver-archetype.png': require('../assets/weaver-archetype.png'),
       };
-      
+
       const archetypeWithImage = {
         ...archetypeData,
-        image: archetypeImages[archetypeData.imagePath as keyof typeof archetypeImages],
+        image:
+          archetypeImages[
+            archetypeData.imagePath as keyof typeof archetypeImages
+          ],
       };
 
       // Store quiz results temporarily until user registration
       try {
         const quizSubmission: QuizSubmissionRequest = {
-          answers: newAnswers.map((answer) => ({
+          answers: newAnswers.map(answer => ({
             questionId: answer.questionId,
             question: answer.question,
-            answer: answer.selectedOption.text || answer.selectedOption.label || '',
+            answer:
+              answer.selectedOption.text || answer.selectedOption.label || '',
             answeredAt: new Date().toISOString(),
-            type: questions.find(q => q.id === answer.questionId)?.type as 'text' | 'image',
+            type: questions.find(q => q.id === answer.questionId)?.type as
+              | 'text'
+              | 'image',
           })),
           completedAt: new Date().toISOString(),
           archetypeResult: {
@@ -159,10 +165,11 @@ const QuizQuestionsScreen = () => {
           [
             {
               text: 'Continue',
-              onPress: () => navigation.navigate('Archetype', {
-                archetype: archetypeWithImage,
-                quizResult,
-              }),
+              onPress: () =>
+                navigation.navigate('Archetype', {
+                  archetype: archetypeWithImage,
+                  quizResult,
+                }),
             },
           ],
         );
