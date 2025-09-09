@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   StyleSheet,
   ImageBackground,
   Dimensions,
+  Alert,
 } from 'react-native';
 import GradientButton from '../components/GradientButton';
 import OptionButton from '../components/OptionsButton';
@@ -22,6 +23,8 @@ import {
   type QuizData,
   type UserAnswer,
 } from '../utils/archetypeScoring';
+import { QuizStorageService } from '../services/quizStorageService';
+import type { QuizSubmissionRequest } from '../types';
 // Typography styles are now defined directly in component styles
 
 type QuizQuestionsScreenNavigationProp = NativeStackNavigationProp<
@@ -41,6 +44,19 @@ const QuizQuestionsScreen = () => {
   const quizData = questionsData as QuizData;
   const questions = quizData.questions;
 
+  // Reset any previous quiz state when component mounts
+  useEffect(() => {
+    const resetPreviousQuizState = async () => {
+      try {
+        await QuizStorageService.resetQuizState();
+      } catch (error) {
+        console.error('Failed to reset previous quiz state:', error);
+      }
+    };
+
+    resetPreviousQuizState();
+  }, []);
+
   const currentQuestion = questions[currentIndex];
   const isLast = currentIndex === questions.length - 1;
   const imageMap = {
@@ -50,7 +66,7 @@ const QuizQuestionsScreen = () => {
     crystal: require('../../assets/crystal.png'),
     golden_thread: require('../../assets/tree.png'), // placeholder - need golden_thread image
   };
-  const handleNext = () => {
+  const handleNext = async () => {
     if (!selected) return;
 
     // Find the selected option to get archetype and other details
@@ -83,10 +99,9 @@ const QuizQuestionsScreen = () => {
 
     const newAnswers = [...answers, userAnswer];
     setAnswers(newAnswers);
-    setSelected(null);
 
     if (isLast) {
-      // Use new scoring system
+      // Use new scoring system to calculate quiz result
       const quizResult = calculateQuizResult(newAnswers, quizData);
 
       // Map archetype name to full archetype object from questions.json
@@ -106,13 +121,56 @@ const QuizQuestionsScreen = () => {
         image: archetypeImages[archetypeData.imagePath as keyof typeof archetypeImages],
       };
 
-      navigation.navigate('Archetype', {
-        archetype: archetypeWithImage,
-        quizResult, // Pass the full result for potential future use
-      });
+      // Store quiz results temporarily until user registration
+      try {
+        const quizSubmission: QuizSubmissionRequest = {
+          answers: newAnswers.map((answer) => ({
+            questionId: answer.questionId,
+            question: answer.question,
+            answer: answer.selectedOption.text || answer.selectedOption.label || '',
+            answeredAt: new Date().toISOString(),
+            type: questions.find(q => q.id === answer.questionId)?.type as 'text' | 'image',
+          })),
+          completedAt: new Date().toISOString(),
+          archetypeResult: {
+            id: archetypeWithImage.id,
+            name: archetypeWithImage.name,
+            title: archetypeWithImage.title,
+          },
+          quizVersion: '1.0',
+          // Store the detailed quiz result for future use
+          detailedResult: quizResult,
+        };
+
+        // Store temporarily - will be submitted after successful registration
+        await QuizStorageService.storePendingQuizResults(quizSubmission);
+
+        // Navigate to archetype screen with calculated result
+        navigation.navigate('Archetype', {
+          archetype: archetypeWithImage,
+          quizResult, // Pass the full calculated result
+        });
+      } catch (error) {
+        console.error('Failed to store quiz results temporarily:', error);
+        // Show error but still allow navigation
+        Alert.alert(
+          'Storage Error',
+          'Unable to save your quiz results temporarily. Your archetype will still be shown, but please complete registration to save your results.',
+          [
+            {
+              text: 'Continue',
+              onPress: () => navigation.navigate('Archetype', {
+                archetype: archetypeWithImage,
+                quizResult,
+              }),
+            },
+          ],
+        );
+      }
     } else {
       setCurrentIndex(currentIndex + 1);
     }
+    setSelected(null);
   };
 
   const renderItem = ({ item }: any) => {
