@@ -1,57 +1,192 @@
-[
-  {
-    "id": 1,
-    "question": "Which kind of moment makes you feel most alive?",
-    "options": [
-      "A quiet aha when something finally clicks",
-      "Sitting with someone and just being there for them",
-      "Doing something brave, even if it scares me",
-      "Laying out a plan and watching it unfold like magic"
-    ],
-    "type": "text"
+{
+  "config": {
+    "archetypes": ["Seeker", "Guardian", "Flamebearer", "Weaver"],
+    "weights": {
+      "core": 2,
+      "regular": 1
+    },
+    "tieBreaker": {
+      "order": ["Seeker", "Guardian", "Flamebearer", "Weaver"]
+    }
   },
-  {
-    "id": 2,
-    "question": "What kind of pull feels like it's calling you right now?",
-    "options": [
-      { "label": "Candle", "image": "candle" },
-      { "label": "Lightning", "image": "lightning" },
-      { "label": "Crystal", "image": "crystal" },
-      { "label": "Tree", "image": "tree" }
-    ],
-    "type": "image"
+  "archetypes": {
+    "seeker": {
+      "id": "seeker",
+      "name": "Seeker",
+      "title": "THE SEEKER",
+      "description": "Seekers have a profound desire to find meaning, truth, and purpose in life, coupled with the joy of discovering deeper truths.\n\nAre you ready to discover yourself?",
+      "imagePath": "seeker-archetype.png"
+    },
+    "guardian": {
+      "id": "guardian",
+      "name": "Guardian",
+      "title": "THE GUARDIAN",
+      "description": "Guardians are loyal, dependable, and organized, with a strong desire to help and support others.\n\nAre you ready to find your truth?",
+      "imagePath": "guardian-archetype.png"
+    },
+    "flamebearer": {
+      "id": "flamebearer",
+      "name": "Flamebearer",
+      "title": "THE FLAMEBEARER",
+      "description": "Flamebearers embody light, sparking transformation wherever you go — by being passionate, purposeful and courageous.\n\nWhich path will you take?",
+      "imagePath": "flamebearer-archetype.png"
+    },
+    "weaver": {
+      "id": "weaver",
+      "name": "Weaver",
+      "title": "THE WEAVER",
+      "description": "Weavers embody the ability to connect, create, and shape reality through patterns, weaving invisible threads into meaning.\n\nWhat story is woven into your destiny?",
+      "imagePath": "weaver-archetype.png"
+    }
   },
-  {
-    "id": 3,
-    "question": "Which of these speaks to your heart the most right now?",
-    "options": [
-      "I want to understand myself better",
-      "I want to feel more connected and grounded",
-      "I want to be brave and aligned with my truth",
-      "I want to create a life that reflects my soul’s vision"
-    ],
-    "type": "text"
-  },
-  {
-    "id": 4,
-    "question": "How do you offer support when someone is hurting?",
-    "options": [
-      "I give them clarity or insight they didn’t see before",
-      "I hold space and make them feel truly heard",
-      "I give them the push to be bold and take action",
-      "I help them see the bigger picture and move forward"
-    ],
-    "type": "text"
-  },
-  {
-    "id": 5,
-    "question": "Which truth feels most true for you right now?",
-    "options": [
-      "I’m here to learn and grow",
-      "I’m here to care and connect",
-      "I’m here to live out my soul",
-      "I’m here to build something meaningful"
-    ],
-    "type": "text"
-  }
-]
+  "questions": [
+    {
+      "id": 1,
+      "question": "Which kind of moment makes you feel most alive?",
+      "options": [
+        {
+          "text": "A quiet aha when something finally clicks",
+          "archetype": "Seeker"
+        },
+        {
+          "text": "Sitting with someone and just being there for them",
+          "archetype": "Guardian"
+        },
+        {
+          "text": "Doing something brave, even if it scares me",
+          "archetype": "Flamebearer"
+        },
+        {
+          "text": "Laying out a plan and watching it unfold like magic",
+          "archetype": "Weaver"
+        }
+      ],
+      "type": "text",
+      "core": true
+    },
+    {
+      "id": 2,
+      "question": "Which symbol feels like it's calling you right now?",
+      "options": [
+        {
+          "label": "A lightning bolt breaking through the clouds",
+          "image": "lightning",
+          "archetype": "Flamebearer"
+        },
+        {
+          "label": "A warm candle flame in a dark room",
+          "image": "candle",
+          "archetype": "Guardian"
+        },
+        {
+          "label": "A glowing crystal sphere",
+          "image": "crystal",
+          "archetype": "Seeker"
+        },
+        {
+          "label": "A golden thread weaving through stars",
+          "image": "golden_thread",
+          "archetype": "Weaver"
+        }
+      ],
+      "type": "image",
+      "core": false
+    },
+    {
+      "id": 3,
+      "question": "Which of these speaks to your heart the most right now?",
+      "options": [
+        {
+          "text": "I want to understand myself better.",
+          "archetype": "Seeker"
+        },
+        {
+          "text": "I want to feel more connected and grounded.",
+          "archetype": "Guardian"
+        },
+        {
+          "text": "I want to feel brave and aligned with my truth.",
+          "archetype": "Flamebearer"
+        },
+        {
+          "text": "I want to create a life that reflects my soul's vision.",
+          "archetype": "Weaver"
+        }
+      ],
+      "type": "text",
+      "core": true
+    },
+    {
+      "id": 4,
+      "question": "Which kind of magic feels closest to how you move through the world?",
+      "options": [
+        {
+          "text": "Asking powerful questions",
+          "archetype": "Seeker"
+        },
+        {
+          "text": "Showing up fully for others",
+          "archetype": "Guardian"
+        },
+        {
+          "text": "Shaking things up with heart",
+          "archetype": "Flamebearer"
+        },
+        {
+          "text": "Designing a life that fits your soul",
+          "archetype": "Weaver"
+        }
+      ],
+      "type": "text",
+      "core": false
+    },
+    {
+      "id": 5,
+      "question": "How do you offer support when someone is hurting?",
+      "options": [
+        {
+          "text": "I give them clarity or insight they didn't see before.",
+          "archetype": "Seeker"
+        },
+        {
+          "text": "I hold space and make them feel truly heard.",
+          "archetype": "Guardian"
+        },
+        {
+          "text": "I give them the push to be bold and take action.",
+          "archetype": "Flamebearer"
+        },
+        {
+          "text": "I help them see the bigger picture and move forward.",
+          "archetype": "Weaver"
+        }
+      ],
+      "type": "text",
+      "core": false
+    },
+    {
+      "id": 6,
+      "question": "Which truth feels most true for you right now?",
+      "options": [
+        {
+          "text": "I'm here to learn and grow.",
+          "archetype": "Seeker"
+        },
+        {
+          "text": "I'm here to care and connect.",
+          "archetype": "Guardian"
+        },
+        {
+          "text": "I'm here to live out loud.",
+          "archetype": "Flamebearer"
+        },
+        {
+          "text": "I'm here to weave something meaningful.",
+          "archetype": "Weaver"
+        }
+      ],
+      "type": "text",
+      "core": true
+    }
+  ]
+}

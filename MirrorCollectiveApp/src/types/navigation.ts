@@ -12,13 +12,14 @@ export type RootStackParamList = {
   QuizWelcome: undefined;
   QuizTuning: undefined;
   QuizQuestions: undefined;
-  Archetype: { 
+  Archetype: {
     archetype: {
       name: string;
       title: string;
       description: string;
       image: any;
     };
+    quizResult?: any;
   };
 };
 
