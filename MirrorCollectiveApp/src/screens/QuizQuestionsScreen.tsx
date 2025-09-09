@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   StyleSheet,
   ImageBackground,
   Dimensions,
+  Alert,
 } from 'react-native';
 import GradientButton from '../components/GradientButton';
 import OptionButton from '../components/OptionsButton';
@@ -41,6 +42,19 @@ const QuizQuestionsScreen = () => {
   const quizData = questionsData as QuizData;
   const questions = quizData.questions;
 
+  // Reset any previous quiz state when component mounts
+  useEffect(() => {
+    const resetPreviousQuizState = async () => {
+      try {
+        await QuizStorageService.resetQuizState();
+      } catch (error) {
+        console.error('Failed to reset previous quiz state:', error);
+      }
+    };
+
+    resetPreviousQuizState();
+  }, []);
+
   const currentQuestion = questions[currentIndex];
   const isLast = currentIndex === questions.length - 1;
   const imageMap = {
@@ -50,7 +64,7 @@ const QuizQuestionsScreen = () => {
     crystal: require('../../assets/crystal.png'),
     golden_thread: require('../../assets/tree.png'), // placeholder - need golden_thread image
   };
-  const handleNext = () => {
+  const handleNext = async () => {
     if (!selected) return;
 
     // Find the selected option to get archetype and other details
@@ -100,10 +114,13 @@ const QuizQuestionsScreen = () => {
         'flamebearer-archetype.png': require('../assets/flamebearer-archetype.png'),
         'weaver-archetype.png': require('../assets/weaver-archetype.png'),
       };
-      
+
       const archetypeWithImage = {
         ...archetypeData,
-        image: archetypeImages[archetypeData.imagePath as keyof typeof archetypeImages],
+        image:
+          archetypeImages[
+            archetypeData.imagePath as keyof typeof archetypeImages
+          ],
       };
 
       navigation.navigate('Archetype', {
@@ -113,6 +130,7 @@ const QuizQuestionsScreen = () => {
     } else {
       setCurrentIndex(currentIndex + 1);
     }
+    setSelected(null);
   };
 
   const renderItem = ({ item }: any) => {

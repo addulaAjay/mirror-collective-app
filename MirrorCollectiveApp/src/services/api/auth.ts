@@ -147,7 +147,7 @@ export class AuthApiService extends BaseApiService {
   }
 
   async getUserProfile(): Promise<ApiResponse<{ user: any }>> {
-    return this.makeRequest('/auth/me', 'GET', null, true);
+    return this.makeRequest('/api/auth/me', 'GET', null, true);
   }
 
   async refreshToken(): Promise<ApiResponse<AuthResponse>> {
@@ -159,9 +159,13 @@ export class AuthApiService extends BaseApiService {
       );
     }
 
-    const response = await this.makeRequest<any>('/auth/refresh', 'POST', {
-      refreshToken,
-    });
+    const response = await this.makeRequest<any>(
+      API_CONFIG.ENDPOINTS.AUTH.REFRESH,
+      'POST',
+      {
+        refreshToken,
+      },
+    );
 
     // If token refresh fails, clear stored tokens
     if (response && response.success === false) {
