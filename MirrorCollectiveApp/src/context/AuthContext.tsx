@@ -116,7 +116,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-  // Initialize authentication state with enhanced error handling
+  // Initialize authentication state - force logout on app start
   useEffect(() => {
     let isInitializing = true;
 
@@ -126,124 +126,28 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
         safeDispatch({ type: 'SET_LOADING', payload: true });
 
-        // Add progressive delays to prevent race conditions
-        await new Promise(resolve => setTimeout(resolve, 100));
-        if (!isMountedRef.current) return;
-
-        // Check if user is authenticated with enhanced timeout handling
-        let isAuth = false;
+        // Clear any existing authentication state on app start
+        // This ensures users must login every time the app is opened
         try {
-          const authCheckPromise = authApiService.isAuthenticated();
-          const timeoutPromise = new Promise<boolean>((_, reject) => {
-            setTimeout(() => reject(new Error('Auth check timeout')), 10000);
-          });
-
-          isAuth = await Promise.race([authCheckPromise, timeoutPromise]);
+          await authApiService.clearTokens();
+          if (__DEV__) {
+            console.log('Cleared authentication tokens on app initialization');
+          }
         } catch (error) {
           if (__DEV__) {
             console.warn(
-              'Auth check failed, assuming not authenticated:',
+              'Failed to clear tokens during initialization:',
               error,
             );
           }
-          isAuth = false;
         }
 
         if (!isMountedRef.current || !isInitializing) return;
 
-        if (isAuth) {
-          // Try to get user profile with enhanced error handling
-          try {
-            const profileResponse = await authApiService.getUserProfile();
-            if (!isMountedRef.current || !isInitializing) return;
-
-            if (profileResponse.success && profileResponse.data?.user) {
-              safeDispatch({
-                type: 'LOGIN_SUCCESS',
-                payload: profileResponse.data.user,
-              });
-            } else {
-              throw new Error('Invalid profile response');
-            }
-          } catch (profileError) {
-            if (__DEV__) {
-              console.warn(
-                'Profile fetch failed, trying token refresh:',
-                profileError,
-              );
-            }
-
-            if (!isMountedRef.current || !isInitializing) return;
-
-            // Attempt token refresh
-            try {
-              const refreshResponse = await authApiService.refreshToken();
-              if (!isMountedRef.current || !isInitializing) return;
-
-              if (
-                refreshResponse.success &&
-                refreshResponse.data?.tokens
-              ) {
-                await authApiService.storeTokens({
-                  accessToken: refreshResponse.data.tokens.accessToken,
-                  refreshToken: refreshResponse.data.tokens.refreshToken,
-                });
-
-                if (!isMountedRef.current || !isInitializing) return;
-
-                // Retry profile fetch
-                const retryProfileResponse = await authApiService.getUserProfile();
-                if (!isMountedRef.current || !isInitializing) return;
-
-                if (retryProfileResponse.success && retryProfileResponse.data?.user) {
-                  safeDispatch({
-                    type: 'LOGIN_SUCCESS',
-                    payload: retryProfileResponse.data.user,
-                  });
-                } else {
-                  throw new Error('Profile fetch failed after refresh');
-                }
-              } else {
-                throw new Error('Token refresh failed');
-              }
-            } catch (refreshError) {
-              if (__DEV__) {
-                console.warn(
-                  'Token refresh failed, clearing auth:',
-                  refreshError,
-                );
-              }
-              // Clear tokens safely
-              try {
-                await authApiService.clearTokens();
-              } catch (tokenClearError) {
-                if (__DEV__) {
-                  console.warn('Token clear failed:', tokenClearError);
-                }
-              }
-              if (isMountedRef.current && isInitializing) {
-                safeDispatch({ type: 'LOGOUT_SUCCESS' });
-              }
-            }
-          }
-        } else {
-          if (isMountedRef.current && isInitializing) {
-            safeDispatch({ type: 'LOGOUT_SUCCESS' });
-          }
-        }
+        // Always start in logged-out state to require fresh login
+        safeDispatch({ type: 'LOGOUT_SUCCESS' });
       } catch (error) {
         console.error('Auth initialization error:', error);
-        // Clear any potentially corrupted state
-        try {
-          await authApiService.clearTokens();
-        } catch (tokensClearError) {
-          if (__DEV__) {
-            console.warn(
-              'Error clearing tokens during error handling:',
-              tokensClearError,
-            );
-          }
-        }
         if (isMountedRef.current && isInitializing) {
           safeDispatch({ type: 'LOGOUT_SUCCESS' });
         }
@@ -267,7 +171,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         safeDispatch({ type: 'SET_INITIALIZED', payload: true });
         safeDispatch({ type: 'LOGOUT_SUCCESS' });
       }
-    }, 15000); // 15 second timeout
+    }, 5000); // Reduced to 5 seconds since we're not doing complex auth checks
 
     initializeAuth();
 
@@ -325,11 +229,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         password,
       });
 
-      if (
-        response.success &&
-        response.data?.user &&
-        response.data?.tokens
-      ) {
+      if (response.success && response.data?.user && response.data?.tokens) {
         // Store tokens
         await authApiService.storeTokens({
           accessToken: response.data.tokens.accessToken,

@@ -12,6 +12,7 @@ const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../types';
+import { authApiService } from '../services/api';
 
 type SplashProps = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'Splash'>;
@@ -19,20 +20,40 @@ type SplashProps = {
 
 const SplashScreen: React.FC<SplashProps> = ({ navigation }) => {
   useEffect(() => {
-    const timer = setTimeout(() => {
+    const initializeApp = async () => {
       try {
-        navigation.replace('MirrorAnimation');
+        // Clear all authentication tokens on app start
+        // This ensures users have to login every time the app is opened
+        await authApiService.clearTokens();
+        console.log('Authentication tokens cleared on app start');
       } catch (error) {
-        console.error('Navigation error in SplashScreen:', error);
-        try {
-          navigation.navigate('MirrorAnimation');
-        } catch (fallbackError) {
-          console.error('Fallback navigation also failed:', fallbackError);
-        }
+        console.warn('Failed to clear tokens on app start:', error);
       }
-    }, 3000);
 
-    return () => clearTimeout(timer);
+      // Navigate after clearing tokens
+      const timer = setTimeout(() => {
+        try {
+          navigation.replace('MirrorAnimation');
+        } catch (error) {
+          console.error('Navigation error in SplashScreen:', error);
+          try {
+            navigation.navigate('MirrorAnimation');
+          } catch (fallbackError) {
+            console.error('Fallback navigation also failed:', fallbackError);
+          }
+        }
+      }, 3000);
+
+      return timer;
+    };
+
+    const cleanupTimer = initializeApp();
+
+    return () => {
+      if (cleanupTimer instanceof Promise) {
+        cleanupTimer.then(timer => clearTimeout(timer));
+      }
+    };
   }, [navigation]);
 
   return (
