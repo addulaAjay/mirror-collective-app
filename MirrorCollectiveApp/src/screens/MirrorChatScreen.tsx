@@ -7,6 +7,8 @@ import {
   StatusBar,
   SafeAreaView,
   ScrollView,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import LogoHeader from '../components/LogoHeader';
@@ -17,7 +19,7 @@ import {
   COLORS,
   SHADOWS,
   SPACING,
-  SCREEN_DIMENSIONS,
+  // SCREEN_DIMENSIONS,
   PLATFORM_SPECIFIC,
 } from '../constants';
 import { theme } from '../theme';
@@ -43,22 +45,26 @@ export default function MirrorChatScreen() {
 
   return (
     <AuthenticatedRoute>
-      <SafeAreaView style={styles.safeArea}>
-        <StatusBar
-          translucent
-          backgroundColor="transparent"
-          barStyle="light-content"
-        />
+      <KeyboardAvoidingView
+        style={styles.keyboardContainer}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <SafeAreaView style={styles.safeArea}>
+          <StatusBar
+            translucent
+            backgroundColor="transparent"
+            barStyle="light-content"
+          />
 
-        <ImageBackground
-          source={require('../../assets/dark_mode_shimmer_bg.png')}
-          style={styles.background}
-          resizeMode="cover"
-        >
-          <LogoHeader />
+          <ImageBackground
+            source={require('../../assets/dark_mode_shimmer_bg.png')}
+            style={styles.background}
+            resizeMode="cover"
+          >
+            <LogoHeader />
 
-          <View style={styles.chatWrapper}>
-            <LinearGradient
+            <View style={styles.chatWrapper}>
+              <LinearGradient
               colors={[
                 'rgba(155, 170, 194, 0.01)', // top
                 'rgba(155, 170, 194, 0.18)', // bottom
@@ -93,15 +99,16 @@ export default function MirrorChatScreen() {
                 />
 
               </View>
-            </LinearGradient>
-            <View>
-              <Text style={styles.footerText}>
-                What are you grateful for today?
-              </Text>
+              </LinearGradient>
+              <View>
+                <Text style={styles.footerText}>
+                  What are you grateful for today?
+                </Text>
+              </View>
             </View>
-          </View>
-        </ImageBackground>
-      </SafeAreaView>
+          </ImageBackground>
+        </SafeAreaView>
+      </KeyboardAvoidingView>
     </AuthenticatedRoute >
   );
 }
@@ -112,10 +119,13 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.BACKGROUND.PRIMARY,
     paddingTop: PLATFORM_SPECIFIC.STATUS_BAR_HEIGHT,
   },
+  keyboardContainer: {
+    flex: 1,
+  },
 
   background: {
     flex: 1,
-    paddingTop: 120, // Space for LogoHeader (48 + 46 + 26 margin)
+    // paddingTop: 120, // Space for LogoHeader (48 + 46 + 26 margin)
     paddingHorizontal: SPACING.XL,
     justifyContent: 'flex-start',
   },
@@ -138,8 +148,9 @@ const styles = StyleSheet.create({
   },
 
   chatContainer: {
+    flex: 1, 
     width: '100%',
-    height: SCREEN_DIMENSIONS.HEIGHT * 0.72,
+    // height: SCREEN_DIMENSIONS.HEIGHT * 0.72,
     borderRadius: SPACING.LG,
     padding: SPACING.XL,
     marginTop: SPACING.XL,

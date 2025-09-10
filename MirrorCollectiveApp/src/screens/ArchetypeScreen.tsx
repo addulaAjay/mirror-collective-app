@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
   titleContainer: {
     alignItems: 'center',
     marginTop: Math.max(60, screenHeight * 0.1),
-    marginBottom: Math.max(60, screenHeight * 0.01),
+    // marginBottom: Math.max(60, screenHeight * 0.01),
   },
   title: {
     fontFamily: 'CormorantGaramond-Light',

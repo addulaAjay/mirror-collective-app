@@ -50,7 +50,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: Math.max(8, screenWidth * 0.02),
     alignItems: 'center',
-    position: 'absolute',
+    position: 'relative',
     top: Math.max(48, screenHeight * 0.056),
     alignSelf: 'center',
     zIndex: 10,
