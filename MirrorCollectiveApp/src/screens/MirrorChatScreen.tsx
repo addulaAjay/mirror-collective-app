@@ -135,6 +135,7 @@ const styles = StyleSheet.create({
     width: '100%',
     paddingRight: 20,
     paddingLeft: 20,
+    paddingTop: 20
   },
 
   footerText: {
