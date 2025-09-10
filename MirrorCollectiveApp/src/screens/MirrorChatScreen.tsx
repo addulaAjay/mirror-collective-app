@@ -45,60 +45,61 @@ export default function MirrorChatScreen() {
 
   return (
     <AuthenticatedRoute>
-      <KeyboardAvoidingView
-        style={styles.keyboardContainer}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
-        <SafeAreaView style={styles.safeArea}>
-          <StatusBar
-            translucent
-            backgroundColor="transparent"
-            barStyle="light-content"
-          />
 
-          <ImageBackground
-            source={require('../../assets/dark_mode_shimmer_bg.png')}
-            style={styles.background}
-            resizeMode="cover"
+      <SafeAreaView style={styles.safeArea}>
+        <StatusBar
+          translucent
+          backgroundColor="transparent"
+          barStyle="light-content"
+        />
+
+
+        <ImageBackground
+          source={require('../../assets/dark_mode_shimmer_bg.png')}
+          style={styles.background}
+          resizeMode="cover"
+        >
+          <KeyboardAvoidingView
+            style={styles.keyboardContainer}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           >
             <LogoHeader />
-
             <View style={styles.chatWrapper}>
               <LinearGradient
-              colors={[
-                'rgba(155, 170, 194, 0.01)', // top
-                'rgba(155, 170, 194, 0.18)', // bottom
-              ]}
-              start={{ x: 0.5, y: 0 }}
-              end={{ x: 0.5, y: 1 }}
-              style={styles.GradientWrapper}
-            >
-              {/* Chat "card" */}
-              <View style={styles.chatContainer}>
+                colors={[
+                  'rgba(155, 170, 194, 0.01)', // top
+                  'rgba(155, 170, 194, 0.18)', // bottom
+                ]}
+                start={{ x: 0.5, y: 0 }}
+                end={{ x: 0.5, y: 1 }}
+                style={styles.GradientWrapper}
+              >
+                {/* Chat "card" */}
+                <View style={styles.chatContainer}>
 
-                <Text style={styles.chatTitle}>MirrorGPT</Text>
-                <ScrollView
-                  ref={scrollViewRef}
-                  style={styles.messagesWrapper}
-                  contentContainerStyle={styles.messagesContent}
-                  showsVerticalScrollIndicator={false}
-                  onContentSizeChange={() =>
-                    scrollViewRef.current?.scrollToEnd({ animated: true })
-                  }
-                >
-                  {messages.map(message => (
-                    <MessageBubble key={message.id} message={message} />
-                  ))}
-                  {loading && <LoadingIndicator />}
-                </ScrollView>
-                <ChatInput
-                  value={draft}
-                  onChangeText={setDraft}
-                  onSend={sendMessage}
-                  disabled={loading}
-                />
+                  <Text style={styles.chatTitle}>MirrorGPT</Text>
+                  <ScrollView
+                    ref={scrollViewRef}
+                    style={styles.messagesWrapper}
+                    contentContainerStyle={styles.messagesContent}
+                    showsVerticalScrollIndicator={false}
+                    onContentSizeChange={() =>
+                      scrollViewRef.current?.scrollToEnd({ animated: true })
+                    }
+                  >
+                    {messages.map(message => (
+                      <MessageBubble key={message.id} message={message} />
+                    ))}
+                    {loading && <LoadingIndicator />}
+                  </ScrollView>
+                  <ChatInput
+                    value={draft}
+                    onChangeText={setDraft}
+                    onSend={sendMessage}
+                    disabled={loading}
+                  />
 
-              </View>
+                </View>
               </LinearGradient>
               <View>
                 <Text style={styles.footerText}>
@@ -106,9 +107,11 @@ export default function MirrorChatScreen() {
                 </Text>
               </View>
             </View>
-          </ImageBackground>
-        </SafeAreaView>
-      </KeyboardAvoidingView>
+          </KeyboardAvoidingView>
+        </ImageBackground>
+
+      </SafeAreaView>
+
     </AuthenticatedRoute >
   );
 }
@@ -149,7 +152,7 @@ const styles = StyleSheet.create({
   },
 
   chatContainer: {
-    flex: 1, 
+    flex: 1,
     width: '100%',
     // height: SCREEN_DIMENSIONS.HEIGHT * 0.72,
     borderRadius: SPACING.LG,
