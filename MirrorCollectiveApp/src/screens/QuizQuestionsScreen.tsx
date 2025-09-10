@@ -296,7 +296,7 @@ const styles = StyleSheet.create({
     rowGap: Math.max(30, screenHeight * 0.035),
     columnGap: Math.max(30, screenWidth * 0.08),
     paddingVertical: Math.max(30, screenHeight * 0.035),
-    paddingHorizontal: Math.max(20, screenWidth * 0.05),
+    // paddingHorizontal: Math.max(20, screenWidth * 0.05),
     width: '100%',
   },
 
