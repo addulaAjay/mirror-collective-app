@@ -1,4 +1,6 @@
-import React from 'react';
+import 'react-native-get-random-values';
+import 'react-native-url-polyfill/auto';
+import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import ErrorBoundary from './src/components/ErrorBoundary';
@@ -22,6 +24,7 @@ import QuizWelcomeScreen from './src/screens/QuizWelcomeScreen';
 import QuizTuningScreen from './src/screens/QuizTuningScreen';
 import QuizQuestionsScreen from './src/screens/QuizQuestionsScreen';
 import ArchetypeScreen from './src/screens/ArchetypeScreen';
+import PushNotificationService from './src/services/PushNotificationService';
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 // Wrapped MirrorChat component with error boundary
@@ -59,7 +62,17 @@ const AppNavigator = () => {
 };
 
 const App = () => {
-  // Handle app state changes for better crash recovery
+  useEffect(() => {
+  const registerDevice = async (): Promise<void> => {
+    try {
+      await PushNotificationService.getFCMToken();
+    } catch (error) {
+      console.error('Error fetching FCM Token:', error);
+    }
+  };
+  registerDevice();
+  }, []);
+
   useAppStateHandler({
     onForeground: () => {
       if (__DEV__) {

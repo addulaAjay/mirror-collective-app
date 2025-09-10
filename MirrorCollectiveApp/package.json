@@ -19,24 +19,29 @@
     "android:deep-clean": "bash ./android-clean.sh"
   },
   "dependencies": {
+    "@aws-sdk/client-sns": "^3.876.0",
     "@react-native-async-storage/async-storage": "^2.2.0",
-    "@react-native-community/blur": "^4.4.1",
-    "@react-native-firebase/app": "^21.5.0",
-    "@react-native-firebase/app-distribution": "^21.5.0",
+    "@react-native-firebase/app": "^23.1.0",
+    "@react-native-firebase/app-distribution": "^23.1.0",
+    "@react-native-firebase/messaging": "^23.1.0",
     "@react-native/gradle-plugin": "^0.80.1",
     "@react-native/new-app-screen": "0.80.1",
     "@react-navigation/native": "^7.1.14",
     "@react-navigation/native-stack": "^7.3.21",
     "react": "19.1.0",
     "react-native": "0.80.1",
+    "react-native-dotenv": "^3.4.11",
     "react-native-gesture-handler": "^2.27.1",
     "react-native-linear-gradient": "^2.8.3",
+    "react-native-get-random-values": "^1.11.0",
     "react-native-safe-area-context": "^5.5.2",
     "react-native-screens": "^4.13.1",
-    "react-native-svg": "^15.12.1"
+    "react-native-svg": "^15.12.0",
+    "react-native-url-polyfill": "^2.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
+    "@babel/plugin-transform-class-static-block": "^7.28.3",
     "@babel/preset-env": "^7.25.3",
     "@babel/runtime": "^7.25.0",
     "@react-native-community/cli": "19.0.0",
