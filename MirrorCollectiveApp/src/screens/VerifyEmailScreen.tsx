@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import LogoHeader from '../components/LogoHeader';
 import { authApiService } from '../services/api';
+import { QuizStorageService } from '../services/quizStorageService';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RouteProp } from '@react-navigation/native';
@@ -61,10 +62,28 @@ const VerifyEmailScreen = () => {
     try {
       const response = await authApiService.verifyEmail({
         email,
-        code: verificationCode.trim(),
+        verificationCode: verificationCode.trim(),
       });
 
       if (response.success) {
+        // Submit any pending quiz results after successful verification
+        try {
+          const quizSubmitted =
+            await QuizStorageService.submitPendingQuizResults();
+          if (__DEV__) {
+            console.log(
+              'Quiz submission after verification:',
+              quizSubmitted ? 'Success' : 'Failed or no quiz',
+            );
+          }
+        } catch (quizError) {
+          // Log quiz submission error but don't block user flow
+          console.error(
+            'Failed to submit quiz results after verification:',
+            quizError,
+          );
+        }
+
         Alert.alert(
           'Welcome to the Mirror Collective!',
           'Your sacred space is ready. Let the journey begin.',
@@ -125,7 +144,7 @@ const VerifyEmailScreen = () => {
       Alert.alert(
         'Error',
         error.message ||
-          'Unable to resend verification email. Please try again.',
+        'Unable to resend verification email. Please try again.',
       );
     } finally {
       setIsResending(false);
@@ -170,7 +189,7 @@ const VerifyEmailScreen = () => {
               style={[
                 styles.verifyButton,
                 (isVerifying || verificationCode.length !== 6) &&
-                  styles.verifyButtonDisabled,
+                styles.verifyButtonDisabled,
               ]}
               onPress={handleVerifyCode}
               disabled={isVerifying || verificationCode.length !== 6}
@@ -179,7 +198,7 @@ const VerifyEmailScreen = () => {
                 style={[
                   styles.verifyButtonText,
                   (isVerifying || verificationCode.length !== 6) &&
-                    styles.verifyButtonTextDisabled,
+                  styles.verifyButtonTextDisabled,
                 ]}
               >
                 {isVerifying ? 'Verifying...' : 'Verify Code'}
@@ -205,14 +224,14 @@ const VerifyEmailScreen = () => {
                 style={[
                   styles.resendButtonText,
                   (countdown > 0 || isResending) &&
-                    styles.resendButtonTextDisabled,
+                  styles.resendButtonTextDisabled,
                 ]}
               >
                 {countdown > 0
                   ? `Resend Email (${countdown}s)`
                   : isResending
-                  ? 'Sending...'
-                  : 'Resend Email'}
+                    ? 'Sending...'
+                    : 'Resend Email'}
               </Text>
             </TouchableOpacity>
           </View>
@@ -239,7 +258,7 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     paddingHorizontal: 44,
-    paddingTop: 120, // Space for LogoHeader (48 + 46 + 26 margin)
+    paddingTop: 180, // Space for LogoHeader (48 + 46 + 26 margin)
     gap: 60,
   },
   messageContainer: {
@@ -253,15 +272,21 @@ const styles = StyleSheet.create({
   },
   title: {
     ...typography.styles.title,
-    fontFamily: 'CormorantGaramond-LightItalic',
+    color: '#F2E2B1',
+    fontFamily: 'CormorantGaramond-Italic',
     fontSize: 28,
     textAlign: 'center',
+    fontWeight: '300',
+    lineHeight: 36,
   },
   subtitle: {
     ...typography.styles.body,
-    fontFamily: 'CormorantGaramond-Light',
+    color: '#FDFDF9',
+    fontFamily: 'CormorantGaramond-Regular',
     fontSize: 20,
     textAlign: 'center',
+    fontWeight: '400',
+    lineHeight: 28
   },
   codeSection: {
     alignItems: 'center',
@@ -286,9 +311,8 @@ const styles = StyleSheet.create({
 
   verifyButton: {
     borderRadius: 8,
-    borderWidth: 0.5,
+    borderWidth: 1,
     borderColor: colors.button.primary,
-    backgroundColor: colors.button.primary,
     paddingHorizontal: 40,
     paddingVertical: 12,
     shadowColor: shadows.button.color,
@@ -299,19 +323,24 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   verifyButtonDisabled: {
-    backgroundColor: colors.button.disabled,
     borderColor: colors.button.disabled,
     opacity: 0.6,
   },
   verifyButtonText: {
     ...typography.styles.button,
-    fontSize: 16,
-    lineHeight: 20,
+    textAlign: 'center',
+    width: 220,
+    fontFamily: 'CormorantGaramond-Italic',
+    color: '#E5D6B0',
+    fontSize: 20,
+    fontWeight: '600',
+    lineHeight: 28,
     textTransform: 'none',
-    color: 'rgba(110, 80, 80, 0.6)',
   },
   verifyButtonTextDisabled: {
-    color: 'rgba(110, 80, 4, 0.6)',
+    color: '#E5D6B0',
+    fontSize: 20,
+    fontWeight: '600',
   },
   resendSection: {
     alignItems: 'center',
@@ -319,16 +348,18 @@ const styles = StyleSheet.create({
   },
   resendText: {
     ...typography.styles.body,
+    color: '#FDFDF9',
+    fontFamily: 'CormorantGaramond-Italic',
     textAlign: 'center',
-    fontSize: 16,
-    lineHeight: 20,
-    color: colors.text.primary,
+    fontSize: 20,
+    fontWeight: '300',
+    lineHeight: 28,
   },
   resendButton: {
+    width: 300,
     borderRadius: 8,
-    borderWidth: 0.5,
+    borderWidth: 1,
     borderColor: colors.border.primary,
-    backgroundColor: '#B5BCC7',
     paddingHorizontal: 40,
     paddingVertical: 12,
     shadowColor: shadows.input.color,
@@ -343,13 +374,16 @@ const styles = StyleSheet.create({
   },
   resendButtonText: {
     ...typography.styles.button,
-    fontSize: 16,
-    lineHeight: 20,
+    textAlign: 'center',
+    fontFamily: 'CormorantGaramond-Italic',
+    color: '#E5D6B0',
+    fontSize: 20,
+    fontWeight: '600',
+    lineHeight: 28,
     textTransform: 'none',
-    color: 'rgba(110, 80, 4, 0.6)',
   },
   resendButtonTextDisabled: {
-    color: 'rgba(229, 214, 176, 0.6)',
+    width: '100%',
   },
 });
 

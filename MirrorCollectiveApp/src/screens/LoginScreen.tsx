@@ -13,6 +13,7 @@ import LogoHeader from '../components/LogoHeader';
 import TextInputField from '../components/TextInputField';
 import StarIcon from '../components/StarIcon';
 import { authApiService } from '../services/api';
+import { QuizStorageService } from '../services/quizStorageService';
 import { typography } from '../styles/typography';
 
 const LoginScreen = ({ navigation }: any) => {
@@ -73,6 +74,24 @@ const LoginScreen = ({ navigation }: any) => {
           return;
         }
 
+        // Submit any pending quiz results after successful login (for verified users)
+        try {
+          const quizSubmitted =
+            await QuizStorageService.submitPendingQuizResults();
+          if (__DEV__) {
+            console.log(
+              'Quiz submission after login:',
+              quizSubmitted ? 'Success' : 'Failed or no quiz',
+            );
+          }
+        } catch (quizError) {
+          // Log quiz submission error but don't block user flow
+          console.error(
+            'Failed to submit quiz results after login:',
+            quizError,
+          );
+        }
+
         // Navigate to main app
         navigation.reset({
           index: 0,
@@ -89,7 +108,7 @@ const LoginScreen = ({ navigation }: any) => {
       Alert.alert(
         'Sign In Failed',
         error.message ||
-          'Unable to sign in. Please check your connection and try again.',
+        'Unable to sign in. Please check your connection and try again.',
       );
     } finally {
       setIsLoading(false);
@@ -202,9 +221,11 @@ const styles = StyleSheet.create({
   },
   title: {
     ...typography.styles.title,
+    color: '#F2E2B1',
     textAlign: 'center',
     marginBottom: 20,
-    fontFamily: 'CormorantGaramond-LightItalic',
+    lineHeight: 38,
+    fontStyle: 'normal',
     fontSize: 32,
   },
   formContainer: {
@@ -244,19 +265,25 @@ const styles = StyleSheet.create({
     marginTop: 0,
   },
   signupText: {
-    fontFamily: 'CormorantGaramond-LightItalic',
+    fontFamily: 'CormorantGaramond-Italic',
     fontSize: 20,
+    fontWeight: 300,
     lineHeight: 25,
     textAlign: 'center',
     width: 313,
     color: '#FDFDF9',
   },
   signupLink: {
-    fontFamily: 'CormorantGaramond-LightItalic',
+    fontFamily: 'CormorantGaramond-Italic',
     fontSize: 24,
-    lineHeight: 25,
+    lineHeight: 28,
     color: '#E5D6B0',
     textDecorationLine: 'underline' as const,
+    textDecorationStyle: 'solid' as const,
+    textDecorationSkipInk: 'auto' as const,
+    textDecorationThickness: 'auto' as const,
+    textUnderlineOffset: 'auto' as const,
+    textUnderlinePosition: 'from-font' as const,
   },
 });
 
