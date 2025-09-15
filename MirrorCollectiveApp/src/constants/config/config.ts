@@ -23,6 +23,9 @@ export const API_CONFIG = {
     SESSION: {
       GREETING: '/api/mirrorgpt/session/greeting',
     },
+    QUIZ: {
+      SUBMIT: '/api/quiz/submit',
+    },
   },
   TIMEOUT: 10000,
 };
