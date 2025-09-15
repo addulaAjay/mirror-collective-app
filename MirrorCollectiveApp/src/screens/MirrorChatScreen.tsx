@@ -45,7 +45,6 @@ export default function MirrorChatScreen() {
 
   return (
     <AuthenticatedRoute>
-
       <SafeAreaView style={styles.safeArea}>
         <StatusBar
           translucent
@@ -111,7 +110,6 @@ export default function MirrorChatScreen() {
         </ImageBackground>
 
       </SafeAreaView>
-
     </AuthenticatedRoute >
   );
 }
@@ -153,6 +151,7 @@ const styles = StyleSheet.create({
 
   chatContainer: {
     flex: 1,
+    flex: 1, 
     width: '100%',
     // height: SCREEN_DIMENSIONS.HEIGHT * 0.72,
     borderRadius: SPACING.LG,
