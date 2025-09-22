@@ -15,10 +15,17 @@ import TextInputField from '../components/TextInputField';
 import StarIcon from '../components/StarIcon';
 import { useAuth } from '../context/AuthContext';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { typography, colors } from '../styles/typography';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RouteProp } from '@react-navigation/native';
 import type { RootStackParamList } from '../types';
+import {
+  COLORS,
+  SPACING,
+  BORDERS,
+  TEXT_STYLES,
+  SHADOWS,
+  LAYOUT,
+} from '../styles';
 
 type ResetPasswordScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -144,7 +151,6 @@ const ResetPasswordScreen = () => {
 
             {/* Form Section */}
             <View style={styles.formSection}>
-              {/* Reset Code Field */}
               <View style={styles.fieldContainer}>
                 <Text style={styles.fieldLabel}>Reset Code</Text>
                 <TextInputField
@@ -158,7 +164,6 @@ const ResetPasswordScreen = () => {
                 />
               </View>
 
-              {/* New Password Field */}
               <View style={styles.fieldContainer}>
                 <Text style={styles.fieldLabel}>New Password</Text>
                 <TextInputField
@@ -168,7 +173,7 @@ const ResetPasswordScreen = () => {
                   secureTextEntry={!isPasswordVisible}
                   autoCapitalize="none"
                   autoComplete="password"
-                  showPasswordToggle={true}
+                  showPasswordToggle
                   isPasswordVisible={isPasswordVisible}
                   size="small"
                   onTogglePassword={() =>
@@ -177,7 +182,6 @@ const ResetPasswordScreen = () => {
                 />
               </View>
 
-              {/* Confirm Password Field */}
               <View style={styles.fieldContainer}>
                 <Text style={styles.fieldLabel}>Confirm Password</Text>
                 <TextInputField
@@ -187,7 +191,7 @@ const ResetPasswordScreen = () => {
                   secureTextEntry={!isConfirmPasswordVisible}
                   autoCapitalize="none"
                   autoComplete="password"
-                  showPasswordToggle={true}
+                  showPasswordToggle
                   isPasswordVisible={isConfirmPasswordVisible}
                   size="small"
                   onTogglePassword={() =>
@@ -205,7 +209,6 @@ const ResetPasswordScreen = () => {
                 <Text style={styles.errorText}>{state.error}</Text>
               )}
 
-              {/* Reset Password Button */}
               <TouchableOpacity
                 style={styles.enterButton}
                 onPress={handleResetPassword}
@@ -220,7 +223,6 @@ const ResetPasswordScreen = () => {
               </TouchableOpacity>
             </View>
 
-            {/* Back to Login */}
             <TouchableOpacity
               onPress={handleBackToLogin}
               style={styles.backLink}
@@ -243,92 +245,96 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    borderRadius: 15,
-    shadowColor: '#000',
-    shadowOffset: { width: -1, height: 5 },
-    shadowOpacity: 0.25,
-    shadowRadius: 26,
-    elevation: 10,
+    borderRadius: BORDERS.RADIUS.MEDIUM,
+    ...SHADOWS.MEDIUM,
   },
   scrollContainer: {
     flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 20,
+    paddingVertical: SPACING.L,
   },
   contentContainer: {
     flex: 1,
     width: '100%',
     alignItems: 'center',
-    paddingHorizontal: 40,
-    paddingTop: 120, // Space for LogoHeader (48 + 46 + 26 margin)
-    gap: 40,
+    paddingHorizontal: SPACING.XL,
+    paddingTop: LAYOUT.HEADER_HEIGHT + SPACING.L, // Space for LogoHeader
+    gap: SPACING.XL,
   },
   headerSection: {
     alignItems: 'center',
-    gap: 8,
+    gap: SPACING.XS,
   },
   title: {
-    ...typography.styles.title,
+    ...TEXT_STYLES.h2,
     textAlign: 'center',
+    fontFamily: 'CormorantGaramond-Italic',
+    fontWeight: undefined,
   },
   subtitle: {
-    ...typography.styles.body,
+    ...TEXT_STYLES.body,
     textAlign: 'center',
     lineHeight: 24,
+    fontWeight: undefined,
   },
   emailText: {
-    color: colors.text.accent,
+    color: COLORS.TEXT.ACCENT,
     fontWeight: '600',
   },
   formSection: {
     width: '100%',
-    gap: 12,
+    gap: SPACING.S,
   },
   fieldContainer: {
     width: '100%',
-    gap: 4,
+    gap: SPACING.XXS,
   },
   fieldLabel: {
-    ...typography.styles.label,
-    paddingLeft: 8,
+    ...TEXT_STYLES.caption,
+    paddingLeft: SPACING.S,
+    color: COLORS.TEXT.SECONDARY,
+    fontWeight: undefined,
   },
   passwordRequirements: {
-    ...typography.styles.caption,
+    ...TEXT_STYLES.caption,
     textAlign: 'center',
-    marginTop: 10,
-    marginBottom: 20,
-    lineHeight: 16,
+    marginTop: SPACING.S,
+    marginBottom: SPACING.M,
+    fontWeight: undefined,
   },
   errorText: {
-    ...typography.styles.bodySmall,
-    color: '#FF6B6B',
+    ...TEXT_STYLES.body,
+    color: COLORS.TEXT.ERROR,
     textAlign: 'center',
-    marginTop: 10,
-    marginBottom: 10,
+    marginVertical: SPACING.S,
+    fontWeight: undefined,
   },
   enterButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
+    gap: SPACING.M,
     justifyContent: 'center',
-    marginTop: 20,
+    marginTop: SPACING.M,
   },
   enterText: {
-    ...typography.styles.button,
+    ...TEXT_STYLES.button,
     textShadowColor: 'rgba(245, 230, 184, 0.50)',
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 4,
+    fontWeight: undefined,
   },
   backLink: {
-    marginTop: 20,
+    marginTop: SPACING.M,
   },
   backLinkText: {
-    ...typography.styles.body,
+    ...TEXT_STYLES.body,
     textAlign: 'center',
+    fontWeight: undefined,
   },
   linkText: {
-    ...typography.styles.linkLarge,
+    ...TEXT_STYLES.link,
+    fontWeight: '600',
   },
 });
 

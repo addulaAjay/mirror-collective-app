@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Image, Text, StyleSheet, Dimensions } from 'react-native';
+import { COLORS, TYPOGRAPHY, SHADOWS, SPACING } from '../styles';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -11,24 +12,26 @@ const LogoHeader = () => (
       resizeMode="contain"
     />
     <View style={styles.textContainer}>
-      <Text style={textStyles.textItalic}>The <Text style={textStyles.textNormal}>MIRROR</Text></Text>
+      <Text style={textStyles.textItalic}>
+        The <Text style={textStyles.textNormal}>MIRROR</Text>
+      </Text>
       <Text style={textStyles.textNormal}>COLLECTIVE</Text>
     </View>
   </View>
 );
 
-
-const fs = Math.min(Math.max(screenWidth * 0.04, 16), 18);
+// Responsive font scaling
+const fs = Math.min(Math.max(screenWidth * 0.04, TYPOGRAPHY.SIZES.M), 18);
 const lhItalic = Math.min(Math.max(screenWidth * 0.048, 20), 24);
 const lhNormal = Math.min(Math.max(screenWidth * 0.045, 16), 18);
 
 const baseText = {
   fontSize: fs,
-  textAlign: 'center',        // matches your screenshot
-  color: '#E5D6B0',
+  textAlign: 'center',
+  color: COLORS.PRIMARY.GOLD_LIGHT,
+  textShadowColor: SHADOWS.LARGE.shadowColor,
   textShadowOffset: { width: 0, height: 4 },
   textShadowRadius: 9,
-  textShadowColor: 'rgba(0,0,0,0.25)',
   textTransform: 'none',
 } as const;
 
@@ -48,7 +51,7 @@ export const textStyles = StyleSheet.create({
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    gap: Math.max(8, screenWidth * 0.02),
+    gap: Math.max(SPACING.S, screenWidth * 0.02),
     alignItems: 'center',
     position: 'relative',
     top: Math.max(48, screenHeight * 0.056),

@@ -14,6 +14,9 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../types';
 import StarIcon from '../components/StarIcon';
 
+// 🎨 Theme imports
+import { COLORS, TEXT_STYLES, SPACING } from '../styles';
+
 type QuizTuningScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
   'QuizTuning'
@@ -68,85 +71,87 @@ const QuizTuningScreen = () => {
 };
 
 export default QuizTuningScreen;
+
 const styles = StyleSheet.create({
   bg: {
     flex: 1,
-    backgroundColor: '#0B0F1C',
-  },
-  container: {
-    flex: 1,
-    paddingHorizontal: Math.max(40, screenWidth * 0.102),
-    paddingTop: Math.max(48, screenHeight * 0.056),
-    paddingBottom: Math.max(30, screenHeight * 0.035),
-    alignItems: 'center',
+    backgroundColor: COLORS.BACKGROUND.PRIMARY,
   },
   bgImage: {
     resizeMode: 'cover',
   },
+  container: {
+    flex: 1,
+    paddingHorizontal: Math.max(SPACING.XL, screenWidth * 0.1),
+    paddingTop: Math.max(SPACING.XL, screenHeight * 0.056),
+    paddingBottom: Math.max(SPACING.M, screenHeight * 0.035),
+    alignItems: 'center',
+  },
   titleContainer: {
     alignItems: 'center',
-    marginTop: Math.max(60, screenHeight * 0.1),
-    // marginBottom: Math.max(60, screenHeight * 0.07),
+    marginTop: Math.max(SPACING.XXL, screenHeight * 0.1),
   },
   title: {
+    ...TEXT_STYLES.h2,
     fontFamily: 'CormorantGaramond-Light',
-    fontSize: Math.min(screenWidth * 0.082, 32),
     fontWeight: '300',
+    fontSize: Math.min(screenWidth * 0.082, 32),
     lineHeight: Math.min(screenWidth * 0.082, 32),
-    color: '#E5D6B0',
+    color: COLORS.TEXT.SECONDARY,
     textAlign: 'center',
-    textShadowColor: '#E5D6B0',
+    textShadowColor: COLORS.TEXT.SECONDARY,
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 8,
   },
   mirrorContainer: {
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: Math.max(10, screenHeight * 0.01),
+    marginBottom: Math.max(SPACING.S, screenHeight * 0.01),
   },
   mirrorImage: {
     width: Math.min(screenWidth * 0.7, 275),
     height: Math.min(screenHeight * 0.5, 400),
-    shadowColor: '#E5D6B0',
+    shadowColor: COLORS.TEXT.SECONDARY,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.3,
     shadowRadius: 40,
   },
   messageContainer: {
     alignItems: 'center',
-    marginBottom: Math.max(80, screenHeight * 0.09),
+    marginBottom: Math.max(SPACING.XXL, screenHeight * 0.09),
   },
   message: {
+    ...TEXT_STYLES.body,
     fontFamily: 'CormorantGaramond-Light',
     fontSize: Math.min(screenWidth * 0.051, 20),
     fontWeight: '300',
-    color: '#FDFDF9',
+    color: COLORS.TEXT.PRIMARY,
     textAlign: 'center',
-    marginBottom: Math.max(10, screenHeight * 0.025),
+    marginBottom: SPACING.S,
   },
   subMessage: {
     fontFamily: 'CormorantGaramond-LightItalic',
     fontSize: Math.min(screenWidth * 0.051, 20),
-    color: '#FDFDF9',
+    color: COLORS.TEXT.PRIMARY,
     textAlign: 'center',
     lineHeight: Math.min(screenWidth * 0.064, 25),
   },
   enterButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Math.max(12, screenWidth * 0.03),
+    gap: SPACING.S,
     justifyContent: 'center',
     position: 'absolute',
-    bottom: Math.max(40, screenHeight * 0.05),
+    bottom: Math.max(SPACING.XXL, screenHeight * 0.05),
     alignSelf: 'center',
   },
   enterText: {
+    ...TEXT_STYLES.button,
     fontFamily: 'CormorantGaramond-Light',
-    fontSize: Math.min(screenWidth * 0.056, 22),
     fontWeight: '300',
-    color: '#E5D6B0',
-    textAlign: 'center',
-    textShadowColor: '#E5D6B0',
+    fontSize: Math.min(screenWidth * 0.056, 22),
+    color: COLORS.TEXT.SECONDARY,
+    textShadowColor: COLORS.TEXT.SECONDARY,
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 8,
   },

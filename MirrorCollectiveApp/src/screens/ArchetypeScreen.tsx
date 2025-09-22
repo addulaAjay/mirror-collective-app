@@ -12,6 +12,7 @@ import LogoHeader from '../components/LogoHeader';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../types';
+import { COLORS, SPACING, TEXT_STYLES } from '../styles';
 
 type ArchetypeScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -38,7 +39,6 @@ const ArchetypeScreen: React.FC<ArchetypeScreenProps> = ({ route }) => {
   const { archetype } = route.params;
 
   const handleContinue = () => {
-    // Navigate to next screen in the flow
     navigation.navigate('QuizTuning');
   };
 
@@ -109,42 +109,43 @@ export default ArchetypeScreen;
 const styles = StyleSheet.create({
   bg: {
     flex: 1,
-    backgroundColor: '#0B0F1C',
+    backgroundColor: COLORS.BACKGROUND.PRIMARY,
   },
   bgImage: {
     resizeMode: 'cover',
   },
   container: {
     flex: 1,
-    paddingHorizontal: Math.max(20, screenWidth * 0.051),
-    paddingTop: Math.max(48, screenHeight * 0.056),
-    paddingBottom: Math.max(30, screenHeight * 0.035),
+    paddingHorizontal: Math.max(SPACING.L, screenWidth * 0.051),
+    paddingTop: Math.max(SPACING.XL, screenHeight * 0.056),
+    paddingBottom: Math.max(SPACING.M, screenHeight * 0.035),
     alignItems: 'center',
   },
   titleContainer: {
     alignItems: 'center',
-    marginTop: Math.max(60, screenHeight * 0.1),
-    // marginBottom: Math.max(60, screenHeight * 0.01),
+    marginTop: Math.max(SPACING.XXL, screenHeight * 0.1),
   },
   title: {
+    ...TEXT_STYLES.h1,
     fontFamily: 'CormorantGaramond-Light',
-    fontSize: Math.min(screenWidth * 0.082, 32),
     fontWeight: '300',
+    fontSize: Math.min(screenWidth * 0.082, 32),
     lineHeight: Math.min(screenWidth * 0.082, 32),
-    color: '#E5D6B0',
-    textAlign: 'center',
-    textShadowColor: '#E5D6B0',
+    color: COLORS.PRIMARY.GOLD_LIGHT,
+    textShadowColor: COLORS.PRIMARY.GOLD_LIGHT,
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 8,
+    textAlign: 'center',
   },
   imageContainer: {
     justifyContent: 'center',
     alignItems: 'center',
+    marginVertical: SPACING.L,
   },
   archetypeImage: {
     width: Math.min(screenWidth * 0.7, 275),
     height: Math.min(screenHeight * 0.5, 424),
-    shadowColor: '#E5D6B0',
+    shadowColor: COLORS.PRIMARY.GOLD_LIGHT,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.3,
     shadowRadius: 40,
@@ -152,41 +153,41 @@ const styles = StyleSheet.create({
   descriptionContainer: {
     width: Math.min(screenWidth * 0.8, 313),
     alignItems: 'center',
-    marginBottom: Math.max(40, screenHeight * 0.047),
+    marginBottom: Math.max(SPACING.XL, screenHeight * 0.047),
   },
   description: {
     fontFamily: 'CormorantGaramond-Light',
     fontSize: Math.min(screenWidth * 0.051, 20),
     fontWeight: '300',
     lineHeight: Math.min(screenWidth * 0.064, 25),
-    color: '#FDFDF9',
+    color: COLORS.TEXT.PRIMARY,
     textAlign: 'center',
   },
   descriptionFirstWord: {
     fontFamily: 'CormorantGaramond-BoldItalic',
     fontSize: Math.min(screenWidth * 0.051, 20),
-    color: '#FDFDF9',
+    color: COLORS.TEXT.PRIMARY,
   },
   descriptionRest: {
     fontFamily: 'CormorantGaramond-Light',
     fontSize: Math.min(screenWidth * 0.051, 20),
-    color: '#FDFDF9',
+    color: COLORS.TEXT.PRIMARY,
   },
   questionText: {
     fontFamily: 'CormorantGaramond-MediumItalic',
     fontSize: Math.min(screenWidth * 0.051, 20),
-    color: '#FDFDF9',
+    color: COLORS.TEXT.PRIMARY,
     textAlign: 'center',
-    marginTop: Math.max(10, screenHeight * 0.012),
+    marginTop: Math.max(SPACING.S, screenHeight * 0.012),
   },
   continueText: {
     fontFamily: 'CormorantGaramond-LightItalic',
     fontSize: Math.min(screenWidth * 0.036, 14),
     fontWeight: '300',
-    color: '#9BAAC2',
+    color: COLORS.TEXT.TERTIARY,
     textAlign: 'center',
     position: 'absolute',
-    bottom: Math.max(40, screenHeight * 0.05),
+    bottom: Math.max(SPACING.XL, screenHeight * 0.05),
     alignSelf: 'center',
   },
 });

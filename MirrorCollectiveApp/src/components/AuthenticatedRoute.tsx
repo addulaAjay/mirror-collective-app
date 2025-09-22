@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAuthGuard } from '../hooks/useAuthGuard';
-import { typography, colors } from '../styles/typography';
+import { COLORS, TEXT_STYLES, SPACING } from '../styles';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../types';
 
@@ -43,7 +43,7 @@ export const AuthenticatedRoute: React.FC<AuthenticatedRouteProps> = ({
   if (isLoading && showLoader) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.text.accent} />
+        <ActivityIndicator size="large" color={COLORS.TEXT.ACCENT} />
         <Text style={styles.loadingText}>Verifying authentication...</Text>
       </View>
     );
@@ -67,17 +67,20 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#1B1B1D',
-    gap: 20,
+    backgroundColor: COLORS.BACKGROUND.PRIMARY,
+    gap: SPACING.L,
   },
   loadingText: {
-    ...typography.styles.body,
+    ...TEXT_STYLES.body,
     textAlign: 'center',
+    color: COLORS.TEXT.PRIMARY,
+    fontWeight: undefined,
   },
   redirectText: {
-    ...typography.styles.body,
+    ...TEXT_STYLES.body,
     textAlign: 'center',
-    color: colors.text.secondary,
+    color: COLORS.TEXT.SECONDARY,
+    fontWeight: undefined,
   },
 });
 

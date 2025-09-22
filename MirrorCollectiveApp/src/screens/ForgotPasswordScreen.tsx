@@ -16,7 +16,9 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../types';
-import { typography, colors, shadows } from '../styles/typography';
+
+// 🎨 Theme imports
+import { COLORS, TEXT_STYLES, SPACING, SHADOWS,BORDERS } from '../styles';
 
 type ForgotPasswordScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -31,17 +33,14 @@ const ForgotPasswordScreen = () => {
   const { forgotPassword, state } = useAuth();
   const navigation = useNavigation<ForgotPasswordScreenNavigationProp>();
 
-  const validateEmail = (emailAddress: string) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(emailAddress);
-  };
+  const validateEmail = (emailAddress: string) =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailAddress);
 
   const handleForgotPassword = async () => {
     if (!email.trim()) {
       Alert.alert('Error', 'Please enter your email address');
       return;
     }
-
     if (!validateEmail(email.trim())) {
       Alert.alert('Error', 'Please enter a valid email address');
       return;
@@ -177,18 +176,16 @@ const ForgotPasswordScreen = () => {
   );
 };
 
+export default ForgotPasswordScreen;
+
 const styles = StyleSheet.create({
   keyboardContainer: {
     flex: 1,
   },
   container: {
     flex: 1,
-    borderRadius: 15,
-    shadowColor: shadows.container.color,
-    shadowOffset: shadows.container.offset,
-    shadowOpacity: shadows.container.opacity,
-    shadowRadius: shadows.container.radius,
-    elevation: 10,
+    borderRadius: BORDERS.RADIUS.LARGE,
+    ...SHADOWS.MEDIUM,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -196,65 +193,73 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 40,
-    gap: 20,
+    paddingHorizontal: SPACING.XL,
+    gap: SPACING.M,
     width: '100%',
     maxWidth: 313,
   },
   title: {
-    ...typography.styles.title,
+    ...TEXT_STYLES.h2,
     textAlign: 'center',
     fontFamily: 'CormorantGaramond-Italic',
+    color: COLORS.TEXT.SECONDARY,
+    fontWeight: undefined,
   },
   subtitle: {
-    ...typography.styles.body,
+    ...TEXT_STYLES.body,
     textAlign: 'center',
     fontFamily: 'CormorantGaramond-LightItalic',
+    color: COLORS.TEXT.PRIMARY,
+    fontWeight: undefined,
   },
   emailText: {
-    color: colors.text.accent,
+    color: COLORS.TEXT.ACCENT,
     fontWeight: '600',
   },
   instructions: {
-    ...typography.styles.bodySmall,
+    ...TEXT_STYLES.caption,
     textAlign: 'center',
+    color: COLORS.TEXT.TERTIARY,
+    fontWeight: undefined,
   },
   formContainer: {
-    gap: 12,
+    gap: SPACING.S,
     width: '100%',
     alignItems: 'center',
   },
   enterButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
+    gap: SPACING.M,
     justifyContent: 'center',
-    marginTop: 20,
+    marginTop: SPACING.L,
   },
   enterText: {
-    ...typography.styles.button,
-    textShadowColor: 'rgba(245, 230, 184, 0.50)',
+    ...TEXT_STYLES.button,
+    textShadowColor: COLORS.PRIMARY.GOLD_SHIMMER,
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 4,
+    fontWeight: undefined,
   },
   errorText: {
-    ...typography.styles.bodySmall,
-    color: '#FF6B6B',
+    ...TEXT_STYLES.caption,
+    color: COLORS.TEXT.ERROR,
     textAlign: 'center',
+    fontWeight: undefined,
   },
   backLink: {
-    marginTop: 20,
+    marginTop: SPACING.L,
   },
   backLinkText: {
-    ...typography.styles.body,
+    ...TEXT_STYLES.body,
     textAlign: 'center',
     fontFamily: 'CormorantGaramond-Italic',
+    color: COLORS.TEXT.PRIMARY,
+    fontWeight: undefined,
   },
   linkText: {
-    ...typography.styles.linkLarge,
+    ...TEXT_STYLES.link,
     fontWeight: '600',
     fontFamily: 'CormorantGaramond-LightItalic',
   },
 });
-
-export default ForgotPasswordScreen;

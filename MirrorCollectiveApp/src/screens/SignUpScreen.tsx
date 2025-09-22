@@ -14,10 +14,19 @@ import LogoHeader from '../components/LogoHeader';
 import TextInputField from '../components/TextInputField';
 import StarIcon from '../components/StarIcon';
 import { authApiService } from '../services/api';
-import { typography } from '../styles/typography';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { RootStackParamList } from '../types';
+import {
+  COLORS,
+  SPACING,
+  BORDERS,
+  SHADOWS,
+  LAYOUT,
+  TEXT_STYLES,
+} from '../styles';
 
 interface SignUpScreenProps {
-  navigation: any;
+  navigation: NativeStackNavigationProp<RootStackParamList, 'SignUp'>;
 }
 
 const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
@@ -56,16 +65,15 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
       return false;
     }
 
-    // Check for password complexity
     const hasUpperCase = /[A-Z]/.test(password);
     const hasLowerCase = /[a-z]/.test(password);
     const hasNumbers = /\d/.test(password);
-    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+    const hasSpecialChar = /\W/.test(password);
 
     if (!hasUpperCase || !hasLowerCase || !hasNumbers || !hasSpecialChar) {
       Alert.alert(
         'Weak Password',
-        'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character',
+        'Password must contain uppercase, lowercase, number, and special character',
       );
       return false;
     }
@@ -79,12 +87,9 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
   };
 
   const handleSignUp = async () => {
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return;
 
     setIsLoading(true);
-
     try {
       const response = await authApiService.signUp({
         fullName: fullName.trim(),
@@ -114,19 +119,13 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
         );
       }
     } catch (error: any) {
-      console.error('Sign up error:', error);
       Alert.alert(
         'Registration Failed',
-        error.message ||
-          'Unable to create your account. Please check your connection and try again.',
+        error.message || 'Unable to create your account. Please try again.',
       );
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const navigateToLogin = () => {
-    navigation.navigate('Login');
   };
 
   return (
@@ -147,7 +146,7 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
           <LogoHeader />
 
           <View style={styles.contentContainer}>
-            {/* Header Section */}
+            {/* Header */}
             <View style={styles.headerSection}>
               <Text style={styles.title}>Getting Started</Text>
               <Text style={styles.subtitle}>
@@ -155,9 +154,8 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
               </Text>
             </View>
 
-            {/* Form Section */}
+            {/* Form */}
             <View style={styles.formSection}>
-              {/* Full Name Field */}
               <View style={styles.fieldContainer}>
                 <Text style={styles.fieldLabel}>Full Name</Text>
                 <TextInputField
@@ -167,13 +165,10 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
                   onChangeText={setFullName}
                   autoCapitalize="words"
                   autoComplete="name"
-                  placeholderAlign="left"
-                  placeholderFontFamily="regular"
                   inputTextStyle="gold-regular"
                 />
               </View>
 
-              {/* Email Field */}
               <View style={styles.fieldContainer}>
                 <Text style={styles.fieldLabel}>Email</Text>
                 <TextInputField
@@ -184,13 +179,10 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
                   keyboardType="email-address"
                   autoCapitalize="none"
                   autoComplete="email"
-                  placeholderAlign="left"
-                  placeholderFontFamily="regular"
                   inputTextStyle="gold-regular"
                 />
               </View>
 
-              {/* Password Field */}
               <View style={styles.fieldContainer}>
                 <Text style={styles.fieldLabel}>Password</Text>
                 <TextInputField
@@ -199,32 +191,27 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
                   value={password}
                   onChangeText={setPassword}
                   secureTextEntry={!showPassword}
-                  showPasswordToggle={true}
+                  showPasswordToggle
                   isPasswordVisible={showPassword}
                   onTogglePassword={() => setShowPassword(!showPassword)}
-                  placeholderAlign="left"
-                  placeholderFontFamily="regular"
                   inputTextStyle="gold-regular"
                 />
               </View>
 
-              {/* Confirm Password Field */}
               <View style={styles.fieldContainer}>
-                <Text style={styles.fieldLabel}>Confirm password</Text>
+                <Text style={styles.fieldLabel}>Confirm Password</Text>
                 <TextInputField
                   size="medium"
-                  placeholder="Re-enter password to confirm"
+                  placeholder="Re-enter password"
                   value={confirmPassword}
                   onChangeText={setConfirmPassword}
                   secureTextEntry={!showConfirmPassword}
-                  showPasswordToggle={true}
+                  showPasswordToggle
                   isPasswordVisible={showConfirmPassword}
-                  placeholderAlign="left"
-                  placeholderFontFamily="regular"
-                  inputTextStyle="gold-regular"
                   onTogglePassword={() =>
                     setShowConfirmPassword(!showConfirmPassword)
                   }
+                  inputTextStyle="gold-regular"
                 />
               </View>
             </View>
@@ -248,7 +235,7 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
               <Text style={styles.loginText}>
                 Already part of the Mirror Collective?
               </Text>
-              <TouchableOpacity onPress={navigateToLogin} disabled={isLoading}>
+              <TouchableOpacity onPress={() => navigation.navigate('Login')}>
                 <Text style={styles.loginLink}>Sign in here</Text>
               </TouchableOpacity>
             </View>
@@ -260,97 +247,79 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
 };
 
 const styles = StyleSheet.create({
-  keyboardContainer: {
-    flex: 1,
-  },
+  keyboardContainer: { flex: 1 },
   container: {
     flex: 1,
-    borderRadius: 15,
-    shadowColor: '#000',
-    shadowOffset: { width: -1, height: 5 },
-    shadowOpacity: 0.25,
-    shadowRadius: 26,
-    elevation: 10,
+    borderRadius: BORDERS.RADIUS.MEDIUM,
+    ...SHADOWS.MEDIUM,
   },
   scrollContainer: {
     flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 20,
+    paddingVertical: SPACING.L,
   },
   contentContainer: {
     flex: 1,
     width: '100%',
     alignItems: 'center',
-    paddingHorizontal: 44,
-    paddingTop: 120,
-    gap: 32,
+    paddingHorizontal: SPACING.XL + 4,
+    paddingTop: LAYOUT.HEADER_HEIGHT + SPACING.XL,
+    gap: SPACING.XL,
   },
   headerSection: {
     alignItems: 'center',
-    gap: 4,
+    gap: SPACING.XS,
   },
   title: {
-    ...typography.styles.title,
+    ...TEXT_STYLES.h1,
+    fontFamily: 'CormorantGaramond-Light',
+    fontWeight: '300',
+    textAlign: 'center',
     textShadowColor: 'rgba(0, 0, 0, 0.25)',
     textShadowOffset: { width: 0, height: 4 },
     textShadowRadius: 4,
-    fontSize: 32,
-    fontWeight: '300',
-    textAlign: 'center',
-    lineHeight: 38,
   },
   subtitle: {
-    ...typography.styles.subtitle,
-    color: '#FDFDF9',
+    ...TEXT_STYLES.h3,
     fontFamily: 'CormorantGaramond-Italic',
+    color: COLORS.TEXT.PRIMARY,
     textAlign: 'center',
-    fontSize: 24,
-    fontWeight: '300',
-    lineHeight: 30,
+    fontWeight: undefined,
   },
-  formSection: {
-    width: '100%',
-    gap: 20,
-  },
-  fieldContainer: {
-    width: '100%',
-    gap: 8,
-  },
+  formSection: { width: '100%', gap: SPACING.L },
+  fieldContainer: { width: '100%', gap: SPACING.XS },
   fieldLabel: {
-    ...typography.styles.label,
-    paddingLeft: 4,
-    fontSize: 20,
+    ...TEXT_STYLES.bodySecondary,
+    paddingLeft: SPACING.XS,
+    fontWeight: undefined,
   },
   continueButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: SPACING.S,
     justifyContent: 'center',
-    marginTop: 40,
-    paddingVertical: 4,
+    marginTop: SPACING.XL,
   },
   continueText: {
-    fontFamily: 'CormorantGaramond-Medium',
-    fontSize: 24,
-    fontWeight: '500',
-    color: '#E5D6B0',
+    ...TEXT_STYLES.button,
     textShadowColor: 'rgba(229, 214, 176, 0.5)',
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 8,
+    fontWeight: undefined,
   },
   loginContainer: {
     alignItems: 'center',
-    gap: 8,
-    marginTop: 20,
+    gap: SPACING.XS,
+    marginTop: SPACING.L,
   },
   loginText: {
-    ...typography.styles.bodyItalic,
+    ...TEXT_STYLES.body,
+    fontStyle: 'italic',
     textAlign: 'center',
+    fontWeight: undefined,
   },
-  loginLink: {
-    ...typography.styles.linkLarge,
-  },
+  loginLink: { ...TEXT_STYLES.link, fontSize: 16, fontWeight: undefined },
 });
 
 export default SignUpScreen;

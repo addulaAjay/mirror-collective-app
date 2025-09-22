@@ -1,30 +1,29 @@
 // components/ProgressBar.tsx
 import React from 'react';
-import { View, StyleSheet, Dimensions } from 'react-native';
+import { View, StyleSheet, Dimensions, ViewStyle } from 'react-native';
+import { COLORS, BORDERS, SHADOWS } from '../styles';
 
 const { width: screenWidth } = Dimensions.get('window');
 
 interface ProgressBarProps {
   progress?: number;
-  style?: any;
+  style?: ViewStyle;
 }
 
 export default function ProgressBar({ progress = 0, style }: ProgressBarProps) {
   const progressWidth = Math.min(progress * 100, 100);
-  
+
   return (
     <View style={[styles.container, style]}>
       <View style={styles.track}>
         {progressWidth > 0 && (
-          <View
-            style={[styles.fill, { width: `${progressWidth}%` }]}
-          />
+          <View style={[styles.fill, { width: `${progressWidth}%` }]} />
         )}
         {progressWidth > 5 && (
           <View
             style={[
               styles.progressIndicator,
-              { left: `${Math.min(progressWidth - 1, 99)}%` }
+              { left: `${Math.min(progressWidth - 1, 99)}%` },
             ]}
           />
         )}
@@ -39,37 +38,33 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   track: {
-    width: Math.min(screenWidth * 0.796, 313), // Match Figma width exactly
-    height: 9, // Exact height from Figma
-    borderRadius: 730.85, // Exact border radius from Figma
-    borderWidth: 0.73, // Exact stroke width from Figma
-    borderColor: '#9BAAC2', // Exact stroke color from Figma
-    backgroundColor: 'rgba(155, 170, 194, 0.10)', // Exact background from Figma
+    width: Math.min(screenWidth * 0.796, 313),
+    height: 9,
+    borderRadius: BORDERS.RADIUS.FULL, // Rounded capsule shape
+    borderWidth: BORDERS.WIDTH.THIN,
+    borderColor: COLORS.TEXT.TERTIARY,
+    backgroundColor: COLORS.BACKGROUND.TERTIARY + '1A', // subtle transparency
     position: 'relative',
     overflow: 'hidden',
   },
   fill: {
     position: 'absolute',
-    left: 0.36,
-    top: 0.36,
-    height: 7.28,
-    borderRadius: 5.85,
-    backgroundColor: '#E5D6B0',
+    left: 0,
+    top: 0,
+    height: 9 - BORDERS.WIDTH.THIN * 2,
+    borderRadius: BORDERS.RADIUS.FULL,
+    backgroundColor: COLORS.PRIMARY.GOLD_LIGHT,
     minWidth: 8,
-    shadowColor: '#E5D6B0',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 8,
-    elevation: 4,
+    ...SHADOWS.GLOW,
   },
   progressIndicator: {
     position: 'absolute',
     top: -2,
     width: 12,
     height: 12,
-    borderRadius: 6,
-    backgroundColor: '#FFFFFF',
-    shadowColor: '#E5D6B0',
+    borderRadius: BORDERS.RADIUS.FULL,
+    backgroundColor: COLORS.TEXT.PRIMARY,
+    shadowColor: COLORS.PRIMARY.GOLD_LIGHT,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 1,
     shadowRadius: 15,

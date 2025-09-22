@@ -1,5 +1,6 @@
 import React from 'react';
 import { TouchableOpacity, Image, StyleSheet, ViewStyle } from 'react-native';
+import { COLORS, BORDERS, SHADOWS } from '../styles';
 
 interface SymbolOptionProps {
   icon: any; // require() or uri
@@ -31,22 +32,20 @@ const styles = StyleSheet.create({
   circle: {
     width: 88,
     height: 88,
-    borderRadius: 44,
-    borderWidth: 1,
-    borderColor: '#E5D6B0',
-    backgroundColor: 'rgba(253, 253, 249, 0.05)',
+    borderRadius: BORDERS.RADIUS.FULL, // perfectly round
+    borderWidth: BORDERS.WIDTH.THIN,
+    borderColor: COLORS.PRIMARY.GOLD_LIGHT,
+    backgroundColor: COLORS.UI.INPUT_BG, // semi-transparent background
     justifyContent: 'center',
     alignItems: 'center',
   },
   selected: {
-    shadowColor: '#E5D6B0',
-    shadowOpacity: 0.9,
-    shadowRadius: 20,
-    shadowOffset: { width: 0, height: 0 },
+    ...SHADOWS.GLOW, // golden glow from theme
   },
   icon: {
     width: 40,
     height: 40,
     resizeMode: 'contain',
+    tintColor: COLORS.TEXT.SECONDARY, // ensures consistent color
   },
 });

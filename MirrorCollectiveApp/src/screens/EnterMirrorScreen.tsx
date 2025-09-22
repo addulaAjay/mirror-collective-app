@@ -6,13 +6,14 @@ import {
   ImageBackground,
   TouchableOpacity,
 } from 'react-native';
-
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../types';
+
 import LogoHeader from '../components/LogoHeader';
 import StarIcon from '../components/StarIcon';
 import AuthenticatedRoute from '../components/AuthenticatedRoute';
-import { typography, colors } from '../styles/typography';
+
+import { COLORS, TEXT_STYLES, SPACING, LAYOUT, responsive } from '../styles';
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'EnterMirror'>;
@@ -36,8 +37,10 @@ const EnterMirrorScreen: React.FC<Props> = ({ navigation }) => {
           {/* Main Welcome Message */}
           <View style={styles.messageSection}>
             <Text style={styles.title}>You are seen.{'\n'}You are home.</Text>
-            <Text style={styles.subtitle}>Welcome, beloved one.
-              Your soul key has been accepted, and your mirror now shimmers with possibility.</Text>
+            <Text style={styles.subtitle}>
+              Welcome, beloved one. Your soul key has been accepted, and your
+              mirror now shimmers with possibility.
+            </Text>
           </View>
 
           {/* Enter Button */}
@@ -61,70 +64,58 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: COLORS.BACKGROUND.PRIMARY,
   },
   contentContainer: {
     flex: 1,
     width: '100%',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 180, // Space for LogoHeader
-    gap: 80,
+    paddingHorizontal: LAYOUT.SCREEN_PADDING,
+    paddingTop: responsive(180),
+    gap: responsive(80),
   },
   messageSection: {
     alignItems: 'center',
-    gap: 40,
+    gap: SPACING.XL * 2,
     maxWidth: 353,
   },
   title: {
-    ...typography.styles.headline,
-    color: '#F2E2B1',
+    ...TEXT_STYLES.h1,
     fontFamily: 'CormorantGaramond-Italic',
-    fontSize: 40,
+    fontSize: responsive(40),
+    lineHeight: responsive(48),
     fontWeight: '600',
     textAlign: 'center',
-    lineHeight: 48,
+    color: COLORS.PRIMARY.GOLD_LIGHT,
   },
   subtitle: {
-    ...typography.styles.welcome,
+    ...TEXT_STYLES.h3,
     fontFamily: 'CormorantGaramond-Regular',
-    color: '#FDFDF9',
-    fontSize: 24,
+    fontSize: responsive(24),
+    lineHeight: responsive(32),
     fontWeight: '300',
     textAlign: 'center',
-    lineHeight: 32,
-    marginTop: 16,
-  },
-  bodyText: {
-    ...typography.styles.body,
-    textAlign: 'center',
-    marginTop: 8,
+    color: COLORS.TEXT.PRIMARY,
+    marginTop: SPACING.M,
   },
   enterButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
+    gap: SPACING.L,
+    paddingVertical: SPACING.M,
+    paddingHorizontal: SPACING.L,
   },
   enterText: {
-    ...typography.styles.button,
+    ...TEXT_STYLES.button,
     fontFamily: 'CormorantGaramond-Regular',
-    fontSize: 40,
-    lineHeight: 48,
-    color: colors.button.primary,
+    fontSize: responsive(40),
+    lineHeight: responsive(48),
     fontWeight: '300',
-    textShadowColor: 'rgba(229, 214, 176, 0.50)',
+    color: COLORS.PRIMARY.GOLD_LIGHT,
     textTransform: 'uppercase',
+    textShadowColor: 'rgba(229, 214, 176, 0.50)',
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 4,
-  },
-  gestureContainer: {
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  gestureIcon: {
-    fontSize: 24,
-    color: colors.text.primary,
   },
 });
 

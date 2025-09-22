@@ -26,7 +26,7 @@ import {
 import { QuizStorageService } from '../services/quizStorageService';
 import type { QuizSubmissionRequest } from '../types';
 // Typography styles are now defined directly in component styles
-
+import { COLORS, TEXT_STYLES, SPACING, LAYOUT } from '../styles';
 type QuizQuestionsScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
   'QuizQuestions'
@@ -271,61 +271,58 @@ export default QuizQuestionsScreen;
 const styles = StyleSheet.create({
   bg: {
     flex: 1,
-    backgroundColor: '#0B0F1C',
+    backgroundColor: COLORS.BACKGROUND.PRIMARY,
   },
   bgImage: {
     resizeMode: 'cover',
   },
-  scrim: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.25)',
-  },
-
   container: {
     flex: 1,
-    paddingHorizontal: Math.max(40, screenWidth * 0.102), // Match Figma padding
-    paddingTop: Math.max(40, screenHeight * 0.047), // Reduced to prevent overlap
-    paddingBottom: Math.max(30, screenHeight * 0.035),
+    paddingHorizontal: Math.max(LAYOUT.SCREEN_PADDING * 2, screenWidth * 0.1),
+    paddingTop: Math.max(SPACING.XL, screenHeight * 0.05),
+    paddingBottom: Math.max(SPACING.L, screenHeight * 0.04),
     alignItems: 'center',
+  },
+  progressWrap: {
+    width: Math.min(screenWidth * 0.8, 313),
+    alignItems: 'center',
+    marginTop: Math.max(SPACING.XXL, screenHeight * 0.1),
+    marginBottom: SPACING.L,
+  },
+  question: {
+    ...TEXT_STYLES.h3,
+    fontFamily: 'CormorantGaramond-Italic',
+    fontWeight: '300',
+    fontSize: Math.min(screenWidth * 0.061, 24),
+    lineHeight: Math.min(screenWidth * 0.072, 28),
+    color: COLORS.TEXT.SECONDARY,
+    textAlign: 'center',
+    textShadowColor: COLORS.PRIMARY.GOLD_LIGHT,
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 8,
+    marginVertical: SPACING.L,
+    width: Math.min(screenWidth * 0.8, 313),
+  },
+  list: {
+    width: '100%',
+    paddingBottom: SPACING.L,
+    alignItems: 'center',
+    flexGrow: 0,
+  },
+  optionButton: {
+    marginBottom: SPACING.M,
+    width: Math.min(screenWidth * 0.8, 313),
   },
   imageGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-evenly',
     alignItems: 'center',
-    rowGap: Math.max(30, screenHeight * 0.035),
-    columnGap: Math.max(30, screenWidth * 0.08),
-    paddingVertical: Math.max(30, screenHeight * 0.035),
-    // paddingHorizontal: Math.max(20, screenWidth * 0.05),
+    rowGap: SPACING.L,
+    columnGap: SPACING.L,
+    paddingVertical: SPACING.L,
     width: '100%',
   },
-
-  question: {
-    fontFamily: 'CormorantGaramond-Italic', // Match Figma typography
-    fontSize: Math.min(screenWidth * 0.061, 24), // Proportional to text size in Figma
-    fontWeight: '300',
-    lineHeight: Math.min(screenWidth * 0.072, 28), // Tight line height
-    color: '#E5D6B0', // Exact fill1 color from Figma
-    width: Math.min(screenWidth * 0.796, 313), // Match header width
-    textAlign: 'center',
-    marginTop: Math.max(20, screenHeight * 0.025),
-    marginBottom: Math.max(20, screenHeight * 0.025),
-    textShadowColor: '#E5D6B0', // Exact effect5 glow shadow
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 8,
-  },
-
-  list: {
-    width: '100%',
-    paddingBottom: Math.max(20, screenHeight * 0.025),
-    alignItems: 'center',
-    flexGrow: 0,
-  },
-  optionButton: {
-    marginBottom: Math.max(16, screenHeight * 0.019), // Exact 16px gap from Figma layout6
-    width: Math.min(screenWidth * 0.796, 313), // Match container width
-  },
-
   contentArea: {
     flex: 1,
     width: '100%',
@@ -335,25 +332,18 @@ const styles = StyleSheet.create({
   },
   optionsContainer: {
     width: '100%',
-    justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: Math.max(16, screenHeight * 0.02),
+    paddingVertical: SPACING.M,
     flex: 1,
   },
   nextWrap: {
     width: '100%',
     alignItems: 'center',
     marginTop: 'auto',
-    paddingBottom: Math.max(20, screenHeight * 0.025),
-  },
-  progressWrap: {
-    width: Math.min(screenWidth * 0.796, 313), // Match header and question width
-    alignItems: 'center',
-    marginTop: Math.max(60, screenHeight * 0.1), // Standardized spacing across all screens
-    marginBottom: Math.max(20, screenHeight * 0.025),
+    paddingBottom: SPACING.L,
   },
   nextButton: {
-    width: Math.min(screenWidth * 0.26, 102), // Exact 102px width from Figma
-    height: Math.max(48, screenHeight * 0.056), // Exact 48px height from Figma
+    width: Math.min(screenWidth * 0.26, 102),
+    height: LAYOUT.BUTTON_HEIGHT,
   },
 });

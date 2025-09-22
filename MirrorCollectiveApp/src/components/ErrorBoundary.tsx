@@ -1,5 +1,12 @@
 import React, { Component, ReactNode } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+} from 'react-native';
+import { COLORS, TEXT_STYLES, SPACING, BORDERS, SHADOWS } from '../styles';
 
 interface Props {
   children: ReactNode;
@@ -22,7 +29,6 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   static getDerivedStateFromError(error: Error): State {
-    // Update state so the next render will show the fallback UI
     return {
       hasError: true,
       error,
@@ -57,18 +63,23 @@ class ErrorBoundary extends Component<Props, State> {
           </Text>
 
           {__DEV__ && this.state.error && (
-            <View style={styles.errorContainer}>
+            <ScrollView
+              style={styles.errorContainer}
+              contentContainerStyle={{ padding: SPACING.S }}
+              nestedScrollEnabled
+            >
               <Text style={styles.errorTitle}>Error Details:</Text>
               <Text style={styles.errorText}>{this.state.error.message}</Text>
               {this.state.errorInfo && (
                 <Text style={styles.errorStack}>{this.state.errorInfo}</Text>
               )}
-            </View>
+            </ScrollView>
           )}
 
           <TouchableOpacity
             style={styles.restartButton}
             onPress={this.handleRestart}
+            activeOpacity={0.8}
           >
             <Text style={styles.restartButtonText}>Try Again</Text>
           </TouchableOpacity>
@@ -83,58 +94,62 @@ class ErrorBoundary extends Component<Props, State> {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: COLORS.BACKGROUND.PRIMARY,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    padding: SPACING.L,
   },
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#ffffff',
-    marginBottom: 16,
+    ...TEXT_STYLES.h2,
+    color: COLORS.TEXT.PRIMARY,
+    marginBottom: SPACING.M,
     textAlign: 'center',
+    fontWeight: undefined,
   },
   message: {
-    fontSize: 16,
-    color: '#cccccc',
+    ...TEXT_STYLES.bodySecondary,
     textAlign: 'center',
-    marginBottom: 32,
+    marginBottom: SPACING.XL,
     lineHeight: 24,
+    fontWeight: undefined,
   },
   errorContainer: {
-    backgroundColor: '#2a2a2a',
-    padding: 16,
-    borderRadius: 8,
-    marginBottom: 24,
+    backgroundColor: COLORS.BACKGROUND.SECONDARY,
+    borderRadius: BORDERS.RADIUS.MEDIUM,
+    marginBottom: SPACING.L,
     maxHeight: 200,
+    width: '100%',
+    ...SHADOWS.SMALL,
   },
   errorTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#ff6b6b',
-    marginBottom: 8,
+    ...TEXT_STYLES.body,
+    fontWeight: '600',
+    color: COLORS.SEMANTIC.ERROR,
+    marginBottom: SPACING.XS,
   },
   errorText: {
-    fontSize: 14,
-    color: '#ffcccc',
-    marginBottom: 8,
+    ...TEXT_STYLES.caption,
+    color: COLORS.TEXT.ERROR,
+    marginBottom: SPACING.XXS,
+    fontWeight: undefined,
   },
   errorStack: {
-    fontSize: 12,
-    color: '#999999',
+    ...TEXT_STYLES.caption,
+    color: COLORS.TEXT.TERTIARY,
     fontFamily: 'monospace',
+    fontWeight: undefined,
   },
   restartButton: {
-    backgroundColor: '#007AFF',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
+    ...SHADOWS.MEDIUM,
+    backgroundColor: COLORS.UI.BUTTON_PRIMARY,
+    paddingHorizontal: SPACING.XL,
+    paddingVertical: SPACING.M,
+    borderRadius: BORDERS.RADIUS.MEDIUM,
   },
   restartButtonText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: '600',
+    ...TEXT_STYLES.button,
+    color: COLORS.TEXT.PRIMARY,
+    fontWeight: undefined,
   },
 });
 

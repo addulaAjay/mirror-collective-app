@@ -1,5 +1,6 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, View } from 'react-native';
+import { COLORS, TEXT_STYLES, SPACING, BORDERS } from '../styles';
 
 interface Props {
   onPress: () => void;
@@ -21,27 +22,29 @@ const AuthButton = ({ onPress, title }: Props) => (
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    gap: 8,
+    gap: SPACING.S,
     alignItems: 'center',
     justifyContent: 'center',
     height: 30,
-    marginVertical: 30,
+    marginVertical: SPACING.XL,
   },
   text: {
+    ...TEXT_STYLES.button,
     fontFamily: 'CormorantGaramond-Regular',
     fontSize: 28,
+    color: COLORS.PRIMARY.GOLD_LIGHT,
     textTransform: 'uppercase',
-    color: '#E5D6B0',
     textShadowColor: 'rgba(229, 214, 176, 0.5)',
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 4,
+    fontWeight: undefined,
   },
   dot: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    backgroundColor: '#E5D6B0',
-    shadowColor: '#E5D6B0',
+    width: SPACING.M,
+    height: SPACING.M,
+    borderRadius: BORDERS.RADIUS.FULL,
+    backgroundColor: COLORS.PRIMARY.GOLD_LIGHT,
+    shadowColor: COLORS.PRIMARY.GOLD_LIGHT,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 1,
     shadowRadius: 4,

@@ -11,16 +11,19 @@ import { useNavigation } from '@react-navigation/native';
 import GradientButton from '../components/GradientButton';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../types';
+
+import { COLORS, SPACING, responsive } from '../styles';
+
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+
 type QuizWelcomeScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
   'QuizWelcome'
 >;
-// type QuizWelcomeScreenRouteProp = RouteProp<RootStackParamList, 'QuizWelcome'>;
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 const QuizWelcomeScreen = () => {
   const navigation = useNavigation<QuizWelcomeScreenNavigationProp>();
-  // const route = useRoute<QuizWelcomeScreenRouteProp>();
+
   return (
     <ImageBackground
       source={require('../../assets/dark_mode_shimmer_bg.png')}
@@ -29,6 +32,7 @@ const QuizWelcomeScreen = () => {
     >
       <View style={styles.container}>
         <View style={styles.topContent}>
+          {/* Logo */}
           <View style={styles.logoContainer}>
             <Image
               source={require('../assets/mirror-collective-logo-circle.png')}
@@ -37,10 +41,12 @@ const QuizWelcomeScreen = () => {
             />
           </View>
 
+          {/* Welcome Text */}
           <View style={styles.welcomeContainer}>
             <Text style={styles.welcome}>WELCOME</Text>
           </View>
 
+          {/* Card */}
           <View style={styles.card}>
             <View style={styles.content}>
               <Text style={styles.description}>
@@ -60,6 +66,7 @@ const QuizWelcomeScreen = () => {
                   to explore your feelings and the core forces guiding you.
                 </Text>
               </Text>
+
               <Text style={styles.emphasis}>
                 <Text style={styles.emphasisText}>Let the </Text>
                 <Text style={styles.mirrorHighlight}>Mirror</Text>
@@ -69,6 +76,7 @@ const QuizWelcomeScreen = () => {
           </View>
         </View>
 
+        {/* Button */}
         <View style={styles.buttonContainer}>
           <GradientButton
             title="BEGIN"
@@ -85,16 +93,16 @@ export default QuizWelcomeScreen;
 const styles = StyleSheet.create({
   bg: {
     flex: 1,
-    backgroundColor: '#0B0F1C',
+    backgroundColor: COLORS.BACKGROUND.PRIMARY,
   },
   bgImage: {
     resizeMode: 'cover',
   },
   container: {
     flex: 1,
-    paddingHorizontal: Math.max(40, screenWidth * 0.102),
-    paddingTop: Math.max(48, screenHeight * 0.056),
-    paddingBottom: Math.max(40, screenHeight * 0.05),
+    paddingHorizontal: Math.max(SPACING.XL, screenWidth * 0.1),
+    paddingTop: Math.max(SPACING.XXL, screenHeight * 0.056),
+    paddingBottom: Math.max(SPACING.XL, screenHeight * 0.05),
     alignItems: 'center',
     justifyContent: 'space-between',
   },
@@ -103,34 +111,34 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     alignItems: 'center',
-    marginTop: Math.max(48, screenHeight * 0.056),
-    marginBottom: Math.max(40, screenHeight * 0.047),
+    marginTop: Math.max(SPACING.XXL, screenHeight * 0.056),
+    marginBottom: Math.max(SPACING.XL, screenHeight * 0.047),
   },
   logo: {
-    width: Math.min(screenWidth * 0.2, 80),
-    height: Math.min(screenWidth * 0.2, 80),
+    width: Math.min(screenWidth * 0.2, responsive(80)),
+    height: Math.min(screenWidth * 0.2, responsive(80)),
   },
   welcomeContainer: {
     alignItems: 'center',
-    marginBottom: Math.max(40, screenHeight * 0.047),
+    marginBottom: Math.max(SPACING.XL, screenHeight * 0.047),
   },
   welcome: {
     fontFamily: 'CormorantGaramond-Light',
-    fontSize: Math.min(screenWidth * 0.081, 32),
+    fontSize: Math.min(screenWidth * 0.081, responsive(32)),
     fontWeight: '300',
-    lineHeight: Math.min(screenWidth * 0.081, 32),
-    color: '#E5D6B0',
+    lineHeight: Math.min(screenWidth * 0.081, responsive(32)),
+    color: COLORS.TEXT.SECONDARY, // was #E5D6B0
     textAlign: 'center',
-    textShadowColor: '#E5D6B0',
+    textShadowColor: COLORS.TEXT.SECONDARY,
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 8,
     textTransform: 'uppercase',
   },
   card: {
-    width: Math.min(screenWidth * 0.8, 313),
-    paddingHorizontal: Math.max(20, screenWidth * 0.051),
-    paddingVertical: Math.max(20, screenHeight * 0.023),
-    borderRadius: 20,
+    width: Math.min(screenWidth * 0.8, responsive(313)),
+    paddingHorizontal: Math.max(SPACING.L, screenWidth * 0.05),
+    paddingVertical: Math.max(SPACING.L, screenHeight * 0.023),
+    borderRadius: SPACING.L,
     backgroundColor: 'rgba(155, 170, 194, 0.10)',
     borderColor: 'rgba(26, 34, 56, 0.3)',
     borderWidth: 1,
@@ -145,46 +153,41 @@ const styles = StyleSheet.create({
   content: {
     alignItems: 'center',
     justifyContent: 'center',
-    gap: Math.max(32, screenHeight * 0.038), // Exact 32px gap from Figma
+    gap: Math.max(SPACING.XL, screenHeight * 0.038),
   },
   description: {
-    fontSize: Math.min(screenWidth * 0.061, 24), // Exact 24px from Figma
+    fontSize: Math.min(screenWidth * 0.061, responsive(24)),
     textAlign: 'center',
-    lineHeight: Math.min(screenWidth * 0.074, 29), // Exact 29.06px line height from Figma
-    maxWidth: Math.min(screenWidth * 0.695, 273), // Exact 273px width from Figma
+    lineHeight: Math.min(screenWidth * 0.074, responsive(29)),
+    maxWidth: Math.min(screenWidth * 0.695, responsive(273)),
   },
   regularText: {
-    fontFamily: 'CormorantGaramond-Light', // Light style from Figma
+    fontFamily: 'CormorantGaramond-Light',
     fontWeight: '300',
-    color: '#FDFDF9', // Exact white color from Figma (style 22)
+    color: COLORS.TEXT.PRIMARY, // was #FDFDF9
   },
   italicHighlight: {
-    fontFamily: 'CormorantGaramond-MediumItalic', // Light Italic from Figma
+    fontFamily: 'CormorantGaramond-MediumItalic',
     fontWeight: '300',
-    color: '#F2E2B1', // Exact highlight color from Figma (style 57, 73)
-  },
-  mediumItalicHighlight: {
-    fontFamily: 'CormorantGaramond-MediumItalic', // Medium Italic from Figma
-    fontWeight: '500',
-    color: '#F2E2B1', // Exact highlight color from Figma (style 41)
+    color: COLORS.TEXT.SECONDARY, // was #F2E2B1
   },
   emphasis: {
-    fontSize: Math.min(screenWidth * 0.071, 28), // Exact 28px from Figma
+    fontSize: Math.min(screenWidth * 0.071, responsive(28)),
     textAlign: 'center',
-    lineHeight: Math.min(screenWidth * 0.081, 32), // Exact 32px line height from Figma
+    lineHeight: Math.min(screenWidth * 0.081, responsive(32)),
     textShadowColor: 'rgba(0, 0, 0, 0.25)',
     textShadowOffset: { width: 0, height: 4 },
-    textShadowRadius: 4, // Exact 4px blur from Figma
+    textShadowRadius: 4,
   },
   emphasisText: {
-    fontFamily: 'CormorantGaramond-MediumItalic', // Medium Italic from Figma
+    fontFamily: 'CormorantGaramond-MediumItalic',
     fontWeight: '500',
-    color: '#F2E2B1', // Exact highlight color from Figma
+    color: COLORS.TEXT.SECONDARY,
   },
   mirrorHighlight: {
-    fontFamily: 'CormorantGaramond-SemiBoldItalic', // SemiBold Italic for "Mirror" (style 74)
+    fontFamily: 'CormorantGaramond-SemiBoldItalic',
     fontWeight: '600',
-    color: '#F2E2B1', // Exact highlight color from Figma
+    color: COLORS.TEXT.SECONDARY,
   },
   buttonContainer: {
     alignItems: 'center',
