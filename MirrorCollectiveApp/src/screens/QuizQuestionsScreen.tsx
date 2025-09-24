@@ -25,6 +25,8 @@ import {
 } from '../utils/archetypeScoring';
 import { QuizStorageService } from '../services/quizStorageService';
 import type { QuizSubmissionRequest } from '../types';
+const { Platform } = require('react-native');
+import messaging from '@react-native-firebase/messaging';
 // Typography styles are now defined directly in component styles
 
 type QuizQuestionsScreenNavigationProp = NativeStackNavigationProp<
@@ -120,12 +122,28 @@ const QuizQuestionsScreen = () => {
         ...archetypeData,
         image:
           archetypeImages[
-            archetypeData.imagePath as keyof typeof archetypeImages
+          archetypeData.imagePath as keyof typeof archetypeImages
           ],
       };
 
       // Store quiz results temporarily until user registration
       try {
+        // Resolve FCM device token before building the payload
+        let deviceToken: string = '';
+        try {
+          if (Platform.OS === 'android' || Platform.OS === 'ios') {
+            await messaging().registerDeviceForRemoteMessages();
+            // Android 13+ requires runtime permission (no-op on older)
+            await messaging().requestPermission();
+            deviceToken = await messaging().getToken();
+          } else {
+            // web: skip (no web SDK initialized)
+            deviceToken = '';
+          }
+        } catch (e) {
+          if (__DEV__) console.warn('FCM token fetch failed:', e);
+        }
+        console.log('FCM Device Token:', deviceToken);
         const quizSubmission: QuizSubmissionRequest = {
           answers: newAnswers.map(answer => ({
             questionId: answer.questionId,
@@ -144,13 +162,28 @@ const QuizQuestionsScreen = () => {
             title: archetypeWithImage.title,
           },
           quizVersion: '1.0',
-          // Store the detailed quiz result for future use
           detailedResult: quizResult,
+          deviceToken,
         };
-
         // Store temporarily - will be submitted after successful registration
         await QuizStorageService.storePendingQuizResults(quizSubmission);
 
+        try {
+          const quizSubmitted =
+            await QuizStorageService.submitPendingQuizResults();
+          if (__DEV__) {
+            console.log(
+              'Quiz submission after Quiz:',
+              quizSubmitted ? 'Success' : 'Failed or no quiz',
+            );
+          }
+        } catch (quizError) {
+          // Log quiz submission error but don't block user flow
+          console.error(
+            'Failed to submit quiz results after Quiz:',
+            quizError,
+          );
+        }
         // Navigate to archetype screen with calculated result
         navigation.navigate('Archetype', {
           archetype: archetypeWithImage,
