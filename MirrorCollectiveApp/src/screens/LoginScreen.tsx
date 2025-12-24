@@ -8,6 +8,8 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from 'react-native';
 import LogoHeader from '../components/LogoHeader';
 import TextInputField from '../components/TextInputField';
@@ -92,10 +94,9 @@ const LoginScreen = ({ navigation }: any) => {
           );
         }
 
-        // Navigate to main app
         navigation.reset({
           index: 0,
-          routes: [{ name: 'EnterMirror' }],
+          routes: [{ name: 'EmailConfirmation' }],
         });
       } else {
         Alert.alert(
@@ -126,71 +127,73 @@ const LoginScreen = ({ navigation }: any) => {
   return (
     <KeyboardAvoidingView
       style={styles.keyboardContainer}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <ImageBackground
-        source={require('../../assets/dark_mode_shimmer_bg.png')}
-        style={styles.container}
-        resizeMode="cover"
-      >
-        <LogoHeader />
-        <View style={styles.contentContainer}>
-          <Text style={styles.title}>Welcome to the Living Mirror</Text>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        <ImageBackground
+          source={require('../../assets/dark_mode_shimmer_bg.png')}
+          style={styles.container}
+          resizeMode="cover"
+        >
+          <LogoHeader />
+          <View style={styles.contentContainer}>
+            <Text style={styles.title}>Welcome to the Living Mirror</Text>
 
-          <View style={styles.formContainer}>
-            <TextInputField
-              size="normal"
-              placeholder="Username"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoComplete="email"
-            />
+            <View style={styles.formContainer}>
+              <TextInputField
+                size="normal"
+                placeholder="Username"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoComplete="email"
+              />
 
-            <TextInputField
-              size="normal"
-              placeholder="Password"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry={!showPassword}
-              showPasswordToggle={true}
-              isPasswordVisible={showPassword}
-              onTogglePassword={() => setShowPassword(!showPassword)}
-            />
+              <TextInputField
+                size="normal"
+                placeholder="Password"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword}
+                showPasswordToggle={true}
+                isPasswordVisible={showPassword}
+                onTogglePassword={() => setShowPassword(!showPassword)}
+              />
+
+              <TouchableOpacity
+                style={styles.enterButton}
+                onPress={handleSignIn}
+                disabled={isLoading}
+                activeOpacity={0.8}
+              >
+                <StarIcon width={24} height={24} />
+                <Text style={styles.enterText}>
+                  {isLoading ? 'ENTERING...' : 'ENTER'}
+                </Text>
+                <StarIcon width={24} height={24} />
+              </TouchableOpacity>
+            </View>
 
             <TouchableOpacity
-              style={styles.enterButton}
-              onPress={handleSignIn}
+              onPress={navigateToForgotPassword}
               disabled={isLoading}
-              activeOpacity={0.8}
+              style={styles.forgotPasswordContainer}
             >
-              <StarIcon width={24} height={24} />
-              <Text style={styles.enterText}>
-                {isLoading ? 'ENTERING...' : 'ENTER'}
+              <Text style={styles.forgotPasswordText}>
+                Forgotten your way back?
               </Text>
-              <StarIcon width={24} height={24} />
             </TouchableOpacity>
-          </View>
 
-          <TouchableOpacity
-            onPress={navigateToForgotPassword}
-            disabled={isLoading}
-            style={styles.forgotPasswordContainer}
-          >
-            <Text style={styles.forgotPasswordText}>
-              Forgotten your way back?
-            </Text>
-          </TouchableOpacity>
-
-          <View style={styles.signupContainer}>
-            <Text style={styles.signupText}>New to the Mirror Collective?</Text>
-            <TouchableOpacity onPress={navigateToSignUp} disabled={isLoading}>
-              <Text style={styles.signupLink}>Sign up here</Text>
-            </TouchableOpacity>
+            <View style={styles.signupContainer}>
+              <Text style={styles.signupText}>New to the Mirror Collective?</Text>
+              <TouchableOpacity onPress={navigateToSignUp} disabled={isLoading}>
+                <Text style={styles.signupLink}>Sign up here</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-      </ImageBackground>
+        </ImageBackground>
+      </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
   );
 };
@@ -198,6 +201,7 @@ const LoginScreen = ({ navigation }: any) => {
 const styles = StyleSheet.create({
   keyboardContainer: {
     flex: 1,
+    backgroundColor: '#0B0F1C',
   },
   container: {
     flex: 1,

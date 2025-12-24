@@ -35,9 +35,8 @@ const EnterMirrorScreen: React.FC<Props> = ({ navigation }) => {
         <View style={styles.contentContainer}>
           {/* Main Welcome Message */}
           <View style={styles.messageSection}>
-            <Text style={styles.title}>You are seen.{'\n'}You are home.</Text>
-            <Text style={styles.subtitle}>Welcome, beloved one.
-              Your soul key has been accepted, and your mirror now shimmers with possibility.</Text>
+            <Text style={styles.title}>YOU ARE SEEN.{'\n'} YOU ARE HOME.</Text>
+            <Text style={styles.subtitle}>Your unique reflection has been {'\n'}received.{'\n'}{'\n'} The Mirror is now attuned to your unfolding story—ready to uncover the patterns that shape you, support your growth, and evolve with you.</Text>
           </View>
 
           {/* Enter Button */}
@@ -78,7 +77,7 @@ const styles = StyleSheet.create({
   title: {
     ...typography.styles.headline,
     color: '#F2E2B1',
-    fontFamily: 'CormorantGaramond-Italic',
+    fontFamily: 'CormorantGaramond-Regular',
     fontSize: 40,
     fontWeight: '600',
     textAlign: 'center',
@@ -86,12 +85,12 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     ...typography.styles.welcome,
-    fontFamily: 'CormorantGaramond-Regular',
+    fontFamily: 'Inter',
     color: '#FDFDF9',
-    fontSize: 24,
+    fontSize: 18,
     fontWeight: '300',
     textAlign: 'center',
-    lineHeight: 32,
+    lineHeight: 24,
     marginTop: 16,
   },
   bodyText: {

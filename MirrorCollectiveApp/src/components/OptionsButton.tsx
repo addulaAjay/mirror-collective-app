@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
     gap: 16,
     width: Math.min(screenWidth * 0.796, 313),
     height: 64,
-    backgroundColor: 'rgba(253, 253, 249, 0.0177)', // More accurate average of gradient (0.0355 + 0.005)/2
+    backgroundColor: 'var(--Bg-Surface, rgba(163, 179, 204, 0.05))',
     borderWidth: 0.25,
     borderColor: '#9BAAC2',
     borderRadius: 13,
@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
   buttonSelected: {
     // Exact gradient background from selected Figma: linear-gradient(360deg, rgba(253, 253, 249, 0.2485) 0%, rgba(253, 253, 249, 0.035) 100%)
     backgroundColor: 'rgba(253, 253, 249, 0.14)', // Average of gradient as fallback
-    borderColor: '#9BAAC2',
+    borderColor: '#a2afc2ff',
     borderWidth: 0.25,
     paddingHorizontal: 16, // Selected state has padding: 8px 16px from Figma CSS
     // Exact dual shadow from selected Figma: 0px 4px 19px 4px rgba(0, 0, 0, 0.1), 1px 4px 38px 2px rgba(229, 214, 176, 0.23)
@@ -78,23 +78,29 @@ const styles = StyleSheet.create({
     textShadowColor: '#E5D6B0',
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 8,
-    width: 297, // Exact width: 297px from non-selected Figma CSS
-    height: 48, // Exact height: 48px from Figma
+    width: 313, // Exact width: 313px from non-selected Figma CSS
+    height: 72, // Exact height: 72px      from Figma
     flex: 1, // flex-grow: 1 from Figma CSS
+    paddingHorizontal: 8, // Padding to prevent text clipping
+    paddingVertical: 8,
+    textAlignVertical: 'center',
   },
 
   labelSelected: {
     // Selected text uses exact styling from selected state Figma CSS
     fontFamily: 'CormorantGaramond-Light',
     fontSize: Math.min(screenWidth * 0.051, 20), // Exact 20px
-    lineHeight: Math.min(screenWidth * 0.061, 24), // Exact 24px
+    lineHeight: Math.min(screenWidth * 0.061, ), // Exact 24px
     color: '#F4EFE4',
     textAlign: 'center', // Center align for selected state
     textShadowColor: '#E5D6B0',
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 8, // Exact 8px from Figma
-    width: 281, // Exact width: 281px from selected Figma CSS
-    height: 48,
+    width: 297, // Exact width: 313px from selected Figma CSS
+    height: 72,
     flex: 1,
+    paddingHorizontal: 8,
+    paddingVertical: 8,
+    textAlignVertical: 'center',
   },
 });

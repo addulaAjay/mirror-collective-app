@@ -14,7 +14,6 @@ const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../types';
 import { useAuthGuard } from '../hooks/useAuthGuard';
-import LogoHeader from '../components/LogoHeader';
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'MirrorAnimation'>;
@@ -58,7 +57,6 @@ const MirrorAnimationScreen: React.FC<Props> = ({ navigation }) => {
         />
       </Svg>
 
-      <LogoHeader />
 
       <View style={styles.mirrorContainer}>
         {/* Circular glow effect behind mirror */}

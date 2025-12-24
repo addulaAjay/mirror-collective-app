@@ -65,45 +65,44 @@ export default function MirrorChatScreen() {
 
             <View style={styles.chatWrapper}>
               <LinearGradient
-              colors={[
-                'rgba(155, 170, 194, 0.01)', // top
-                'rgba(155, 170, 194, 0.18)', // bottom
-              ]}
-              start={{ x: 0.5, y: 0 }}
-              end={{ x: 0.5, y: 1 }}
-              style={styles.GradientWrapper}
-            >
-              {/* Chat "card" */}
-              <View style={styles.chatContainer}>
+                colors={[
+                  'rgba(155, 170, 194, 0.01)', // top
+                  'rgba(155, 170, 194, 0.18)', // bottom
+                ]}
+                start={{ x: 0.5, y: 0 }}
+                end={{ x: 0.5, y: 1 }}
+                style={styles.GradientWrapper}
+              >
+                {/* Chat "card" */}
+                <View style={styles.chatContainer}>
 
-                <Text style={styles.chatTitle}>MirrorGPT</Text>
-                <ScrollView
-                  ref={scrollViewRef}
-                  style={styles.messagesWrapper}
-                  contentContainerStyle={styles.messagesContent}
-                  showsVerticalScrollIndicator={false}
-                  onContentSizeChange={() =>
-                    scrollViewRef.current?.scrollToEnd({ animated: true })
-                  }
-                >
-                  {messages.map(message => (
-                    <MessageBubble key={message.id} message={message} />
-                  ))}
-                  {loading && <LoadingIndicator />}
-                </ScrollView>
-                <ChatInput
-                  value={draft}
-                  onChangeText={setDraft}
-                  onSend={sendMessage}
-                  disabled={loading}
-                />
+                  <Text style={styles.chatTitle}>MirrorGPT</Text>
+                  <Text style={styles.headerText}>What are you grateful for today?</Text>
+                  <ScrollView
+                    ref={scrollViewRef}
+                    style={styles.messagesWrapper}
+                    contentContainerStyle={styles.messagesContent}
+                    showsVerticalScrollIndicator={false}
+                    onContentSizeChange={() =>
+                      scrollViewRef.current?.scrollToEnd({ animated: true })
+                    }
+                  >
+                    {messages.map(message => (
+                      <MessageBubble key={message.id} message={message} />
+                    ))}
+                    {loading && <LoadingIndicator />}
+                  </ScrollView>
+                  <ChatInput
+                    value={draft}
+                    onChangeText={setDraft}
+                    onSend={sendMessage}
+                    disabled={loading}
+                  />
 
-              </View>
+                </View>
               </LinearGradient>
               <View>
-                <Text style={styles.footerText}>
-                  What are you grateful for today?
-                </Text>
+                <Text style={styles.footerText} />
               </View>
             </View>
           </ImageBackground>
@@ -147,8 +146,18 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
+  headerText: {
+    fontFamily: 'CormorantGaramond-Italic',
+    fontSize: 20,
+    fontWeight: '400',
+    lineHeight: 28,
+    color: COLORS.TEXT.SYSTEM_MESSAGE,
+    paddingTop: 24,
+    textAlign: 'center',
+  },
+
   chatContainer: {
-    flex: 1, 
+    flex: 1,
     width: '100%',
     // height: SCREEN_DIMENSIONS.HEIGHT * 0.72,
     borderRadius: SPACING.LG,
@@ -164,13 +173,12 @@ const styles = StyleSheet.create({
   chatTitle: {
     ...theme.typography.styles.title,
     fontFamily: 'CormorantGaramond-Regular',
-    fontSize: 24,
-    fontWeight: '400',
-    lineHeight: 32,
+    fontSize: 28,
+    fontWeight: '300',
+    lineHeight: 28,
     color: COLORS.TEXT.TITLE,
     textAlign: 'center',
-    textDecorationLine: 'underline',
-    marginBottom: SPACING.MD,
+    marginTop: 28,
   },
 
   messagesWrapper: {

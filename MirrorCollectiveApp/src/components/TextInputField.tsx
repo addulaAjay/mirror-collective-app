@@ -39,7 +39,6 @@ const TextInputField = ({
   onTogglePassword,
   placeholderAlign,
   size,
-  placeholderFontFamily,
   inputTextStyle
 }: Props) => {
   const [isFocused, setIsFocused] = useState(false);
@@ -63,9 +62,7 @@ const TextInputField = ({
             placeholderAlign === 'left'
               ? styles.placeholderLeft
               : styles.placeholderCenter,
-            placeholderFontFamily === 'regular'
-              ? styles.fontFamilyRegular
-              : styles.fontFamilyItalic
+
           ]}
         >
           {placeholder}
@@ -166,7 +163,7 @@ const styles = StyleSheet.create({
     textAlignVertical: 'center',
     includeFontPadding: false,
     color: '#E8F1F2',
-    fontFamily: 'CormorantGaramond-Italic',
+    fontFamily: 'CormorantGaramond-Regular',
     fontSize: 20,
     fontWeight: '400',
   },
@@ -189,6 +186,7 @@ const styles = StyleSheet.create({
     zIndex: 1,
     color: 'rgba(232, 241, 242, 0.50)',
     pointerEvents: 'none',
+    fontFamily: 'CormorantGaramond-Regular',
   },
   fontFamilyRegular: {
     fontFamily: 'CormorantGaramond-Regular',

@@ -46,10 +46,9 @@ const QuizTuningScreen = () => {
         </View>
 
         <View style={styles.messageContainer}>
-          <Text style={styles.message}>Your reflection has been received.</Text>
+          <Text style={styles.message}>Your reflection is taking form.</Text>
           <Text style={styles.subMessage}>
-            As you shift, grow, and evolve,{'\n'}the Mirror will reflect with
-            you.
+            Every step you take, the Mirror {'\n'} will walk beside you.
           </Text>
         </View>
 
