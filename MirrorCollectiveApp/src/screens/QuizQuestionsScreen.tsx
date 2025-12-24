@@ -16,7 +16,9 @@ import questionsData from '../../assets/questions.json';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../types';
-import ImageOptionButton from '../components/ImageOptionButton';
+import ImageOptionButton, {
+  type ImageOptionSymbol,
+} from '../components/ImageOptionButton';
 import {
   calculateQuizResult,
   createUserAnswer,
@@ -59,13 +61,7 @@ const QuizQuestionsScreen = () => {
 
   const currentQuestion = questions[currentIndex];
   const isLast = currentIndex === questions.length - 1;
-  const imageMap = {
-    candle: require('../../assets/candle.png'),
-    lightning: require('../../assets/lightning.png'),
-    tree: require('../../assets/tree.png'),
-    crystal: require('../../assets/crystal.png'),
-    golden_thread: require('../../assets/tree.png'), // placeholder - need golden_thread image
-  };
+  const symbolSequence: ImageOptionSymbol[] = ['star', 'brick', 'spiral', 'mirror'];
   const handleNext = async () => {
     if (!selected) return;
 
@@ -180,7 +176,7 @@ const QuizQuestionsScreen = () => {
     setSelected(null);
   };
 
-  const renderItem = ({ item }: any) => {
+  const renderItem = ({ item, index }: { item: any; index: number }) => {
     if (currentQuestion.type === 'text') {
       return (
         <OptionButton
@@ -193,7 +189,7 @@ const QuizQuestionsScreen = () => {
     } else if (currentQuestion.type === 'image') {
       return (
         <ImageOptionButton
-          image={imageMap[item.image as keyof typeof imageMap]}
+          symbolType={symbolSequence[index % symbolSequence.length]}
           selected={selected === item.label}
           onPress={() => setSelected(item.label)}
         />
@@ -243,7 +239,7 @@ const QuizQuestionsScreen = () => {
                 {currentQuestion.options.map((item: any, index: number) => (
                   <ImageOptionButton
                     key={item.label || index}
-                    image={imageMap[item.image as keyof typeof imageMap]}
+                    symbolType={symbolSequence[index % symbolSequence.length]}
                     selected={selected === item.label}
                     onPress={() => setSelected(item.label)}
                   />
@@ -257,7 +253,7 @@ const QuizQuestionsScreen = () => {
               title={isLast ? 'Finish' : 'Next'}
               onPress={handleNext}
               disabled={!selected}
-              style={styles.nextButton}
+              buttonStyle={styles.nextButton}
             />
           </View>
         </View>
@@ -301,7 +297,7 @@ const styles = StyleSheet.create({
   },
 
   question: {
-    fontFamily: 'CormorantGaramond-Italic', // Match Figma typography
+    fontFamily: 'CormorantGaramond-Regular', // Match Figma typography
     fontSize: Math.min(screenWidth * 0.061, 24), // Proportional to text size in Figma
     fontWeight: '300',
     lineHeight: Math.min(screenWidth * 0.072, 28), // Tight line height

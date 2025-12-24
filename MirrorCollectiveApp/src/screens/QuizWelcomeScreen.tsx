@@ -7,6 +7,7 @@ import {
   Image,
   Dimensions,
 } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import GradientButton from '../components/GradientButton';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -20,6 +21,10 @@ const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 const QuizWelcomeScreen = () => {
   const navigation = useNavigation<QuizWelcomeScreenNavigationProp>();
+  const cardGradient = [
+    'rgba(253, 253, 249, 0.04)',
+    'rgba(253, 253, 249, 0.01)',
+  ];
   // const route = useRoute<QuizWelcomeScreenRouteProp>();
   return (
     <ImageBackground
@@ -41,26 +46,35 @@ const QuizWelcomeScreen = () => {
             <Text style={styles.welcome}>WELCOME</Text>
           </View>
 
-          <View style={styles.card}>
-            <View style={styles.content}>
+          <View style={styles.cardWrapper}>
+            <LinearGradient
+              colors={cardGradient}
+              start={{ x: 0.5, y: 0 }}
+              end={{ x: 0.5, y: 1 }}
+              style={styles.cardGradient}
+              pointerEvents="none"
+            />
+            <View style={styles.cardContent}>
               <Text style={styles.description}>
                 <Text style={styles.regularText}>This isn't a quiz.</Text>
                 {'\n'}
                 <Text style={styles.italicHighlight}>
-                  It's a reflection of you.
+                  It's a reflection.
                 </Text>
                 {'\n\n'}
-                <Text style={styles.regularText}>Take a moment to </Text>
-                <Text style={styles.italicHighlight}>look into your life</Text>
-                <Text style={styles.regularText}> right now.</Text>
+                <Text style={styles.regularText}>These first prompts help the Mirror understand your inner style— </Text>
+                {'\n'}
+                <Text style={styles.italicHighlight}>how you see, feel, and grow.</Text>
+                {/* <Text style={styles.regularText}> right now.</Text> */}
                 {'\n\n'}
-                <Text style={styles.italicHighlight}>Pause</Text>
                 <Text style={styles.regularText}>
-                  {' '}
-                  to explore your feelings and the core forces guiding you.
+                  There’s no right answer. 
                 </Text>
+                {'\n'}
+                <Text style={styles.italicHighlight}>Just be you.  </Text>
+
               </Text>
-              <Text style={styles.emphasis}>
+              <Text style={[styles.emphasis, styles.descriptionMaxWidth]}>
                 <Text style={styles.emphasisText}>Let the </Text>
                 <Text style={styles.mirrorHighlight}>Mirror</Text>
                 <Text style={styles.emphasisText}> listen.</Text>
@@ -126,26 +140,30 @@ const styles = StyleSheet.create({
     textShadowRadius: 8,
     textTransform: 'uppercase',
   },
-  card: {
+  cardWrapper: {
     width: Math.min(screenWidth * 0.8, 313),
-    paddingHorizontal: Math.max(20, screenWidth * 0.051),
-    paddingVertical: Math.max(20, screenHeight * 0.023),
+    padding: 20,
     borderRadius: 20,
-    backgroundColor: 'rgba(155, 170, 194, 0.10)',
-    borderColor: 'rgba(26, 34, 56, 0.3)',
-    borderWidth: 1,
-    shadowColor: 'rgba(0, 0, 0, 0.25)',
-    shadowOffset: { width: 0, height: 4 },
+    borderWidth: 0.25,
+    borderColor: '#1A2238',
+    backgroundColor: 'transparent',
+    shadowColor: 'rgba(242, 226, 177, 0.5)',
+    shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 1,
-    shadowRadius: 19,
-    elevation: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
+    shadowRadius: 24,
+    boxShadow: '0 0 24px 8px rgba(242, 226, 177, 0.50)',
   },
-  content: {
+  cardGradient: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: 20,
+  },
+  cardContent: {
     alignItems: 'center',
     justifyContent: 'center',
-    gap: Math.max(32, screenHeight * 0.038), // Exact 32px gap from Figma
+    gap: 20,
+  },
+  descriptionMaxWidth: {
+    maxWidth: Math.min(screenWidth * 0.695, 273),
   },
   description: {
     fontSize: Math.min(screenWidth * 0.061, 24), // Exact 24px from Figma

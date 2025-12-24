@@ -9,6 +9,8 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from 'react-native';
 import LogoHeader from '../components/LogoHeader';
 import TextInputField from '../components/TextInputField';
@@ -133,128 +135,131 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
     <KeyboardAvoidingView
       style={styles.keyboardContainer}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
     >
-      <ImageBackground
-        source={require('../../assets/dark_mode_shimmer_bg.png')}
-        style={styles.container}
-        resizeMode="cover"
-      >
-        <ScrollView
-          contentContainerStyle={styles.scrollContainer}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        <ImageBackground
+          source={require('../../assets/dark_mode_shimmer_bg.png')}
+          style={styles.container}
+          resizeMode="cover"
         >
-          <LogoHeader />
+          <ScrollView
+            contentContainerStyle={styles.scrollContainer}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            <LogoHeader />
 
-          <View style={styles.contentContainer}>
-            {/* Header Section */}
-            <View style={styles.headerSection}>
-              <Text style={styles.title}>Getting Started</Text>
-              <Text style={styles.subtitle}>
-                Let's set up your sacred space
-              </Text>
-            </View>
-
-            {/* Form Section */}
-            <View style={styles.formSection}>
-              {/* Full Name Field */}
-              <View style={styles.fieldContainer}>
-                <Text style={styles.fieldLabel}>Full Name</Text>
-                <TextInputField
-                  size="medium"
-                  placeholder="Your Soul name"
-                  value={fullName}
-                  onChangeText={setFullName}
-                  autoCapitalize="words"
-                  autoComplete="name"
-                  placeholderAlign="left"
-                  placeholderFontFamily="regular"
-                  inputTextStyle="gold-regular"
-                />
+            <View style={styles.contentContainer}>
+              {/* Header Section */}
+              <View style={styles.headerSection}>
+                <Text style={styles.title}>Getting Started</Text>
+                <Text style={styles.subtitle}>
+                  Let's set up your sacred space
+                </Text>
               </View>
 
-              {/* Email Field */}
-              <View style={styles.fieldContainer}>
-                <Text style={styles.fieldLabel}>Email</Text>
-                <TextInputField
-                  size="medium"
-                  placeholder="Email address"
-                  value={email}
-                  onChangeText={setEmail}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  autoComplete="email"
-                  placeholderAlign="left"
-                  placeholderFontFamily="regular"
-                  inputTextStyle="gold-regular"
-                />
+              {/* Form Section */}
+              <View style={styles.formSection}>
+                {/* Full Name Field */}
+                <View style={styles.fieldContainer}>
+                  <Text style={styles.fieldLabel}>Full Name</Text>
+                  <TextInputField
+                    size="medium"
+                    placeholder="Your Soul name"
+                    value={fullName}
+                    onChangeText={setFullName}
+                    autoCapitalize="words"
+                    autoComplete="name"
+                    placeholderAlign="left"
+                    placeholderFontFamily="regular"
+                    inputTextStyle="gold-regular"
+                  />
+                </View>
+
+                {/* Email Field */}
+                <View style={styles.fieldContainer}>
+                  <Text style={styles.fieldLabel}>Email</Text>
+                  <TextInputField
+                    size="medium"
+                    placeholder="Email address"
+                    value={email}
+                    onChangeText={setEmail}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    autoComplete="email"
+                    placeholderAlign="left"
+                    placeholderFontFamily="regular"
+                    inputTextStyle="gold-regular"
+                  />
+                </View>
+
+                {/* Password Field */}
+                <View style={styles.fieldContainer}>
+                  <Text style={styles.fieldLabel}>Password</Text>
+                  <TextInputField
+                    size="medium"
+                    placeholder="Enter password"
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry={!showPassword}
+                    showPasswordToggle={true}
+                    isPasswordVisible={showPassword}
+                    onTogglePassword={() => setShowPassword(!showPassword)}
+                    placeholderAlign="left"
+                    placeholderFontFamily="regular"
+                    inputTextStyle="gold-regular"
+                  />
+                </View>
+
+                {/* Confirm Password Field */}
+                <View style={styles.fieldContainer}>
+                  <Text style={styles.fieldLabel}>Confirm password</Text>
+                  <TextInputField
+                    size="medium"
+                    placeholder="Re-enter password to confirm"
+                    value={confirmPassword}
+                    onChangeText={setConfirmPassword}
+                    secureTextEntry={!showConfirmPassword}
+                    showPasswordToggle={true}
+                    isPasswordVisible={showConfirmPassword}
+                    placeholderAlign="left"
+                    placeholderFontFamily="regular"
+                    inputTextStyle="gold-regular"
+                    onTogglePassword={() =>
+                      setShowConfirmPassword(!showConfirmPassword)
+                    }
+                  />
+                </View>
               </View>
 
-              {/* Password Field */}
-              <View style={styles.fieldContainer}>
-                <Text style={styles.fieldLabel}>Password</Text>
-                <TextInputField
-                  size="medium"
-                  placeholder="Enter password"
-                  value={password}
-                  onChangeText={setPassword}
-                  secureTextEntry={!showPassword}
-                  showPasswordToggle={true}
-                  isPasswordVisible={showPassword}
-                  onTogglePassword={() => setShowPassword(!showPassword)}
-                  placeholderAlign="left"
-                  placeholderFontFamily="regular"
-                  inputTextStyle="gold-regular"
-                />
-              </View>
-
-              {/* Confirm Password Field */}
-              <View style={styles.fieldContainer}>
-                <Text style={styles.fieldLabel}>Confirm password</Text>
-                <TextInputField
-                  size="medium"
-                  placeholder="Re-enter password to confirm"
-                  value={confirmPassword}
-                  onChangeText={setConfirmPassword}
-                  secureTextEntry={!showConfirmPassword}
-                  showPasswordToggle={true}
-                  isPasswordVisible={showConfirmPassword}
-                  placeholderAlign="left"
-                  placeholderFontFamily="regular"
-                  inputTextStyle="gold-regular"
-                  onTogglePassword={() =>
-                    setShowConfirmPassword(!showConfirmPassword)
-                  }
-                />
-              </View>
-            </View>
-
-            {/* Continue Button */}
-            <TouchableOpacity
-              style={styles.continueButton}
-              onPress={handleSignUp}
-              disabled={isLoading}
-              activeOpacity={0.8}
-            >
-              <StarIcon width={20} height={20} />
-              <Text style={styles.continueText}>
-                {isLoading ? 'Creating...' : 'Continue'}
-              </Text>
-              <StarIcon width={20} height={20} />
-            </TouchableOpacity>
-
-            {/* Login Link */}
-            <View style={styles.loginContainer}>
-              <Text style={styles.loginText}>
-                Already part of the Mirror Collective?
-              </Text>
-              <TouchableOpacity onPress={navigateToLogin} disabled={isLoading}>
-                <Text style={styles.loginLink}>Sign in here</Text>
+              {/* Continue Button */}
+              <TouchableOpacity
+                style={styles.continueButton}
+                onPress={handleSignUp}
+                disabled={isLoading}
+                activeOpacity={0.8}
+              >
+                <StarIcon width={20} height={20} />
+                <Text style={styles.continueText}>
+                  {isLoading ? 'CREATING...' : 'CONTINUE'}
+                </Text>
+                <StarIcon width={20} height={20} />
               </TouchableOpacity>
+
+              {/* Login Link */}
+              <View style={styles.loginContainer}>
+                <Text style={styles.loginText}>
+                  Already part of the Mirror Collective?
+                </Text>
+                <TouchableOpacity onPress={navigateToLogin} disabled={isLoading}>
+                  <Text style={styles.loginLink}>Sign in here</Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
-        </ScrollView>
-      </ImageBackground>
+          </ScrollView>
+        </ImageBackground>
+      </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
   );
 };
@@ -262,6 +267,7 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
 const styles = StyleSheet.create({
   keyboardContainer: {
     flex: 1,
+    backgroundColor: '#0B0F1C',
   },
   container: {
     flex: 1,
@@ -303,7 +309,7 @@ const styles = StyleSheet.create({
   subtitle: {
     ...typography.styles.subtitle,
     color: '#FDFDF9',
-    fontFamily: 'CormorantGaramond-Italic',
+    fontFamily: 'CormorantGaramond-Regular',
     textAlign: 'center',
     fontSize: 24,
     fontWeight: '300',

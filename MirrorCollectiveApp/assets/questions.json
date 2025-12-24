@@ -14,7 +14,7 @@
       "id": "Seeker",
       "name": "Seeker",
       "title": "THE SEEKER",
-      "description": "Seekers have a profound desire to find meaning, truth, and purpose in life, coupled with the joy of discovering deeper truths.\n\nAre you ready to discover yourself?",
+      "description": "Seekers have a profound desire to find meaning, truth, and purpose in life.\n\nYou’re about to begin a journey of self-discovery — are you ready?",
       "imagePath": "seeker-archetype.png"
     },
     "guardian": {
@@ -66,7 +66,7 @@
     },
     {
       "id": 2,
-      "question": "Which symbol feels like it's calling you right now?",
+      "question": "Which symbol is calling you right now?",
       "options": [
         {
           "label": "A lightning bolt breaking through the clouds",
