@@ -36,6 +36,6 @@ describe('QuizTuningScreen', () => {
     
     fireEvent.press(getByText('quiz.quizTuning.enterButton'));
     
-    expect(mockNavigate).toHaveBeenCalledWith('MirrorChat');
+    expect(mockNavigate).toHaveBeenCalledWith('Login');
   });
 });
