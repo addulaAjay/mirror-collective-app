@@ -1,11 +1,13 @@
-import { BaseApiService } from './base';
-import { API_CONFIG } from '../../constants/config';
-import { ApiErrorHandler } from './errorHandler';
+import { API_CONFIG } from '@constants/config';
 import type {
   ApiResponse,
   QuizSubmissionRequest,
   QuizSubmissionResponse,
-} from '../../types';
+} from '@types';
+
+import { BaseApiService } from './base';
+import { ApiErrorHandler } from './errorHandler';
+
 
 export class QuizApiService extends BaseApiService {
   /**

@@ -1,7 +1,9 @@
+import { API_CONFIG } from '@constants/config';
+import type { ApiResponse, ChatRequest, ChatResponse } from '@types';
+
 import { BaseApiService } from '../base';
-import { API_CONFIG } from '../../../constants/config';
 import { ApiErrorHandler } from '../errorHandler';
-import type { ApiResponse, ChatRequest, ChatResponse } from '../../../types';
+
 
 export class ChatApiService extends BaseApiService {
   /**

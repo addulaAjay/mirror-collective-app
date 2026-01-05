@@ -3,16 +3,17 @@ import {
   View,
   Text,
   StyleSheet,
-  ImageBackground,
   TouchableOpacity,
 } from 'react-native';
 
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '../types';
-import LogoHeader from '../components/LogoHeader';
-import StarIcon from '../components/StarIcon';
-import AuthenticatedRoute from '../components/AuthenticatedRoute';
-import { typography, colors } from '../styles/typography';
+import AuthenticatedRoute from '@components/AuthenticatedRoute';
+import LogoHeader from '@components/LogoHeader';
+import StarIcon from '@components/StarIcon';
+import { theme } from '@theme';
+import type { RootStackParamList } from '@types';
+
+import BackgroundWrapper from '@components/BackgroundWrapper';
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'EnterMirror'>;
@@ -25,11 +26,7 @@ const EnterMirrorScreen: React.FC<Props> = ({ navigation }) => {
 
   return (
     <AuthenticatedRoute>
-      <ImageBackground
-        source={require('../../assets/dark_mode_shimmer_bg.png')}
-        style={styles.container}
-        resizeMode="cover"
-      >
+      <BackgroundWrapper style={styles.container}>
         <LogoHeader />
 
         <View style={styles.contentContainer}>
@@ -50,20 +47,18 @@ const EnterMirrorScreen: React.FC<Props> = ({ navigation }) => {
             <StarIcon width={24} height={24} />
           </TouchableOpacity>
         </View>
-      </ImageBackground>
+      </BackgroundWrapper>
     </AuthenticatedRoute>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   contentContainer: {
     flex: 1,
-    width: '100%',
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingTop: 180, // Space for LogoHeader
@@ -75,7 +70,7 @@ const styles = StyleSheet.create({
     maxWidth: 353,
   },
   title: {
-    ...typography.styles.headline,
+    ...theme.typography.styles.headline,
     color: '#F2E2B1',
     fontFamily: 'CormorantGaramond-Regular',
     fontSize: 40,
@@ -84,7 +79,7 @@ const styles = StyleSheet.create({
     lineHeight: 48,
   },
   subtitle: {
-    ...typography.styles.welcome,
+    ...theme.typography.styles.welcome,
     fontFamily: 'Inter',
     color: '#FDFDF9',
     fontSize: 18,
@@ -94,7 +89,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   bodyText: {
-    ...typography.styles.body,
+    ...theme.typography.styles.body,
     textAlign: 'center',
     marginTop: 8,
   },
@@ -106,15 +101,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   enterText: {
-    ...typography.styles.button,
+    ...theme.typography.styles.button,
     fontFamily: 'CormorantGaramond-Regular',
     fontSize: 40,
     lineHeight: 48,
-    color: colors.button.primary,
+    color: theme.colors.button.primary,
     fontWeight: '300',
     textShadowColor: 'rgba(229, 214, 176, 0.50)',
     textTransform: 'uppercase',
-    textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 4,
   },
   gestureContainer: {
@@ -123,7 +117,7 @@ const styles = StyleSheet.create({
   },
   gestureIcon: {
     fontSize: 24,
-    color: colors.text.primary,
+    color: theme.colors.text.primary,
   },
 });
 

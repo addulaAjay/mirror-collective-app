@@ -1,10 +1,11 @@
 // ImageOptionButton.tsx
 import React from 'react';
 import { TouchableOpacity, StyleSheet, View } from 'react-native';
-import { StarSymbol } from './symbols/StarSymbol';
+
 import BrickSymbol from './symbols/BrickSymbol';
-import SpiralSymbol from './symbols/SpiralSymbol';
 import MirrorSymbol from './symbols/MirrorSymbol';
+import SpiralSymbol from './symbols/SpiralSymbol';
+import { StarSymbol } from './symbols/StarSymbol';
 
 export type ImageOptionSymbol = 'star' | 'brick' | 'spiral' | 'mirror';
 

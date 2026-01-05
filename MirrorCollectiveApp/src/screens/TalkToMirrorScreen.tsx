@@ -1,23 +1,24 @@
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React from 'react';
 import {
   Alert,
   Image,
-  ImageBackground,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '../types';
-import LogoHeader from '../components/LogoHeader';
-import StarIcon from '../components/StarIcon';
+
+import BackgroundWrapper from '@components/BackgroundWrapper';
+import LogoHeader from '@components/LogoHeader';
+import StarIcon from '@components/StarIcon';
+import type { RootStackParamList } from '@types';
 
 interface Props {
   navigation: NativeStackNavigationProp<RootStackParamList, 'TalkToMirror'>;
 }
 
-const ARCHETYPE_IMAGE = require('../assets/flamebearer-archetype.png');
+const ARCHETYPE_IMAGE = require('@assets/flamebearer-archetype.png');
 
 const MENU_OPTIONS = [
   'CODE LIBRARY',
@@ -37,11 +38,7 @@ const TalkToMirrorScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   return (
-    <ImageBackground
-      source={require('../../assets/dark_mode_shimmer_bg.png')}
-      style={styles.container}
-      resizeMode="cover"
-    >
+    <BackgroundWrapper style={styles.container}>
       <View style={styles.topRow}>
         <LogoHeader />
       </View>
@@ -74,7 +71,7 @@ const TalkToMirrorScreen: React.FC<Props> = ({ navigation }) => {
           </TouchableOpacity>
         ))}
       </View>
-    </ImageBackground>
+    </BackgroundWrapper>
   );
 };
 

@@ -1,10 +1,11 @@
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { useAuthGuard } from '../hooks/useAuthGuard';
-import { typography, colors } from '../styles/typography';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '../types';
+
+import { useAuthGuard } from '@hooks/useAuthGuard';
+import { theme } from '@theme';
+import type { RootStackParamList } from '@types';
 
 interface AuthenticatedRouteProps {
   children: React.ReactNode;
@@ -43,7 +44,7 @@ export const AuthenticatedRoute: React.FC<AuthenticatedRouteProps> = ({
   if (isLoading && showLoader) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.text.accent} />
+        <ActivityIndicator size="large" color={theme.colors.text.accent} />
         <Text style={styles.loadingText}>Verifying authentication...</Text>
       </View>
     );
@@ -71,13 +72,13 @@ const styles = StyleSheet.create({
     gap: 20,
   },
   loadingText: {
-    ...typography.styles.body,
+    ...theme.typography.styles.body,
     textAlign: 'center',
   },
   redirectText: {
-    ...typography.styles.body,
+    ...theme.typography.styles.body,
     textAlign: 'center',
-    color: colors.text.secondary,
+    color: theme.colors.text.secondary,
   },
 });
 

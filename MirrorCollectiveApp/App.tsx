@@ -1,30 +1,34 @@
-import React from 'react';
+import '@i18n'; // Initialize i18n configuration
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import ErrorBoundary from './src/components/ErrorBoundary';
-import { ChatErrorBoundary } from './src/components/error';
-import { AuthProvider } from './src/context/AuthContext';
-import useAppStateHandler from './src/hooks/useAppStateHandler';
-import type { RootStackParamList } from './src/types';
+import React from 'react';
+import { StatusBar } from 'react-native';
+
+import { ChatErrorBoundary } from '@components/error';
+import ErrorBoundary from '@components/ErrorBoundary';
+import { SessionProvider, useSession } from '@context/SessionContext';
+import { UserProvider } from '@context/UserContext';
+import useAppStateHandler from '@hooks/useAppStateHandler';
 
 // Import your screens
-import SplashScreen from './src/screens/SplashScreen';
-import MirrorAnimationScreen from './src/screens/MirrorAnimationScreen';
-import EnterMirrorScreen from './src/screens/EnterMirrorScreen';
-import EmailConfirmationScreen from './src/screens/EmailConfirmationScreen';
-import AppVideoScreen from './src/screens/AppVideoScreen';
-import TalkToMirrorScreen from './src/screens/TalkToMirrorScreen';
-import AppExplainerScreen from './src/screens/AppExplainerScreen';
-import LoginScreen from './src/screens/LoginScreen';
-import MirrorChatScreen from './src/screens/MirrorChatScreen';
-import SignUpScreen from './src/screens/SignUpScreen';
-import VerifyEmailScreen from './src/screens/VerifyEmailScreen';
-import ForgotPasswordScreen from './src/screens/ForgotPasswordScreen';
-import ResetPasswordScreen from './src/screens/ResetPasswordScreen';
-import QuizWelcomeScreen from './src/screens/QuizWelcomeScreen';
-import QuizTuningScreen from './src/screens/QuizTuningScreen';
-import QuizQuestionsScreen from './src/screens/QuizQuestionsScreen';
-import ArchetypeScreen from './src/screens/ArchetypeScreen';
+import AppExplainerScreen from '@screens/AppExplainerScreen';
+import AppVideoScreen from '@screens/AppVideoScreen';
+import ArchetypeScreen from '@screens/ArchetypeScreen';
+import EmailConfirmationScreen from '@screens/EmailConfirmationScreen';
+import EnterMirrorScreen from '@screens/EnterMirrorScreen';
+import ForgotPasswordScreen from '@screens/ForgotPasswordScreen';
+import LoginScreen from '@screens/LoginScreen';
+import MirrorAnimationScreen from '@screens/MirrorAnimationScreen';
+import MirrorChatScreen from '@screens/MirrorChatScreen';
+import QuizQuestionsScreen from '@screens/QuizQuestionsScreen';
+import QuizTuningScreen from '@screens/QuizTuningScreen';
+import QuizWelcomeScreen from '@screens/QuizWelcomeScreen';
+import ResetPasswordScreen from '@screens/ResetPasswordScreen';
+import SignUpScreen from '@screens/SignUpScreen';
+import SplashScreen from '@screens/SplashScreen';
+import TalkToMirrorScreen from '@screens/TalkToMirrorScreen';
+import VerifyEmailScreen from '@screens/VerifyEmailScreen';
+import type { RootStackParamList } from '@types';
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 // Wrapped MirrorChat component with error boundary
@@ -34,33 +38,67 @@ const MirrorChatWithErrorBoundary = () => (
   </ChatErrorBoundary>
 );
 
-// Authentication-aware navigator
+// Auth Navigator (Public + Onboarding)
+const AuthNavigator = () => (
+  <Stack.Navigator
+    initialRouteName="Splash"
+    screenOptions={{ headerShown: false }}
+  >
+    <Stack.Screen name="Splash" component={SplashScreen} />
+    <Stack.Screen name="MirrorAnimation" component={MirrorAnimationScreen} />
+    <Stack.Screen name="AppExplanation" component={AppExplainerScreen} />
+    
+    {/* Quiz Flow (Pre-Auth) */}
+    <Stack.Screen name="QuizWelcome" component={QuizWelcomeScreen} />
+    <Stack.Screen name="QuizTuning" component={QuizTuningScreen} />
+    <Stack.Screen name="QuizQuestions" component={QuizQuestionsScreen} />
+    <Stack.Screen name="Archetype" component={ArchetypeScreen} />
+    
+    {/* Authentication */}
+    <Stack.Screen name="Login" component={LoginScreen} />
+    <Stack.Screen name="SignUp" component={SignUpScreen} />
+    <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+    <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
+    <Stack.Screen name="VerifyEmail" component={VerifyEmailScreen} />
+    <Stack.Screen name="EmailConfirmation" component={EmailConfirmationScreen} />
+  </Stack.Navigator>
+);
+
+// Authenticated Navigator (Private)
+const AuthenticatedNavigator = () => (
+  <Stack.Navigator
+    initialRouteName="EnterMirror"
+    screenOptions={{ headerShown: false }}
+  >
+    <Stack.Screen name="EnterMirror" component={EnterMirrorScreen} />
+    <Stack.Screen name="AppVideo" component={AppVideoScreen} />
+    <Stack.Screen name="TalkToMirror" component={TalkToMirrorScreen} />
+    <Stack.Screen name="MirrorChat" component={MirrorChatWithErrorBoundary} />
+    {/* If users can retake quiz while logged in, add them here too, or use a modal group */}
+  </Stack.Navigator>
+);
+
+// Main Navigator that switches based on auth state
 const AppNavigator = () => {
+  const { state } = useSession();
+  const { isAuthenticated, isLoading } = state;
+
+  // Optionally show a loading screen while session is restoring
+  if (isLoading) {
+    // Cast SplashScreen or pass mock props since it's just a loader here
+    return <SplashScreen navigation={null as any} />; 
+  }
+
   return (
-    <Stack.Navigator
-      initialRouteName="Splash"
-      screenOptions={{
-        headerShown: false, // Hide headers for full-screen look
+    <NavigationContainer
+      onStateChange={state => {
+        if (__DEV__) {
+          console.log('Navigation state changed:', state);
+        }
       }}
     >
-      <Stack.Screen name="Splash" component={SplashScreen} />
-      <Stack.Screen name="MirrorAnimation" component={MirrorAnimationScreen} />
-      <Stack.Screen name="EnterMirror" component={EnterMirrorScreen} />
-      <Stack.Screen name="EmailConfirmation" component={EmailConfirmationScreen} />
-      <Stack.Screen name="AppVideo" component={AppVideoScreen} />
-      <Stack.Screen name="TalkToMirror" component={TalkToMirrorScreen} />
-      <Stack.Screen name="AppExplanation" component={AppExplainerScreen} />
-      <Stack.Screen name="Login" component={LoginScreen} />
-      <Stack.Screen name="MirrorChat" component={MirrorChatWithErrorBoundary} />
-      <Stack.Screen name="SignUp" component={SignUpScreen} />
-      <Stack.Screen name="VerifyEmail" component={VerifyEmailScreen} />
-      <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
-      <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
-      <Stack.Screen name="QuizQuestions" component={QuizQuestionsScreen} />
-      <Stack.Screen name="QuizTuning" component={QuizTuningScreen} />
-      <Stack.Screen name="QuizWelcome" component={QuizWelcomeScreen} />
-      <Stack.Screen name="Archetype" component={ArchetypeScreen} />
-    </Stack.Navigator>
+      {isAuthenticated ? <AuthenticatedNavigator /> : <AuthNavigator />}
+    </NavigationContainer>
   );
 };
 
@@ -79,7 +117,7 @@ const App = () => {
       // Clear authentication tokens when app goes to background
       // This ensures the user will need to login again when returning to the app
       try {
-        const { authApiService } = await import('./src/services/api');
+        const { authApiService } = await import('@services/api');
         await authApiService.clearTokens();
         console.log('Authentication cleared on background');
       } catch (error) {
@@ -90,24 +128,18 @@ const App = () => {
 
   return (
     <ErrorBoundary>
-      <AuthProvider>
-        <NavigationContainer
-          onStateChange={state => {
-            // Optional: Log navigation state changes for debugging
-            if (__DEV__) {
-              console.log('Navigation state changed:', state);
-            }
-          }}
-          onReady={() => {
-            // Optional: Log when navigation is ready
-            if (__DEV__) {
-              console.log('Navigation container is ready');
-            }
-          }}
-        >
-          <AppNavigator />
-        </NavigationContainer>
-      </AuthProvider>
+      <SessionProvider>
+        <UserProvider>
+          <React.Fragment>
+            <StatusBar 
+              translucent 
+              backgroundColor="transparent" 
+              barStyle="light-content" 
+            />
+            <AppNavigator />
+          </React.Fragment>
+        </UserProvider>
+      </SessionProvider>
     </ErrorBoundary>
   );
 };

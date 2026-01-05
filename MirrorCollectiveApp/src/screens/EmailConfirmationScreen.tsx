@@ -1,20 +1,24 @@
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
   StyleSheet,
-  ImageBackground,
   TouchableOpacity,
 } from 'react-native';
-import LogoHeader from '../components/LogoHeader';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '../types';
+
+import BackgroundWrapper from '@components/BackgroundWrapper';
+import LogoHeader from '@components/LogoHeader';
+import type { RootStackParamList } from '@types';
 
 interface Props {
   navigation: NativeStackNavigationProp<RootStackParamList, 'EmailConfirmation'>;
 }
 
 const EmailConfirmationScreen: React.FC<Props> = ({ navigation }) => {
+  const { t } = useTranslation();
+  
   const handleResend = () => {
     navigation.reset({
       index: 0,
@@ -23,26 +27,21 @@ const EmailConfirmationScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   return (
-    <ImageBackground
-      source={require('../../assets/dark_mode_shimmer_bg.png')}
-      style={styles.container}
-      resizeMode="cover"
-    >
+    <BackgroundWrapper style={styles.container}>
       <LogoHeader />
 
       <View style={styles.content}>
-        <Text style={styles.title}>We've sent a whisper to your inbox</Text>
+        <Text style={styles.title}>{t('auth.emailConfirmation.title')}</Text>
         <Text style={styles.bodyText}>
-          Please confirm your entry by clicking the link in your email. This step ensures your
-          portal remains protected and attuned to you.
+          {t('auth.emailConfirmation.body')}
         </Text>
-        <Text style={styles.helperText}>Still didn't receive it? No stress...</Text>
+        <Text style={styles.helperText}>{t('auth.emailConfirmation.helper')}</Text>
 
-        <TouchableOpacity style={styles.button} onPress={handleResend} activeOpacity={0.85}>
-          <Text style={styles.buttonText}>Resend Email</Text>
+        <TouchableOpacity testID="resend-button" style={styles.button} onPress={handleResend} activeOpacity={0.85}>
+          <Text style={styles.buttonText}>{t('auth.emailConfirmation.resendButton')}</Text>
         </TouchableOpacity>
       </View>
-    </ImageBackground>
+    </BackgroundWrapper>
   );
 };
 
