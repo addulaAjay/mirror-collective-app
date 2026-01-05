@@ -1,14 +1,15 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import React from 'react';
+
+
 import { ChatInput } from './ChatInput';
 
 describe('ChatInput', () => {
-  const mockOnChangeText = vi.fn();
-  const mockOnSend = vi.fn();
+  const mockOnChangeText = jest.fn();
+  const mockOnSend = jest.fn();
 
   beforeEach(() => {
-    vi.clearAllMocks();
+    jest.clearAllMocks();
   });
 
   it('renders with default placeholder', () => {
@@ -64,7 +65,7 @@ describe('ChatInput', () => {
   });
 
   it('calls onSend when send button is pressed', () => {
-    const { getByText } = render(
+    const { getByTestId } = render(
       <ChatInput
         value="Test message"
         onChangeText={mockOnChangeText}
@@ -72,7 +73,7 @@ describe('ChatInput', () => {
       />
     );
     
-    const sendButton = getByText('➤');
+    const sendButton = getByTestId('send-button');
     fireEvent.press(sendButton);
     
     expect(mockOnSend).toHaveBeenCalled();
@@ -93,7 +94,7 @@ describe('ChatInput', () => {
   });
 
   it('disables send button when input is empty', () => {
-    const { getByText } = render(
+    const { getByTestId } = render(
       <ChatInput
         value=""
         onChangeText={mockOnChangeText}
@@ -101,12 +102,12 @@ describe('ChatInput', () => {
       />
     );
     
-    const sendButton = getByText('➤');
-    expect(sendButton.parent?.props.disabled).toBe(true);
+    const sendButton = getByTestId('send-button');
+    expect(sendButton.props.disabled).toBe(true);
   });
 
   it('enables send button when input has text', () => {
-    const { getByText } = render(
+    const { getByTestId } = render(
       <ChatInput
         value="Hello"
         onChangeText={mockOnChangeText}
@@ -114,12 +115,12 @@ describe('ChatInput', () => {
       />
     );
     
-    const sendButton = getByText('➤');
-    expect(sendButton.parent?.props.disabled).toBe(false);
+    const sendButton = getByTestId('send-button');
+    expect(sendButton.props.disabled).toBe(false);
   });
 
   it('disables send button when input only has whitespace', () => {
-    const { getByText } = render(
+    const { getByTestId } = render(
       <ChatInput
         value="   "
         onChangeText={mockOnChangeText}
@@ -127,7 +128,7 @@ describe('ChatInput', () => {
       />
     );
     
-    const sendButton = getByText('➤');
-    expect(sendButton.parent?.props.disabled).toBe(true);
+    const sendButton = getByTestId('send-button');
+    expect(sendButton.props.disabled).toBe(true);
   });
 });

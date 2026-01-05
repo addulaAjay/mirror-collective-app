@@ -1,4 +1,7 @@
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
@@ -7,16 +10,17 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
-  ImageBackground,
+  
 } from 'react-native';
-import LogoHeader from '../components/LogoHeader';
-import TextInputField from '../components/TextInputField';
-import StarIcon from '../components/StarIcon';
-import { useAuth } from '../context/AuthContext';
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '../types';
-import { typography, colors, shadows } from '../styles/typography';
+
+import BackgroundWrapper from '@components/BackgroundWrapper';
+import LogoHeader from '@components/LogoHeader';
+import StarIcon from '@components/StarIcon';
+import TextInputField from '@components/TextInputField';
+import { useSession } from '@context/SessionContext';
+import { theme } from '@theme';
+import type { RootStackParamList } from '@types';
+import { getApiErrorMessage } from '@utils/apiErrorUtils';
 
 type ForgotPasswordScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -24,11 +28,12 @@ type ForgotPasswordScreenNavigationProp = NativeStackNavigationProp<
 >;
 
 const ForgotPasswordScreen = () => {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
 
-  const { forgotPassword, state } = useAuth();
+  const { forgotPassword, state } = useSession();
   const navigation = useNavigation<ForgotPasswordScreenNavigationProp>();
 
   const validateEmail = (emailAddress: string) => {
@@ -38,12 +43,12 @@ const ForgotPasswordScreen = () => {
 
   const handleForgotPassword = async () => {
     if (!email.trim()) {
-      Alert.alert('Error', 'Please enter your email address');
+      Alert.alert(t('common.error'), t('auth.validation.missingEmail'));
       return;
     }
 
     if (!validateEmail(email.trim())) {
-      Alert.alert('Error', 'Please enter a valid email address');
+      Alert.alert(t('common.error'), t('auth.validation.invalidEmail'));
       return;
     }
 
@@ -52,18 +57,18 @@ const ForgotPasswordScreen = () => {
       await forgotPassword(email.trim());
       setEmailSent(true);
       Alert.alert(
-        'Reset Code Sent',
-        'Check your email for the reset code and follow the instructions to reset your password.',
+        t('auth.forgotPassword.successTitle'),
+        t('auth.forgotPassword.successMessage'),
         [
           {
-            text: 'OK',
+            text: t('common.continue'),
             onPress: () =>
               navigation.navigate('ResetPassword', { email: email.trim() }),
           },
         ],
       );
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to send reset code');
+      Alert.alert(t('common.error'), getApiErrorMessage(error, t));
     } finally {
       setIsLoading(false);
     }
@@ -79,42 +84,43 @@ const ForgotPasswordScreen = () => {
         style={styles.keyboardContainer}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <ImageBackground
-          source={require('../../assets/dark_mode_shimmer_bg.png')}
+        <BackgroundWrapper
           style={styles.container}
-          resizeMode="cover"
         >
           <LogoHeader />
 
           <View style={styles.contentContainer}>
-            <Text style={styles.title}>Check Your Email</Text>
+            <Text style={styles.title}>{t('auth.forgotPassword.title')}</Text>
             <Text style={styles.subtitle}>
-              We've sent a reset code to{'\n'}
+              {t('auth.forgotPassword.successMessage')}
+              {'\n'}
               <Text style={styles.emailText}>{email}</Text>
             </Text>
 
             <Text style={styles.instructions}>
-              Enter the 6-digit code in the next screen to reset your password.
+              {t('auth.resetPassword.subtitle')}
             </Text>
 
             <TouchableOpacity
               style={styles.enterButton}
+              testID="success-continue-button"
               onPress={() => navigation.navigate('ResetPassword', { email })}
               activeOpacity={0.8}
             >
               <StarIcon width={24} height={24} />
-              <Text style={styles.enterText}>CONTINUE</Text>
+              <Text style={styles.enterText}>{t('common.continue')}</Text>
               <StarIcon width={24} height={24} />
             </TouchableOpacity>
 
             <TouchableOpacity
               onPress={handleBackToLogin}
               style={styles.backLink}
+              testID="success-back-to-login"
             >
-              <Text style={styles.backLinkText}>Back to Login</Text>
+              <Text style={styles.backLinkText}>{t('auth.forgotPassword.backToLogin')}</Text>
             </TouchableOpacity>
           </View>
-        </ImageBackground>
+        </BackgroundWrapper>
       </KeyboardAvoidingView>
     );
   }
@@ -124,23 +130,21 @@ const ForgotPasswordScreen = () => {
       style={styles.keyboardContainer}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <ImageBackground
-        source={require('../../assets/dark_mode_shimmer_bg.png')}
+      <BackgroundWrapper
         style={styles.container}
-        resizeMode="cover"
       >
         <LogoHeader />
 
         <View style={styles.contentContainer}>
-          <Text style={styles.title}>Forgotten your way back?</Text>
+          <Text style={styles.title}>{t('auth.forgotPassword.title')}</Text>
           <Text style={styles.subtitle}>
-            Enter your email address and we'll send you a code to reset your
-            password.
+            {t('auth.forgotPassword.subtitle')}
           </Text>
 
           <View style={styles.formContainer}>
             <TextInputField
-              placeholder="Email address"
+              testID="email-input"
+              placeholder={t('auth.forgotPassword.emailPlaceholder')}
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
@@ -153,26 +157,26 @@ const ForgotPasswordScreen = () => {
 
             <TouchableOpacity
               style={styles.enterButton}
+              testID="forgot-password-button"
               onPress={handleForgotPassword}
               disabled={isLoading}
               activeOpacity={0.8}
             >
               <StarIcon width={24} height={24} />
               <Text style={styles.enterText}>
-                {isLoading ? 'SENDING...' : 'SEND CODE'}
+                {isLoading ? t('auth.forgotPassword.sendingButton') : t('auth.forgotPassword.sendButton')}
               </Text>
               <StarIcon width={24} height={24} />
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity onPress={handleBackToLogin} style={styles.backLink}>
+          <TouchableOpacity onPress={handleBackToLogin} style={styles.backLink} testID="back-to-login-button">
             <Text style={styles.backLinkText}>
-              Remember your password?{' '}
-              <Text style={styles.linkText}>Sign In</Text>
+              {t('auth.forgotPassword.backToLogin')}
             </Text>
           </TouchableOpacity>
         </View>
-      </ImageBackground>
+      </BackgroundWrapper>
     </KeyboardAvoidingView>
   );
 };
@@ -182,12 +186,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   container: {
-    flex: 1,
     borderRadius: 15,
-    shadowColor: shadows.container.color,
-    shadowOffset: shadows.container.offset,
-    shadowOpacity: shadows.container.opacity,
-    shadowRadius: shadows.container.radius,
+    shadowColor: theme.shadows.container.color,
+    shadowOffset: theme.shadows.container.offset,
+    shadowOpacity: theme.shadows.container.opacity,
+    shadowRadius: theme.shadows.container.radius,
     elevation: 10,
     alignItems: 'center',
     justifyContent: 'center',
@@ -202,21 +205,21 @@ const styles = StyleSheet.create({
     maxWidth: 313,
   },
   title: {
-    ...typography.styles.title,
+    ...theme.typography.styles.title,
     textAlign: 'center',
     fontFamily: 'CormorantGaramond-Italic',
   },
   subtitle: {
-    ...typography.styles.body,
+    ...theme.typography.styles.body,
     textAlign: 'center',
     fontFamily: 'CormorantGaramond-LightItalic',
   },
   emailText: {
-    color: colors.text.accent,
+    color: theme.colors.text.accent,
     fontWeight: '600',
   },
   instructions: {
-    ...typography.styles.bodySmall,
+    ...theme.typography.styles.bodySmall,
     textAlign: 'center',
   },
   formContainer: {
@@ -232,13 +235,13 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   enterText: {
-    ...typography.styles.button,
+    ...theme.typography.styles.button,
     textShadowColor: 'rgba(245, 230, 184, 0.50)',
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 4,
   },
   errorText: {
-    ...typography.styles.bodySmall,
+    ...theme.typography.styles.bodySmall,
     color: '#FF6B6B',
     textAlign: 'center',
   },
@@ -246,12 +249,12 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   backLinkText: {
-    ...typography.styles.body,
+    ...theme.typography.styles.body,
     textAlign: 'center',
     fontFamily: 'CormorantGaramond-Italic',
   },
   linkText: {
-    ...typography.styles.linkLarge,
+    ...theme.typography.styles.linkLarge,
     fontWeight: '600',
     fontFamily: 'CormorantGaramond-LightItalic',
   },

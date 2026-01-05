@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { COLORS, SPACING } from '../../constants';
-import { theme } from '../../theme';
+
+import { COLORS, SPACING } from '@constants';
+import { theme } from '@theme';
 
 interface ErrorFallbackProps {
   error: Error;

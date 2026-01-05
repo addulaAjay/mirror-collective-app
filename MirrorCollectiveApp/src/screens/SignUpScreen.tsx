@@ -1,26 +1,34 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
   StyleSheet,
-  ImageBackground,
+  
   TouchableOpacity,
   Alert,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from 'react-native';
-import LogoHeader from '../components/LogoHeader';
-import TextInputField from '../components/TextInputField';
-import StarIcon from '../components/StarIcon';
-import { authApiService } from '../services/api';
-import { typography } from '../styles/typography';
+
+import BackgroundWrapper from '@components/BackgroundWrapper';
+import LogoHeader from '@components/LogoHeader';
+import StarIcon from '@components/StarIcon';
+import TextInputField from '@components/TextInputField';
+import { useSession } from '@context/SessionContext';
+import { theme } from '@theme';
+import { getApiErrorMessage } from '@utils/apiErrorUtils';
 
 interface SignUpScreenProps {
   navigation: any;
 }
 
 const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
+  const { t } = useTranslation();
+  const { signUp } = useSession();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -31,28 +39,28 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
 
   const validateForm = (): boolean => {
     if (!fullName.trim()) {
-      Alert.alert('Error', 'Please enter your full name');
+      Alert.alert(t('common.error'), t('auth.validation.missingFullName'));
       return false;
     }
 
     if (!email.trim()) {
-      Alert.alert('Error', 'Please enter your email address');
+      Alert.alert(t('common.error'), t('auth.validation.missingEmail'));
       return false;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      Alert.alert('Error', 'Please enter a valid email address');
+      Alert.alert(t('common.error'), t('auth.validation.invalidEmail'));
       return false;
     }
 
     if (!password) {
-      Alert.alert('Error', 'Please enter a password');
+      Alert.alert(t('common.error'), t('auth.validation.missingPassword'));
       return false;
     }
 
     if (password.length < 8) {
-      Alert.alert('Error', 'Password must be at least 8 characters long');
+      Alert.alert(t('common.error'), t('auth.validation.passwordTooShort'));
       return false;
     }
 
@@ -64,14 +72,14 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
 
     if (!hasUpperCase || !hasLowerCase || !hasNumbers || !hasSpecialChar) {
       Alert.alert(
-        'Weak Password',
-        'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character',
+        t('auth.validation.weakPasswordTitle'),
+        t('auth.validation.weakPasswordMessage')
       );
       return false;
     }
 
     if (password !== confirmPassword) {
-      Alert.alert('Error', 'Passwords do not match');
+      Alert.alert(t('common.error'), t('auth.validation.passwordMismatch'));
       return false;
     }
 
@@ -86,39 +94,27 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
     setIsLoading(true);
 
     try {
-      const response = await authApiService.signUp({
-        fullName: fullName.trim(),
-        email: email.toLowerCase().trim(),
-        password,
-      });
+      await signUp(fullName, email, password);
 
-      if (response.success) {
-        Alert.alert(
-          'Welcome to the Mirror Collective!',
-          'Your sacred space is being prepared. Please check your email for verification.',
-          [
-            {
-              text: 'Continue',
-              onPress: () =>
-                navigation.navigate('VerifyEmail', {
-                  email: email.toLowerCase().trim(),
-                  fullName: fullName.trim(),
-                }),
-            },
-          ],
-        );
-      } else {
-        Alert.alert(
-          'Registration Failed',
-          response.message || response.error || 'Please try again',
-        );
-      }
+      Alert.alert(
+        t('auth.signup.alerts.welcomeTitle'),
+        t('auth.signup.alerts.welcomeMessage'),
+        [
+          {
+            text: t('auth.validation.continue'),
+            onPress: () =>
+              navigation.navigate('VerifyEmail', {
+                email: email.toLowerCase().trim(),
+                fullName: fullName.trim(),
+              }),
+          },
+        ],
+      );
     } catch (error: any) {
       console.error('Sign up error:', error);
       Alert.alert(
-        'Registration Failed',
-        error.message ||
-          'Unable to create your account. Please check your connection and try again.',
+        t('auth.signup.alerts.failedTitle'),
+        getApiErrorMessage(error, t)
       );
     } finally {
       setIsLoading(false);
@@ -133,128 +129,138 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
     <KeyboardAvoidingView
       style={styles.keyboardContainer}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
     >
-      <ImageBackground
-        source={require('../../assets/dark_mode_shimmer_bg.png')}
-        style={styles.container}
-        resizeMode="cover"
-      >
-        <ScrollView
-          contentContainerStyle={styles.scrollContainer}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        <BackgroundWrapper
+          style={styles.container}
         >
-          <LogoHeader />
+          <ScrollView
+            contentContainerStyle={styles.scrollContainer}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            <LogoHeader />
 
-          <View style={styles.contentContainer}>
-            {/* Header Section */}
-            <View style={styles.headerSection}>
-              <Text style={styles.title}>Getting Started</Text>
-              <Text style={styles.subtitle}>
-                Let's set up your sacred space
-              </Text>
-            </View>
-
-            {/* Form Section */}
-            <View style={styles.formSection}>
-              {/* Full Name Field */}
-              <View style={styles.fieldContainer}>
-                <Text style={styles.fieldLabel}>Full Name</Text>
-                <TextInputField
-                  size="medium"
-                  placeholder="Your Soul name"
-                  value={fullName}
-                  onChangeText={setFullName}
-                  autoCapitalize="words"
-                  autoComplete="name"
-                  placeholderAlign="left"
-                  placeholderFontFamily="regular"
-                  inputTextStyle="gold-regular"
-                />
+            <View style={styles.contentContainer}>
+              {/* Header Section */}
+              <View style={styles.headerSection}>
+                <Text style={styles.title}>{t('auth.signup.title')}</Text>
+                <Text style={styles.subtitle}>
+                  {t('auth.signup.subtitle')}
+                </Text>
               </View>
 
-              {/* Email Field */}
-              <View style={styles.fieldContainer}>
-                <Text style={styles.fieldLabel}>Email</Text>
-                <TextInputField
-                  size="medium"
-                  placeholder="Email address"
-                  value={email}
-                  onChangeText={setEmail}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  autoComplete="email"
-                  placeholderAlign="left"
-                  placeholderFontFamily="regular"
-                  inputTextStyle="gold-regular"
-                />
+              {/* Form Section */}
+              <View style={styles.formSection}>
+                {/* Full Name Field */}
+                <View style={styles.fieldContainer}>
+                  <Text style={styles.fieldLabel}>{t('auth.signup.fields.fullName')}</Text>
+                  <TextInputField
+                    size="medium"
+                    placeholder={t('auth.signup.fields.fullNamePlaceholder')}
+                    value={fullName}
+                    onChangeText={setFullName}
+                    autoCapitalize="words"
+                    autoComplete="name"
+                    placeholderAlign="left"
+                    placeholderFontFamily="regular"
+                    inputTextStyle="gold-regular"
+                    testID="fullname-input"
+                  />
+                </View>
+
+                {/* Email Field */}
+                <View style={styles.fieldContainer}>
+                  <Text style={styles.fieldLabel}>{t('auth.signup.fields.email')}</Text>
+                  <TextInputField
+                    size="medium"
+                    placeholder={t('auth.signup.fields.emailPlaceholder')}
+                    value={email}
+                    onChangeText={setEmail}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    autoComplete="email"
+                    placeholderAlign="left"
+                    placeholderFontFamily="regular"
+                    inputTextStyle="gold-regular"
+                    testID="email-input"
+                  />
+                </View>
+
+                {/* Password Field */}
+                <View style={styles.fieldContainer}>
+                  <Text style={styles.fieldLabel}>{t('auth.signup.fields.password')}</Text>
+                  <TextInputField
+                    size="medium"
+                    placeholder={t('auth.signup.fields.passwordPlaceholder')}
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry={!showPassword}
+                    showPasswordToggle={true}
+                    isPasswordVisible={showPassword}
+                    onTogglePassword={() => setShowPassword(!showPassword)}
+                    placeholderAlign="left"
+                    placeholderFontFamily="regular"
+                    inputTextStyle="gold-regular"
+                    testID="password-input"
+                  />
+                </View>
+
+                {/* Confirm Password Field */}
+                <View style={styles.fieldContainer}>
+                  <Text style={styles.fieldLabel}>{t('auth.signup.fields.confirmPassword')}</Text>
+                  <TextInputField
+                    size="medium"
+                    placeholder={t('auth.signup.fields.confirmPasswordPlaceholder')}
+                    value={confirmPassword}
+                    onChangeText={setConfirmPassword}
+                    secureTextEntry={!showConfirmPassword}
+                    showPasswordToggle={true}
+                    isPasswordVisible={showConfirmPassword}
+                    placeholderAlign="left"
+                    placeholderFontFamily="regular"
+                    inputTextStyle="gold-regular"
+                    onTogglePassword={() =>
+                      setShowConfirmPassword(!showConfirmPassword)
+                    }
+                    testID="confirm-password-input"
+                  />
+                </View>
               </View>
 
-              {/* Password Field */}
-              <View style={styles.fieldContainer}>
-                <Text style={styles.fieldLabel}>Password</Text>
-                <TextInputField
-                  size="medium"
-                  placeholder="Enter password"
-                  value={password}
-                  onChangeText={setPassword}
-                  secureTextEntry={!showPassword}
-                  showPasswordToggle={true}
-                  isPasswordVisible={showPassword}
-                  onTogglePassword={() => setShowPassword(!showPassword)}
-                  placeholderAlign="left"
-                  placeholderFontFamily="regular"
-                  inputTextStyle="gold-regular"
-                />
-              </View>
-
-              {/* Confirm Password Field */}
-              <View style={styles.fieldContainer}>
-                <Text style={styles.fieldLabel}>Confirm password</Text>
-                <TextInputField
-                  size="medium"
-                  placeholder="Re-enter password to confirm"
-                  value={confirmPassword}
-                  onChangeText={setConfirmPassword}
-                  secureTextEntry={!showConfirmPassword}
-                  showPasswordToggle={true}
-                  isPasswordVisible={showConfirmPassword}
-                  placeholderAlign="left"
-                  placeholderFontFamily="regular"
-                  inputTextStyle="gold-regular"
-                  onTogglePassword={() =>
-                    setShowConfirmPassword(!showConfirmPassword)
-                  }
-                />
-              </View>
-            </View>
-
-            {/* Continue Button */}
-            <TouchableOpacity
-              style={styles.continueButton}
-              onPress={handleSignUp}
-              disabled={isLoading}
-              activeOpacity={0.8}
-            >
-              <StarIcon width={20} height={20} />
-              <Text style={styles.continueText}>
-                {isLoading ? 'Creating...' : 'Continue'}
-              </Text>
-              <StarIcon width={20} height={20} />
-            </TouchableOpacity>
-
-            {/* Login Link */}
-            <View style={styles.loginContainer}>
-              <Text style={styles.loginText}>
-                Already part of the Mirror Collective?
-              </Text>
-              <TouchableOpacity onPress={navigateToLogin} disabled={isLoading}>
-                <Text style={styles.loginLink}>Sign in here</Text>
+              {/* Continue Button */}
+              <TouchableOpacity
+                style={styles.continueButton}
+                onPress={handleSignUp}
+                disabled={isLoading}
+                activeOpacity={0.8}
+                testID="signup-button"
+              >
+                <StarIcon width={20} height={20} />
+                <Text style={styles.continueText}>
+                  {isLoading ? t('auth.signup.buttons.creating') : t('auth.signup.buttons.continue')}
+                </Text>
+                <StarIcon width={20} height={20} />
               </TouchableOpacity>
+
+              {/* Login Link */}
+              <View style={styles.loginContainer}>
+                <Text style={styles.loginText}>
+                  {t('auth.signup.footer.alreadyMember')}
+                </Text>
+                <TouchableOpacity
+                  onPress={navigateToLogin}
+                  disabled={isLoading}
+                  testID="login-link"
+                >
+                  <Text style={styles.loginLink}>{t('auth.signup.footer.signIn')}</Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
-        </ScrollView>
-      </ImageBackground>
+          </ScrollView>
+        </BackgroundWrapper>
+      </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
   );
 };
@@ -262,9 +268,9 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
 const styles = StyleSheet.create({
   keyboardContainer: {
     flex: 1,
+    backgroundColor: '#0B0F1C',
   },
   container: {
-    flex: 1,
     borderRadius: 15,
     shadowColor: '#000',
     shadowOffset: { width: -1, height: 5 },
@@ -291,7 +297,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   title: {
-    ...typography.styles.title,
+    ...theme.typography.styles.title,
     textShadowColor: 'rgba(0, 0, 0, 0.25)',
     textShadowOffset: { width: 0, height: 4 },
     textShadowRadius: 4,
@@ -301,9 +307,9 @@ const styles = StyleSheet.create({
     lineHeight: 38,
   },
   subtitle: {
-    ...typography.styles.subtitle,
+    ...theme.typography.styles.subtitle,
     color: '#FDFDF9',
-    fontFamily: 'CormorantGaramond-Italic',
+    fontFamily: 'CormorantGaramond-Regular',
     textAlign: 'center',
     fontSize: 24,
     fontWeight: '300',
@@ -318,7 +324,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   fieldLabel: {
-    ...typography.styles.label,
+    ...theme.typography.styles.label,
     paddingLeft: 4,
     fontSize: 20,
   },
@@ -345,11 +351,11 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   loginText: {
-    ...typography.styles.bodyItalic,
+    ...theme.typography.styles.bodyItalic,
     textAlign: 'center',
   },
   loginLink: {
-    ...typography.styles.linkLarge,
+    ...theme.typography.styles.linkLarge,
   },
 });
 

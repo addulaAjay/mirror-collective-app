@@ -153,3 +153,15 @@ ios/main.jsbundle
 # Package manager locks (choose one based on your preference)
 # package-lock.json  # Uncomment if using yarn exclusively
 # yarn.lock          # Uncomment if using npm exclusively
+
+# Debug and utility scripts
+debug_login.py
+update_imports.py
+*.py
+
+# Figma environment
+.env.figma
+../.env.figma
+
+# Project scripts (outside app folder)
+../scripts/

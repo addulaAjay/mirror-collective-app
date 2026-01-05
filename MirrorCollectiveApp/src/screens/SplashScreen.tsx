@@ -1,18 +1,19 @@
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  ImageBackground,
   Image,
   Dimensions,
 } from 'react-native';
 
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '../types';
-import { authApiService } from '../services/api';
+import { authApiService } from '@services/api';
+const { width: screenWidth, height: screenHeight } = Dimensions.get('screen');
+
+import BackgroundWrapper from '@components/BackgroundWrapper';
+import type { RootStackParamList } from '@types';
 
 type SplashProps = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'Splash'>;
@@ -57,20 +58,16 @@ const SplashScreen: React.FC<SplashProps> = ({ navigation }) => {
   }, [navigation]);
 
   return (
-    <ImageBackground
-      source={require('../../assets/dark_mode_shimmer_bg.png')}
-      style={styles.container}
-      resizeMode="cover"
-    >
+    <BackgroundWrapper style={styles.container}>
       <View style={styles.logoContainer}>
         <Image
-          source={require('../../assets/Mirror_Collective_Logo_RGB.png')}
+          source={require('@assets/Mirror_Collective_Logo_RGB.png')}
           style={styles.logo}
           resizeMode="contain"
         />
         <Text style={styles.title}>The MIRROR COLLECTIVE</Text>
       </View>
-    </ImageBackground>
+    </BackgroundWrapper>
   );
 };
 

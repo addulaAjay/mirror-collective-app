@@ -2,6 +2,9 @@ export type RootStackParamList = {
   Splash: undefined;
   MirrorAnimation: undefined;
   EnterMirror: undefined;
+  EmailConfirmation: undefined;
+  AppVideo: undefined;
+  TalkToMirror: undefined;
   AppExplanation: undefined;
   Login: undefined;
   MirrorChat: undefined;

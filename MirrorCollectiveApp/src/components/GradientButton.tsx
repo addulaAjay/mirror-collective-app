@@ -1,84 +1,130 @@
-import React from 'react';
 import {
   Text,
   TouchableOpacity,
   StyleSheet,
   ViewStyle,
-  View,
+  TextStyle,
   Dimensions,
+  View,
 } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+import { theme } from '@theme';
 
 interface Props {
   title: string;
   onPress: () => void;
   disabled?: boolean;
   style?: ViewStyle;
+  buttonStyle?: ViewStyle;
+  textStyle?: TextStyle;
+  gradientColors?: string[];
 }
 
-const GradientButton = ({ title, onPress, disabled, style }: Props) => {
+const { width: screenWidth } = Dimensions.get('window');
+
+// Responsive font size helper
+const responsiveFontSize = (baseSize: number, minSize: number, maxSize: number) => {
+  const scale = screenWidth / 375;
+  const size = baseSize * scale;
+  return Math.max(minSize, Math.min(maxSize, size));
+};
+
+// Exact gradient from Figma: var(--Translucent-White-Gradient)
+const defaultGradient = [
+  'rgba(253, 253, 249, 0.03)', // 0% - start
+  'rgba(253, 253, 249, 0.20)', // 100% - end
+];
+
+const GradientButton = ({
+  title,
+  onPress,
+  disabled,
+  style,
+  buttonStyle,
+  textStyle,
+  gradientColors = defaultGradient,
+}: Props) => {
   return (
-    <TouchableOpacity
-      activeOpacity={0.85}
-      onPress={onPress}
-      disabled={disabled}
-      style={[styles.container, style, disabled && styles.disabled]}
-    >
-      <View style={styles.button}>
-        <Text style={styles.text} numberOfLines={1}>{title}</Text>
-      </View>
-    </TouchableOpacity>
+    <View style={[styles.shadowWrapper, style, disabled && styles.disabled]}>
+      <TouchableOpacity
+        activeOpacity={0.85}
+        onPress={onPress}
+        disabled={disabled}
+        style={styles.container}
+      >
+        {/* Gradient background layer */}
+        <LinearGradient
+          colors={gradientColors}
+          start={{ x: 0.5, y: 0 }}
+          end={{ x: 0.5, y: 1 }}
+          style={[styles.buttonContent, buttonStyle]}
+          pointerEvents="none"
+        />
+
+        {/* Text layer on top */}
+        <View style={styles.textContainer} pointerEvents="none">
+          <Text style={[styles.text, textStyle]}>
+            {title}
+          </Text>
+        </View>
+      </TouchableOpacity>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  button: {
-    minWidth: Math.max(screenWidth * 0.3, 120), // Increased width for "Finish" text
-    minHeight: Math.max(screenHeight * 0.056, 48), // Minimum height for touch target
-    borderRadius: 13, // Exact 13px from Figma
-    paddingHorizontal: Math.max(20, screenWidth * 0.051), // Exact 20px padding from Figma layout9
-    paddingVertical: Math.max(8, screenHeight * 0.009), // Exact 8px padding from Figma layout9
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'relative',
-    
-    // Only keep the outer border from Figma - remove conflicting borders
-    borderWidth: 0.25, // Exact stroke width from Figma
-    borderColor: '#9BAAC2', // Exact stroke2 color from Figma
-    
-    // Primary shadow effect (golden glow)
-    shadowColor: 'rgba(229, 214, 176, 0.23)',
-    shadowOffset: { width: 1, height: 4 },
+  shadowWrapper: {
+    // Exact from Figma: box-shadow: 0 0 16px 4px #F0D4A8
+    borderRadius: 12,
+    backgroundColor: 'rgba(0, 0, 0, 0.01)', // Required for iOS shadow rendering (nearly invisible)
+    shadowColor: '#F0D4A8', // Exact glow color from Figma
+    shadowOffset: { width: 0, height: 0 }, // 0 0 in CSS
     shadowOpacity: 1,
-    shadowRadius: 38,
-    elevation: 15,
-    
-    // Simple background
-    backgroundColor: 'rgba(253, 253, 249, 0.15)',
+    shadowRadius: 20, // blur-radius (16px) + spread-radius (4px) = 20px to simulate spread
+    elevation: 12, // Android shadow (slightly higher to match spread)
+  },
+  container: {
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 12, // Exact from Figma: 12px
+    borderWidth: 0.25, // Exact from Figma: 0.25px
+    borderColor: '#A3B3CC', // Exact from Figma: var(--Border-Subtle, #A3B3CC)
+    backgroundColor: 'transparent',
+    overflow: 'hidden', // Clip gradient to border radius
+  },
+  buttonContent: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderRadius: 12,
+  },
+  textContainer: {
+    paddingVertical: responsiveFontSize(14, 12, 16),
+    paddingHorizontal: responsiveFontSize(48, 40, 60),
+    minWidth: responsiveFontSize(120, 100, 150),
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   text: {
-    fontFamily: 'CormorantGaramond-Medium', // Exact font from Figma
-    fontSize: Math.min(screenWidth * 0.051, 20), // Proportional to 32px height in Figma (20px text)
-    fontWeight: '500', // Medium weight from Figma
-    lineHeight: Math.min(screenWidth * 0.061, 24), // Tight line height for button text
-    color: '#F2E2B1', // Exact fill6 color from Figma
+    fontFamily: 'CormorantGaramond-Regular', // Regular from Figma
+    fontSize: responsiveFontSize(20, 18, 22), // 20px from Figma (font/size/L)
+    fontWeight: '400',
+    color: '#FDFDF9', // Exact white from Figma (text/paragraph-2)
     textAlign: 'center',
-    textShadowColor: 'rgba(0, 0, 0, 0.25)', // Exact effect3 shadow from Figma
-    textShadowOffset: { width: 0, height: 4 },
-    textShadowRadius: 4,
+    letterSpacing: 0,
     textTransform: 'uppercase',
-    letterSpacing: 0.5, // Slight letter spacing for better readability
-    includeFontPadding: false, // Remove extra padding that might cause clipping
-    textAlignVertical: 'center', // Ensure vertical centering
-    flexShrink: 0, // Prevent text shrinking
+    includeFontPadding: false,
+    // No text shadow - glow is on button border only
   },
   disabled: {
     opacity: 0.6,
+    backgroundColor: 'transparent', // Remove background so no glow
+    shadowOpacity: 0, // Remove glow when disabled
+    elevation: 0, // Remove Android shadow when disabled
   },
 });
 

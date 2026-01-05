@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import {
   View,
   Text,
-  ImageBackground,
   StyleSheet,
   StatusBar,
   SafeAreaView,
@@ -11,20 +10,23 @@ import {
   Platform,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import LogoHeader from '../components/LogoHeader';
-import AuthenticatedRoute from '../components/AuthenticatedRoute';
-import { MessageBubble, ChatInput, LoadingIndicator } from '../components/ui';
-import { useChat } from '../hooks/useChat';
+
+import AuthenticatedRoute from '@components/AuthenticatedRoute';
+import BackgroundWrapper from '@components/BackgroundWrapper';
+import LogoHeader from '@components/LogoHeader';
+import { MessageBubble, ChatInput, LoadingIndicator } from '@components/ui';
 import {
   COLORS,
   SHADOWS,
   SPACING,
   // SCREEN_DIMENSIONS,
   PLATFORM_SPECIFIC,
-} from '../constants';
-import { theme } from '../theme';
+} from '@constants';
+import { useChat } from '@hooks/useChat';
+import { theme } from '@theme';
 
-export default function MirrorChatScreen() {
+// Export content component for testing
+export function MirrorChatContent() {
   const {
     messages,
     draft,
@@ -44,7 +46,12 @@ export default function MirrorChatScreen() {
   }, [greetingLoaded, initializeSession]);
 
   return (
-    <AuthenticatedRoute>
+
+    <KeyboardAvoidingView
+      style={styles.keyboardContainer}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+
       <SafeAreaView style={styles.safeArea}>
         <StatusBar
           translucent
@@ -53,63 +60,62 @@ export default function MirrorChatScreen() {
         />
 
 
-        <ImageBackground
-          source={require('../../assets/dark_mode_shimmer_bg.png')}
-          style={styles.background}
-          resizeMode="cover"
-        >
-          <KeyboardAvoidingView
-            style={styles.keyboardContainer}
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          >
-            <LogoHeader />
-            <View style={styles.chatWrapper}>
-              <LinearGradient
-                colors={[
-                  'rgba(155, 170, 194, 0.01)', // top
-                  'rgba(155, 170, 194, 0.18)', // bottom
-                ]}
-                start={{ x: 0.5, y: 0 }}
-                end={{ x: 0.5, y: 1 }}
-                style={styles.GradientWrapper}
-              >
-                {/* Chat "card" */}
-                <View style={styles.chatContainer}>
+        <BackgroundWrapper style={styles.background}>
+          <LogoHeader />
 
-                  <Text style={styles.chatTitle}>MirrorGPT</Text>
-                  <ScrollView
-                    ref={scrollViewRef}
-                    style={styles.messagesWrapper}
-                    contentContainerStyle={styles.messagesContent}
-                    showsVerticalScrollIndicator={false}
-                    onContentSizeChange={() =>
-                      scrollViewRef.current?.scrollToEnd({ animated: true })
-                    }
-                  >
-                    {messages.map(message => (
-                      <MessageBubble key={message.id} message={message} />
-                    ))}
-                    {loading && <LoadingIndicator />}
-                  </ScrollView>
-                  <ChatInput
-                    value={draft}
-                    onChangeText={setDraft}
-                    onSend={sendMessage}
-                    disabled={loading}
-                  />
+          <View style={styles.chatWrapper}>
+            <LinearGradient
+              colors={[
+                'rgba(155, 170, 194, 0.01)', // top
+                'rgba(155, 170, 194, 0.18)', // bottom
+              ]}
+              start={{ x: 0.5, y: 0 }}
+              end={{ x: 0.5, y: 1 }}
+              style={styles.GradientWrapper}
+            >
+              {/* Chat "card" */}
+              <View style={styles.chatContainer}>
 
-                </View>
-              </LinearGradient>
-              <View>
-                <Text style={styles.footerText}>
-                  What are you grateful for today?
-                </Text>
+                <Text style={styles.chatTitle}>MirrorGPT</Text>
+                <Text style={styles.headerText}>What are you grateful for today?</Text>
+                <ScrollView
+                  ref={scrollViewRef}
+                  style={styles.messagesWrapper}
+                  contentContainerStyle={styles.messagesContent}
+                  showsVerticalScrollIndicator={false}
+                  onContentSizeChange={() =>
+                    scrollViewRef.current?.scrollToEnd({ animated: true })
+                  }
+                >
+                  {messages.map(message => (
+                    <MessageBubble key={message.id} message={message} />
+                  ))}
+                  {loading && <LoadingIndicator />}
+                </ScrollView>
+                <ChatInput
+                  value={draft}
+                  onChangeText={setDraft}
+                  onSend={sendMessage}
+                  disabled={loading}
+                />
+
               </View>
+            </LinearGradient>
+            <View>
+              <Text style={styles.footerText} />
             </View>
-          </KeyboardAvoidingView>
-        </ImageBackground>
-
+          </View>
+        </BackgroundWrapper>
       </SafeAreaView>
+    </KeyboardAvoidingView>
+  );
+}
+
+export default function MirrorChatScreen() {
+  return (
+    <AuthenticatedRoute>
+      <MirrorChatContent />
+
     </AuthenticatedRoute >
   );
 }
@@ -149,9 +155,19 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
+  headerText: {
+    fontFamily: 'CormorantGaramond-Italic',
+    fontSize: 20,
+    fontWeight: '400',
+    lineHeight: 28,
+    color: COLORS.TEXT.SYSTEM_MESSAGE,
+    paddingTop: 24,
+    textAlign: 'center',
+  },
+
   chatContainer: {
     flex: 1,
-    flex: 1, 
+
     width: '100%',
     // height: SCREEN_DIMENSIONS.HEIGHT * 0.72,
     borderRadius: SPACING.LG,
@@ -167,13 +183,12 @@ const styles = StyleSheet.create({
   chatTitle: {
     ...theme.typography.styles.title,
     fontFamily: 'CormorantGaramond-Regular',
-    fontSize: 24,
-    fontWeight: '400',
-    lineHeight: 32,
+    fontSize: 28,
+    fontWeight: '300',
+    lineHeight: 28,
     color: COLORS.TEXT.TITLE,
     textAlign: 'center',
-    textDecorationLine: 'underline',
-    marginBottom: SPACING.MD,
+    marginTop: 28,
   },
 
   messagesWrapper: {

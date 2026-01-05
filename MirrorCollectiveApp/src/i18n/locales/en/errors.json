@@ -1,0 +1,37 @@
+{
+  "apiErrors": {
+    "AuthenticationError": "Authentication failed. Please check your credentials.",
+    "SignUpError": "Sign up failed. Please try again.",
+    "VerificationError": "Email verification failed. Please check your verification code.",
+    "ForgotPasswordError": "Failed to send reset email. Please try again.",
+    "ResetPasswordError": "Password reset failed. Please try again.",
+    "RefreshTokenError": "Session expired. Please log in again.",
+    "SignOutError": "Sign out failed. Please try again.",
+    "NetworkError": "Network error. Please check your connection.",
+    "TimeoutError": "Request timeout. Please try again.",
+    "ServerError": "Server error. Please try again later.",
+    "ValidationError": "Invalid input. Please check your data.",
+    "QuizSubmissionError": "Failed to submit quiz results. Please try again.",
+    "SessionError": "Session error. Please try again.",
+    "ChatError": "Chat error. Please try again.",
+    "UnknownError": "An unexpected error occurred. Please try again.",
+    "fallback": "An unexpected error occurred. Please try again."
+  },
+  "errorBoundary": {
+    "title": "Something went wrong",
+    "message": "The app encountered an unexpected error. Please restart the app.",
+    "restartButton": "Try Again",
+    "errorDetails": "Error Details:"
+  },
+  "validation": {
+    "missingFullName": "Please enter your full name",
+    "missingEmail": "Please enter your email address",
+    "invalidEmail": "Please enter a valid email address",
+    "missingPassword": "Please enter a password",
+    "passwordTooShort": "Password must be at least 8 characters long",
+    "weakPasswordTitle": "Weak Password",
+    "weakPasswordMessage": "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character",
+    "passwordMismatch": "Passwords do not match",
+    "continue": "Continue"
+  }
+}

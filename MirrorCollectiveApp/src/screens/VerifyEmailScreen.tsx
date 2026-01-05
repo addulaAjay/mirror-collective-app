@@ -1,21 +1,24 @@
+import { useNavigation, useRoute } from '@react-navigation/native';
+import type { RouteProp } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
   StyleSheet,
-  ImageBackground,
   TouchableOpacity,
   Alert,
   TextInput,
 } from 'react-native';
-import LogoHeader from '../components/LogoHeader';
-import { authApiService } from '../services/api';
-import { QuizStorageService } from '../services/quizStorageService';
-import { useNavigation, useRoute } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RouteProp } from '@react-navigation/native';
-import type { RootStackParamList } from '../types';
-import { typography, colors, shadows } from '../styles/typography';
+
+import BackgroundWrapper from '@components/BackgroundWrapper';
+import LogoHeader from '@components/LogoHeader';
+import { authApiService } from '@services/api';
+import { QuizStorageService } from '@services/quizStorageService';
+import { theme } from '@theme';
+import type { RootStackParamList } from '@types';
+import { getApiErrorMessage } from '@utils/apiErrorUtils';
 
 type VerifyEmailScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -25,6 +28,7 @@ type VerifyEmailScreenNavigationProp = NativeStackNavigationProp<
 type VerifyEmailScreenRouteProp = RouteProp<RootStackParamList, 'VerifyEmail'>;
 
 const VerifyEmailScreen = () => {
+  const { t } = useTranslation();
   const navigation = useNavigation<VerifyEmailScreenNavigationProp>();
   const route = useRoute<VerifyEmailScreenRouteProp>();
   const { email } = route.params;
@@ -43,12 +47,12 @@ const VerifyEmailScreen = () => {
 
   const handleVerifyCode = async () => {
     if (!verificationCode.trim()) {
-      Alert.alert('Error', 'Please enter the verification code');
+      Alert.alert(t('common.error'), 'Please enter the verification code');
       return;
     }
 
     if (verificationCode.length !== 6) {
-      Alert.alert('Error', 'Verification code must be 6 digits');
+      Alert.alert(t('common.error'), 'Verification code must be 6 digits');
       return;
     }
 
@@ -85,11 +89,11 @@ const VerifyEmailScreen = () => {
         }
 
         Alert.alert(
-          'Welcome to the Mirror Collective!',
-          'Your sacred space is ready. Let the journey begin.',
+          t('auth.verifyEmail.successTitle'),
+          t('auth.verifyEmail.successMessage'),
           [
             {
-              text: 'Enter the Mirror',
+              text: t('auth.verifyEmail.enterButton'),
               onPress: () => {
                 // Navigate to main app
                 navigation.reset({
@@ -102,15 +106,15 @@ const VerifyEmailScreen = () => {
         );
       } else {
         Alert.alert(
-          'Verification Failed',
-          response.message || 'Invalid verification code',
+          t('auth.verifyEmail.failedTitle'),
+          getApiErrorMessage(response, t),
         );
       }
     } catch (error: any) {
       console.error('Verification error:', error);
       Alert.alert(
-        'Verification Failed',
-        error.message || 'Unable to verify your email. Please try again.',
+        t('auth.verifyEmail.failedTitle'),
+        getApiErrorMessage(error, t),
       );
     } finally {
       setIsVerifying(false);
@@ -130,21 +134,20 @@ const VerifyEmailScreen = () => {
       if (response.success) {
         setCountdown(60); // 60 second cooldown
         Alert.alert(
-          'Email Sent',
-          'A new verification link has been whispered to your inbox. Please check your email.',
+          t('auth.forgotPassword.successTitle'),
+          t('auth.verifyEmail.title'),
         );
       } else {
         Alert.alert(
-          'Error',
-          response.message || 'Failed to resend verification email',
+          t('common.error'),
+          getApiErrorMessage(response, t),
         );
       }
     } catch (error: any) {
       console.error('Resend error:', error);
       Alert.alert(
-        'Error',
-        error.message ||
-        'Unable to resend verification email. Please try again.',
+        t('common.error'),
+        getApiErrorMessage(error, t),
       );
     } finally {
       setIsResending(false);
@@ -152,11 +155,7 @@ const VerifyEmailScreen = () => {
   };
 
   return (
-    <ImageBackground
-      source={require('../../assets/dark_mode_shimmer_bg.png')}
-      style={styles.container}
-      resizeMode="cover"
-    >
+    <BackgroundWrapper style={styles.container}>
       <LogoHeader />
 
       <View style={styles.contentContainer}>
@@ -164,19 +163,19 @@ const VerifyEmailScreen = () => {
         <View style={styles.messageContainer}>
           {/* Header */}
           <View style={styles.headerSection}>
-            <Text style={styles.title}>We've sent a whisper to your inbox</Text>
+            <Text style={styles.title}>{t('auth.verifyEmail.title')}</Text>
             <Text style={styles.subtitle}>
-              Please enter the 6-digit verification code from your email to
-              confirm your entry.
+              {t('auth.verifyEmail.subtitle')}
             </Text>
           </View>
 
           {/* Verification Code Input */}
           <View style={styles.codeSection}>
             <TextInput
+              testID="verification-code-input"
               style={styles.codeInput}
-              placeholder="Enter 6-digit code"
-              placeholderTextColor={colors.text.muted}
+              placeholder={t('auth.verifyEmail.codePlaceholder')}
+              placeholderTextColor={theme.colors.text.muted}
               value={verificationCode}
               onChangeText={setVerificationCode}
               keyboardType="numeric"
@@ -186,10 +185,11 @@ const VerifyEmailScreen = () => {
             />
 
             <TouchableOpacity
+              testID="verify-button"
               style={[
                 styles.verifyButton,
                 (isVerifying || verificationCode.length !== 6) &&
-                styles.verifyButtonDisabled,
+                  styles.verifyButtonDisabled,
               ]}
               onPress={handleVerifyCode}
               disabled={isVerifying || verificationCode.length !== 6}
@@ -198,10 +198,10 @@ const VerifyEmailScreen = () => {
                 style={[
                   styles.verifyButtonText,
                   (isVerifying || verificationCode.length !== 6) &&
-                  styles.verifyButtonTextDisabled,
+                    styles.verifyButtonTextDisabled,
                 ]}
               >
-                {isVerifying ? 'Verifying...' : 'Verify Code'}
+                {isVerifying ? t('auth.verifyEmail.verifyingButton') : t('auth.verifyEmail.verifyButton')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -209,10 +209,11 @@ const VerifyEmailScreen = () => {
           {/* Resend Section */}
           <View style={styles.resendSection}>
             <Text style={styles.resendText}>
-              Still didn't receive it? No stress...
+              {t('auth.verifyEmail.resendPrompt')}
             </Text>
 
             <TouchableOpacity
+              testID="resend-button"
               style={[
                 styles.resendButton,
                 (countdown > 0 || isResending) && styles.resendButtonDisabled,
@@ -224,20 +225,20 @@ const VerifyEmailScreen = () => {
                 style={[
                   styles.resendButtonText,
                   (countdown > 0 || isResending) &&
-                  styles.resendButtonTextDisabled,
+                    styles.resendButtonTextDisabled,
                 ]}
               >
                 {countdown > 0
-                  ? `Resend Email (${countdown}s)`
+                  ? t('auth.verifyEmail.resendButtonWithTimer', { count: countdown })
                   : isResending
-                    ? 'Sending...'
-                    : 'Resend Email'}
+                  ? t('auth.verifyEmail.sendingButton')
+                  : t('auth.verifyEmail.resendButton')}
               </Text>
             </TouchableOpacity>
           </View>
         </View>
       </View>
-    </ImageBackground>
+    </BackgroundWrapper>
   );
 };
 
@@ -245,10 +246,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     borderRadius: 15,
-    shadowColor: shadows.container.color,
-    shadowOffset: shadows.container.offset,
-    shadowOpacity: shadows.container.opacity,
-    shadowRadius: shadows.container.radius,
+    shadowColor: theme.shadows.container.color,
+    shadowOffset: theme.shadows.container.offset,
+    shadowOpacity: theme.shadows.container.opacity,
+    shadowRadius: theme.shadows.container.radius,
     elevation: 10,
     alignItems: 'center',
     justifyContent: 'center',
@@ -271,7 +272,7 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   title: {
-    ...typography.styles.title,
+    ...theme.typography.styles.title,
     color: '#F2E2B1',
     fontFamily: 'CormorantGaramond-Italic',
     fontSize: 28,
@@ -280,13 +281,13 @@ const styles = StyleSheet.create({
     lineHeight: 36,
   },
   subtitle: {
-    ...typography.styles.body,
+    ...theme.typography.styles.body,
     color: '#FDFDF9',
     fontFamily: 'CormorantGaramond-Regular',
     fontSize: 20,
     textAlign: 'center',
     fontWeight: '400',
-    lineHeight: 28
+    lineHeight: 28,
   },
   codeSection: {
     alignItems: 'center',
@@ -298,36 +299,36 @@ const styles = StyleSheet.create({
     height: 60,
     borderRadius: 8,
     borderWidth: 0.5,
-    borderColor: colors.border.input,
-    backgroundColor: colors.background.input,
-    ...typography.styles.input,
+    borderColor: theme.colors.border.input,
+    backgroundColor: theme.colors.background.input,
+    ...theme.typography.styles.input,
     fontSize: 24,
     lineHeight: 30,
-    shadowColor: shadows.input.color,
-    shadowOffset: shadows.input.offset,
-    shadowOpacity: shadows.input.opacity,
-    shadowRadius: shadows.input.radius,
+    shadowColor: theme.shadows.input.color,
+    shadowOffset: theme.shadows.input.offset,
+    shadowOpacity: theme.shadows.input.opacity,
+    shadowRadius: theme.shadows.input.radius,
   },
 
   verifyButton: {
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: colors.button.primary,
+    borderColor: theme.colors.button.primary,
     paddingHorizontal: 40,
     paddingVertical: 12,
-    shadowColor: shadows.button.color,
-    shadowOffset: shadows.button.offset,
-    shadowOpacity: shadows.button.opacity,
-    shadowRadius: shadows.button.radius,
+    shadowColor: theme.shadows.button.color,
+    shadowOffset: theme.shadows.button.offset,
+    shadowOpacity: theme.shadows.button.opacity,
+    shadowRadius: theme.shadows.button.radius,
     alignItems: 'center',
     justifyContent: 'center',
   },
   verifyButtonDisabled: {
-    borderColor: colors.button.disabled,
+    borderColor: theme.colors.button.disabled,
     opacity: 0.6,
   },
   verifyButtonText: {
-    ...typography.styles.button,
+    ...theme.typography.styles.button,
     textAlign: 'center',
     width: 220,
     fontFamily: 'CormorantGaramond-Italic',
@@ -347,7 +348,7 @@ const styles = StyleSheet.create({
     gap: 20,
   },
   resendText: {
-    ...typography.styles.body,
+    ...theme.typography.styles.body,
     color: '#FDFDF9',
     fontFamily: 'CormorantGaramond-Italic',
     textAlign: 'center',
@@ -359,13 +360,13 @@ const styles = StyleSheet.create({
     width: 300,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: colors.border.primary,
+    borderColor: theme.colors.border.primary,
     paddingHorizontal: 40,
     paddingVertical: 12,
-    shadowColor: shadows.input.color,
-    shadowOffset: shadows.input.offset,
-    shadowOpacity: shadows.input.opacity,
-    shadowRadius: shadows.input.radius,
+    shadowColor: theme.shadows.input.color,
+    shadowOffset: theme.shadows.input.offset,
+    shadowOpacity: theme.shadows.input.opacity,
+    shadowRadius: theme.shadows.input.radius,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -373,7 +374,7 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   resendButtonText: {
-    ...typography.styles.button,
+    ...theme.typography.styles.button,
     textAlign: 'center',
     fontFamily: 'CormorantGaramond-Italic',
     color: '#E5D6B0',

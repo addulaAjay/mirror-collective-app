@@ -6,8 +6,9 @@ import {
   TouchableOpacity,
   Text,
 } from 'react-native';
-import { typography, colors } from '../styles/typography';
 import Svg, { Mask, Rect, G, Path } from 'react-native-svg';
+
+import { theme } from '@theme';
 
 interface Props {
   placeholder: string;
@@ -39,9 +40,9 @@ const TextInputField = ({
   onTogglePassword,
   placeholderAlign,
   size,
-  placeholderFontFamily,
-  inputTextStyle
-}: Props) => {
+  inputTextStyle,
+  testID,
+}: Props & { testID?: string }) => {
   const [isFocused, setIsFocused] = useState(false);
 
   const isEmpty = value.trim().length === 0;
@@ -63,9 +64,6 @@ const TextInputField = ({
             placeholderAlign === 'left'
               ? styles.placeholderLeft
               : styles.placeholderCenter,
-            placeholderFontFamily === 'regular'
-              ? styles.fontFamilyRegular
-              : styles.fontFamilyItalic
           ]}
         >
           {placeholder}
@@ -85,14 +83,15 @@ const TextInputField = ({
           size === 'normal'
             ? styles.size_normal
             : size === 'medium'
-              ? styles.size_medium
-              : styles.size_small,
+            ? styles.size_medium
+            : styles.size_small,
           inputTextStyle === 'gold-regular'
             ? styles.inputTextStyleGoldRegular
-            : styles.input
+            : styles.input,
         ]}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
+        testID={testID}
       />
 
       {showPasswordToggle && (
@@ -104,7 +103,14 @@ const TextInputField = ({
           {/* <Text style={styles.eyeText}>{isPasswordVisible ? '👁️' : '👁️‍🗨️'}</Text> */}
           {isPasswordVisible ? (
             <Svg width={20} height={20} viewBox="0 0 20 20">
-              <Mask id="eyeMask" maskUnits="userSpaceOnUse" x={0} y={0} width={20} height={20}>
+              <Mask
+                id="eyeMask"
+                maskUnits="userSpaceOnUse"
+                x={0}
+                y={0}
+                width={20}
+                height={20}
+              >
                 <Rect width={20} height={20} fill="#fff" />
               </Mask>
               <G mask="url(#eyeMask)">
@@ -116,7 +122,14 @@ const TextInputField = ({
             </Svg>
           ) : (
             <Svg width={20} height={20} viewBox="0 0 20 20">
-              <Mask id="eyeOffMask" maskUnits="userSpaceOnUse" x={0} y={0} width={20} height={20}>
+              <Mask
+                id="eyeOffMask"
+                maskUnits="userSpaceOnUse"
+                x={0}
+                y={0}
+                width={20}
+                height={20}
+              >
                 <Rect width={20} height={20} fill="#fff" />
               </Mask>
               <G mask="url(#eyeOffMask)">
@@ -161,18 +174,18 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    ...typography.styles.input,
+    ...theme.typography.styles.input,
     textAlign: 'left',
     textAlignVertical: 'center',
     includeFontPadding: false,
     color: '#E8F1F2',
-    fontFamily: 'CormorantGaramond-Italic',
+    fontFamily: 'CormorantGaramond-Regular',
     fontSize: 20,
     fontWeight: '400',
   },
   inputTextStyleGoldRegular: {
     flex: 1,
-    ...typography.styles.input,
+    ...theme.typography.styles.input,
     textAlign: 'left',
     textAlignVertical: 'center',
     includeFontPadding: false,
@@ -185,10 +198,11 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
-    ...typography.styles.inputPlaceholder,
+    ...theme.typography.styles.inputPlaceholder,
     zIndex: 1,
     color: 'rgba(232, 241, 242, 0.50)',
     pointerEvents: 'none',
+    fontFamily: 'CormorantGaramond-Regular',
   },
   fontFamilyRegular: {
     fontFamily: 'CormorantGaramond-Regular',
@@ -210,16 +224,16 @@ const styles = StyleSheet.create({
   },
   eyeText: {
     fontSize: 18,
-    color: colors.text.secondary,
+    color: theme.colors.text.secondary,
     fontFamily: 'CormorantGaramond-LightItalic',
   },
   absolute: {
-    position: "absolute",
+    position: 'absolute',
     top: 0,
     left: 0,
     bottom: 0,
-    right: 0
-  }
+    right: 0,
+  },
 });
 
 export default TextInputField;

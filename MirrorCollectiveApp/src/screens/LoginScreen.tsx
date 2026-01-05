@@ -1,22 +1,32 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
   StyleSheet,
-  ImageBackground,
+  
   TouchableOpacity,
   Alert,
   KeyboardAvoidingView,
   Platform,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from 'react-native';
-import LogoHeader from '../components/LogoHeader';
-import TextInputField from '../components/TextInputField';
-import StarIcon from '../components/StarIcon';
-import { authApiService } from '../services/api';
-import { QuizStorageService } from '../services/quizStorageService';
-import { typography } from '../styles/typography';
+
+import BackgroundWrapper from '@components/BackgroundWrapper';
+import LogoHeader from '@components/LogoHeader';
+import StarIcon from '@components/StarIcon';
+import TextInputField from '@components/TextInputField';
+import { useSession } from '@context/SessionContext';
+import { useUser } from '@context/UserContext';
+import { QuizStorageService } from '@services/quizStorageService';
+import { theme } from '@theme';
+import { getApiErrorMessage } from '@utils/apiErrorUtils';
 
 const LoginScreen = ({ navigation }: any) => {
+  const { t } = useTranslation();
+  const { signIn } = useSession();
+  const { setUser } = useUser();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -24,12 +34,12 @@ const LoginScreen = ({ navigation }: any) => {
 
   const validateForm = (): boolean => {
     if (!email.trim()) {
-      Alert.alert('Error', 'Please enter your email address');
+      Alert.alert(t('common.error'), t('auth.login.missingEmail'));
       return false;
     }
 
     if (!password) {
-      Alert.alert('Error', 'Please enter your password');
+      Alert.alert(t('common.error'), t('auth.login.missingPassword'));
       return false;
     }
 
@@ -44,72 +54,28 @@ const LoginScreen = ({ navigation }: any) => {
     setIsLoading(true);
 
     try {
-      const response = await authApiService.signIn({
-        email: email.toLowerCase().trim(),
-        password,
-      });
-      if (__DEV__) {
-        console.log('SignIn response:', response);
-      }
-      if (response.success && response.data && response.data.tokens) {
-        // Store authentication tokens
-        await authApiService.storeTokens(response.data.tokens);
+      const data = await signIn(email, password);
 
-        // Check if user is verified
-        if (response.data.user && !response.data.user.isVerified) {
-          Alert.alert(
-            'Email Verification Required',
-            'Please verify your email address to continue.',
-            [
-              {
-                text: 'Verify Now',
-                onPress: () =>
-                  navigation.navigate('VerifyEmail', {
-                    email: response.data!.user!.email,
-                    fullName: response.data!.user!.fullName,
-                  }),
-              },
-            ],
-          );
-          return;
-        }
-
-        // Submit any pending quiz results after successful login (for verified users)
+      if (data && data.user) {
+        // Update user context with profile data
+        setUser(data.user);
+        
+        // Submit any pending quiz results after successful login
         try {
-          const quizSubmitted =
-            await QuizStorageService.submitPendingQuizResults();
+          const quizSubmitted = await QuizStorageService.submitPendingQuizResults();
           if (__DEV__) {
-            console.log(
-              'Quiz submission after login:',
-              quizSubmitted ? 'Success' : 'Failed or no quiz',
-            );
+            console.log('Quiz submission after login:', quizSubmitted ? 'Success' : 'Failed or no quiz');
           }
         } catch (quizError) {
           // Log quiz submission error but don't block user flow
-          console.error(
-            'Failed to submit quiz results after login:',
-            quizError,
-          );
+          console.error('Failed to submit quiz results after login:', quizError);
         }
 
-        // Navigate to main app
-        navigation.reset({
-          index: 0,
-          routes: [{ name: 'EnterMirror' }],
-        });
-      } else {
-        Alert.alert(
-          'Sign In Failed',
-          response.message || response.error || 'Invalid credentials',
-        );
+        // Navigation is handled automatically by AppNavigator based on auth state
       }
     } catch (error: any) {
-      console.error('Sign in error:', error);
-      Alert.alert(
-        'Sign In Failed',
-        error.message ||
-          'Unable to sign in. Please check your connection and try again.',
-      );
+      console.error('Login error:', error);
+      Alert.alert(t('auth.login.loginFailed'), getApiErrorMessage(error, t));
     } finally {
       setIsLoading(false);
     }
@@ -126,71 +92,75 @@ const LoginScreen = ({ navigation }: any) => {
   return (
     <KeyboardAvoidingView
       style={styles.keyboardContainer}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <ImageBackground
-        source={require('../../assets/dark_mode_shimmer_bg.png')}
-        style={styles.container}
-        resizeMode="cover"
-      >
-        <LogoHeader />
-        <View style={styles.contentContainer}>
-          <Text style={styles.title}>Welcome to the Living Mirror</Text>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        <BackgroundWrapper
+          style={styles.container}
+        >
+          <LogoHeader />
+          <View style={styles.contentContainer}>
+            <Text style={styles.title}>{t('auth.login.title')}</Text>
 
-          <View style={styles.formContainer}>
-            <TextInputField
-              size="normal"
-              placeholder="Username"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoComplete="email"
-            />
+            <View style={styles.formContainer}>
+              <TextInputField
+                size="normal"
+                placeholder={t('auth.login.usernamePlaceholder')}
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoComplete="email"
+                testID="email-input"
+              />
 
-            <TextInputField
-              size="normal"
-              placeholder="Password"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry={!showPassword}
-              showPasswordToggle={true}
-              isPasswordVisible={showPassword}
-              onTogglePassword={() => setShowPassword(!showPassword)}
-            />
+              <TextInputField
+                size="normal"
+                placeholder={t('auth.login.passwordPlaceholder')}
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword}
+                showPasswordToggle={true}
+                isPasswordVisible={showPassword}
+                onTogglePassword={() => setShowPassword(!showPassword)}
+                testID="password-input"
+              />
+
+              <TouchableOpacity
+                style={styles.enterButton}
+                onPress={handleSignIn}
+                disabled={isLoading}
+                activeOpacity={0.8}
+              >
+                <StarIcon width={24} height={24} />
+                <Text style={styles.enterText}>
+                  {isLoading ? t('auth.login.enteringButton') : t('auth.login.enterButton')}
+                </Text>
+                <StarIcon width={24} height={24} />
+              </TouchableOpacity>
+            </View>
 
             <TouchableOpacity
-              style={styles.enterButton}
-              onPress={handleSignIn}
+              onPress={navigateToForgotPassword}
               disabled={isLoading}
-              activeOpacity={0.8}
+              style={styles.forgotPasswordContainer}
             >
-              <StarIcon width={24} height={24} />
-              <Text style={styles.enterText}>
-                {isLoading ? 'ENTERING...' : 'ENTER'}
+              <Text style={styles.forgotPasswordText}>
+                {t('auth.login.forgotPassword')}
               </Text>
-              <StarIcon width={24} height={24} />
             </TouchableOpacity>
-          </View>
 
-          <TouchableOpacity
-            onPress={navigateToForgotPassword}
-            disabled={isLoading}
-            style={styles.forgotPasswordContainer}
-          >
-            <Text style={styles.forgotPasswordText}>
-              Forgotten your way back?
-            </Text>
-          </TouchableOpacity>
-
-          <View style={styles.signupContainer}>
-            <Text style={styles.signupText}>New to the Mirror Collective?</Text>
-            <TouchableOpacity onPress={navigateToSignUp} disabled={isLoading}>
-              <Text style={styles.signupLink}>Sign up here</Text>
-            </TouchableOpacity>
+            <View style={styles.signupContainer}>
+              <Text style={styles.signupText}>
+                {t('auth.login.newToCollective')}
+              </Text>
+              <TouchableOpacity onPress={navigateToSignUp} disabled={isLoading}>
+                <Text style={styles.signupLink}>{t('auth.login.signUpLink')}</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-      </ImageBackground>
+        </BackgroundWrapper>
+      </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
   );
 };
@@ -198,9 +168,9 @@ const LoginScreen = ({ navigation }: any) => {
 const styles = StyleSheet.create({
   keyboardContainer: {
     flex: 1,
+    backgroundColor: '#0B0F1C',
   },
   container: {
-    flex: 1,
     borderRadius: 15,
     shadowColor: '#000',
     shadowOffset: { width: -1, height: 5 },
@@ -220,10 +190,10 @@ const styles = StyleSheet.create({
     maxWidth: 313,
   },
   title: {
-    ...typography.styles.title,
+    ...theme.typography.styles.title,
     color: '#F2E2B1',
     textAlign: 'center',
-    marginTop:60,
+    marginTop: 60,
     marginBottom: 10,
     lineHeight: 38,
     fontStyle: 'normal',
@@ -242,7 +212,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   enterText: {
-    ...typography.styles.button,
+    ...theme.typography.styles.button,
     textShadowColor: 'rgba(245, 230, 184, 0.50)',
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 4,

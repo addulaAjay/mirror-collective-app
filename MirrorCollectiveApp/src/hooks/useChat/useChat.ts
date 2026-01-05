@@ -1,8 +1,11 @@
 import { useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ScrollView } from 'react-native';
-import { chatApiService, sessionApiService } from '../../services/api';
-import { SessionManager } from '../../services/sessionManager';
-import type { Message } from '../../types';
+
+import { chatApiService, sessionApiService } from '@services/api';
+import { SessionManager } from '@services/sessionManager';
+import type { Message } from '@types';
+import { getApiErrorMessage } from '@utils/apiErrorUtils';
 
 /**
  * Custom hook for managing chat functionality with MirrorGPT integration
@@ -15,6 +18,7 @@ const createMessage = (text: string, sender: 'user' | 'system'): Message => ({
 });
 
 export const useChat = () => {
+  const { t } = useTranslation();
   const [messages, setMessages] = useState<Message[]>([]);
   const [draft, setDraft] = useState('');
   const [loading, setLoading] = useState(false);
@@ -88,7 +92,7 @@ export const useChat = () => {
       if (!sessionId) {
         console.error('No session ID available');
         const errorMessage = createMessage(
-          '❗️ Session not initialized. Please refresh.',
+          t('apiErrors.SessionError'),
           'system',
         );
         setMessages(msgs => [...msgs, errorMessage]);
@@ -143,7 +147,7 @@ export const useChat = () => {
       } else {
         // Handle API error response
         const errorMessage = createMessage(
-          '❗️ Unexpected response from the server.',
+          getApiErrorMessage(response, t),
           'system',
         );
         setMessages(msgs => [...msgs, errorMessage]);
@@ -152,7 +156,7 @@ export const useChat = () => {
       console.error('Chat error:', error);
       // Handle network/unexpected errors
       const errorMessage = createMessage(
-        '❗️ Network error, please try again.',
+        getApiErrorMessage(error, t),
         'system',
       );
       setMessages(msgs => [...msgs, errorMessage]);

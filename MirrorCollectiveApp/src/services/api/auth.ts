@@ -1,15 +1,17 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { BaseApiService } from './base';
-import { API_CONFIG } from '../../constants/config';
-import { ApiErrorHandler } from './errorHandler';
-import { tokenManager } from '../tokenManager';
+
+import { API_CONFIG } from '@constants/config';
+import { tokenManager } from '@services/tokenManager';
 import type {
   AuthCredentials,
   SignUpData,
   VerifyEmailData,
   ResetPasswordData,
   ApiResponse,
-} from '../../types';
+} from '@types';
+
+import { BaseApiService } from './base';
+import { ApiErrorHandler } from './errorHandler';
 
 interface AuthResponse {
   user?: {
