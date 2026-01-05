@@ -74,6 +74,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#0B0F1C',
   },
   container: {
+    flex: 1,
     paddingHorizontal: Math.max(40, screenWidth * 0.102),
     paddingTop: Math.max(48, screenHeight * 0.056),
     paddingBottom: Math.max(30, screenHeight * 0.035),
@@ -84,8 +85,7 @@ const styles = StyleSheet.create({
   },
   titleContainer: {
     alignItems: 'center',
-    marginTop: Math.max(60, screenHeight * 0.1),
-    // marginBottom: Math.max(60, screenHeight * 0.07),
+    marginTop: Math.max(20, screenHeight * 0.05),
   },
   title: {
     fontFamily: 'CormorantGaramond-Light',
@@ -98,13 +98,17 @@ const styles = StyleSheet.create({
     textShadowRadius: 8,
   },
   mirrorContainer: {
+    flex: 1,
+    width: '100%',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: Math.max(10, screenHeight * 0.01),
   },
   mirrorImage: {
-    width: Math.min(screenWidth * 0.7, 275),
-    height: Math.min(screenHeight * 0.5, 400),
+    width: '100%',
+    height: '100%',
+    resizeMode: 'contain',
+    maxWidth: 275,
+    maxHeight: 400,
     shadowColor: '#E5D6B0',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.3,
@@ -112,7 +116,7 @@ const styles = StyleSheet.create({
   },
   messageContainer: {
     alignItems: 'center',
-    marginBottom: Math.max(30, screenHeight * 0.04),
+    marginBottom: Math.max(10, screenHeight * 0.02),
   },
   message: {
     fontFamily: 'CormorantGaramond-Light',
