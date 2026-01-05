@@ -1,8 +1,10 @@
-import React, { useCallback } from 'react';
-import { ImageBackground, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '../types';
-import LogoHeader from '../components/LogoHeader';
+import React, { useCallback } from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+
+import BackgroundWrapper from '@components/BackgroundWrapper';
+import LogoHeader from '@components/LogoHeader';
+import type { RootStackParamList } from '@types';
 
 interface Props {
   navigation: NativeStackNavigationProp<RootStackParamList, 'AppVideo'>;
@@ -17,11 +19,7 @@ const AppVideoScreen: React.FC<Props> = ({ navigation }) => {
   }, [navigation]);
 
   return (
-    <ImageBackground
-      source={require('../../assets/dark_mode_shimmer_bg.png')}
-      style={styles.container}
-      resizeMode="cover"
-    >
+    <BackgroundWrapper style={styles.container}>
       <LogoHeader />
 
       <View style={styles.content}>
@@ -36,7 +34,7 @@ const AppVideoScreen: React.FC<Props> = ({ navigation }) => {
           </View>
         </TouchableOpacity>
       </View>
-    </ImageBackground>
+    </BackgroundWrapper>
   );
 };
 

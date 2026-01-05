@@ -1,68 +1,69 @@
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
   StyleSheet,
-  ImageBackground,
   TouchableOpacity,
   Dimensions,
   Image,
 } from 'react-native';
-import LogoHeader from '../components/LogoHeader';
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '../types';
-import StarIcon from '../components/StarIcon';
+
+import LogoHeader from '@components/LogoHeader';
+import StarIcon from '@components/StarIcon';
+import type { RootStackParamList } from '@types';
 
 type QuizTuningScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
   'QuizTuning'
 >;
 
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+
+const { width: screenWidth, height: screenHeight } = Dimensions.get('screen');
+
+import BackgroundWrapper from '@components/BackgroundWrapper';
 
 const QuizTuningScreen = () => {
+  const { t } = useTranslation();
   const navigation = useNavigation<QuizTuningScreenNavigationProp>();
 
   return (
-    <ImageBackground
-      source={require('../../assets/dark_mode_shimmer_bg.png')}
-      style={styles.bg}
-      imageStyle={styles.bgImage}
-    >
+    <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage}>
       <View style={styles.container}>
         <LogoHeader />
 
         <View style={styles.titleContainer}>
-          <Text style={styles.title}>MIRROR GPT IS{'\n'}TUNING...</Text>
+          <Text style={styles.title}>{t('quiz.quizTuning.title')}</Text>
         </View>
 
         <View style={styles.mirrorContainer}>
           <Image
-            source={require('../assets/oval-mirror-golden-frame.png')}
+            source={require('@assets/oval-mirror-golden-frame.png')}
             style={styles.mirrorImage}
             resizeMode="contain"
           />
         </View>
 
         <View style={styles.messageContainer}>
-          <Text style={styles.message}>Your reflection is taking form.</Text>
+          <Text style={styles.message}>{t('quiz.quizTuning.message')}</Text>
           <Text style={styles.subMessage}>
-            Every step you take, the Mirror {'\n'} will walk beside you.
+            {t('quiz.quizTuning.subMessage')}
           </Text>
         </View>
 
         <TouchableOpacity
           style={styles.enterButton}
-          onPress={() => navigation.navigate('MirrorChat')}
+          onPress={() => navigation.navigate('Login')}
           activeOpacity={0.8}
         >
           <StarIcon width={20} height={20} />
-          <Text style={styles.enterText}>ENTER</Text>
+          <Text style={styles.enterText}>{t('quiz.quizTuning.enterButton')}</Text>
           <StarIcon width={20} height={20} />
         </TouchableOpacity>
       </View>
-    </ImageBackground>
+    </BackgroundWrapper>
   );
 };
 
@@ -73,7 +74,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#0B0F1C',
   },
   container: {
-    flex: 1,
     paddingHorizontal: Math.max(40, screenWidth * 0.102),
     paddingTop: Math.max(48, screenHeight * 0.056),
     paddingBottom: Math.max(30, screenHeight * 0.035),
@@ -95,7 +95,6 @@ const styles = StyleSheet.create({
     color: '#E5D6B0',
     textAlign: 'center',
     textShadowColor: '#E5D6B0',
-    textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 8,
   },
   mirrorContainer: {
@@ -113,7 +112,7 @@ const styles = StyleSheet.create({
   },
   messageContainer: {
     alignItems: 'center',
-    marginBottom: Math.max(80, screenHeight * 0.09),
+    marginBottom: Math.max(30, screenHeight * 0.04),
   },
   message: {
     fontFamily: 'CormorantGaramond-Light',
@@ -135,9 +134,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: Math.max(12, screenWidth * 0.03),
     justifyContent: 'center',
-    position: 'absolute',
-    bottom: Math.max(40, screenHeight * 0.05),
-    alignSelf: 'center',
+    marginTop: Math.max(20, screenHeight * 0.02),
+    paddingVertical: Math.max(12, screenHeight * 0.015),
   },
   enterText: {
     fontFamily: 'CormorantGaramond-Light',
@@ -146,7 +144,6 @@ const styles = StyleSheet.create({
     color: '#E5D6B0',
     textAlign: 'center',
     textShadowColor: '#E5D6B0',
-    textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 8,
   },
 });

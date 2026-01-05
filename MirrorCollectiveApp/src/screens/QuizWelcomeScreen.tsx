@@ -3,21 +3,38 @@ import {
   View,
   Text,
   StyleSheet,
-  ImageBackground,
   Image,
   Dimensions,
+  type ViewStyle,
+  type TextStyle,
+  type ImageStyle,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
-import GradientButton from '../components/GradientButton';
+import GradientButton from '@components/GradientButton';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '../types';
+import type { RootStackParamList } from '@types';
+
 type QuizWelcomeScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
   'QuizWelcome'
 >;
-// type QuizWelcomeScreenRouteProp = RouteProp<RootStackParamList, 'QuizWelcome'>;
+
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+
+// Responsive font size helper - scales with screen but has min/max bounds
+const responsiveFontSize = (baseSize: number, minSize: number, maxSize: number) => {
+  const widthScale = screenWidth / 375; // Base on iPhone 11 width
+  const heightScale = screenHeight / 812; // Base on iPhone 11 height
+  const scale = Math.min(widthScale, heightScale);
+  const size = baseSize * scale;
+  return Math.max(minSize, Math.min(maxSize, size));
+};
+
+// Check if device is a tablet (width > 600)
+const isTablet = screenWidth >= 600;
+
+import BackgroundWrapper from '@components/BackgroundWrapper';
 
 const QuizWelcomeScreen = () => {
   const navigation = useNavigation<QuizWelcomeScreenNavigationProp>();
@@ -27,11 +44,7 @@ const QuizWelcomeScreen = () => {
   ];
   // const route = useRoute<QuizWelcomeScreenRouteProp>();
   return (
-    <ImageBackground
-      source={require('../../assets/dark_mode_shimmer_bg.png')}
-      style={styles.bg}
-      imageStyle={styles.bgImage}
-    >
+    <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage}>
       <View style={styles.container}>
         <View style={styles.topContent}>
           <View style={styles.logoContainer}>
@@ -90,13 +103,34 @@ const QuizWelcomeScreen = () => {
           />
         </View>
       </View>
-    </ImageBackground>
+    </BackgroundWrapper>
   );
 };
 
 export default QuizWelcomeScreen;
 
-const styles = StyleSheet.create({
+const styles = StyleSheet.create<{
+  bg: ViewStyle;
+  bgImage: ImageStyle;
+  container: ViewStyle;
+  topContent: ViewStyle;
+  logoContainer: ViewStyle;
+  logo: ImageStyle;
+  welcomeContainer: ViewStyle;
+  welcome: TextStyle;
+  cardWrapper: ViewStyle;
+  cardGradient: ViewStyle;
+  cardContent: ViewStyle;
+  descriptionMaxWidth: TextStyle;
+  description: TextStyle;
+  regularText: TextStyle;
+  italicHighlight: TextStyle;
+  mediumItalicHighlight: TextStyle;
+  emphasis: TextStyle;
+  emphasisText: TextStyle;
+  mirrorHighlight: TextStyle;
+  buttonContainer: ViewStyle;
+}>({
   bg: {
     flex: 1,
     backgroundColor: '#0B0F1C',
@@ -106,33 +140,36 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    paddingHorizontal: Math.max(40, screenWidth * 0.102),
-    paddingTop: Math.max(48, screenHeight * 0.056),
-    paddingBottom: Math.max(40, screenHeight * 0.05),
+    paddingHorizontal: isTablet ? '10%' : '8%', // Flexible horizontal padding
+    paddingTop: screenHeight * 0.06, // 6% of screen height
+    paddingBottom: screenHeight * 0.05, // 5% of screen height
     alignItems: 'center',
     justifyContent: 'space-between',
   },
   topContent: {
+    flex: 1,
     alignItems: 'center',
+    justifyContent: 'flex-start',
+    width: '100%',
   },
   logoContainer: {
     alignItems: 'center',
-    marginTop: Math.max(48, screenHeight * 0.056),
-    marginBottom: Math.max(40, screenHeight * 0.047),
+    marginTop: screenHeight * 0.02,
+    marginBottom: screenHeight * 0.03,
   },
   logo: {
-    width: Math.min(screenWidth * 0.2, 80),
-    height: Math.min(screenWidth * 0.2, 80),
+    width: responsiveFontSize(80, 60, 100),
+    height: responsiveFontSize(80, 60, 100),
   },
   welcomeContainer: {
     alignItems: 'center',
-    marginBottom: Math.max(40, screenHeight * 0.047),
+    marginBottom: screenHeight * 0.04,
   },
   welcome: {
     fontFamily: 'CormorantGaramond-Light',
-    fontSize: Math.min(screenWidth * 0.081, 32),
+    fontSize: responsiveFontSize(32, 24, 40),
     fontWeight: '300',
-    lineHeight: Math.min(screenWidth * 0.081, 32),
+    letterSpacing: 2,
     color: '#E5D6B0',
     textAlign: 'center',
     textShadowColor: '#E5D6B0',
@@ -141,8 +178,9 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   cardWrapper: {
-    width: Math.min(screenWidth * 0.8, 313),
-    padding: 20,
+    width: isTablet ? '70%' : '85%', // Flexible width
+    maxWidth: 400, // Max width for tablets
+    padding: isTablet ? 24 : 20,
     borderRadius: 20,
     borderWidth: 0.25,
     borderColor: '#1A2238',
@@ -151,7 +189,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 1,
     shadowRadius: 24,
-    boxShadow: '0 0 24px 8px rgba(242, 226, 177, 0.50)',
+    elevation: 8, // Android shadow
   },
   cardGradient: {
     ...StyleSheet.absoluteFillObject,
@@ -163,49 +201,51 @@ const styles = StyleSheet.create({
     gap: 20,
   },
   descriptionMaxWidth: {
-    maxWidth: Math.min(screenWidth * 0.695, 273),
+    width: '100%',
   },
   description: {
-    fontSize: Math.min(screenWidth * 0.061, 24), // Exact 24px from Figma
+    fontSize: responsiveFontSize(22, 18, 26),
     textAlign: 'center',
-    lineHeight: Math.min(screenWidth * 0.074, 29), // Exact 29.06px line height from Figma
-    maxWidth: Math.min(screenWidth * 0.695, 273), // Exact 273px width from Figma
+    lineHeight: responsiveFontSize(28, 24, 32),
+    width: '100%',
   },
   regularText: {
-    fontFamily: 'CormorantGaramond-Light', // Light style from Figma
+    fontFamily: 'CormorantGaramond-Light',
     fontWeight: '300',
-    color: '#FDFDF9', // Exact white color from Figma (style 22)
+    color: '#FDFDF9',
   },
   italicHighlight: {
-    fontFamily: 'CormorantGaramond-MediumItalic', // Light Italic from Figma
+    fontFamily: 'CormorantGaramond-MediumItalic',
     fontWeight: '300',
-    color: '#F2E2B1', // Exact highlight color from Figma (style 57, 73)
+    color: '#F2E2B1',
   },
   mediumItalicHighlight: {
-    fontFamily: 'CormorantGaramond-MediumItalic', // Medium Italic from Figma
+    fontFamily: 'CormorantGaramond-MediumItalic',
     fontWeight: '500',
-    color: '#F2E2B1', // Exact highlight color from Figma (style 41)
+    color: '#F2E2B1',
   },
   emphasis: {
-    fontSize: Math.min(screenWidth * 0.071, 28), // Exact 28px from Figma
+    fontSize: responsiveFontSize(26, 22, 32),
     textAlign: 'center',
-    lineHeight: Math.min(screenWidth * 0.081, 32), // Exact 32px line height from Figma
+    lineHeight: responsiveFontSize(32, 28, 38),
     textShadowColor: 'rgba(0, 0, 0, 0.25)',
     textShadowOffset: { width: 0, height: 4 },
-    textShadowRadius: 4, // Exact 4px blur from Figma
+    textShadowRadius: 4,
   },
   emphasisText: {
-    fontFamily: 'CormorantGaramond-MediumItalic', // Medium Italic from Figma
+    fontFamily: 'CormorantGaramond-MediumItalic',
     fontWeight: '500',
-    color: '#F2E2B1', // Exact highlight color from Figma
+    color: '#F2E2B1',
   },
   mirrorHighlight: {
-    fontFamily: 'CormorantGaramond-SemiBoldItalic', // SemiBold Italic for "Mirror" (style 74)
+    fontFamily: 'CormorantGaramond-SemiBoldItalic',
     fontWeight: '600',
-    color: '#F2E2B1', // Exact highlight color from Figma
+    color: '#F2E2B1',
   },
   buttonContainer: {
+    width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
+    paddingTop: screenHeight * 0.02,
   },
 });

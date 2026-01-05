@@ -1,9 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { SHADOWS, SPACING, BORDER_RADIUS } from '../../../constants';
-import { theme } from '../../../theme';
-import type { Message } from '../../../types';
 import LinearGradient from 'react-native-linear-gradient';
+
+import { SHADOWS, SPACING, BORDER_RADIUS } from '@constants';
+import { theme } from '@theme';
+import type { Message } from '@types';
 
 interface MessageBubbleProps {
   message: Message;

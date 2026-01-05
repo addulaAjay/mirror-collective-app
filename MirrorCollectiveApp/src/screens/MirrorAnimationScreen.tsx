@@ -1,24 +1,46 @@
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useCallback } from 'react';
 import {
   View,
   StyleSheet,
-  ImageBackground,
   Image,
   TouchableOpacity,
   Dimensions,
+  type ViewStyle,
+  type ImageStyle,
 } from 'react-native';
-import Svg, { Defs, RadialGradient, Stop, Rect } from 'react-native-svg';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '../types';
-import { useAuthGuard } from '../hooks/useAuthGuard';
+// Responsive size helper - scales with screen but has min/max bounds for cross-device compatibility
+const responsiveSize = (baseSize: number, minSize: number, maxSize: number) => {
+  const widthScale = screenWidth / 375; // Base on standard mobile width
+  const heightScale = screenHeight / 812; // Base on standard mobile height
+  const scale = Math.min(widthScale, heightScale);
+  const size = baseSize * scale;
+  return Math.max(minSize, Math.min(maxSize, size));
+};
+
+// Check if device is a tablet
+const isTablet = screenWidth >= 600;
+
+import BackgroundWrapper from '@components/BackgroundWrapper';
+import { useAuthGuard } from '@hooks/useAuthGuard';
+import type { RootStackParamList } from '@types';
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'MirrorAnimation'>;
 };
 
+/**
+ * MirrorAnimationScreen - Displays the mirror with glow effect
+ *
+ * Using layered approach with separate assets for flexibility.
+ * For simpler approach with composite image, see MirrorAnimationScreen_SimpleVersion.tsx
+ *
+ * TODO: Once you export a composite image from Figma (Ellipse 734 + Asset 4 + Asset 3),
+ * you can simplify this to just use a single Image component.
+ */
 const MirrorAnimationScreen: React.FC<Props> = ({ navigation }) => {
   const { isAuthenticated, hasValidToken } = useAuthGuard();
 
@@ -31,118 +53,66 @@ const MirrorAnimationScreen: React.FC<Props> = ({ navigation }) => {
   }, [isAuthenticated, hasValidToken, navigation]);
 
   return (
-    <ImageBackground
-      source={require('../../assets/dark_mode_shimmer_bg.png')}
-      style={styles.container}
-      resizeMode="cover"
-    >
-      {/* Radial gradient overlay to match Figma */}
-      <Svg
-        style={styles.gradientOverlay}
-        viewBox="0 0 100 100"
-        preserveAspectRatio="none"
-      >
-        <Defs>
-          <RadialGradient id="figmaGradient" cx="50%" cy="50%" r="70%">
-            <Stop offset="29%" stopColor="rgba(0, 0, 0, 0)" />
-            <Stop offset="70%" stopColor="rgba(20, 13, 13, 0.41)" />
-            <Stop offset="100%" stopColor="rgba(48, 31, 31, 1)" />
-          </RadialGradient>
-        </Defs>
-        <Rect
-          width="100%"
-          height="100%"
-          fill="url(#figmaGradient)"
-          opacity="0.2"
-        />
-      </Svg>
-
-
-      <View style={styles.mirrorContainer}>
-        {/* Circular glow effect behind mirror */}
-        <View style={styles.glowEffect} />
-
-        {/* Mirror frame/border */}
-        <TouchableOpacity onPress={handleEnter} style={styles.mirrorFrame}>
-          {/* Mirror reflection assets */}
+    <BackgroundWrapper style={styles.container}>
+      <View style={styles.contentContainer}>
+        <TouchableOpacity
+          onPress={handleEnter}
+          style={styles.mirrorContainer}
+          activeOpacity={0.8}
+        >
+          {/* Layer 1: Mirror frame (Asset 4) */}
           <Image
-            source={require('../../assets/Asset_4@2x-8.png')}
-            style={styles.mirrorAsset1}
+            source={require('@assets/Asset_4@2x-8.png')}
+            style={styles.mirrorFrame}
             resizeMode="contain"
           />
+
+          {/* Layer 2: Mirror reflection overlay (Asset 3) */}
           <Image
-            source={require('../../assets/Asset_3@2x-8.png')}
-            style={styles.mirrorAsset2}
+            source={require('@assets/Asset_3@2x-8.png')}
+            style={styles.mirrorReflection}
             resizeMode="contain"
           />
         </TouchableOpacity>
       </View>
-    </ImageBackground>
+    </BackgroundWrapper>
   );
 };
 
-const styles = StyleSheet.create({
+const styles = StyleSheet.create<{
+  container: ViewStyle;
+  contentContainer: ViewStyle;
+  mirrorContainer: ViewStyle;
+  mirrorFrame: ImageStyle;
+  mirrorReflection: ImageStyle;
+}>({
   container: {
     flex: 1,
-    borderRadius: 15,
-    shadowColor: 'rgba(0, 0, 0, 0.25)',
-    shadowOffset: { width: -1, height: 5 },
-    shadowOpacity: 1,
-    shadowRadius: 26,
-    elevation: 10,
-    alignItems: 'center',
-    paddingTop: Math.max(48, screenHeight * 0.056),
-    paddingHorizontal: Math.max(24, screenWidth * 0.06),
   },
-  gradientOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    borderRadius: 15,
-  },
-  mirrorContainer: {
+  contentContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    position: 'relative',
-    top: Math.max(-20, screenHeight * -0.024),
   },
-  glowEffect: {
-    position: 'absolute',
-    width: Math.min(screenWidth * 0.753, 296), // Exact 296px from Figma
-    height: Math.min(screenHeight * 0.554, 472), // Exact 472px from Figma
-    borderRadius: Math.min(screenWidth * 0.376, 236), // Circular
-    backgroundColor: 'rgba(217, 217, 217, 0.01)', // Exact fill from Figma: a: 1, r: 0.8509804, g: 0.8509804, b: 0.8509804, opacity: 0.009999
-    shadowColor: 'rgba(229, 214, 176, 0.47)', // Exact shadow color from Figma: a: 0.47, r: 0.8980392, g: 0.8392157, b: 0.6901961
-    shadowOffset: { width: 0, height: 0 }, // Exact offset from Figma
-    shadowOpacity: 1,
-    shadowRadius: Math.min(screenWidth * 0.153, 60), // Exact 60px blur from Figma with responsive cap
-    elevation: 15,
-  },
-  mirrorFrame: {
-    width: Math.min(screenWidth * 1.183, 465), // Exact 465px from Figma (393px viewport)
-    height: Math.min(screenHeight * 0.731, 623), // Exact 623px from Figma (852px viewport)
+  mirrorContainer: {
+    width: isTablet ? '60%' : '90%', // Flexible width for different devices
+    aspectRatio: 465 / 623, // Maintain original aspect ratio
+    maxWidth: 465, // Don't exceed original design size
+    maxHeight: 623,
     alignItems: 'center',
     justifyContent: 'center',
-    position: 'relative',
   },
-  mirrorAsset1: {
+  mirrorFrame: {
     position: 'absolute',
-    width: Math.min(screenWidth * 1.183, 465), // Exact 465px from Figma
-    height: Math.min(screenHeight * 0.731, 623), // Exact 623px from Figma
-    top: 0,
-    left: 0,
-    resizeMode: 'contain',
+    width: '100%',
+    height: '100%',
   },
-  mirrorAsset2: {
+  mirrorReflection: {
     position: 'absolute',
-    width: Math.min(screenWidth * 0.972, 382), // Exact 382px from Figma
-    height: Math.min(screenHeight * 0.421, 359), // Exact 359px from Figma
-    top: Math.min(screenHeight * 0.153, 130), // Proportional positioning from Figma
-    left: Math.min(screenWidth * 0.105, 42), // Proportional positioning from Figma
-    resizeMode: 'contain',
+    width: `${(382 / 465) * 100}%`, // 82.15% of parent width
+    height: `${(359 / 623) * 100}%`, // 57.63% of parent height
+    top: `${(130 / 623) * 100}%`, // 20.87% from top
+    left: `${(42 / 465) * 100}%`, // 9.03% from left
   },
 });
 

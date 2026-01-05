@@ -1,7 +1,7 @@
 import React from 'react';
 import { Image, StyleSheet, View } from 'react-native';
 
-const mirrorSource = require('../../assets/oval-mirror-golden-frame.png');
+const mirrorSource = require('@assets/oval-mirror-golden-frame.png');
 
 const MirrorSymbol = () => (
   <View style={styles.container}>

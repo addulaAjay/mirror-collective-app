@@ -1,7 +1,8 @@
 import React, { Component, ReactNode } from 'react';
+import { withTranslation, WithTranslation } from 'react-i18next';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 
-interface Props {
+interface Props extends WithTranslation {
   children: ReactNode;
 }
 
@@ -48,17 +49,19 @@ class ErrorBoundary extends Component<Props, State> {
   };
 
   render() {
+    const { t } = this.props;
+    
     if (this.state.hasError) {
       return (
         <View style={styles.container}>
-          <Text style={styles.title}>Something went wrong</Text>
+          <Text style={styles.title}>{t('errorBoundary.title')}</Text>
           <Text style={styles.message}>
-            The app encountered an unexpected error. Please restart the app.
+            {t('errorBoundary.message')}
           </Text>
 
           {__DEV__ && this.state.error && (
             <View style={styles.errorContainer}>
-              <Text style={styles.errorTitle}>Error Details:</Text>
+              <Text style={styles.errorTitle}>{t('errorBoundary.errorDetails')}</Text>
               <Text style={styles.errorText}>{this.state.error.message}</Text>
               {this.state.errorInfo && (
                 <Text style={styles.errorStack}>{this.state.errorInfo}</Text>
@@ -70,7 +73,7 @@ class ErrorBoundary extends Component<Props, State> {
             style={styles.restartButton}
             onPress={this.handleRestart}
           >
-            <Text style={styles.restartButtonText}>Try Again</Text>
+            <Text style={styles.restartButtonText}>{t('errorBoundary.restartButton')}</Text>
           </TouchableOpacity>
         </View>
       );
@@ -83,59 +86,60 @@ class ErrorBoundary extends Component<Props, State> {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1a1a1a',
-    justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    justifyContent: 'center',
+    padding: 24,
+    backgroundColor: '#050912',
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#ffffff',
+    color: '#FFF',
     marginBottom: 16,
     textAlign: 'center',
   },
   message: {
     fontSize: 16,
-    color: '#cccccc',
-    textAlign: 'center',
+    color: '#CCC',
     marginBottom: 32,
+    textAlign: 'center',
     lineHeight: 24,
   },
   errorContainer: {
-    backgroundColor: '#2a2a2a',
+    width: '100%',
     padding: 16,
+    backgroundColor: 'rgba(255, 0, 0, 0.1)',
     borderRadius: 8,
-    marginBottom: 24,
-    maxHeight: 200,
+    marginBottom: 32,
   },
   errorTitle: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
-    color: '#ff6b6b',
+    color: '#FF6B6B',
     marginBottom: 8,
   },
   errorText: {
     fontSize: 14,
-    color: '#ffcccc',
+    color: '#FF6B6B',
     marginBottom: 8,
+    fontFamily: 'Courier',
   },
   errorStack: {
-    fontSize: 12,
-    color: '#999999',
-    fontFamily: 'monospace',
+    fontSize: 10,
+    color: '#FF6B6B',
+    fontFamily: 'Courier',
   },
   restartButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#333',
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
   },
   restartButtonText: {
-    color: '#ffffff',
+    color: '#FFF',
     fontSize: 16,
     fontWeight: '600',
   },
 });
 
-export default ErrorBoundary;
+export default withTranslation()(ErrorBoundary);

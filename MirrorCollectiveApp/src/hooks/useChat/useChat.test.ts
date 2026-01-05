@@ -1,12 +1,26 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react-native';
+
+import { chatApiService } from '@services/api';
+
 import { useChat } from './useChat';
-import { chatApiService } from '../../services/api';
+
 
 // Mock the chat API service
-vi.mock('../../services/api', () => ({
+jest.mock('../../services/api', () => ({
   chatApiService: {
-    sendMessage: vi.fn(),
+    sendMessage: jest.fn(),
+  },
+  sessionApiService: {
+    getGreeting: jest.fn().mockResolvedValue({ success: true, data: { greeting_message: 'The Mirror reflects…' } }),
+  },
+}));
+
+jest.mock('../../services/sessionManager', () => ({
+  SessionManager: {
+    generateNewSession: jest.fn(),
+    getCurrentSessionId: jest.fn().mockResolvedValue('test-session-id'),
+    getConversationId: jest.fn().mockResolvedValue('test-conversation-id'),
+    setConversationId: jest.fn(),
   },
 }));
 
@@ -14,12 +28,17 @@ describe('useChat', () => {
   const mockChatApiService = chatApiService as any;
 
   beforeEach(() => {
-    vi.clearAllMocks();
+    jest.clearAllMocks();
   });
 
-  it('initializes with default system message', () => {
+  it('initializes with default system message', async () => {
     const { result } = renderHook(() => useChat());
     
+    // Trigger initialization manually if it's not in useEffect, or wait for it
+    await act(async () => {
+      await result.current.initializeSession();
+    });
+
     expect(result.current.messages).toHaveLength(1);
     expect(result.current.messages[0].text).toBe('The Mirror reflects…');
     expect(result.current.messages[0].sender).toBe('system');
@@ -50,6 +69,7 @@ describe('useChat', () => {
 
   it('does not send empty message', async () => {
     const { result } = renderHook(() => useChat());
+    await act(async () => { await result.current.initializeSession(); });
     
     await act(async () => {
       await result.current.sendMessage();
@@ -61,6 +81,7 @@ describe('useChat', () => {
 
   it('does not send message with only whitespace', async () => {
     const { result } = renderHook(() => useChat());
+    await act(async () => { await result.current.initializeSession(); });
     
     act(() => {
       result.current.setDraft('   ');
@@ -77,12 +98,13 @@ describe('useChat', () => {
   it('sends message and handles successful response', async () => {
     const mockResponse = {
       success: true,
-      data: { reply: 'API response' },
+      data: { response: 'API response', session_metadata: { conversation_id: 'cid' } },
     };
     
     mockChatApiService.sendMessage.mockResolvedValue(mockResponse);
     
     const { result } = renderHook(() => useChat());
+    await act(async () => { await result.current.initializeSession(); });
     
     act(() => {
       result.current.setDraft('Hello');
@@ -94,10 +116,10 @@ describe('useChat', () => {
     
     expect(mockChatApiService.sendMessage).toHaveBeenCalledWith({
       message: 'Hello',
-      conversationHistory: [{
-        role: 'system',
-        content: '🌜The Mirror reflects…',
-      }],
+      session_id: 'test-session-id',
+      conversation_id: 'test-conversation-id',
+      include_archetype_analysis: true,
+      use_enhanced_response: true,
     });
     
     expect(result.current.messages).toHaveLength(3); // Initial + user + system response
@@ -118,6 +140,7 @@ describe('useChat', () => {
     mockChatApiService.sendMessage.mockResolvedValue(mockResponse);
     
     const { result } = renderHook(() => useChat());
+    await act(async () => { await result.current.initializeSession(); });
     
     act(() => {
       result.current.setDraft('Hello');
@@ -128,7 +151,8 @@ describe('useChat', () => {
     });
     
     expect(result.current.messages).toHaveLength(3);
-    expect(result.current.messages[2].text).toBe('❗️ Unexpected response from the server.');
+    // Expect key because of mocked t function
+    expect(result.current.messages[2].text).toBe('apiErrors.Server error'); 
     expect(result.current.messages[2].sender).toBe('system');
     expect(result.current.loading).toBe(false);
   });
@@ -137,6 +161,7 @@ describe('useChat', () => {
     mockChatApiService.sendMessage.mockRejectedValue(new Error('Network error'));
     
     const { result } = renderHook(() => useChat());
+    await act(async () => { await result.current.initializeSession(); });
     
     act(() => {
       result.current.setDraft('Hello');
@@ -147,7 +172,8 @@ describe('useChat', () => {
     });
     
     expect(result.current.messages).toHaveLength(3);
-    expect(result.current.messages[2].text).toBe('❗️ Network error, please try again.');
+    // Expect key because of mocked t function and apiErrorUtils logic
+    expect(result.current.messages[2].text).toBe('apiErrors.NetworkError');
     expect(result.current.messages[2].sender).toBe('system');
     expect(result.current.loading).toBe(false);
   });
@@ -166,31 +192,36 @@ describe('useChat', () => {
       result.current.setDraft('Hello');
     });
     
-    const sendPromise = act(async () => {
-      await result.current.sendMessage();
+    // Start sending message but don't await the promise inside act yet
+    // to allow checking intermediate state
+    let sendPromise: Promise<void>;
+    await act(async () => {
+      sendPromise = result.current.sendMessage();
     });
     
     // Check loading state is true during API call
     expect(result.current.loading).toBe(true);
     
     // Resolve the promise
-    act(() => {
+    await act(async () => {
       resolvePromise!({ success: true, data: { reply: 'Response' } });
+      await sendPromise;
     });
-    
-    await sendPromise;
     
     expect(result.current.loading).toBe(false);
   });
 
-  it('clears all messages', () => {
+  it('clears all messages', async () => {
     const { result } = renderHook(() => useChat());
+    await act(async () => { await result.current.initializeSession(); });
     
     // Add some messages first
     act(() => {
       result.current.setDraft('Hello');
     });
     
+    // We don't need to send, just clear local state?
+    // But clearMessages resets to greeting.
     act(() => {
       result.current.clearMessages();
     });

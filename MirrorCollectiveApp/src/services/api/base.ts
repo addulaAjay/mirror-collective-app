@@ -1,7 +1,8 @@
-import { API_CONFIG } from '../../constants/config';
-import type { ApiResponse, ApiError } from '../../types';
+import { API_CONFIG } from '@constants/config';
+import { tokenManager } from '@services/tokenManager';
+import type { ApiResponse, ApiError } from '@types';
+
 import { ApiErrorHandler } from './errorHandler';
-import { tokenManager } from '../tokenManager';
 
 export class BaseApiService {
   private readonly baseUrl: string;

@@ -1,15 +1,17 @@
-import React, { ReactElement } from 'react';
-import { render, RenderOptions } from '@testing-library/react-native';
 import { NavigationContainer } from '@react-navigation/native';
-import { AuthProvider } from '../../context/AuthContext';
+import { render, RenderOptions } from '@testing-library/react-native';
+import React, { ReactElement } from 'react';
+
+import { SessionProvider } from '@context/SessionContext';
+import { UserProvider } from '@context/UserContext';
 
 // Custom render function that includes providers
 const AllTheProviders = ({ children }: { children: React.ReactNode }) => {
   return (
     <NavigationContainer>
-      <AuthProvider>
-        {children}
-      </AuthProvider>
+      <SessionProvider>
+        <UserProvider>{children}</UserProvider>
+      </SessionProvider>
     </NavigationContainer>
   );
 };

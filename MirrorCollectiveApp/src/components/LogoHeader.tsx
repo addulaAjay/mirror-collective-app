@@ -6,7 +6,7 @@ const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 const LogoHeader = () => (
   <View style={styles.container}>
     <Image
-      source={require('../../assets/Mirror_Collective_Logo_RGB.png')}
+      source={require('@assets/Mirror_Collective_Logo_RGB.png')}
       style={styles.logo}
       resizeMode="contain"
     />

@@ -1,16 +1,22 @@
-import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, ImageBackground } from 'react-native';
-
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '../types';
-import { useAuthGuard } from '../hooks/useAuthGuard';
-import LogoHeader from '../components/LogoHeader';
-import { typography, shadows } from '../styles/typography';
+import React, { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { View, Text, StyleSheet, Dimensions } from 'react-native';
+
+import LogoHeader from '@components/LogoHeader';
+import { useAuthGuard } from '@hooks/useAuthGuard';
+import { theme } from '@theme';
+import type { RootStackParamList } from '@types';
+
+const { width, height } = Dimensions.get('screen');
+
+import BackgroundWrapper from '@components/BackgroundWrapper';
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'AppExplanation'>;
 };
 const AppExplainerScreen: React.FC<Props> = ({ navigation }) => {
+  const { t } = useTranslation();
   const { isAuthenticated, hasValidToken, isLoading } = useAuthGuard();
 
   useEffect(() => {
@@ -33,18 +39,14 @@ const AppExplainerScreen: React.FC<Props> = ({ navigation }) => {
     return () => clearTimeout(timer);
   }, [navigation, isAuthenticated, hasValidToken, isLoading]);
   return (
-    <ImageBackground
-      source={require('../../assets/dark_mode_shimmer_bg.png')}
-      style={styles.container}
-      resizeMode="cover"
-    >
+    <BackgroundWrapper style={styles.container}>
       <LogoHeader />
 
       {/* Video Section */}
       <View style={styles.videoFrame}>
-        <Text style={styles.videoText}>App explainer video</Text>
+        <Text style={styles.videoText}>{t('auth.appExplainer.videoPlaceholder')}</Text>
       </View>
-    </ImageBackground>
+    </BackgroundWrapper>
   );
 };
 
@@ -54,14 +56,8 @@ const styles = StyleSheet.create({
     paddingTop: 120, // Space for LogoHeader (48 + 46 + 26 margin)
     paddingHorizontal: 42,
     gap: 40,
-    borderRadius: 15,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: shadows.container.color,
-    shadowOffset: shadows.container.offset,
-    shadowOpacity: shadows.container.opacity,
-    shadowRadius: shadows.container.radius,
-    elevation: 10,
   },
   videoFrame: {
     width: 309,
@@ -76,7 +72,7 @@ const styles = StyleSheet.create({
     top: -40,
   },
   videoText: {
-    ...typography.styles.title,
+    ...theme.typography.styles.title,
     color: '#000000',
     textAlign: 'center',
     width: 169,

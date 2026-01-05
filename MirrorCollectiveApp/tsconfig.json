@@ -1,3 +1,68 @@
 {
-  "extends": "@react-native/typescript-config"
+  "extends": "@react-native/typescript-config",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@components": [
+        "src/components/index"
+      ],
+      "@components/*": [
+        "src/components/*"
+      ],
+      "@screens": [
+        "src/screens/index"
+      ],
+      "@screens/*": [
+        "src/screens/*"
+      ],
+      "@theme": [
+        "src/theme/index"
+      ],
+      "@theme/*": [
+        "src/theme/*"
+      ],
+      "@hooks": [
+        "src/hooks/index"
+      ],
+      "@hooks/*": [
+        "src/hooks/*"
+      ],
+      "@services": [
+        "src/services/index"
+      ],
+      "@services/*": [
+        "src/services/*"
+      ],
+      "@utils": [
+        "src/utils/index"
+      ],
+      "@utils/*": [
+        "src/utils/*"
+      ],
+      "@assets/*": [
+        "src/assets/*"
+      ],
+      "@constants": [
+        "src/constants/index"
+      ],
+      "@constants/*": [
+        "src/constants/*"
+      ],
+      "@types": [
+        "src/types/index"
+      ],
+      "@types/*": [
+        "src/types/*"
+      ],
+      "@context": [
+        "src/context/index"
+      ],
+      "@context/*": [
+        "src/context/*"
+      ],
+      "@i18n": [
+        "src/i18n/index"
+      ]
+    }
+  }
 }

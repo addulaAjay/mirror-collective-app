@@ -1,24 +1,28 @@
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
   StyleSheet,
-  ImageBackground,
   Dimensions,
   TouchableOpacity,
   Image,
 } from 'react-native';
-import LogoHeader from '../components/LogoHeader';
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '../types';
+
+import LogoHeader from '@components/LogoHeader';
+import type { RootStackParamList } from '@types';
 
 type ArchetypeScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
   'Archetype'
 >;
 
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+
+const { width: screenWidth, height: screenHeight } = Dimensions.get('screen');
+
+import BackgroundWrapper from '@components/BackgroundWrapper';
 
 interface ArchetypeScreenProps {
   route: {
@@ -34,6 +38,7 @@ interface ArchetypeScreenProps {
 }
 
 const ArchetypeScreen: React.FC<ArchetypeScreenProps> = ({ route }) => {
+  const { t } = useTranslation();
   const navigation = useNavigation<ArchetypeScreenNavigationProp>();
   const { archetype } = route.params;
 
@@ -43,22 +48,19 @@ const ArchetypeScreen: React.FC<ArchetypeScreenProps> = ({ route }) => {
   };
 
   return (
-    <ImageBackground
-      source={require('../../assets/dark_mode_shimmer_bg.png')}
-      style={styles.bg}
-      imageStyle={styles.bgImage}
-    >
-      <TouchableOpacity style={styles.container} onPress={handleContinue}>
+    <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage}>
+      <TouchableOpacity testID="archetype-container" style={styles.container} onPress={handleContinue}>
         <LogoHeader />
 
         {/* Archetype Title */}
         <View style={styles.titleContainer}>
-          <Text style={styles.title}>{archetype.title}</Text>
+          <Text testID="archetype-title" style={styles.title}>{archetype.title}</Text>
         </View>
 
         {/* Archetype Image */}
         <View style={styles.imageContainer}>
           <Image
+            testID="archetype-image"
             source={archetype.image}
             style={styles.archetypeImage}
             resizeMode="contain"
@@ -66,7 +68,7 @@ const ArchetypeScreen: React.FC<ArchetypeScreenProps> = ({ route }) => {
         </View>
 
         {/* Description */}
-        <View style={styles.descriptionContainer}>
+        <View testID="archetype-description" style={styles.descriptionContainer}>
           {archetype.description
             .split('\n\n')
             .map((paragraph, paragraphIndex) => (
@@ -98,9 +100,9 @@ const ArchetypeScreen: React.FC<ArchetypeScreenProps> = ({ route }) => {
         </View>
 
         {/* Continue Text */}
-        <Text style={styles.continueText}>Click anywhere to continue</Text>
+        <Text testID="archetype-continue-text" style={styles.continueText}>{t('auth.archetype.continuePrompt')}</Text>
       </TouchableOpacity>
-    </ImageBackground>
+    </BackgroundWrapper>
   );
 };
 
@@ -115,7 +117,6 @@ const styles = StyleSheet.create({
     resizeMode: 'cover',
   },
   container: {
-    flex: 1,
     paddingHorizontal: Math.max(20, screenWidth * 0.051),
     paddingTop: Math.max(48, screenHeight * 0.056),
     paddingBottom: Math.max(30, screenHeight * 0.035),
@@ -134,7 +135,6 @@ const styles = StyleSheet.create({
     color: '#E5D6B0',
     textAlign: 'center',
     textShadowColor: '#E5D6B0',
-    textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 8,
   },
   imageContainer: {
@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
     color: '#F2E2B1',
     textAlign: 'center',
     lineHeight: Math.min(screenWidth * 0.079, 31.2),
-    position: 'absolute',
+    flex: 1,
     bottom: Math.max(40, screenHeight * 0.05),
     alignSelf: 'center',
   },
