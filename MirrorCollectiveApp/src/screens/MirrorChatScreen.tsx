@@ -46,16 +46,19 @@ export function MirrorChatContent() {
   }, [greetingLoaded, initializeSession]);
 
   return (
+
     <KeyboardAvoidingView
       style={styles.keyboardContainer}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
+
       <SafeAreaView style={styles.safeArea}>
         <StatusBar
           translucent
           backgroundColor="transparent"
           barStyle="light-content"
         />
+
 
         <BackgroundWrapper style={styles.background}>
           <LogoHeader />
@@ -112,6 +115,7 @@ export default function MirrorChatScreen() {
   return (
     <AuthenticatedRoute>
       <MirrorChatContent />
+
     </AuthenticatedRoute >
   );
 }
@@ -138,6 +142,7 @@ const styles = StyleSheet.create({
     width: '100%',
     paddingRight: 20,
     paddingLeft: 20,
+    paddingTop: 20
   },
 
   footerText: {
@@ -162,6 +167,7 @@ const styles = StyleSheet.create({
 
   chatContainer: {
     flex: 1,
+
     width: '100%',
     // height: SCREEN_DIMENSIONS.HEIGHT * 0.72,
     borderRadius: SPACING.LG,
