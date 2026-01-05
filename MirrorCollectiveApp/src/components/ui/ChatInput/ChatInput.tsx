@@ -6,9 +6,10 @@ import {
   Text,
   StyleSheet,
 } from 'react-native';
-import { COLORS, SHADOWS, SPACING } from '../../../constants';
-import { theme } from '../../../theme';
 import Svg, { ClipPath, Defs, G, Path, Rect } from 'react-native-svg';
+
+import { COLORS, SHADOWS, SPACING } from '@constants';
+import { theme } from '@theme';
 
 interface ChatInputProps {
   value: string;
@@ -59,6 +60,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         style={styles.sendButton}
         onPress={onSend}
         disabled={disabled || !value.trim()}
+        testID="send-button"
       >
         <Text
           style={[

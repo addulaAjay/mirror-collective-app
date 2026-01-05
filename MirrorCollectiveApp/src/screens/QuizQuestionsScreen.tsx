@@ -1,30 +1,33 @@
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
   FlatList,
   StyleSheet,
-  ImageBackground,
   Dimensions,
   Alert,
 } from 'react-native';
-import GradientButton from '../components/GradientButton';
-import OptionButton from '../components/OptionsButton';
-import ProgressBar from '../components/ProgressBar';
-import LogoHeader from '../components/LogoHeader';
-import questionsData from '../../assets/questions.json';
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '../types';
-import ImageOptionButton from '../components/ImageOptionButton';
+
+import questionsData from '@assets/questions.json';
+import GradientButton from '@components/GradientButton';
+import ImageOptionButton, {
+  type ImageOptionSymbol,
+} from '@components/ImageOptionButton';
+import LogoHeader from '@components/LogoHeader';
+import OptionButton from '@components/OptionsButton';
+import ProgressBar from '@components/ProgressBar';
+import { QuizStorageService } from '@services/quizStorageService';
+import type { RootStackParamList } from '@types';
+import type { QuizSubmissionRequest } from '@types';
 import {
   calculateQuizResult,
   createUserAnswer,
   type QuizData,
   type UserAnswer,
-} from '../utils/archetypeScoring';
-import { QuizStorageService } from '../services/quizStorageService';
-import type { QuizSubmissionRequest } from '../types';
+} from '@utils/archetypeScoring';
 // Typography styles are now defined directly in component styles
 
 type QuizQuestionsScreenNavigationProp = NativeStackNavigationProp<
@@ -34,7 +37,10 @@ type QuizQuestionsScreenNavigationProp = NativeStackNavigationProp<
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
+import BackgroundWrapper from '@components/BackgroundWrapper';
+
 const QuizQuestionsScreen = () => {
+  const { t } = useTranslation();
   const navigation = useNavigation<QuizQuestionsScreenNavigationProp>();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selected, setSelected] = useState<string | { icon: any } | null>(null);
@@ -59,13 +65,7 @@ const QuizQuestionsScreen = () => {
 
   const currentQuestion = questions[currentIndex];
   const isLast = currentIndex === questions.length - 1;
-  const imageMap = {
-    candle: require('../../assets/candle.png'),
-    lightning: require('../../assets/lightning.png'),
-    tree: require('../../assets/tree.png'),
-    crystal: require('../../assets/crystal.png'),
-    golden_thread: require('../../assets/tree.png'), // placeholder - need golden_thread image
-  };
+  const symbolSequence: ImageOptionSymbol[] = ['star', 'brick', 'spiral', 'mirror'];
   const handleNext = async () => {
     if (!selected) return;
 
@@ -110,10 +110,10 @@ const QuizQuestionsScreen = () => {
 
       // Static image mapping for React Native (dynamic require not supported)
       const archetypeImages = {
-        'seeker-archetype.png': require('../assets/seeker-archetype.png'),
-        'guardian-archetype.png': require('../assets/guardian-archetype.png'),
-        'flamebearer-archetype.png': require('../assets/flamebearer-archetype.png'),
-        'weaver-archetype.png': require('../assets/weaver-archetype.png'),
+        'seeker-archetype.png': require('@assets/seeker-archetype.png'),
+        'guardian-archetype.png': require('@assets/guardian-archetype.png'),
+        'flamebearer-archetype.png': require('@assets/flamebearer-archetype.png'),
+        'weaver-archetype.png': require('@assets/weaver-archetype.png'),
       };
 
       const archetypeWithImage = {
@@ -160,11 +160,11 @@ const QuizQuestionsScreen = () => {
         console.error('Failed to store quiz results temporarily:', error);
         // Show error but still allow navigation
         Alert.alert(
-          'Storage Error',
-          'Unable to save your quiz results temporarily. Your archetype will still be shown, but please complete registration to save your results.',
+          t('quiz.quizQuestions.storageErrorTitle'),
+          t('quiz.quizQuestions.storageErrorMessage'),
           [
             {
-              text: 'Continue',
+              text: t('quiz.quizQuestions.continueButton'),
               onPress: () =>
                 navigation.navigate('Archetype', {
                   archetype: archetypeWithImage,
@@ -180,7 +180,7 @@ const QuizQuestionsScreen = () => {
     setSelected(null);
   };
 
-  const renderItem = ({ item }: any) => {
+  const renderItem = ({ item, index }: { item: any; index: number }) => {
     if (currentQuestion.type === 'text') {
       return (
         <OptionButton
@@ -193,7 +193,7 @@ const QuizQuestionsScreen = () => {
     } else if (currentQuestion.type === 'image') {
       return (
         <ImageOptionButton
-          image={imageMap[item.image as keyof typeof imageMap]}
+          symbolType={symbolSequence[index % symbolSequence.length]}
           selected={selected === item.label}
           onPress={() => setSelected(item.label)}
         />
@@ -211,11 +211,7 @@ const QuizQuestionsScreen = () => {
   };
 
   return (
-    <ImageBackground
-      source={require('../../assets/dark_mode_shimmer_bg.png')}
-      style={styles.bg}
-      imageStyle={styles.bgImage}
-    >
+    <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage}>
       <View style={styles.container}>
         <LogoHeader />
 
@@ -243,7 +239,7 @@ const QuizQuestionsScreen = () => {
                 {currentQuestion.options.map((item: any, index: number) => (
                   <ImageOptionButton
                     key={item.label || index}
-                    image={imageMap[item.image as keyof typeof imageMap]}
+                    symbolType={symbolSequence[index % symbolSequence.length]}
                     selected={selected === item.label}
                     onPress={() => setSelected(item.label)}
                   />
@@ -254,15 +250,15 @@ const QuizQuestionsScreen = () => {
 
           <View style={styles.nextWrap}>
             <GradientButton
-              title={isLast ? 'Finish' : 'Next'}
+              title={isLast ? t('quiz.quizQuestions.finishButton') : t('quiz.quizQuestions.nextButton')}
               onPress={handleNext}
               disabled={!selected}
-              style={styles.nextButton}
+              buttonStyle={styles.nextButton}
             />
           </View>
         </View>
       </View>
-    </ImageBackground>
+    </BackgroundWrapper>
   );
 };
 
@@ -282,7 +278,6 @@ const styles = StyleSheet.create({
   },
 
   container: {
-    flex: 1,
     paddingHorizontal: Math.max(40, screenWidth * 0.102), // Match Figma padding
     paddingTop: Math.max(40, screenHeight * 0.047), // Reduced to prevent overlap
     paddingBottom: Math.max(30, screenHeight * 0.035),
@@ -301,7 +296,7 @@ const styles = StyleSheet.create({
   },
 
   question: {
-    fontFamily: 'CormorantGaramond-Italic', // Match Figma typography
+    fontFamily: 'CormorantGaramond-Regular', // Match Figma typography
     fontSize: Math.min(screenWidth * 0.061, 24), // Proportional to text size in Figma
     fontWeight: '300',
     lineHeight: Math.min(screenWidth * 0.072, 28), // Tight line height
@@ -353,7 +348,6 @@ const styles = StyleSheet.create({
     marginBottom: Math.max(20, screenHeight * 0.025),
   },
   nextButton: {
-    width: Math.min(screenWidth * 0.26, 102), // Exact 102px width from Figma
-    height: Math.max(48, screenHeight * 0.056), // Exact 48px height from Figma
+    // Remove conflicting size constraints - let GradientButton handle responsive sizing
   },
 });

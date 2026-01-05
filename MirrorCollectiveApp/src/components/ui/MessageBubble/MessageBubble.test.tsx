@@ -1,8 +1,10 @@
-import { describe, it, expect } from 'vitest';
-import React from 'react';
 import { render } from '@testing-library/react-native';
+import React from 'react';
+
+
+import type { Message } from '@types';
+
 import { MessageBubble } from './MessageBubble';
-import type { Message } from '../../../types';
 
 describe('MessageBubble', () => {
   const mockUserMessage: Message = {

@@ -1,14 +1,36 @@
 // ImageOptionButton.tsx
 import React from 'react';
-import { TouchableOpacity, Image, StyleSheet, View } from 'react-native';
+import { TouchableOpacity, StyleSheet, View } from 'react-native';
+
+import BrickSymbol from './symbols/BrickSymbol';
+import MirrorSymbol from './symbols/MirrorSymbol';
+import SpiralSymbol from './symbols/SpiralSymbol';
+import { StarSymbol } from './symbols/StarSymbol';
+
+export type ImageOptionSymbol = 'star' | 'brick' | 'spiral' | 'mirror';
 
 interface Props {
-  image: any;
+  symbolType: ImageOptionSymbol;
   selected: boolean;
   onPress: () => void;
 }
 
-const ImageOptionButton = ({ image, selected, onPress }: Props) => (
+const renderSymbol = (symbolType: ImageOptionSymbol) => {
+  switch (symbolType) {
+    case 'star':
+      return <StarSymbol />;
+    case 'brick':
+      return <BrickSymbol />;
+    case 'spiral':
+      return <SpiralSymbol />;
+    case 'mirror':
+      return <MirrorSymbol />;
+    default:
+      return null;
+  }
+};
+
+const ImageOptionButton = ({ symbolType, selected, onPress }: Props) => (
   <TouchableOpacity
     onPress={onPress}
     activeOpacity={0.9}
@@ -16,7 +38,7 @@ const ImageOptionButton = ({ image, selected, onPress }: Props) => (
   >
     <View style={[styles.container, selected && styles.selected]}>
       <View style={[styles.background, selected && styles.selectedBackground]} />
-      <Image source={image} style={styles.image} />
+      <View style={styles.symbolWrapper}>{renderSymbol(symbolType)}</View>
     </View>
   </TouchableOpacity>
 );
@@ -34,6 +56,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
+  },
+  symbolWrapper: {
+    width: '100%',
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1,
   },
   background: {
     position: 'absolute',
@@ -63,11 +92,5 @@ const styles = StyleSheet.create({
   },
   selected: {
     // Additional selected state styling if needed
-  },
-  image: {
-    width: 60,
-    height: 60,
-    resizeMode: 'contain',
-    zIndex: 1,
   },
 });

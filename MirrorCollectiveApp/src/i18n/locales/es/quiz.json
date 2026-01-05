@@ -1,0 +1,32 @@
+{
+  "quizWelcome": {
+    "title": "WELCOME",
+    "beginButton": "BEGIN",
+    "description": {
+      "part1": "This isn't a quiz.",
+      "part2": "It's a reflection.",
+      "part3": "These first prompts help the Mirror understand your inner style— ",
+      "part4": "how you see, feel, and grow.",
+      "part5": "There’s no right answer. ",
+      "part6": "Just be you."
+    },
+    "emphasis": {
+      "part1": "Let the ",
+      "part2": "Mirror",
+      "part3": " listen."
+    }
+  },
+  "quizTuning": {
+    "title": "MIRROR GPT IS\nTUNING...",
+    "message": "Your reflection is taking form.",
+    "subMessage": "Every step you take, the Mirror \n will walk beside you.",
+    "enterButton": "ENTER"
+  },
+  "quizQuestions": {
+    "nextButton": "Next",
+    "finishButton": "Finish",
+    "storageErrorTitle": "Storage Error",
+    "storageErrorMessage": "Unable to save your quiz results temporarily. Your archetype will still be shown, but please complete registration to save your results.",
+    "continueButton": "Continue"
+  }
+}

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { tokenManager } from '../services/tokenManager';
+
+import { tokenManager } from '@services/tokenManager';
 
 interface UseAuthGuardResult {
   isAuthenticated: boolean;

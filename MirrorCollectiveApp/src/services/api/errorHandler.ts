@@ -1,4 +1,4 @@
-import type { ApiResponse } from '../../types';
+import type { ApiResponse } from '@types';
 
 export type ApiErrorType =
   | 'AuthenticationError'

@@ -1,0 +1,83 @@
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from 'react';
+
+import { authApiService } from '@services/api';
+
+import { useSession } from './SessionContext';
+
+// Types
+interface UserProfile {
+  id: string;
+  email: string;
+  fullName: string;
+  isVerified: boolean;
+}
+
+interface UserContextType {
+  user: UserProfile | null;
+  refreshUser: () => Promise<void>;
+  setUser: (user: UserProfile | null) => void;
+}
+
+// Context
+const UserContext = createContext<UserContextType | undefined>(undefined);
+
+// Provider Component
+interface UserProviderProps {
+  children: ReactNode;
+}
+
+export const UserProvider = ({ children }: UserProviderProps) => {
+  const { state: sessionState } = useSession();
+  const [user, setUser] = useState<UserProfile | null>(null);
+
+  const refreshUser = async () => {
+    try {
+      const profileResponse = await authApiService.getUserProfile();
+      if (profileResponse.success && profileResponse.data?.user) {
+        setUser(profileResponse.data.user);
+      }
+    } catch (error) {
+      console.error('Failed to refresh user profile:', error);
+    }
+  };
+
+  // React to session changes
+  useEffect(() => {
+    if (sessionState.isAuthenticated) {
+      // If we authenticated but don't have user data, fetch it
+       // Optimization: fetch only if user is null
+       if (!user) {
+          refreshUser();
+       }
+    } else {
+      // If not authenticated, clear user data
+      setUser(null);
+    }
+  }, [sessionState.isAuthenticated]);
+
+  const contextValue: UserContextType = {
+    user,
+    refreshUser,
+    setUser,
+  };
+
+  return (
+    <UserContext.Provider value={contextValue}>{children}</UserContext.Provider>
+  );
+};
+
+export const useUser = (): UserContextType => {
+  const context = useContext(UserContext);
+  if (context === undefined) {
+    throw new Error('useUser must be used within a UserProvider');
+  }
+  return context;
+};
+
+export default UserContext;
