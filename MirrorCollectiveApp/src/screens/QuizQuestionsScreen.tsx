@@ -231,6 +231,7 @@ const QuizQuestionsScreen = () => {
                 data={currentQuestion.options}
                 keyExtractor={keyExtractor}
                 renderItem={renderItem}
+                scrollEnabled={false}
                 contentContainerStyle={styles.list}
                 showsVerticalScrollIndicator={false}
               />
@@ -316,13 +317,15 @@ const styles = StyleSheet.create({
 
   list: {
     width: '100%',
-    paddingBottom: Math.max(20, screenHeight * 0.025),
+    paddingTop: Math.max(8, screenHeight * 0.01),
+    paddingBottom: Math.max(12, screenHeight * 0.015),
     alignItems: 'center',
     flexGrow: 0,
   },
   optionButton: {
-    marginBottom: Math.max(16, screenHeight * 0.019), // Exact 16px gap from Figma layout6
-    width: Math.min(screenWidth * 0.796, 313), // Match container width
+    marginBottom: Math.max(12, screenHeight * 0.014),
+    width: Math.min(screenWidth * 0.796, 313),
+    marginHorizontal: 8,
   },
 
   contentArea: {
