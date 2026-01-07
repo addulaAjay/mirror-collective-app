@@ -1,6 +1,7 @@
 import '@i18n'; // Initialize i18n configuration
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import type { RootStackParamList } from '@types';
 import React from 'react';
 import { StatusBar } from 'react-native';
 
@@ -28,7 +29,6 @@ import SignUpScreen from '@screens/SignUpScreen';
 import SplashScreen from '@screens/SplashScreen';
 import TalkToMirrorScreen from '@screens/TalkToMirrorScreen';
 import VerifyEmailScreen from '@screens/VerifyEmailScreen';
-import type { RootStackParamList } from '@types';
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 // Wrapped MirrorChat component with error boundary
@@ -84,10 +84,10 @@ const AppNavigator = () => {
   const { isAuthenticated, isLoading } = state;
 
   // Optionally show a loading screen while session is restoring
-  if (isLoading) {
-    // Cast SplashScreen or pass mock props since it's just a loader here
-    return <SplashScreen navigation={null as any} />; 
-  }
+  // if (isLoading) {
+  //   // Cast SplashScreen or pass mock props since it's just a loader here
+  //   return <SplashScreen navigation={null as any} />; 
+  // }
 
   return (
     <NavigationContainer

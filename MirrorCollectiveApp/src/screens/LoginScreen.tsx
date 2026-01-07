@@ -1,10 +1,10 @@
+import { theme } from '@theme';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
   StyleSheet,
-  
   TouchableOpacity,
   Alert,
   KeyboardAvoidingView,
@@ -12,6 +12,7 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
 } from 'react-native';
+import Svg, { Mask, Rect, G, Path } from 'react-native-svg';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
@@ -20,7 +21,6 @@ import TextInputField from '@components/TextInputField';
 import { useSession } from '@context/SessionContext';
 import { useUser } from '@context/UserContext';
 import { QuizStorageService } from '@services/quizStorageService';
-import { theme } from '@theme';
 import { getApiErrorMessage } from '@utils/apiErrorUtils';
 
 const LoginScreen = ({ navigation }: any) => {
@@ -31,6 +31,7 @@ const LoginScreen = ({ navigation }: any) => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const validateForm = (): boolean => {
     if (!email.trim()) {
@@ -51,6 +52,8 @@ const LoginScreen = ({ navigation }: any) => {
       return;
     }
 
+    // Clear any previous error before a new attempt
+    setErrorMessage(null);
     setIsLoading(true);
 
     try {
@@ -59,6 +62,7 @@ const LoginScreen = ({ navigation }: any) => {
       if (data && data.user) {
         // Update user context with profile data
         setUser(data.user);
+        setErrorMessage(null);
         
         // Submit any pending quiz results after successful login
         try {
@@ -75,7 +79,8 @@ const LoginScreen = ({ navigation }: any) => {
       }
     } catch (error: any) {
       console.error('Login error:', error);
-      Alert.alert(t('auth.login.loginFailed'), getApiErrorMessage(error, t));
+      const message = getApiErrorMessage(error, t);
+      setErrorMessage(message || t('auth.login.loginFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -125,6 +130,31 @@ const LoginScreen = ({ navigation }: any) => {
                 onTogglePassword={() => setShowPassword(!showPassword)}
                 testID="password-input"
               />
+
+              {errorMessage && (
+                <View style={styles.errorRow}>
+                  <Svg width={20} height={20} viewBox="0 0 20 20" fill="none">
+                    <Mask
+                      id="errorMask"
+                      maskUnits="userSpaceOnUse"
+                      x={0}
+                      y={0}
+                      width={20}
+                      height={20}
+                      aspect-ratio="1/1"
+                    >
+                      <Rect width={20} height={20} fill="#D9D9D9" />
+                    </Mask>
+                    <G mask="url(#errorMask)">
+                      <Path
+                        d="M9.99999 14.1665C10.2361 14.1665 10.434 14.0866 10.5937 13.9269C10.7535 13.7672 10.8333 13.5693 10.8333 13.3332C10.8333 13.0971 10.7535 12.8991 10.5937 12.7394C10.434 12.5797 10.2361 12.4998 9.99999 12.4998C9.76388 12.4998 9.56596 12.5797 9.40624 12.7394C9.24652 12.8991 9.16666 13.0971 9.16666 13.3332C9.16666 13.5693 9.24652 13.7672 9.40624 13.9269C9.56596 14.0866 9.76388 14.1665 9.99999 14.1665ZM9.99999 10.8332C10.2361 10.8332 10.434 10.7533 10.5937 10.5936C10.7535 10.4339 10.8333 10.2359 10.8333 9.99984V6.6665C10.8333 6.43039 10.7535 6.23248 10.5937 6.07275C10.434 5.91303 10.2361 5.83317 9.99999 5.83317C9.76388 5.83317 9.56596 5.91303 9.40624 6.07275C9.24652 6.23248 9.16666 6.43039 9.16666 6.6665V9.99984C9.16666 10.2359 9.24652 10.4339 9.40624 10.5936C9.56596 10.7533 9.76388 10.8332 9.99999 10.8332ZM9.99999 18.3332C8.84721 18.3332 7.76388 18.1144 6.74999 17.6769C5.7361 17.2394 4.85416 16.6457 4.10416 15.8957C3.35416 15.1457 2.76041 14.2637 2.32291 13.2498C1.88541 12.2359 1.66666 11.1526 1.66666 9.99984C1.66666 8.84706 1.88541 7.76373 2.32291 6.74984C2.76041 5.73595 3.35416 4.854 4.10416 4.104C4.85416 3.354 5.7361 2.76025 6.74999 2.32275C7.76388 1.88525 8.84721 1.6665 9.99999 1.6665C11.1528 1.6665 12.2361 1.88525 13.25 2.32275C14.2639 2.76025 15.1458 3.354 15.8958 4.104C16.6458 4.854 17.2396 5.73595 17.6771 6.74984C18.1146 7.76373 18.3333 8.84706 18.3333 9.99984C18.3333 11.1526 18.1146 12.2359 17.6771 13.2498C17.2396 14.2637 16.6458 15.1457 15.8958 15.8957C15.1458 16.6457 14.2639 17.2394 13.25 17.6769C12.2361 18.1144 11.1528 18.3332 9.99999 18.3332ZM9.99999 16.6665C11.8611 16.6665 13.4375 16.0207 14.7292 14.729C16.0208 13.4373 16.6667 11.8609 16.6667 9.99984C16.6667 8.13873 16.0208 6.56234 14.7292 5.27067C13.4375 3.979 11.8611 3.33317 9.99999 3.33317C8.13888 3.33317 6.56249 3.979 5.27082 5.27067C3.97916 6.56234 3.33332 8.13873 3.33332 9.99984C3.33332 11.8609 3.97916 13.4373 5.27082 14.729C6.56249 16.0207 8.13888 16.6665 9.99999 16.6665Z"
+                        fill="#F83B3D"
+                      />
+                    </G>
+                  </Svg>
+                  <Text style={styles.errorText}>{errorMessage}</Text>
+                </View>
+              )}
 
               <TouchableOpacity
                 style={styles.enterButton}
@@ -204,6 +234,20 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
   },
+  errorRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+    alignSelf: 'center',
+    marginRight: 4,
+    gap: 4,
+  },
+  errorText: {
+    fontFamily: 'CormorantGaramond-Regular',
+    fontSize: 14,
+    lineHeight: 18,
+    color: '#E53935',
+  },
   enterButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -224,10 +268,10 @@ const styles = StyleSheet.create({
     marginTop: 0,
   },
   forgotPasswordText: {
-    fontFamily: 'CormorantGaramond-LightItalic',
+    fontFamily: 'CormorantGaramond-Italic',
     fontSize: 20,
     lineHeight: 25,
-    color: '#E5D6B0',
+    color: '#FDFDF9',
     textDecorationLine: 'underline' as const,
   },
   signupContainer: {
@@ -238,19 +282,20 @@ const styles = StyleSheet.create({
   signupText: {
     fontFamily: 'CormorantGaramond-Italic',
     fontSize: 20,
-    fontWeight: 300,
+    fontWeight: '300' as const,
     lineHeight: 25,
     textAlign: 'center',
     width: 313,
     color: '#FDFDF9',
   },
   signupLink: {
-    fontFamily: 'CormorantGaramond-Italic',
+    fontFamily: 'CormorantGaramond-Regular',
     fontSize: 24,
     lineHeight: 28,
     color: '#E5D6B0',
     textDecorationLine: 'underline' as const,
     textDecorationStyle: 'solid' as const,
+
   },
 });
 

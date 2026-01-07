@@ -1,3 +1,5 @@
+import { COLORS, SHADOWS, SPACING } from '@constants';
+import { theme } from '@theme';
 import React from 'react';
 import {
   View,
@@ -8,8 +10,6 @@ import {
 } from 'react-native';
 import Svg, { ClipPath, Defs, G, Path, Rect } from 'react-native-svg';
 
-import { COLORS, SHADOWS, SPACING } from '@constants';
-import { theme } from '@theme';
 
 interface ChatInputProps {
   value: string;
@@ -23,7 +23,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   value,
   onChangeText,
   onSend,
-  placeholder = 'Ask me something',
+  placeholder = 'Ask me anything...',
   disabled = false,
 }) => {
   return (
