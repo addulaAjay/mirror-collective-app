@@ -1,5 +1,8 @@
+import { BORDER_RADIUS, COLORS, SPACING } from '@constants';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { RootStackParamList } from '@types';
+import type { QuizSubmissionRequest } from '@types';
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -12,6 +15,7 @@ import {
 } from 'react-native';
 
 import questionsData from '@assets/questions.json';
+import BackgroundWrapper from '@components/BackgroundWrapper';
 import GradientButton from '@components/GradientButton';
 import ImageOptionButton, {
   type ImageOptionSymbol,
@@ -20,8 +24,6 @@ import LogoHeader from '@components/LogoHeader';
 import OptionButton from '@components/OptionsButton';
 import ProgressBar from '@components/ProgressBar';
 import { QuizStorageService } from '@services/quizStorageService';
-import type { RootStackParamList } from '@types';
-import type { QuizSubmissionRequest } from '@types';
 import {
   calculateQuizResult,
   createUserAnswer,
@@ -36,8 +38,6 @@ type QuizQuestionsScreenNavigationProp = NativeStackNavigationProp<
 >;
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
-
-import BackgroundWrapper from '@components/BackgroundWrapper';
 
 const QuizQuestionsScreen = () => {
   const { t } = useTranslation();
@@ -253,7 +253,11 @@ const QuizQuestionsScreen = () => {
               title={isLast ? t('quiz.quizQuestions.finishButton') : t('quiz.quizQuestions.nextButton')}
               onPress={handleNext}
               disabled={!selected}
-              buttonStyle={styles.nextButton}
+              style={styles.glassButtonWrapper}
+              containerStyle={styles.glassButtonContainer}
+              contentStyle={styles.glassButtonContent}
+              textStyle={styles.glassButtonText}
+              gradientColors={['rgba(253, 253, 249, 0.04)', 'rgba(253, 253, 249, 0.01)']}
             />
           </View>
         </View>
@@ -349,5 +353,25 @@ const styles = StyleSheet.create({
   },
   nextButton: {
     // Remove conflicting size constraints - let GradientButton handle responsive sizing
+  },
+  glassButtonWrapper: {
+    backgroundColor: 'transparent',
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
+    borderRadius: BORDER_RADIUS.MD,
+  },
+  glassButtonContainer: {
+    borderWidth: 0.5,
+    borderRadius: BORDER_RADIUS.MD,
+  },
+  glassButtonContent: {
+    paddingVertical: SPACING.MD,
+    paddingHorizontal: SPACING.XXL,
+    minWidth: 0,
+  },
+  glassButtonText: {
+    color: COLORS.PRIMARY.GOLD,
+    fontSize: Math.min(screenWidth * 0.05, 18),
   },
 });

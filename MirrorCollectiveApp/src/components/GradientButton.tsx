@@ -9,14 +9,14 @@ import {
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 
-import { theme } from '@theme';
-
 interface Props {
   title: string;
   onPress: () => void;
   disabled?: boolean;
   style?: ViewStyle;
+  containerStyle?: ViewStyle;
   buttonStyle?: ViewStyle;
+  contentStyle?: ViewStyle;
   textStyle?: TextStyle;
   gradientColors?: string[];
 }
@@ -41,7 +41,9 @@ const GradientButton = ({
   onPress,
   disabled,
   style,
+  containerStyle,
   buttonStyle,
+  contentStyle,
   textStyle,
   gradientColors = defaultGradient,
 }: Props) => {
@@ -51,7 +53,7 @@ const GradientButton = ({
         activeOpacity={0.85}
         onPress={onPress}
         disabled={disabled}
-        style={styles.container}
+        style={[styles.container, containerStyle]}
       >
         {/* Gradient background layer */}
         <LinearGradient
@@ -63,7 +65,7 @@ const GradientButton = ({
         />
 
         {/* Text layer on top */}
-        <View style={styles.textContainer} pointerEvents="none">
+        <View style={[styles.textContainer, contentStyle]} pointerEvents="none">
           <Text style={[styles.text, textStyle]}>
             {title}
           </Text>

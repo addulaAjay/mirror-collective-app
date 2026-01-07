@@ -1,3 +1,7 @@
+import { BORDER_RADIUS, COLORS, SPACING } from '@constants';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { RootStackParamList } from '@types';
 import React from 'react';
 import {
   View,
@@ -10,10 +14,9 @@ import {
   type ImageStyle,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { useNavigation } from '@react-navigation/native';
+
+import BackgroundWrapper from '@components/BackgroundWrapper';
 import GradientButton from '@components/GradientButton';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '@types';
 
 type QuizWelcomeScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -34,7 +37,6 @@ const responsiveFontSize = (baseSize: number, minSize: number, maxSize: number) 
 // Check if device is a tablet (width > 600)
 const isTablet = screenWidth >= 600;
 
-import BackgroundWrapper from '@components/BackgroundWrapper';
 
 const QuizWelcomeScreen = () => {
   const navigation = useNavigation<QuizWelcomeScreenNavigationProp>();
@@ -100,6 +102,11 @@ const QuizWelcomeScreen = () => {
           <GradientButton
             title="BEGIN"
             onPress={() => navigation.navigate('QuizQuestions')}
+            style={styles.glassButtonWrapper}
+            containerStyle={styles.glassButtonContainer}
+            contentStyle={styles.glassButtonContent}
+            textStyle={styles.glassButtonText}
+            gradientColors={['rgba(253, 253, 249, 0.04)', 'rgba(253, 253, 249, 0.01)']}
           />
         </View>
       </View>
@@ -130,6 +137,10 @@ const styles = StyleSheet.create<{
   emphasisText: TextStyle;
   mirrorHighlight: TextStyle;
   buttonContainer: ViewStyle;
+  glassButtonWrapper: ViewStyle;
+  glassButtonContainer: ViewStyle;
+  glassButtonContent: ViewStyle;
+  glassButtonText: TextStyle;
 }>({
   bg: {
     flex: 1,
@@ -198,7 +209,7 @@ const styles = StyleSheet.create<{
   cardContent: {
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 20,
+    // gap: 20,
   },
   descriptionMaxWidth: {
     width: '100%',
@@ -247,5 +258,26 @@ const styles = StyleSheet.create<{
     alignItems: 'center',
     justifyContent: 'center',
     paddingTop: screenHeight * 0.02,
+  },
+  glassButtonWrapper: {
+    // Override GradientButton's default outer glow to match the smaller outlined style
+    backgroundColor: 'transparent',
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
+    borderRadius: BORDER_RADIUS.MD,
+  },
+  glassButtonContainer: {
+    borderWidth: 0.5,
+    borderRadius: BORDER_RADIUS.MD,
+  },
+  glassButtonContent: {
+    paddingVertical: SPACING.MD,
+    paddingHorizontal: SPACING.XXL,
+    minWidth: 0,
+  },
+  glassButtonText: {
+    color: COLORS.PRIMARY.GOLD,
+    fontSize: responsiveFontSize(18, 16, 20),
   },
 });
