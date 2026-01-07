@@ -189,18 +189,21 @@ const styles = StyleSheet.create<{
     textTransform: 'uppercase',
   },
   cardWrapper: {
-    width: isTablet ? '70%' : '85%', // Flexible width
-    maxWidth: 400, // Max width for tablets
-    padding: isTablet ? 24 : 20,
+    // Match Figma layout: fixed 313px card width
+    width: 313,
+    alignSelf: 'center',
+    marginTop: screenHeight * 0.04,
+    padding: 20,
     borderRadius: 20,
     borderWidth: 0.25,
     borderColor: '#1A2238',
     backgroundColor: 'transparent',
+    // Figma: box-shadow: 0 0 24px 8px rgba(242, 226, 177, 0.50)
     shadowColor: 'rgba(242, 226, 177, 0.5)',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 1,
     shadowRadius: 24,
-    elevation: 8, // Android shadow
+    boxShadow: '0 0 24px 8px rgba(242, 226, 177, 0.50)',
   },
   cardGradient: {
     ...StyleSheet.absoluteFillObject,
@@ -209,7 +212,7 @@ const styles = StyleSheet.create<{
   cardContent: {
     alignItems: 'center',
     justifyContent: 'center',
-    // gap: 20,
+    gap: 32,
   },
   descriptionMaxWidth: {
     width: '100%',
@@ -257,7 +260,7 @@ const styles = StyleSheet.create<{
     width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: screenHeight * 0.02,
+    paddingTop: screenHeight * 0.04,
   },
   glassButtonWrapper: {
     // Override GradientButton's default outer glow to match the smaller outlined style

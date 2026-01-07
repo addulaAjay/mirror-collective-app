@@ -64,6 +64,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 19,
+    boxShadow: '0 0 7px 4px rgba(242, 226, 177, 0.50)',
     //elevation: 15, // Higher elevation for selected state
   },
 
@@ -90,7 +91,7 @@ const styles = StyleSheet.create({
     // Selected text uses exact styling from selected state Figma CSS
     fontFamily: 'CormorantGaramond-Light',
     fontSize: Math.min(screenWidth * 0.051, 20), // Exact 20px
-    lineHeight: Math.min(screenWidth * 0.061, ), // Exact 24px
+    lineHeight: Math.min(screenWidth * 0.061, 24), // Exact 24px
     color: '#F4EFE4',
     textAlign: 'center', // Center align for selected state
     textShadowColor: '#E5D6B0',

@@ -1,5 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { RootStackParamList } from '@types';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -11,8 +12,8 @@ import {
   Image,
 } from 'react-native';
 
+import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
-import type { RootStackParamList } from '@types';
 
 type ArchetypeScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -21,8 +22,6 @@ type ArchetypeScreenNavigationProp = NativeStackNavigationProp<
 
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('screen');
-
-import BackgroundWrapper from '@components/BackgroundWrapper';
 
 interface ArchetypeScreenProps {
   route: {
@@ -98,6 +97,9 @@ const ArchetypeScreen: React.FC<ArchetypeScreenProps> = ({ route }) => {
               </Text>
             ))}
         </View>
+        <View style={styles.hintContainer}>
+          <Text style={styles.hintText}>Click anywhere to continue</Text>
+        </View>
 
         {/* Continue Text */}
         <Text testID="archetype-continue-text" style={styles.continueText}>{t('auth.archetype.continuePrompt')}</Text>
@@ -153,6 +155,19 @@ const styles = StyleSheet.create({
     width: Math.min(screenWidth * 0.8, 313),
     alignItems: 'center',
     marginBottom: Math.max(40, screenHeight * 0.047),
+  },
+  hintContainer: {
+    width: Math.min(screenWidth * 0.76, 284),
+    alignSelf: 'center',
+    marginBottom: Math.max(16, screenHeight * 0.02),
+  },
+  hintText: {
+    fontFamily: 'CormorantGaramond-Regular',
+    fontSize: Math.min(screenWidth * 0.061, 24),
+    fontWeight: '400',
+    color: '#F2E2B1',
+    textAlign: 'center',
+    lineHeight: Math.min(screenWidth * 0.079, 31.2),
   },
   description: {
     fontFamily: 'CormorantGaramond-Light',
