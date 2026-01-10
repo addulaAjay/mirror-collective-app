@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     gap: 16,
     width: Math.min(screenWidth * 0.796, 313),
-    height: 64,
+    minHeight: 64,
     backgroundColor: 'var(--Bg-Surface, rgba(163, 179, 204, 0.05))',
     borderWidth: 0.25,
     borderColor: '#9BAAC2',
@@ -79,11 +79,13 @@ const styles = StyleSheet.create({
     textShadowColor: '#E5D6B0',
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 8,
-    width: 313, // Exact width: 313px from non-selected Figma CSS
-    height: 72, // Exact height: 72px      from Figma
+    // width: 313, // Exact width: 313px from non-selected Figma CSS
+    // height: 72, // Exact height: 72px      from Figma
+    // minHeight: 72,
     flex: 1, // flex-grow: 1 from Figma CSS
+    flexShrink: 1,
     paddingHorizontal: 8, // Padding to prevent text clipping
-    paddingVertical: 8,
+    // paddingVertical: 8,
     textAlignVertical: 'center',
   },
 
@@ -97,11 +99,12 @@ const styles = StyleSheet.create({
     textShadowColor: '#E5D6B0',
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 8, // Exact 8px from Figma
-    width: 297, // Exact width: 313px from selected Figma CSS
-    height: 72,
+    // width: 297, // Exact width: 313px from selected Figma CSS
+    // minHeight: 72,
     flex: 1,
+    flexShrink: 1,
     paddingHorizontal: 8,
-    paddingVertical: 8,
+    // paddinxgVertical: 8,
     textAlignVertical: 'center',
   },
 });
