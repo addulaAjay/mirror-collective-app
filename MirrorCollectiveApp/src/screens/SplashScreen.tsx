@@ -22,14 +22,7 @@ type SplashProps = {
 const SplashScreen: React.FC<SplashProps> = ({ navigation }) => {
   useEffect(() => {
     const initializeApp = async () => {
-      try {
-        // Clear all authentication tokens on app start
-        // This ensures users have to login every time the app is opened
-        await authApiService.clearTokens();
-        console.log('Authentication tokens cleared on app start');
-      } catch (error) {
-        console.warn('Failed to clear tokens on app start:', error);
-      }
+      // Session persistence is now active
 
       // Navigate after clearing tokens
       const timer = setTimeout(() => {

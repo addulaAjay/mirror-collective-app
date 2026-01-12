@@ -23,10 +23,18 @@
     "enterButton": "ENTER"
   },
   "quizQuestions": {
+    "loading": "Loading Quiz...",
     "nextButton": "Next",
     "finishButton": "Finish",
     "storageErrorTitle": "Storage Error",
     "storageErrorMessage": "Unable to save your quiz results temporarily. Your archetype will still be shown, but please complete registration to save your results.",
     "continueButton": "Continue"
+  },
+  "archetype": {
+    "retakeTitle": "Retake Quiz?",
+    "retakeMessage": "This will discard your current results and start a new quiz.",
+    "retakeConfirm": "Retake",
+    "retakeButton": "Not you? Retake Quiz",
+    "continuePrompt": "Ready to see your Mirror?"
   }
 }

@@ -1,5 +1,6 @@
 {
   "error": "Error",
   "loading": "Loading...",
-  "continue": "Continue"
+  "continue": "Continue",
+  "cancel": "Cancel"
 }

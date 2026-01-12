@@ -44,11 +44,46 @@ type Props = {
 const MirrorAnimationScreen: React.FC<Props> = ({ navigation }) => {
   const { isAuthenticated, hasValidToken } = useAuthGuard();
 
-  const handleEnter = useCallback(() => {
+  const handleEnter = useCallback(async () => {
     if (isAuthenticated && hasValidToken) {
       navigation.replace('EnterMirror');
     } else {
-      navigation.replace('QuizWelcome');
+      // Check if user has completed the quiz anonymously
+      const { QuizStorageService } = await import('@services/quizStorageService');
+      const hasCompletedQuiz = await QuizStorageService.hasCompletedQuiz();
+      
+      if (hasCompletedQuiz) {
+        // User completed quiz, load the full result and show archetype screen
+        const pendingQuiz = await QuizStorageService.getPendingQuizResults();
+        
+        if (pendingQuiz && pendingQuiz.archetypeResult) {
+          // Load quiz data for archetype images
+          const { default: questionsData } = await import('@assets/questions.json');
+          const archetypeKey = pendingQuiz.archetypeResult.name.toLowerCase();
+          const archetypeData = questionsData.archetypes[archetypeKey as keyof typeof questionsData.archetypes];
+          
+          // Static image mapping
+          const archetypeImages = {
+            'seeker-archetype.png': require('@assets/seeker-archetype.png'),
+            'guardian-archetype.png': require('@assets/guardian-archetype.png'),
+            'flamebearer-archetype.png': require('@assets/flamebearer-archetype.png'),
+            'weaver-archetype.png': require('@assets/weaver-archetype.png'),
+          };
+          
+          const archetypeWithImage = {
+            ...archetypeData,
+            image: archetypeImages[archetypeData.imagePath as keyof typeof archetypeImages],
+          };
+          
+          navigation.replace('Archetype', { archetype: archetypeWithImage });
+        } else {
+          // Account is ready but no local quiz data? Go to sign in.
+          navigation.replace('Login');
+        }
+      } else {
+        // User hasn't completed quiz, show quiz welcome
+        navigation.replace('QuizWelcome');
+      }
     }
   }, [isAuthenticated, hasValidToken, navigation]);
 
