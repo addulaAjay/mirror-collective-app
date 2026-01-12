@@ -21,13 +21,14 @@ import TextInputField from '@components/TextInputField';
 import { useSession } from '@context/SessionContext';
 import { useUser } from '@context/UserContext';
 import { QuizStorageService } from '@services/quizStorageService';
+import { quizApiService } from '@services/api/quiz';
 import { getApiErrorMessage } from '@utils/apiErrorUtils';
 
-const LoginScreen = ({ navigation }: any) => {
+const LoginScreen = ({ navigation, route }: any) => {
   const { t } = useTranslation();
   const { signIn } = useSession();
   const { setUser } = useUser();
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(route?.params?.email || '');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -62,18 +63,24 @@ const LoginScreen = ({ navigation }: any) => {
       if (data && data.user) {
         // Update user context with profile data
         setUser(data.user);
+        await QuizStorageService.markAccountReady();
         setErrorMessage(null);
         
-        // Submit any pending quiz results after successful login
+        // Sync quiz results from server (cross-device sync)
         try {
-          const quizSubmitted = await QuizStorageService.submitPendingQuizResults();
-          if (__DEV__) {
-            console.log('Quiz submission after login:', quizSubmitted ? 'Success' : 'Failed or no quiz');
+          const quizResponse = await quizApiService.getMyQuizResults();
+          if (quizResponse.success && quizResponse.data) {
+            console.log('✅ Quiz data synced from server:', quizResponse.data);
+            // After successful server sync, clear local pending state and mark ready
+            await QuizStorageService.clearPendingQuizResults();
+            await QuizStorageService.markAccountReady();
           }
         } catch (quizError) {
-          // Log quiz submission error but don't block user flow
-          console.error('Failed to submit quiz results after login:', quizError);
+          console.warn('Failed to sync quiz data:', quizError);
         }
+        
+        // Check if there are any pending offline quiz submissions to retry
+        await QuizStorageService.retryPendingSubmissions();
 
         // Navigation is handled automatically by AppNavigator based on auth state
       }

@@ -23,10 +23,18 @@
     "enterButton": "ENTER"
   },
   "quizQuestions": {
-    "nextButton": "Next",
-    "finishButton": "Finish",
-    "storageErrorTitle": "Storage Error",
-    "storageErrorMessage": "Unable to save your quiz results temporarily. Your archetype will still be shown, but please complete registration to save your results.",
-    "continueButton": "Continue"
+    "loading": "Cargando Quiz...",
+    "nextButton": "Siguiente",
+    "finishButton": "Finalizar",
+    "storageErrorTitle": "Error de Almacenamiento",
+    "storageErrorMessage": "No se pudieron guardar los resultados del quiz temporalmente. Se mostrará tu arquetipo, pero por favor completa el registro para guardar tus resultados.",
+    "continueButton": "Continuar"
+  },
+  "archetype": {
+    "retakeTitle": "¿Repetir Quiz?",
+    "retakeMessage": "Esto descartará tus resultados actuales y comenzará un nuevo quiz.",
+    "retakeConfirm": "Repetir",
+    "retakeButton": "¿No eres tú? Repetir Quiz",
+    "continuePrompt": "¿Listo para ver tu Espejo?"
   }
 }
