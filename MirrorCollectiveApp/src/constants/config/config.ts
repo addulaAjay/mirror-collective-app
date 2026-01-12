@@ -3,8 +3,8 @@ import { Platform } from 'react-native';
 export const API_CONFIG = {
   HOST:
     Platform.OS === 'android'
-      ? 'https://f8lzhthj1l.execute-api.us-east-1.amazonaws.com'
-      : 'https://f8lzhthj1l.execute-api.us-east-1.amazonaws.com',
+      ? 'http://10.0.2.2:8001'
+      : 'http://127.0.0.1:8001',
   ENDPOINTS: {
     // Updated chat endpoint to match MirrorGPT API
     MIRROR_CHAT: '/api/mirrorgpt/chat',
@@ -19,6 +19,7 @@ export const API_CONFIG = {
     },
     QUIZ: {
       SUBMIT: '/api/mirrorgpt/quiz/submit',
+      QUESTIONS: '/api/mirrorgpt/quiz/questions',
     },
     SESSION: {
       GREETING: '/api/mirrorgpt/session/greeting',
