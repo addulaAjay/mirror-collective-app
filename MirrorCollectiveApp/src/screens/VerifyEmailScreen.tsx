@@ -64,29 +64,19 @@ const VerifyEmailScreen = () => {
     }
 
     try {
+      // Get anonymousId for linking quiz data
+      const anonymousId = await QuizStorageService.getAnonymousId();
+      
       const response = await authApiService.verifyEmail({
         email,
         verificationCode: verificationCode.trim(),
+        anonymousId: anonymousId,  // Send anonymousId for backend linking
       });
 
+
       if (response.success) {
-        // Submit any pending quiz results after successful verification
-        try {
-          const quizSubmitted =
-            await QuizStorageService.submitPendingQuizResults();
-          if (__DEV__) {
-            console.log(
-              'Quiz submission after verification:',
-              quizSubmitted ? 'Success' : 'Failed or no quiz',
-            );
-          }
-        } catch (quizError) {
-          // Log quiz submission error but don't block user flow
-          console.error(
-            'Failed to submit quiz results after verification:',
-            quizError,
-          );
-        }
+        // Check if there are any pending offline quiz submissions to retry
+        await QuizStorageService.retryPendingSubmissions();
 
         Alert.alert(
           t('auth.verifyEmail.successTitle'),
@@ -95,10 +85,10 @@ const VerifyEmailScreen = () => {
             {
               text: t('auth.verifyEmail.enterButton'),
               onPress: () => {
-                // Navigate to main app
+                // Navigate to Login (EnterMirror is only accessible after sign in)
                 navigation.reset({
                   index: 0,
-                  routes: [{ name: 'EnterMirror' }],
+                  routes: [{ name: 'Login', params: { email } }],
                 });
               },
             },
@@ -236,6 +226,16 @@ const VerifyEmailScreen = () => {
               </Text>
             </TouchableOpacity>
           </View>
+
+          {/* Back to Sign Up */}
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.backButton}
+          >
+            <Text style={styles.backButtonText}>
+              {t('auth.verifyEmail.backToSignUp')}
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
     </BackgroundWrapper>
@@ -385,6 +385,16 @@ const styles = StyleSheet.create({
   },
   resendButtonTextDisabled: {
     width: '100%',
+  },
+  backButton: {
+    marginTop: 20,
+    padding: 10,
+  },
+  backButtonText: {
+    fontFamily: 'CormorantGaramond-Italic',
+    color: '#FDFDF9',
+    fontSize: 18,
+    textDecorationLine: 'underline',
   },
 });
 

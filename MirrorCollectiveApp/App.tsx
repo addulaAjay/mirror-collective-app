@@ -105,24 +105,24 @@ const AppNavigator = () => {
 const App = () => {
   // Handle app state changes for better crash recovery
   useAppStateHandler({
-    onForeground: () => {
+    onForeground: async () => {
       if (__DEV__) {
         console.log('App came to foreground');
+      }
+      
+      // Try to submit any pending offline quiz results
+      try {
+        const { QuizStorageService } = await import('@services/quizStorageService');
+        await QuizStorageService.retryPendingSubmissions();
+      } catch (error) {
+        console.warn('Failed to retry quiz submissions on foreground:', error);
       }
     },
     onBackground: async () => {
       if (__DEV__) {
-        console.log('App went to background - clearing authentication');
+        console.log('App went to background');
       }
-      // Clear authentication tokens when app goes to background
-      // This ensures the user will need to login again when returning to the app
-      try {
-        const { authApiService } = await import('@services/api');
-        await authApiService.clearTokens();
-        console.log('Authentication cleared on background');
-      } catch (error) {
-        console.warn('Failed to clear auth on background:', error);
-      }
+      // Session persistence is now preferred over forced logout
     },
   });
 
