@@ -12,8 +12,12 @@ import {
   Image,
 } from 'react-native';
 
+
+import { QuizStorageService } from '@services/quizStorageService';
+import { Alert } from 'react-native';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
+
 
 type ArchetypeScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -44,6 +48,35 @@ const ArchetypeScreen: React.FC<ArchetypeScreenProps> = ({ route }) => {
   const handleContinue = () => {
     // Navigate to next screen in the flow
     navigation.navigate('QuizTuning');
+  };
+
+  const handleRetake = () => {
+    Alert.alert(
+      t('quiz.archetype.retakeTitle') || 'Retake Quiz?',
+      t('quiz.archetype.retakeMessage') || 'This will discard your current results and start a new quiz.',
+      [
+        {
+          text: t('common.cancel') || 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: t('quiz.archetype.retakeConfirm') || 'Retake',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await QuizStorageService.clearPendingQuizResults();
+              await QuizStorageService.resetQuizState();
+              navigation.reset({
+                index: 0,
+                routes: [{ name: 'QuizWelcome' }],
+              });
+            } catch (error) {
+              console.error('Failed to reset quiz:', error);
+            }
+          },
+        },
+      ],
+    );
   };
 
   return (
@@ -102,7 +135,12 @@ const ArchetypeScreen: React.FC<ArchetypeScreenProps> = ({ route }) => {
         </View>
 
         {/* Continue Text */}
-        <Text testID="archetype-continue-text" style={styles.continueText}>{t('auth.archetype.continuePrompt')}</Text>
+        <Text testID="archetype-continue-text" style={styles.continueText}>{t('quiz.archetype.continuePrompt')}</Text>
+
+        {/* Retake Option */}
+        <TouchableOpacity onPress={handleRetake} style={styles.retakeButton}>
+          <Text style={styles.retakeText}>{t('quiz.archetype.retakeButton') || 'Not you? Retake Quiz'}</Text>
+        </TouchableOpacity>
       </TouchableOpacity>
     </BackgroundWrapper>
   );
@@ -204,5 +242,17 @@ const styles = StyleSheet.create({
     flex: 1,
     bottom: Math.max(40, screenHeight * 0.05),
     alignSelf: 'center',
+  },
+  retakeButton: {
+    position: 'absolute',
+    bottom: Math.max(10, screenHeight * 0.015),
+    alignSelf: 'center',
+    padding: 10,
+  },
+  retakeText: {
+    fontFamily: 'CormorantGaramond-Regular',
+    fontSize: Math.min(screenWidth * 0.04, 16),
+    color: 'rgba(242, 226, 177, 0.6)', // Subtle gold
+    textDecorationLine: 'underline',
   },
 });

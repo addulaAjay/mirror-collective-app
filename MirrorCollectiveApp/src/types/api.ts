@@ -25,6 +25,7 @@ export interface SignUpData {
 export interface VerifyEmailData {
   email: string;
   verificationCode: string;
+  anonymousId?: string;  // For linking anonymous quiz data
 }
 
 export interface ResetPasswordData {
@@ -42,6 +43,21 @@ export interface QuizAnswer {
   type: 'text' | 'image';
 }
 
+export interface QuizOption {
+  text?: string;
+  label?: string;
+  image?: string;
+  archetype: string;
+}
+
+export interface QuizQuestion {
+  id: number;
+  question: string;
+  options: QuizOption[];
+  type: 'text' | 'image';
+  core: boolean;
+}
+
 export interface ArchetypeResult {
   id: string;
   name: string;
@@ -54,6 +70,7 @@ export interface QuizSubmissionRequest {
   archetypeResult: ArchetypeResult;
   quizVersion?: string;
   detailedResult?: any; // Store the complete QuizResult for later server submission
+  anonymousId?: string; // For unauthenticated submissions
 }
 
 export interface QuizSubmissionResponse {

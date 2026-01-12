@@ -12,6 +12,7 @@ import {
   type ViewStyle,
   type TextStyle,
   type ImageStyle,
+  Alert,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 
@@ -38,12 +39,64 @@ const responsiveFontSize = (baseSize: number, minSize: number, maxSize: number) 
 const isTablet = screenWidth >= 600;
 
 
+import { QuizStorageService } from '@services/quizStorageService';
+import questionsData from '@assets/questions.json';
+import { useEffect } from 'react';
+import type { QuizData } from '@utils/archetypeScoring';
+
+// Static image mapping (centralize this if used in multiple places)
+const archetypeImages = {
+  'seeker-archetype.png': require('@assets/seeker-archetype.png'),
+  'guardian-archetype.png': require('@assets/guardian-archetype.png'),
+  'flamebearer-archetype.png': require('@assets/flamebearer-archetype.png'),
+  'weaver-archetype.png': require('@assets/weaver-archetype.png'),
+};
+
 const QuizWelcomeScreen = () => {
   const navigation = useNavigation<QuizWelcomeScreenNavigationProp>();
   const cardGradient = [
     'rgba(253, 253, 249, 0.04)',
     'rgba(253, 253, 249, 0.01)',
   ];
+
+  const quizData = questionsData as QuizData;
+
+  useEffect(() => {
+    const checkPendingResults = async () => {
+       try {
+         const pendingResults = await QuizStorageService.getPendingQuizResults();
+         if (pendingResults && pendingResults.archetypeResult && pendingResults.detailedResult) {
+            console.log('Found pending quiz results, redirecting to Archetype screen');
+            
+            const archetypeKey = pendingResults.archetypeResult.name.toLowerCase();
+            const archetypeData = quizData.archetypes[archetypeKey];
+            
+            if (archetypeData) {
+               const archetypeWithImage = {
+                 ...archetypeData,
+                 image: archetypeImages[archetypeData.imagePath as keyof typeof archetypeImages],
+               };
+
+               navigation.reset({
+                 index: 0,
+                 routes: [{
+                    name: 'Archetype',
+                    params: {
+                       archetype: archetypeWithImage,
+                       quizResult: pendingResults.detailedResult
+                    }
+                 }]
+               });
+            }
+         }
+       } catch (error) {
+         console.error('Error checking pending quiz results:', error);
+       }
+    };
+    
+    checkPendingResults();
+  }, [navigation]);
+
   // const route = useRoute<QuizWelcomeScreenRouteProp>();
   return (
     <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage}>
@@ -108,6 +161,22 @@ const QuizWelcomeScreen = () => {
             textStyle={styles.glassButtonText}
             gradientColors={['rgba(253, 253, 249, 0.04)', 'rgba(253, 253, 249, 0.01)']}
           />
+          {__DEV__ && (
+            <Text
+              style={{
+                marginTop: 20,
+                color: 'rgba(242, 226, 177, 0.5)',
+                fontSize: 12,
+                textDecorationLine: 'underline',
+              }}
+              onPress={async () => {
+                await QuizStorageService.resetEverything();
+                Alert.alert('Success', 'Cache Cleared!');
+              }}
+            >
+              [DEV] Clear Quiz Cache
+            </Text>
+          )}
         </View>
       </View>
     </BackgroundWrapper>
