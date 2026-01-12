@@ -4,7 +4,6 @@ import {
   View,
   Text,
   StyleSheet,
-  
   TouchableOpacity,
   Alert,
   ScrollView,
@@ -12,6 +11,7 @@ import {
   Platform,
   TouchableWithoutFeedback,
   Keyboard,
+  Dimensions,
 } from 'react-native';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
@@ -21,7 +21,7 @@ import TextInputField from '@components/TextInputField';
 import { useSession } from '@context/SessionContext';
 import { theme } from '@theme';
 import { getApiErrorMessage } from '@utils/apiErrorUtils';
-
+const { width: screenWidth } = Dimensions.get('window');
 interface SignUpScreenProps {
   navigation: any;
 }
@@ -73,7 +73,7 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
     if (!hasUpperCase || !hasLowerCase || !hasNumbers || !hasSpecialChar) {
       Alert.alert(
         t('auth.validation.weakPasswordTitle'),
-        t('auth.validation.weakPasswordMessage')
+        t('auth.validation.weakPasswordMessage'),
       );
       return false;
     }
@@ -114,7 +114,7 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
       console.error('Sign up error:', error);
       Alert.alert(
         t('auth.signup.alerts.failedTitle'),
-        getApiErrorMessage(error, t)
+        getApiErrorMessage(error, t),
       );
     } finally {
       setIsLoading(false);
@@ -128,17 +128,19 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
   return (
     <KeyboardAvoidingView
       style={styles.keyboardContainer}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'undefined'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-        <BackgroundWrapper
-          style={styles.container}
-        >
+        <BackgroundWrapper style={styles.container}>
           <ScrollView
+            style={{ width: '100%' }}
             contentContainerStyle={styles.scrollContainer}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
+            keyboardDismissMode={
+              Platform.OS === 'ios' ? 'interactive' : 'on-drag'
+            }
           >
             <LogoHeader />
 
@@ -146,16 +148,16 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
               {/* Header Section */}
               <View style={styles.headerSection}>
                 <Text style={styles.title}>{t('auth.signup.title')}</Text>
-                <Text style={styles.subtitle}>
-                  {t('auth.signup.subtitle')}
-                </Text>
+                <Text style={styles.subtitle}>{t('auth.signup.subtitle')}</Text>
               </View>
 
               {/* Form Section */}
               <View style={styles.formSection}>
                 {/* Full Name Field */}
                 <View style={styles.fieldContainer}>
-                  <Text style={styles.fieldLabel}>{t('auth.signup.fields.fullName')}</Text>
+                  <Text style={styles.fieldLabel}>
+                    {t('auth.signup.fields.fullName')}
+                  </Text>
                   <TextInputField
                     size="medium"
                     placeholder={t('auth.signup.fields.fullNamePlaceholder')}
@@ -172,7 +174,9 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
 
                 {/* Email Field */}
                 <View style={styles.fieldContainer}>
-                  <Text style={styles.fieldLabel}>{t('auth.signup.fields.email')}</Text>
+                  <Text style={styles.fieldLabel}>
+                    {t('auth.signup.fields.email')}
+                  </Text>
                   <TextInputField
                     size="medium"
                     placeholder={t('auth.signup.fields.emailPlaceholder')}
@@ -190,7 +194,9 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
 
                 {/* Password Field */}
                 <View style={styles.fieldContainer}>
-                  <Text style={styles.fieldLabel}>{t('auth.signup.fields.password')}</Text>
+                  <Text style={styles.fieldLabel}>
+                    {t('auth.signup.fields.password')}
+                  </Text>
                   <TextInputField
                     size="medium"
                     placeholder={t('auth.signup.fields.passwordPlaceholder')}
@@ -209,10 +215,14 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
 
                 {/* Confirm Password Field */}
                 <View style={styles.fieldContainer}>
-                  <Text style={styles.fieldLabel}>{t('auth.signup.fields.confirmPassword')}</Text>
+                  <Text style={styles.fieldLabel}>
+                    {t('auth.signup.fields.confirmPassword')}
+                  </Text>
                   <TextInputField
                     size="medium"
-                    placeholder={t('auth.signup.fields.confirmPasswordPlaceholder')}
+                    placeholder={t(
+                      'auth.signup.fields.confirmPasswordPlaceholder',
+                    )}
                     value={confirmPassword}
                     onChangeText={setConfirmPassword}
                     secureTextEntry={!showConfirmPassword}
@@ -239,7 +249,9 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
               >
                 <StarIcon width={20} height={20} />
                 <Text style={styles.continueText}>
-                  {isLoading ? t('auth.signup.buttons.creating') : t('auth.signup.buttons.continue')}
+                  {isLoading
+                    ? t('auth.signup.buttons.creating')
+                    : t('auth.signup.buttons.continue')}
                 </Text>
                 <StarIcon width={20} height={20} />
               </TouchableOpacity>
@@ -254,7 +266,9 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
                   disabled={isLoading}
                   testID="login-link"
                 >
-                  <Text style={styles.loginLink}>{t('auth.signup.footer.signIn')}</Text>
+                  <Text style={styles.loginLink}>
+                    {t('auth.signup.footer.signIn')}
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -277,18 +291,17 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 26,
     elevation: 10,
+    alignSelf: 'stretch',
   },
   scrollContainer: {
     flexGrow: 1,
-    justifyContent: 'center',
+    width: '100%',
     alignItems: 'center',
     paddingVertical: 20,
   },
   contentContainer: {
-    flex: 1,
     width: '100%',
     alignItems: 'center',
-    paddingHorizontal: 44,
     paddingTop: 120,
     gap: 32,
   },
@@ -318,6 +331,8 @@ const styles = StyleSheet.create({
   formSection: {
     width: '100%',
     gap: 20,
+    maxWidth: 360,
+    paddingHorizontal: 24,
   },
   fieldContainer: {
     width: '100%',
