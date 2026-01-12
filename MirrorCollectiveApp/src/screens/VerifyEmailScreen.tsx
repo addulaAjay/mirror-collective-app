@@ -66,13 +66,12 @@ const VerifyEmailScreen = () => {
     try {
       // Get anonymousId for linking quiz data
       const anonymousId = await QuizStorageService.getAnonymousId();
-      
+
       const response = await authApiService.verifyEmail({
         email,
         verificationCode: verificationCode.trim(),
-        anonymousId: anonymousId,  // Send anonymousId for backend linking
+        anonymousId: anonymousId, // Send anonymousId for backend linking
       });
-
 
       if (response.success) {
         // Check if there are any pending offline quiz submissions to retry
@@ -128,17 +127,11 @@ const VerifyEmailScreen = () => {
           t('auth.verifyEmail.title'),
         );
       } else {
-        Alert.alert(
-          t('common.error'),
-          getApiErrorMessage(response, t),
-        );
+        Alert.alert(t('common.error'), getApiErrorMessage(response, t));
       }
     } catch (error: any) {
       console.error('Resend error:', error);
-      Alert.alert(
-        t('common.error'),
-        getApiErrorMessage(error, t),
-      );
+      Alert.alert(t('common.error'), getApiErrorMessage(error, t));
     } finally {
       setIsResending(false);
     }
@@ -191,7 +184,9 @@ const VerifyEmailScreen = () => {
                     styles.verifyButtonTextDisabled,
                 ]}
               >
-                {isVerifying ? t('auth.verifyEmail.verifyingButton') : t('auth.verifyEmail.verifyButton')}
+                {isVerifying
+                  ? t('auth.verifyEmail.verifyingButton')
+                  : t('auth.verifyEmail.verifyButton')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -219,7 +214,9 @@ const VerifyEmailScreen = () => {
                 ]}
               >
                 {countdown > 0
-                  ? t('auth.verifyEmail.resendButtonWithTimer', { count: countdown })
+                  ? t('auth.verifyEmail.resendButtonWithTimer', {
+                      count: countdown,
+                    })
                   : isResending
                   ? t('auth.verifyEmail.sendingButton')
                   : t('auth.verifyEmail.resendButton')}
@@ -259,7 +256,7 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     paddingHorizontal: 44,
-    paddingTop: 180, // Space for LogoHeader (48 + 46 + 26 margin)
+    paddingTop: 150, // Space for LogoHeader (48 + 46 + 26 margin)
     gap: 60,
   },
   messageContainer: {
@@ -345,7 +342,7 @@ const styles = StyleSheet.create({
   },
   resendSection: {
     alignItems: 'center',
-    gap: 20,
+    gap: 10,
   },
   resendText: {
     ...theme.typography.styles.body,
@@ -357,18 +354,15 @@ const styles = StyleSheet.create({
     lineHeight: 28,
   },
   resendButton: {
-    width: 300,
-    borderRadius: 8,
+    marginTop: 20,
+    width: '100%',
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: theme.colors.border.primary,
-    paddingHorizontal: 40,
-    paddingVertical: 12,
-    shadowColor: theme.shadows.input.color,
-    shadowOffset: theme.shadows.input.offset,
-    shadowOpacity: theme.shadows.input.opacity,
-    shadowRadius: theme.shadows.input.radius,
+    borderColor: '#A3B3CC',
+    paddingVertical: 10,
+    paddingHorizontal: 72,
     alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: 'rgba(253, 253, 249, 0.05)',
   },
   resendButtonDisabled: {
     opacity: 0.6,
