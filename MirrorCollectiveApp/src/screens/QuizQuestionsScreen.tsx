@@ -12,6 +12,7 @@ import {
   StyleSheet,
   Dimensions,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 
 import questionsData from '@assets/questions.json';
@@ -23,7 +24,9 @@ import ImageOptionButton, {
 import LogoHeader from '@components/LogoHeader';
 import OptionButton from '@components/OptionsButton';
 import ProgressBar from '@components/ProgressBar';
+import { quizApiService } from '@services/api/quiz';
 import { QuizStorageService } from '@services/quizStorageService';
+import type { QuizQuestion } from '@types';
 import {
   calculateQuizResult,
   createUserAnswer,
@@ -45,23 +48,66 @@ const QuizQuestionsScreen = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selected, setSelected] = useState<string | { icon: any } | null>(null);
   const [answers, setAnswers] = useState<UserAnswer[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [questions, setQuestions] = useState<QuizQuestion[]>([]);
 
-  // Extract questions array from the new structure
+  // Extract static data for fallback/archetype mapping
   const quizData = questionsData as QuizData;
-  const questions = quizData.questions;
 
-  // Reset any previous quiz state when component mounts
+  // Reset state and fetch questions
   useEffect(() => {
-    const resetPreviousQuizState = async () => {
+    const initializeQuiz = async () => {
       try {
+        setIsLoading(true);
+        // Reset previous state
         await QuizStorageService.resetQuizState();
+        
+        // Fetch questions from API
+        const response = await quizApiService.getQuestions();
+        
+        if (response.success && response.data && Array.isArray(response.data) && response.data.length > 0) {
+           console.log('Using questions from API');
+           setQuestions(response.data);
+        } else {
+           console.log('Using local questions (API response empty or invalid)');
+           setQuestions(quizData.questions);
+        }
       } catch (error) {
-        console.error('Failed to reset previous quiz state:', error);
+        console.error('Failed to fetch questions, using fallback:', error);
+        setQuestions(quizData.questions);
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    resetPreviousQuizState();
+    initializeQuiz();
   }, []);
+
+  if (isLoading) {
+    return (
+      <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage}>
+        <View style={styles.loadingContainer}>
+          <LogoHeader />
+          <View style={styles.loadingContent}>
+            <ActivityIndicator size="large" color="#E5D6B0" />
+            <Text style={styles.loadingText}>{t('quiz.quizQuestions.loading')}</Text>
+          </View>
+        </View>
+      </BackgroundWrapper>
+    );
+  }
+
+  // Ensure questions exist
+  if (!questions || questions.length === 0) {
+     return (
+        <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage}>
+            <View style={styles.container}>
+                <LogoHeader />
+                <Text style={styles.question}>Unable to load quiz. Please try again later.</Text>
+             </View>
+        </BackgroundWrapper>
+     );
+  }
 
   const currentQuestion = questions[currentIndex];
   const isLast = currentIndex === questions.length - 1;
@@ -93,7 +139,7 @@ const QuizQuestionsScreen = () => {
     const userAnswer = createUserAnswer(
       currentQuestion.id,
       currentQuestion.question,
-      selectedOption,
+      selectedOption as any, // Cast to any to avoid type mismatch between API QuizOption and internal QuestionOption
       optionIndex,
     );
 
@@ -144,12 +190,21 @@ const QuizQuestionsScreen = () => {
             title: archetypeWithImage.title,
           },
           quizVersion: '1.0',
-          // Store the detailed quiz result for future use
-          detailedResult: quizResult,
+          // Transform the quiz result to match backend schema
+          detailedResult: {
+            primaryArchetype: quizResult.finalArchetype,
+            scores: quizResult.totalScores,
+            confidence: 0.85, // Default confidence for quiz-based results
+            analysis: {
+              strengths: [],
+              challenges: [],
+              recommendations: [],
+            },
+          },
         };
 
-        // Store temporarily - will be submitted after successful registration
-        await QuizStorageService.storePendingQuizResults(quizSubmission);
+        // Submit immediately (or queue for offline retry)
+        await QuizStorageService.submitAnonymousQuiz(quizSubmission);
 
         // Navigate to archetype screen with calculated result
         navigation.navigate('Archetype', {
@@ -273,6 +328,24 @@ const styles = StyleSheet.create({
   bg: {
     flex: 1,
     backgroundColor: '#0B0F1C',
+  },
+  loadingContainer: {
+     flex: 1,
+     alignItems: 'center',
+     paddingTop: Math.max(40, screenHeight * 0.047),
+  },
+  loadingContent: {
+     flex: 1,
+     justifyContent: 'center',
+     alignItems: 'center',
+     width: '100%',
+     marginBottom: Math.max(40, screenHeight * 0.047), // Balance the paddingTop for vertical center
+  },
+  loadingText: {
+    marginTop: 20,
+    color: '#E5D6B0',
+    fontSize: 16,
+    fontFamily: 'CormorantGaramond-Regular',
   },
   bgImage: {
     resizeMode: 'cover',
