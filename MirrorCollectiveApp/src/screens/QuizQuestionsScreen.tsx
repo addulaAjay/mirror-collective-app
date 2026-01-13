@@ -111,7 +111,12 @@ const QuizQuestionsScreen = () => {
 
   const currentQuestion = questions[currentIndex];
   const isLast = currentIndex === questions.length - 1;
-  const symbolSequence: ImageOptionSymbol[] = ['star', 'brick', 'spiral', 'mirror'];
+  const symbolSequence: ImageOptionSymbol[] = [
+    'star',
+    'brick',
+    'spiral',
+    'mirror',
+  ];
   const handleNext = async () => {
     if (!selected) return;
 
@@ -286,9 +291,10 @@ const QuizQuestionsScreen = () => {
                 data={currentQuestion.options}
                 keyExtractor={keyExtractor}
                 renderItem={renderItem}
-                scrollEnabled={false}
+                scrollEnabled
                 contentContainerStyle={styles.list}
                 showsVerticalScrollIndicator={false}
+                style={styles.listViewport}
               />
             ) : (
               <View style={styles.imageGrid}>
@@ -306,14 +312,21 @@ const QuizQuestionsScreen = () => {
 
           <View style={styles.nextWrap}>
             <GradientButton
-              title={isLast ? t('quiz.quizQuestions.finishButton') : t('quiz.quizQuestions.nextButton')}
+              title={
+                isLast
+                  ? t('quiz.quizQuestions.finishButton')
+                  : t('quiz.quizQuestions.nextButton')
+              }
               onPress={handleNext}
               disabled={!selected}
               style={styles.glassButtonWrapper}
               containerStyle={styles.glassButtonContainer}
               contentStyle={styles.glassButtonContent}
               textStyle={styles.glassButtonText}
-              gradientColors={['rgba(253, 253, 249, 0.04)', 'rgba(253, 253, 249, 0.01)']}
+              gradientColors={[
+                'rgba(253, 253, 249, 0.04)',
+                'rgba(253, 253, 249, 0.01)',
+              ]}
             />
           </View>
         </View>
@@ -397,7 +410,7 @@ const styles = StyleSheet.create({
   },
   optionButton: {
     marginBottom: Math.max(12, screenHeight * 0.014),
-    width: Math.min(screenWidth * 0.796, 313),
+    width: Math.min(screenWidth * 0.765, 313),
     marginHorizontal: 8,
   },
 
@@ -414,6 +427,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: Math.max(16, screenHeight * 0.02),
     flex: 1,
+  },
+  listViewport: {
+    width: '100%',
+    minHeight: 0,
   },
   nextWrap: {
     width: '100%',
