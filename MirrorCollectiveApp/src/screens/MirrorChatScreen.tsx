@@ -25,7 +25,6 @@ import LogoHeader from '@components/LogoHeader';
 import { MessageBubble, ChatInput, LoadingIndicator } from '@components/ui';
 import { useChat } from '@hooks/useChat';
 
-
 // Export content component for testing
 export function MirrorChatContent() {
   const {
@@ -47,12 +46,10 @@ export function MirrorChatContent() {
   }, [greetingLoaded, initializeSession]);
 
   return (
-
     <KeyboardAvoidingView
       style={styles.keyboardContainer}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-
       <SafeAreaView style={styles.safeArea}>
         <StatusBar
           translucent
@@ -60,50 +57,36 @@ export function MirrorChatContent() {
           barStyle="light-content"
         />
 
-
         <BackgroundWrapper style={styles.background}>
           <LogoHeader />
 
           <View style={styles.chatWrapper}>
-            <LinearGradient
-              colors={[
-                'rgba(155, 170, 194, 0.01)', // top
-                'rgba(155, 170, 194, 0.18)', // bottom
-              ]}
-              start={{ x: 0.5, y: 0 }}
-              end={{ x: 0.5, y: 1 }}
-              style={styles.GradientWrapper}
-            >
-              {/* Chat "card" */}
-              <View style={styles.chatContainer}>
-
-                <Text style={styles.chatTitle}>MirrorGPT</Text>
-                <Text style={styles.headerText}>What are you grateful for today?</Text>
-                <ScrollView
-                  ref={scrollViewRef}
-                  style={styles.messagesWrapper}
-                  contentContainerStyle={styles.messagesContent}
-                  showsVerticalScrollIndicator={false}
-                  onContentSizeChange={() =>
-                    scrollViewRef.current?.scrollToEnd({ animated: true })
-                  }
-                >
-                  {messages.map(message => (
-                    <MessageBubble key={message.id} message={message} />
-                  ))}
-                  {loading && <LoadingIndicator />}
-                </ScrollView>
-                <ChatInput
-                  value={draft}
-                  onChangeText={setDraft}
-                  onSend={sendMessage}
-                  disabled={loading}
-                />
-
-              </View>
-            </LinearGradient>
-            <View>
-              <Text style={styles.footerText} />
+            {/* Chat "card" */}
+            <View style={styles.chatContainer}>
+              <Text style={styles.chatTitle}>MirrorGPT</Text>
+              <Text style={styles.headerText}>
+                What are you grateful for today?
+              </Text>
+              <ScrollView
+                ref={scrollViewRef}
+                style={styles.messagesWrapper}
+                contentContainerStyle={styles.messagesContent}
+                showsVerticalScrollIndicator={false}
+                onContentSizeChange={() =>
+                  scrollViewRef.current?.scrollToEnd({ animated: true })
+                }
+              >
+                {messages.map(message => (
+                  <MessageBubble key={message.id} message={message} />
+                ))}
+                {loading && <LoadingIndicator />}
+              </ScrollView>
+              <ChatInput
+                value={draft}
+                onChangeText={setDraft}
+                onSend={sendMessage}
+                disabled={loading}
+              />
             </View>
           </View>
         </BackgroundWrapper>
@@ -116,8 +99,7 @@ export default function MirrorChatScreen() {
   return (
     <AuthenticatedRoute>
       <MirrorChatContent />
-
-    </AuthenticatedRoute >
+    </AuthenticatedRoute>
   );
 }
 
@@ -132,18 +114,14 @@ const styles = StyleSheet.create({
   },
 
   background: {
-    flex: 1,
+    // flex: 1,
     // paddingTop: 120, // Space for LogoHeader (48 + 46 + 26 margin)
-    paddingHorizontal: SPACING.XL,
-    justifyContent: 'flex-start',
   },
 
   chatWrapper: {
     flex: 1,
     width: '100%',
-    paddingRight: 20,
-    paddingLeft: 20,
-    paddingTop: 20
+    paddingTop: 20,
   },
 
   footerText: {
@@ -189,7 +167,7 @@ const styles = StyleSheet.create({
     lineHeight: 28,
     color: COLORS.TEXT.TITLE,
     textAlign: 'center',
-    marginTop: 28,
+    paddingTop: 50,
   },
 
   messagesWrapper: {
@@ -206,7 +184,6 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'flex-end',
     paddingVertical: SPACING.SM,
+    paddingHorizontal: SPACING.SM,
   },
-
-
 });
