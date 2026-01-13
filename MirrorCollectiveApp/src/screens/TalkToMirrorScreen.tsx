@@ -3,6 +3,7 @@ import React from 'react';
 import {
   Alert,
   Image,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -39,38 +40,50 @@ const TalkToMirrorScreen: React.FC<Props> = ({ navigation }) => {
 
   return (
     <BackgroundWrapper style={styles.container}>
-      <View style={styles.topRow}>
-        <LogoHeader />
-      </View>
-
-      <Text style={styles.greeting}>Welcome back, Stacey</Text>
-
-      <View style={styles.heroWrapper}>
-        <Image source={ARCHETYPE_IMAGE} style={styles.heroImage} resizeMode="contain" />
-      </View>
-
-      <TouchableOpacity
-        style={styles.talkButton}
-        onPress={handleTalkPress}
-        activeOpacity={0.85}
+      <LogoHeader />
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
       >
-        <StarIcon width={24} height={24} />
-        <Text style={styles.talkLabel}>TALK TO MIRROR</Text>
-        <StarIcon width={24} height={24} />
-      </TouchableOpacity>
+        <View style={styles.contentContainer}>
+          <Text style={styles.greeting}>Welcome back, Stacey</Text>
 
-      <View style={styles.menuGrid}>
-        {MENU_OPTIONS.map((option, index) => (
+          <View style={styles.heroWrapper}>
+            <Image
+              source={ARCHETYPE_IMAGE}
+              style={styles.heroImage}
+              resizeMode="contain"
+            />
+          </View>
+
           <TouchableOpacity
-            key={option}
-            style={[styles.menuCard, index === MENU_OPTIONS.length - 1 && styles.menuCardFull]}
+            style={styles.talkButton}
+            onPress={handleTalkPress}
             activeOpacity={0.85}
-            onPress={() => handleMenuPress(option)}
           >
-            <Text style={styles.menuText}>{option}</Text>
+            <StarIcon width={24} height={24} />
+            <Text style={styles.talkLabel}>TALK TO MIRROR</Text>
+            <StarIcon width={24} height={24} />
           </TouchableOpacity>
-        ))}
-      </View>
+
+          <View style={styles.menuGrid}>
+            {MENU_OPTIONS.map((option, index) => (
+              <TouchableOpacity
+                key={option}
+                style={[
+                  styles.menuCard,
+                  index === MENU_OPTIONS.length - 1 && styles.menuCardFull,
+                ]}
+                activeOpacity={0.85}
+                onPress={() => handleMenuPress(option)}
+              >
+                <Text style={styles.menuText}>{option}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+      </ScrollView>
     </BackgroundWrapper>
   );
 };
@@ -83,6 +96,19 @@ const styles = StyleSheet.create({
     paddingBottom: 32,
     backgroundColor: '#050912',
     alignItems: 'center',
+  },
+  contentContainer: {
+    flex: 1,
+    width: '100%',
+    alignItems: 'center',
+    paddingTop: 25, // Space for LogoHeader (48 + 46 + 26 margin)
+  },
+  scrollView: {
+    flex: 1,
+    width: '100%',
+  },
+  scrollContent: {
+    flexGrow: 1,
   },
   topRow: {
     flexDirection: 'row',
