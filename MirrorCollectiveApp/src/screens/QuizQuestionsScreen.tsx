@@ -6,6 +6,7 @@ import {
   StyleSheet,
   ImageBackground,
   Dimensions,
+  Alert,
 } from 'react-native';
 import GradientButton from '../components/GradientButton';
 import OptionButton from '../components/OptionsButton';
@@ -148,13 +149,7 @@ const QuizQuestionsScreen = () => {
           detailedResult: quizResult,
         };
 
-      // Static image mapping for React Native (dynamic require not supported)
-      const archetypeImages = {
-        'seeker-archetype.png': require('../assets/seeker-archetype.png'),
-        'guardian-archetype.png': require('../assets/guardian-archetype.png'),
-        'flamebearer-archetype.png': require('../assets/flamebearer-archetype.png'),
-        'weaver-archetype.png': require('../assets/weaver-archetype.png'),
-      };
+        await QuizStorageService.storePendingQuizResults(quizSubmission);
 
         // Navigate to archetype screen with calculated result
         navigation.navigate('Archetype', {
@@ -177,12 +172,8 @@ const QuizQuestionsScreen = () => {
                 }),
             },
           ],
-      };
-
-      navigation.navigate('Archetype', {
-        archetype: archetypeWithImage,
-        quizResult, // Pass the full result for potential future use
-      });
+        );
+      }
     } else {
       setCurrentIndex(currentIndex + 1);
     }

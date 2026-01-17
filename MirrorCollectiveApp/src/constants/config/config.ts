@@ -1,10 +1,17 @@
 import { Platform } from 'react-native';
 
+const DEFAULT_HOST = Platform.select({
+  android: 'http://10.0.2.2:8001',
+  ios: 'https://f8lzhthj1l.execute-api.us-east-1.amazonaws.com',
+  default: 'https://f8lzhthj1l.execute-api.us-east-1.amazonaws.com',
+});
+
+const HOST_OVERRIDE =
+  process.env.MIRROR_API_BASE_URL ||
+  process.env.API_BASE_URL;
+
 export const API_CONFIG = {
-  HOST:
-    Platform.OS === 'android'
-      ? 'https://f8lzhthj1l.execute-api.us-east-1.amazonaws.com'
-      : 'https://f8lzhthj1l.execute-api.us-east-1.amazonaws.com',
+  HOST: HOST_OVERRIDE || DEFAULT_HOST!,
   ENDPOINTS: {
     // Updated chat endpoint to match MirrorGPT API
     MIRROR_CHAT: '/api/mirrorgpt/chat',
@@ -23,9 +30,9 @@ export const API_CONFIG = {
     SESSION: {
       GREETING: '/api/mirrorgpt/session/greeting',
     },
-    QUIZ: {
-      SUBMIT: '/api/quiz/submit',
-    },
+    // QUIZ: {
+    //   SUBMIT: '/api/quiz/submit',
+    // },
     REGISTER_DEVICE: {
       REGISTER: '/api/register-device',
     },
