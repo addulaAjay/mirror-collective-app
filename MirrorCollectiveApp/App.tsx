@@ -1,8 +1,10 @@
 import '@i18n'; // Initialize i18n configuration
+import 'react-native-get-random-values';
+import 'react-native-url-polyfill/auto';
+import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '@types';
-import React from 'react';
 import { StatusBar } from 'react-native';
 
 import { ChatErrorBoundary } from '@components/error';
@@ -103,7 +105,17 @@ const AppNavigator = () => {
 };
 
 const App = () => {
-  // Handle app state changes for better crash recovery
+  useEffect(() => {
+  const registerDevice = async (): Promise<void> => {
+    try {
+      await PushNotificationService.getFCMToken();
+    } catch (error) {
+      console.error('Error fetching FCM Token:', error);
+    }
+  };
+  registerDevice();
+  }, []);
+
   useAppStateHandler({
     onForeground: async () => {
       if (__DEV__) {
