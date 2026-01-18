@@ -21,6 +21,6 @@ module.exports = {
         },
       },
     ],
+    '@babel/plugin-transform-class-static-block',
   ],
-  plugins: ['@babel/plugin-transform-class-static-block',],
 };

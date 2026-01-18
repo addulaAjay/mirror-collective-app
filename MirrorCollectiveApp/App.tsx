@@ -1,18 +1,16 @@
 import '@i18n'; // Initialize i18n configuration
 import 'react-native-get-random-values';
 import 'react-native-url-polyfill/auto';
-import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '@types';
+import React, { useEffect } from 'react';
 import { StatusBar } from 'react-native';
 
 import { ChatErrorBoundary } from '@components/error';
-import ErrorBoundary from '@components/ErrorBoundary';
 import { SessionProvider, useSession } from '@context/SessionContext';
 import { UserProvider } from '@context/UserContext';
 import useAppStateHandler from '@hooks/useAppStateHandler';
-
 // Import your screens
 import AppExplainerScreen from '@screens/AppExplainerScreen';
 import AppVideoScreen from '@screens/AppVideoScreen';
@@ -31,6 +29,10 @@ import SignUpScreen from '@screens/SignUpScreen';
 import SplashScreen from '@screens/SplashScreen';
 import TalkToMirrorScreen from '@screens/TalkToMirrorScreen';
 import VerifyEmailScreen from '@screens/VerifyEmailScreen';
+import PushNotificationService from '@services/PushNotificationService';
+
+
+import ErrorBoundary from './src/components/ErrorBoundary';
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 // Wrapped MirrorChat component with error boundary
@@ -105,17 +107,6 @@ const AppNavigator = () => {
 };
 
 const App = () => {
-  useEffect(() => {
-  const registerDevice = async (): Promise<void> => {
-    try {
-      await PushNotificationService.getFCMToken();
-    } catch (error) {
-      console.error('Error fetching FCM Token:', error);
-    }
-  };
-  registerDevice();
-  }, []);
-
   useAppStateHandler({
     onForeground: async () => {
       if (__DEV__) {
@@ -137,6 +128,14 @@ const App = () => {
       // Session persistence is now preferred over forced logout
     },
   });
+
+  useEffect(() => {
+    // Set up foreground push notification handling.
+    // This does not show a system permission prompt; it only
+    // decides what happens when a push arrives while the app
+    // is open.
+    PushNotificationService.initializeForegroundHandler();
+  }, []);
 
   return (
     <ErrorBoundary>
