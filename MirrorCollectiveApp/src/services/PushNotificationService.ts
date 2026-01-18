@@ -1,235 +1,159 @@
-import messaging from '@react-native-firebase/messaging';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Alert } from 'react-native';
-import { Platform } from 'react-native';
-import { registerDeviceApiService } from './api/register-device';
+import messaging from '@react-native-firebase/messaging';
+import { Alert, Platform } from 'react-native';
 
-// AWS SDK v3
-// import {
-//   SNSClient,
-// } from '@aws-sdk/client-sns';
+import { registerDeviceApiService } from '@services/api/register-device';
 
-// type PlatformType = 'android';
-
-// const sns = new SNSClient({
-//   region: 'us-east-1',
-//   credentials: {
-//     accessKeyId: '',
-//     secretAccessKey: '',
-//   },
-// });
-
-// const PLATFORM_ARNS: Record<PlatformType, string> = {
-//   android: '',
-// };
-
-// interface MessagePayload {
-//   title: string;
-//   body: string;
-// }
 
 class PushNotificationService {
-  constructor() {
-    this.configure();
-  }
-
-  private async configure(): Promise<void> {
-    await this.requestPermission();
-    await this.getFCMToken();
-  }
-
-  private async requestPermission(): Promise<void> {
+  /**
+   * Request OS notification permission (Android only for now).
+   * Returns true when notifications are enabled.
+   */
+  private async requestPermission(): Promise<boolean> {
     if (Platform.OS !== 'android') {
-      return;
+      return false;
     }
+
     try {
       const authStatus = await messaging().requestPermission();
       const enabled =
         authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
         authStatus === messaging.AuthorizationStatus.PROVISIONAL;
 
-      if (enabled) {
-        console.log('Authorization status:', authStatus);
-      } else {
+      if (!enabled) {
         Alert.alert('Permission denied', 'Push notifications are disabled');
       }
+
+      return enabled;
     } catch (error) {
       console.error('Permission request error:', error);
+      return false;
     }
   }
 
+  /**
+   * Get or create the FCM token for this device.
+   * The token is cached in AsyncStorage.
+   */
   async getFCMToken(): Promise<string | undefined> {
     if (Platform.OS !== 'android') {
       return;
     }
+
     try {
+      const storedToken = await AsyncStorage.getItem('fcmToken');
+      if (storedToken) {
+        return storedToken;
+      }
+
       const fcmToken = await messaging().getToken();
       if (fcmToken) {
         await AsyncStorage.setItem('fcmToken', fcmToken);
-
-        try {
-          await registerDeviceApiService.registerDevice({
-            device_token: fcmToken,
-            user_id: 'xyz',
-          });
-        } catch (error) {
-          console.error('Error registering device:', error);
-        }
         console.log('FCM Token:', fcmToken);
+        return fcmToken;
       }
     } catch (error) {
       console.error('Error getting FCM token:', error);
     }
+
+    return undefined;
   }
 
-  //   private async registerWithSNS(deviceToken: string): Promise<string | undefined> {
-  //     try {
-  //       const platform = Platform.OS as PlatformType;
-  //       const platformArn = PLATFORM_ARNS[platform];
+  /**
+   * Ensure the device is registered with the backend, then
+   * optionally ask the user if they want to see notifications.
+   *
+   * - Device registration (with FCM token) always happens when
+   *   this method is called and a token is available.
+   * - The Alert only controls whether OS-level notification
+   *   permission is requested, i.e. whether notifications show.
+   */
+  async promptForNotificationPermissionAndRegister(
+    userId: string,
+  ): Promise<void> {
+    if (!userId) {
+      return;
+    }
+    try {
+      const fcmToken = await this.getFCMToken();
+      if (!fcmToken) {
+        console.warn('No FCM token available for registration');
+        return;
+      }
 
-  //       if (!platformArn) {
-  //         throw new Error(`Platform ARN not found for ${platform}`);
-  //       }
+      // Always register the device with the backend
+      await registerDeviceApiService.registerDevice({
+        user_id: userId,
+        device_token: fcmToken,
+      });
+    } catch (error) {
+      console.error('Error registering device with backend:', error);
+    }
 
-  //       const command = new CreatePlatformEndpointCommand({
-  //         PlatformApplicationArn: platformArn,
-  //         Token: deviceToken,
-  //         CustomUserData: JSON.stringify({
-  //           userId: '',
-  //           platform,
-  //         }),
-  //       });
+    // Now independently ask if the user wants to enable notifications.
+    // Saying "Not now" keeps the device registered but does not
+    // request OS notification permission, so notifications won't show.
+    return new Promise(resolve => {
+      Alert.alert(
+        'Allow notifications',
+        'Would you like to receive notifications from Mirror Collective?',
+        [
+          {
+            text: 'Not now',
+            style: 'cancel',
+            onPress: () => resolve(),
+          },
+          {
+            text: 'Allow',
+            onPress: () => {
+              (async () => {
+                try {
+                  await this.requestPermission();
+                } catch (error) {
+                  console.error(
+                    'Error requesting notification permission:',
+                    error,
+                  );
+                } finally {
+                  resolve();
+                }
+              })();
+            },
+          },
+        ],
+        { cancelable: true },
+      );
+    });
+  }
 
-  //       const result = await sns.send(command);
+  /**
+   * Handle incoming FCM messages while the app is in the foreground.
+   *
+   * By default, Android does not show a system notification banner
+   * when the app is open. This sets up an in-app handler so the
+   * user still sees something when a push arrives.
+   */
+  initializeForegroundHandler(): void {
+    if (Platform.OS !== 'android') {
+      return;
+    }
 
-  //       if (result.EndpointArn) {
-  //         console.log('SNS Endpoint ARN:', result.EndpointArn);
-  //         await AsyncStorage.setItem('snsEndpointArn', result.EndpointArn);
-  //         return result.EndpointArn;
-  //       }
-  //     } catch (error: any) {
-  //       console.error('Error registering with SNS:', error);
+    messaging().onMessage(async remoteMessage => {
+      try {
+        const title =
+          remoteMessage.notification?.title || 'Mirror Collective';
+        const body = remoteMessage.notification?.body ||
+          (typeof remoteMessage.data?.message === 'string'
+            ? remoteMessage.data?.message
+            : 'New message received');
 
-  //       if (
-  //         error.name === 'InvalidParameterException' &&
-  //         error.message.includes('already exists')
-  //       ) {
-  //         const existingArn = this.extractEndpointArnFromError(error.message);
-  //         if (existingArn) {
-  //           await AsyncStorage.setItem('snsEndpointArn', existingArn);
-  //           return existingArn;
-  //         }
-  //       }
-  //     }
-  //   }
-
-  //   private extractEndpointArnFromError(errorMessage: string): string | null {
-  //     const match = errorMessage.match(/arn:aws:sns:[^"]+/);
-  //     return match ? match[0] : null;
-  //   }
-
-  //   private setupListeners(): void {
-  //     messaging().onMessage(async (remoteMessage: FirebaseMessagingTypes.RemoteMessage) => {
-  //       console.log('Foreground message:', remoteMessage);
-  //       Alert.alert(
-  //         JSON.stringify(remoteMessage.data?.title) || 'Notification',
-  //         JSON.stringify(remoteMessage.data?.message) || 'New message received'
-  //       );
-  //     });
-
-  //     messaging().setBackgroundMessageHandler(
-  //       async (remoteMessage: FirebaseMessagingTypes.RemoteMessage) => {
-  //         console.log('Background message:', remoteMessage);
-  //       }
-  //     );
-
-  //     messaging().getInitialNotification().then((remoteMessage) => {
-  //       if (remoteMessage) {
-  //         console.log('App opened from notification:', remoteMessage);
-  //       }
-  //     });
-
-  //     messaging().onNotificationOpenedApp(
-  //       (remoteMessage: FirebaseMessagingTypes.RemoteMessage) => {
-  //         console.log('App opened from background notification:', remoteMessage);
-  //       }
-  //     );
-
-  //     messaging().onTokenRefresh((token: string) => {
-  //       console.log('Token refreshed:', token);
-  //       this.registerWithSNS(token);
-  //     });
-  //   }
-
-  //   public async sendNotification(
-  //     message: MessagePayload,
-  //     targetArn?: string
-  //   ): Promise<void> {
-  //     try {
-  //       const baseMessage = JSON.stringify({
-  //         default: message.body,
-  //         APNS: JSON.stringify({
-  //           aps: {
-  //             alert: { title: message.title, body: message.body },
-  //             sound: 'default',
-  //             badge: 1,
-  //           },
-  //         }),
-  //         GCM: JSON.stringify({
-  //           data: { title: message.title, body: message.body },
-  //           notification: { title: message.title, body: message.body, sound: 'default' },
-  //         }),
-  //       });
-
-  //       const command = new PublishCommand({
-  //         Message: baseMessage,
-  //         MessageStructure: 'json',
-  //         ...(targetArn
-  //           ? { TargetArn: targetArn }
-  //           : { TopicArn: '' }),
-  //       });
-
-  //       const result = await sns.send(command);
-  //       console.log('Notification sent:', result.MessageId);
-  //     } catch (error) {
-  //       console.error('Error sending notification:', error);
-  //     }
-  //   }
-
-  //   public async subscribeToTopic(topicArn: string): Promise<string | undefined> {
-  //     try {
-  //       const endpointArn = await AsyncStorage.getItem('snsEndpointArn');
-  //       if (!endpointArn) {
-  //         throw new Error('Endpoint ARN not found');
-  //       }
-
-  //       const command = new SubscribeCommand({
-  //         Protocol: 'application',
-  //         TopicArn: topicArn,
-  //         Endpoint: endpointArn,
-  //       });
-
-  //       const result = await sns.send(command);
-  //       console.log('Subscribed to topic:', result.SubscriptionArn);
-  //       return result.SubscriptionArn;
-  //     } catch (error) {
-  //       console.error('Error subscribing to topic:', error);
-  //     }
-  //   }
-
-  //   public async getStoredData(): Promise<{
-  //     fcmToken: string | null;
-  //     endpointArn: string | null;
-  //   }> {
-  //     try {
-  //       const fcmToken = await AsyncStorage.getItem('fcmToken');
-  //       const endpointArn = await AsyncStorage.getItem('snsEndpointArn');
-  //       return { fcmToken, endpointArn };
-  //     } catch (error) {
-  //       console.error('Error getting stored data:', error);
-  //       return { fcmToken: null, endpointArn: null };
-  //     }
-  //   }
+        Alert.alert(title, body);
+      } catch (error) {
+        console.error('Error handling foreground notification:', error);
+      }
+    });
+  }
 }
 
 export default new PushNotificationService();
