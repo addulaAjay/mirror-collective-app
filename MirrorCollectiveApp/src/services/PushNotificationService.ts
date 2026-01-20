@@ -4,25 +4,41 @@ import { Alert, Platform } from 'react-native';
 
 import { registerDeviceApiService } from '@services/api/register-device';
 
-
 class PushNotificationService {
+  private userId: string | null = null;
+
   /**
-   * Request OS notification permission (Android only for now).
-   * Returns true when notifications are enabled.
+   * Initializes the push notification service.
+   * Sets up handlers and checks for existing tokens.
+   */
+  async initialize(userId: string): Promise<void> {
+    this.userId = userId;
+
+    // 1. Handle foreground messages
+    this.initializeForegroundHandler();
+
+    // 2. Handle token refreshes automatically
+    this.listenToTokenRefresh();
+
+    // 3. Register the current token with the backend if we have one
+    const token = await this.getFCMToken();
+    if (token) {
+      this.registerDeviceWithBackend(token);
+    }
+  }
+
+  /**
+   * Request OS notification permission for both Android and iOS.
    */
   private async requestPermission(): Promise<boolean> {
-    if (Platform.OS !== 'android') {
-      return false;
-    }
-
     try {
       const authStatus = await messaging().requestPermission();
       const enabled =
         authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
         authStatus === messaging.AuthorizationStatus.PROVISIONAL;
 
-      if (!enabled) {
-        Alert.alert('Permission denied', 'Push notifications are disabled');
+      if (!enabled && Platform.OS === 'ios') {
+        console.warn('iOS Notification permission not granted');
       }
 
       return enabled;
@@ -33,71 +49,64 @@ class PushNotificationService {
   }
 
   /**
-   * Get or create the FCM token for this device.
-   * The token is cached in AsyncStorage.
+   * Get the FCM token for this device, prioritizing the live token.
    */
   async getFCMToken(): Promise<string | undefined> {
-    if (Platform.OS !== 'android') {
-      return;
-    }
-
     try {
-      const storedToken = await AsyncStorage.getItem('fcmToken');
-      if (storedToken) {
-        return storedToken;
-      }
-
+      // Always try to get the fresh token from Firebase first
       const fcmToken = await messaging().getToken();
       if (fcmToken) {
         await AsyncStorage.setItem('fcmToken', fcmToken);
-        console.log('FCM Token:', fcmToken);
         return fcmToken;
       }
+
+      // Fallback to cached token if Firebase is unavailable
+      return await AsyncStorage.getItem('fcmToken') || undefined;
     } catch (error) {
       console.error('Error getting FCM token:', error);
+      return await AsyncStorage.getItem('fcmToken') || undefined;
     }
-
-    return undefined;
   }
 
   /**
-   * Ensure the device is registered with the backend, then
-   * optionally ask the user if they want to see notifications.
-   *
-   * - Device registration (with FCM token) always happens when
-   *   this method is called and a token is available.
-   * - The Alert only controls whether OS-level notification
-   *   permission is requested, i.e. whether notifications show.
+   * Listens for FCM token refreshes and syncs with the backend.
    */
-  async promptForNotificationPermissionAndRegister(
-    userId: string,
-  ): Promise<void> {
-    if (!userId) {
-      return;
-    }
-    try {
-      const fcmToken = await this.getFCMToken();
-      if (!fcmToken) {
-        console.warn('No FCM token available for registration');
-        return;
+  private listenToTokenRefresh(): void {
+    messaging().onTokenRefresh((token: string) => {
+      AsyncStorage.setItem('fcmToken', token);
+      if (this.userId) {
+        this.registerDeviceWithBackend(token);
       }
+    });
+  }
 
-      // Always register the device with the backend
+  /**
+   * Sends the device registration to the backend.
+   */
+  private async registerDeviceWithBackend(token: string): Promise<void> {
+    if (!this.userId) return;
+
+    try {
       await registerDeviceApiService.registerDevice({
-        user_id: userId,
-        device_token: fcmToken,
+        device_token: token,
+        platform: Platform.OS,
       });
+      console.log(`Device registered successfully for user ${this.userId} on ${Platform.OS}`);
     } catch (error) {
-      console.error('Error registering device with backend:', error);
+      console.error('Failed to register device with backend:', error);
     }
+  }
 
-    // Now independently ask if the user wants to enable notifications.
-    // Saying "Not now" keeps the device registered but does not
-    // request OS notification permission, so notifications won't show.
+  /**
+   * Prompts the user for permission and registers the device.
+   */
+  async promptForNotificationPermissionAndRegister(userId: string): Promise<void> {
+    this.userId = userId;
+
     return new Promise(resolve => {
       Alert.alert(
-        'Allow notifications',
-        'Would you like to receive notifications from Mirror Collective?',
+        'Stay Connected',
+        'Would you like to receive daily reminders and archetype insights from Mirror Collective?',
         [
           {
             text: 'Not now',
@@ -105,16 +114,19 @@ class PushNotificationService {
             onPress: () => resolve(),
           },
           {
-            text: 'Allow',
+            text: 'Enable',
             onPress: () => {
               (async () => {
                 try {
-                  await this.requestPermission();
+                  const enabled = await this.requestPermission();
+                  if (enabled) {
+                    const token = await this.getFCMToken();
+                    if (token) {
+                      await this.registerDeviceWithBackend(token);
+                    }
+                  }
                 } catch (error) {
-                  console.error(
-                    'Error requesting notification permission:',
-                    error,
-                  );
+                  console.error('Error in permission/registration flow:', error);
                 } finally {
                   resolve();
                 }
@@ -128,31 +140,34 @@ class PushNotificationService {
   }
 
   /**
-   * Handle incoming FCM messages while the app is in the foreground.
-   *
-   * By default, Android does not show a system notification banner
-   * when the app is open. This sets up an in-app handler so the
-   * user still sees something when a push arrives.
+   * Handle incoming FCM messages while app is in foreground.
    */
-  initializeForegroundHandler(): void {
-    if (Platform.OS !== 'android') {
-      return;
-    }
+  private initializeForegroundHandler(): void {
+    messaging().onMessage(async (remoteMessage: any) => {
+      const title = remoteMessage.notification?.title || 'Mirror Collective';
+      const body = remoteMessage.notification?.body || 
+                   (typeof remoteMessage.data?.message === 'string' ? remoteMessage.data?.message : 'New insight available');
 
-    messaging().onMessage(async remoteMessage => {
-      try {
-        const title =
-          remoteMessage.notification?.title || 'Mirror Collective';
-        const body = remoteMessage.notification?.body ||
-          (typeof remoteMessage.data?.message === 'string'
-            ? remoteMessage.data?.message
-            : 'New message received');
-
-        Alert.alert(title, body);
-      } catch (error) {
-        console.error('Error handling foreground notification:', error);
-      }
+      Alert.alert(title, body, [{ text: 'View' }]);
     });
+  }
+
+  /**
+   * Unregisters the current device from the backend.
+   * Useful during logout to prevent further notifications to this device.
+   */
+  async unregisterDevice(): Promise<void> {
+    try {
+      const token = await this.getFCMToken();
+      if (token) {
+        await registerDeviceApiService.unregisterDevice(token);
+        console.log('Device unregistered successfully from backend');
+      }
+      // Also clear local token cache
+      await AsyncStorage.removeItem('fcmToken');
+    } catch (error) {
+      console.error('Failed to unregister device:', error);
+    }
   }
 }
 

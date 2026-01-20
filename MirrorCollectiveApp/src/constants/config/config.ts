@@ -36,6 +36,7 @@ export const API_CONFIG = {
     // },
     REGISTER_DEVICE: {
       REGISTER: '/api/register-device',
+      UNREGISTER: '/api/unregister-device',
     },
   },
   TIMEOUT: 10000,
