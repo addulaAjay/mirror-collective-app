@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
   },
   videoFrame: {
     width: 309,
-    height: 600,
+    height: 500,
     backgroundColor: 'rgba(255, 255, 255, 0.40)',
     justifyContent: 'center',
     alignItems: 'center',
