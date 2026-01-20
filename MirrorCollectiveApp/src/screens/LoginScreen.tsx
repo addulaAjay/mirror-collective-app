@@ -105,11 +105,10 @@ const LoginScreen = ({ navigation, route }: any) => {
     <KeyboardAvoidingView
       style={styles.keyboardContainer}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-        <BackgroundWrapper
-          style={styles.container}
-        >
+        <BackgroundWrapper style={styles.container}>
           <LogoHeader />
           <View style={styles.contentContainer}>
             <Text style={styles.title}>{t('auth.login.title')}</Text>
@@ -171,7 +170,9 @@ const LoginScreen = ({ navigation, route }: any) => {
               >
                 <StarIcon width={24} height={24} />
                 <Text style={styles.enterText}>
-                  {isLoading ? t('auth.login.enteringButton') : t('auth.login.enterButton')}
+                  {isLoading
+                    ? t('auth.login.enteringButton')
+                    : t('auth.login.enterButton')}
                 </Text>
                 <StarIcon width={24} height={24} />
               </TouchableOpacity>
@@ -192,7 +193,9 @@ const LoginScreen = ({ navigation, route }: any) => {
                 {t('auth.login.newToCollective')}
               </Text>
               <TouchableOpacity onPress={navigateToSignUp} disabled={isLoading}>
-                <Text style={styles.signupLink}>{t('auth.login.signUpLink')}</Text>
+                <Text style={styles.signupLink}>
+                  {t('auth.login.signUpLink')}
+                </Text>
               </TouchableOpacity>
             </View>
           </View>

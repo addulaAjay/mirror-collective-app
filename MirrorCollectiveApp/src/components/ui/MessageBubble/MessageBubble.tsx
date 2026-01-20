@@ -14,49 +14,56 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
   const isUser = message.sender === 'user';
 
   return (
-    <View style={[
-      styles.bubble,
-      isUser ? styles.userBubble : styles.systemBubble
-    ]}>
-      {!isUser ? (
-        <Text style={[styles.text, styles.userText]}>
-          {message.text}
-        </Text>
-      ) : (
+    <View style={[styles.row, isUser ? styles.rowUser : styles.rowSystem]}>
+      {isUser ? (
         <LinearGradient
           colors={['rgba(253, 253, 249, 0.03)', 'rgba(253, 253, 249, 0.20)']}
           start={{ x: 0.5, y: 0 }}
           end={{ x: 0.5, y: 1 }}
-          style={styles.systemFill}
+          style={[styles.bubble, styles.userBubble]}
         >
-          <Text style={[styles.text, styles.systemText]}>
-            {message.text}
-          </Text>
-         </LinearGradient>
+          <Text style={[styles.text, styles.userText]}>{message.text}</Text>
+        </LinearGradient>
+      ) : (
+        <View style={[styles.bubble, styles.systemBubble]}>
+          <Text style={[styles.text, styles.systemText]}>{message.text}</Text>
+        </View>
       )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  // Full-width row so bubbles never render “outside” the scroll area
+  row: {
+    width: '100%',
+    flexDirection: 'row',
+    marginVertical: SPACING.XS,
+  },
+  rowUser: {
+    justifyContent: 'flex-end',
+  },
+  rowSystem: {
+    justifyContent: 'flex-start',
+  },
+
   bubble: {
+    maxWidth: '80%',
+    minWidth: 0,
     paddingVertical: SPACING.SM,
     paddingHorizontal: SPACING.MD,
     borderRadius: BORDER_RADIUS.MD,
-    marginVertical: SPACING.XS,
-    maxWidth: '80%',
+    overflow: 'hidden',
     ...SHADOWS.MEDIUM,
   },
 
   userBubble: {
-    // backgroundColor: 'linear-gradient(0deg, #C59D5F 0%, #E5D6B0 100%)',
     marginTop: 14,
-    alignSelf: 'flex-end',
+    alignSelf: 'flex-start',
   },
 
   systemBubble: {
     marginTop: 14,
-    alignSelf: 'flex-start',
     borderWidth: 1,
     borderColor: 'rgba(155, 170, 194, 0.5)',
     backgroundColor: 'rgba(253, 253, 249, 0.05)',
@@ -64,6 +71,9 @@ const styles = StyleSheet.create({
 
   text: {
     ...theme.typography.styles.body,
+    flex: 0,
+    width: 'auto',
+    flexShrink: 1,
   },
 
   userText: {
@@ -71,8 +81,10 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     fontSize: 16,
     fontWeight: '400',
+    lineHeight: 24,
     color: '#F2E2B1',
-    
+    paddingRight: 20,
+    paddingBottom: 10,
   },
 
   systemText: {
@@ -82,12 +94,4 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     color: '#F2E2B1',
   },
-  systemFill: {
-    // match outer radii so the fill clips to the same shape
-    borderRadius: BORDER_RADIUS.MD,
-    paddingVertical: SPACING.SM,
-    paddingHorizontal: SPACING.MD,
-        alignSelf: 'flex-end',
-  },
-
 });
