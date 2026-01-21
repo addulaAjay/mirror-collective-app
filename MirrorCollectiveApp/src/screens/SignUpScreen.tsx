@@ -129,7 +129,7 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
     <KeyboardAvoidingView
       style={styles.keyboardContainer}
       behavior={Platform.OS === 'ios' ? 'padding' : 'undefined'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
         <BackgroundWrapper style={styles.container}>
@@ -298,12 +298,14 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     paddingVertical: 20,
+    paddingBottom: 100,
   },
   contentContainer: {
     width: '100%',
     alignItems: 'center',
     paddingTop: 120,
     gap: 32,
+    paddingBottom: 40,
   },
   headerSection: {
     alignItems: 'center',
