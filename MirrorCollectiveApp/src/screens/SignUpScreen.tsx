@@ -1,3 +1,4 @@
+import { theme } from '@theme';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -19,7 +20,6 @@ import LogoHeader from '@components/LogoHeader';
 import StarIcon from '@components/StarIcon';
 import TextInputField from '@components/TextInputField';
 import { useSession } from '@context/SessionContext';
-import { theme } from '@theme';
 import { getApiErrorMessage } from '@utils/apiErrorUtils';
 const { width: screenWidth } = Dimensions.get('window');
 interface SignUpScreenProps {
@@ -129,7 +129,7 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
     <KeyboardAvoidingView
       style={styles.keyboardContainer}
       behavior={Platform.OS === 'ios' ? 'padding' : 'undefined'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
         <BackgroundWrapper style={styles.container}>
@@ -305,7 +305,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: 120,
     gap: 32,
-    paddingBottom: 40,
+    paddingBottom: 100,
   },
   headerSection: {
     alignItems: 'center',
