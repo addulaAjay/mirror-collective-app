@@ -46,8 +46,8 @@ const ArchetypeScreen: React.FC<ArchetypeScreenProps> = ({ route }) => {
   const { archetype } = route.params;
 
   const handleContinue = () => {
-    // Navigate to next screen in the flow
-    navigation.navigate('QuizTuning');
+    // After viewing archetype, continue into auth flow
+    navigation.navigate('Login');
   };
 
   const handleRetake = () => {

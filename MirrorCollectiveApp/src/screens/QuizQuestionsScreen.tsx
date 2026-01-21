@@ -3,6 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '@types';
 import type { QuizSubmissionRequest } from '@types';
+import type { QuizQuestion } from '@types';
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -26,7 +27,6 @@ import OptionButton from '@components/OptionsButton';
 import ProgressBar from '@components/ProgressBar';
 import { quizApiService } from '@services/api/quiz';
 import { QuizStorageService } from '@services/quizStorageService';
-import type { QuizQuestion } from '@types';
 import {
   calculateQuizResult,
   createUserAnswer,
@@ -211,8 +211,8 @@ const QuizQuestionsScreen = () => {
         // Submit immediately (or queue for offline retry)
         await QuizStorageService.submitAnonymousQuiz(quizSubmission);
 
-        // Navigate to archetype screen with calculated result
-        navigation.navigate('Archetype', {
+        // Navigate to tuning screen first, then Archetype
+        navigation.navigate('QuizTuning', {
           archetype: archetypeWithImage,
           quizResult, // Pass the full calculated result
         });
@@ -226,7 +226,7 @@ const QuizQuestionsScreen = () => {
             {
               text: t('quiz.quizQuestions.continueButton'),
               onPress: () =>
-                navigation.navigate('Archetype', {
+                navigation.navigate('QuizTuning', {
                   archetype: archetypeWithImage,
                   quizResult,
                 }),

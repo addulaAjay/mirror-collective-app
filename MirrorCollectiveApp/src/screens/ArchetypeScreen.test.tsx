@@ -51,11 +51,11 @@ describe('ArchetypeScreen', () => {
     expect(getByText('auth.archetype.continuePrompt')).toBeTruthy();
   });
 
-  it('navigates to QuizTuning on press', () => {
+  it('navigates to Login on press', () => {
     const { getByTestId } = render(<ArchetypeScreen route={mockRoute as any} />);
     
     fireEvent.press(getByTestId('archetype-container'));
     
-    expect(mockNavigate).toHaveBeenCalledWith('QuizTuning');
+    expect(mockNavigate).toHaveBeenCalledWith('Login');
   });
 });
