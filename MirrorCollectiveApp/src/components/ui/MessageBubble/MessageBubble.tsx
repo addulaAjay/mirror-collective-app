@@ -1,10 +1,10 @@
+import { SHADOWS, SPACING, BORDER_RADIUS } from '@constants';
+import { theme } from '@theme';
+import type { Message } from '@types';
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 
-import { SHADOWS, SPACING, BORDER_RADIUS } from '@constants';
-import { theme } from '@theme';
-import type { Message } from '@types';
 
 interface MessageBubbleProps {
   message: Message;
@@ -60,6 +60,8 @@ const styles = StyleSheet.create({
   userBubble: {
     marginTop: 14,
     alignSelf: 'flex-start',
+    borderWidth: 0.25,
+    borderColor: '#A3B3CC',
   },
 
   systemBubble: {
@@ -83,8 +85,7 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     lineHeight: 24,
     color: '#F2E2B1',
-    paddingRight: 20,
-    paddingBottom: 10,
+    backgroundColor: 'transparent',
   },
 
   systemText: {

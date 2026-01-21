@@ -16,6 +16,7 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  Keyboard,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 
@@ -45,11 +46,28 @@ export function MirrorChatContent() {
     }
   }, [greetingLoaded, initializeSession]);
 
+  // Ensure the latest message stays visible when keyboard shows/hides
+  useEffect(() => {
+    const scrollToEnd = () => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    };
+
+    const showSub = Keyboard.addListener('keyboardDidShow', scrollToEnd);
+    const hideSub = Keyboard.addListener('keyboardDidHide', scrollToEnd);
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, [scrollViewRef]);
+
   return (
     <KeyboardAvoidingView
       style={styles.keyboardContainer}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+      keyboardVerticalOffset={
+        Platform.OS === 'ios' ? PLATFORM_SPECIFIC.STATUS_BAR_HEIGHT : 0
+      }
     >
       <SafeAreaView style={styles.safeArea}>
         <StatusBar
@@ -62,32 +80,46 @@ export function MirrorChatContent() {
           <LogoHeader />
 
           <View style={styles.chatWrapper}>
-            {/* Chat "card" */}
-            <View style={styles.chatContainer}>
-              <Text style={styles.chatTitle}>MirrorGPT</Text>
+            <LinearGradient
+              colors={[
+                'rgba(155, 170, 194, 0.01)', // top
+                'rgba(155, 170, 194, 0.18)', // bottom
+              ]}
+              start={{ x: 0.5, y: 0 }}
+              end={{ x: 0.5, y: 1 }}
+              style={styles.GradientWrapper}
+            >
+              {/* Chat "card" */}
+              <View style={styles.chatContainer}>
+                <Text style={styles.chatTitle}>MirrorGPT</Text>
               <Text style={styles.headerText}>
                 What are you grateful for today?
               </Text>
-              <ScrollView
-                ref={scrollViewRef}
-                style={styles.messagesWrapper}
-                contentContainerStyle={styles.messagesContent}
-                showsVerticalScrollIndicator={false}
-                onContentSizeChange={() =>
-                  scrollViewRef.current?.scrollToEnd({ animated: true })
-                }
-              >
-                {messages.map(message => (
-                  <MessageBubble key={message.id} message={message} />
-                ))}
-                {loading && <LoadingIndicator />}
-              </ScrollView>
-              <ChatInput
-                value={draft}
-                onChangeText={setDraft}
-                onSend={sendMessage}
-                disabled={loading}
-              />
+                <ScrollView
+                  ref={scrollViewRef}
+                  style={styles.messagesWrapper}
+                  contentContainerStyle={styles.messagesContent}
+                  keyboardShouldPersistTaps="handled"
+                  showsVerticalScrollIndicator={false}
+                  onContentSizeChange={() =>
+                    scrollViewRef.current?.scrollToEnd({ animated: true })
+                  }
+                >
+                  {messages.map(message => (
+                    <MessageBubble key={message.id} message={message} />
+                  ))}
+                  {loading && <LoadingIndicator />}
+                </ScrollView>
+                <ChatInput
+                  value={draft}
+                  onChangeText={setDraft}
+                  onSend={sendMessage}
+                  disabled={loading}
+                />
+              </View>
+            </LinearGradient>
+            <View>
+              <Text style={styles.footerText} />
             </View>
           </View>
         </BackgroundWrapper>
@@ -115,8 +147,10 @@ const styles = StyleSheet.create({
   },
 
   background: {
-    // flex: 1,
+    flex: 1,
     // paddingTop: 120, // Space for LogoHeader (48 + 46 + 26 margin)
+    paddingHorizontal: SPACING.XL,
+    justifyContent: 'flex-start',
   },
 
   chatWrapper: {
@@ -130,7 +164,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     lineHeight: 28,
     color: COLORS.TEXT.SYSTEM_MESSAGE,
-    paddingTop: 50,
     paddingBottom: 15,
     textAlign: 'center',
   },
