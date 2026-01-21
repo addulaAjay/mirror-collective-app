@@ -8,6 +8,7 @@ import React, {
   useCallback,
 } from 'react';
 
+import PushNotificationService from '@services/PushNotificationService';
 import { authApiService } from '@services/api';
 
 // Types
@@ -220,11 +221,18 @@ export const SessionProvider = ({ children }: SessionProviderProps) => {
       throw error;
     }
   };
-
   const signOut = async () => {
     if (!isMountedRef.current) return;
     try {
       safeDispatch({ type: 'SET_LOADING', payload: true });
+      
+      // Unregister push notifications before clearing tokens
+      try {
+        await PushNotificationService.unregisterDevice();
+      } catch (error) {
+        if (__DEV__) console.warn('Push unregistration failed:', error);
+      }
+
       try {
         await authApiService.signOut();
       } catch (error) {
