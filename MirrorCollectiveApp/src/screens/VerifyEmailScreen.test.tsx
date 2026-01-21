@@ -1,10 +1,14 @@
-import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
-import VerifyEmailScreen from './VerifyEmailScreen';
-import { useNavigation } from '@react-navigation/native';
+import React from 'react';
+import { Alert } from 'react-native';
+
 import { authApiService } from '@services/api';
 import { QuizStorageService } from '@services/quizStorageService';
-import { Alert } from 'react-native';
+
+import VerifyEmailScreen from './VerifyEmailScreen';
+
+
+
 
 // Mocks
 jest.mock('@components/LogoHeader', () => 'LogoHeader');
@@ -37,7 +41,9 @@ jest.mock('@services/api', () => ({
 // Mock QuizStorageService
 jest.mock('@services/quizStorageService', () => ({
   QuizStorageService: {
-    submitPendingQuizResults: jest.fn(),
+    submitAnonymousQuiz: jest.fn(),
+    getAnonymousId: jest.fn(),
+    retryPendingSubmissions: jest.fn(),
   },
 }));
 
@@ -71,7 +77,7 @@ describe('VerifyEmailScreen', () => {
 
   it('calls verifyEmail on valid code', async () => {
     (authApiService.verifyEmail as jest.Mock).mockResolvedValueOnce({ success: true });
-    (QuizStorageService.submitPendingQuizResults as jest.Mock).mockResolvedValueOnce(true);
+    (QuizStorageService.retryPendingSubmissions as jest.Mock).mockResolvedValueOnce(undefined);
 
     const { getByTestId } = render(<VerifyEmailScreen />);
     

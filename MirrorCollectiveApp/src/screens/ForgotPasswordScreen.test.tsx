@@ -1,9 +1,13 @@
-import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
-import ForgotPasswordScreen from './ForgotPasswordScreen';
-import { useNavigation } from '@react-navigation/native';
-import { useSession } from '@context/SessionContext';
+import React from 'react';
 import { Alert } from 'react-native';
+
+import { useSession } from '@context/SessionContext';
+
+import ForgotPasswordScreen from './ForgotPasswordScreen';
+
+
+
 
 // Mocks
 jest.mock('@components/LogoHeader', () => 'LogoHeader');

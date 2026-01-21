@@ -1,7 +1,10 @@
-import React from 'react';
 import { render } from '@testing-library/react-native';
-import MirrorAnimationScreen from './MirrorAnimationScreen';
+import React from 'react';
+
 import { useAuthGuard } from '@hooks/useAuthGuard';
+
+import MirrorAnimationScreen from './MirrorAnimationScreen';
+
 
 jest.mock('@hooks/useAuthGuard', () => ({
   useAuthGuard: jest.fn(),

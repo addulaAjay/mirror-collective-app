@@ -1,16 +1,14 @@
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 
+import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
 import { useAuthGuard } from '@hooks/useAuthGuard';
 import { theme } from '@theme';
 import type { RootStackParamList } from '@types';
 
-const { width, height } = Dimensions.get('screen');
-
-import BackgroundWrapper from '@components/BackgroundWrapper';
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'AppExplanation'>;

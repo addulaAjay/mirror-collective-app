@@ -1,8 +1,6 @@
-import { BORDER_RADIUS, COLORS, SPACING } from '@constants';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '@types';
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
@@ -16,8 +14,13 @@ import {
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 
+import questionsData from '@assets/questions.json';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import GradientButton from '@components/GradientButton';
+import { BORDER_RADIUS, COLORS, SPACING } from '@constants';
+import { QuizStorageService } from '@services/quizStorageService';
+import type { RootStackParamList } from '@types';
+import type { QuizData } from '@utils/archetypeScoring';
 
 type QuizWelcomeScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -37,12 +40,6 @@ const responsiveFontSize = (baseSize: number, minSize: number, maxSize: number) 
 
 // Check if device is a tablet (width > 600)
 const isTablet = screenWidth >= 600;
-
-
-import { QuizStorageService } from '@services/quizStorageService';
-import questionsData from '@assets/questions.json';
-import { useEffect } from 'react';
-import type { QuizData } from '@utils/archetypeScoring';
 
 // Static image mapping (centralize this if used in multiple places)
 const archetypeImages = {
@@ -95,7 +92,7 @@ const QuizWelcomeScreen = () => {
     };
     
     checkPendingResults();
-  }, [navigation]);
+  }, [navigation, quizData.archetypes]);
 
   // const route = useRoute<QuizWelcomeScreenRouteProp>();
   return (
@@ -163,12 +160,7 @@ const QuizWelcomeScreen = () => {
           />
           {__DEV__ && (
             <Text
-              style={{
-                marginTop: 20,
-                color: 'rgba(242, 226, 177, 0.5)',
-                fontSize: 12,
-                textDecorationLine: 'underline',
-              }}
+              style={styles.devCacheButton}
               onPress={async () => {
                 await QuizStorageService.resetEverything();
                 Alert.alert('Success', 'Cache Cleared!');
@@ -210,6 +202,7 @@ const styles = StyleSheet.create<{
   glassButtonContainer: ViewStyle;
   glassButtonContent: ViewStyle;
   glassButtonText: TextStyle;
+  devCacheButton: TextStyle;
 }>({
   bg: {
     flex: 1,
@@ -351,5 +344,11 @@ const styles = StyleSheet.create<{
   glassButtonText: {
     color: COLORS.PRIMARY.GOLD,
     fontSize: responsiveFontSize(18, 16, 20),
+  },
+  devCacheButton: {
+    marginTop: 20,
+    color: 'rgba(242, 226, 177, 0.5)',
+    fontSize: 12,
+    textDecorationLine: 'underline',
   },
 });

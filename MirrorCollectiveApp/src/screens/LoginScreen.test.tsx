@@ -2,6 +2,7 @@ import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import React from 'react';
 
 import { useSession } from '@context/SessionContext';
+import { useUser } from '@context/UserContext';
 
 import LoginScreen from './LoginScreen';
 
@@ -13,7 +14,6 @@ jest.mock('@context/SessionContext', () => ({
 jest.mock('@context/UserContext', () => ({
   useUser: jest.fn(),
 }));
-import { useUser } from '@context/UserContext';
 
 
 describe('LoginScreen', () => {
@@ -76,7 +76,7 @@ describe('LoginScreen', () => {
     // Mock signIn to reject
     mockSignIn.mockRejectedValueOnce({ error: 'AuthenticationError' });
 
-    const { getByTestId, getByText, findByText } = render(
+    const { getByTestId, getByText } = render(
       <LoginScreen navigation={mockNavigation as any} />
     );
 

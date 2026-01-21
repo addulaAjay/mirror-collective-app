@@ -1,7 +1,10 @@
-import React from 'react';
 import { render } from '@testing-library/react-native';
-import AppExplainerScreen from './AppExplainerScreen';
+import React from 'react';
+
 import { useAuthGuard } from '@hooks/useAuthGuard';
+
+import AppExplainerScreen from './AppExplainerScreen';
+
 
 // Mocks
 jest.mock('@components/LogoHeader', () => 'LogoHeader');

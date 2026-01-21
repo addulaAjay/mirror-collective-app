@@ -1,7 +1,9 @@
-import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import TalkToMirrorScreen from './TalkToMirrorScreen';
+import React from 'react';
 import { Alert } from 'react-native';
+
+import TalkToMirrorScreen from './TalkToMirrorScreen';
+
 
 // Mocks
 jest.mock('@components/LogoHeader', () => 'LogoHeader');
