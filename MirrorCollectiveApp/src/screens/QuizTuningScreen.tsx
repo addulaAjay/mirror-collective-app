@@ -1,6 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '@types';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -15,6 +14,7 @@ import {
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
 import StarIcon from '@components/StarIcon';
+import type { RootStackParamList } from '@types';
 
 type QuizTuningScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,

@@ -24,7 +24,7 @@ describe('SignUpScreen', () => {
   });
 
   it('renders correctly', () => {
-    const { getByTestId, getByText } = render(
+    const { getByTestId } = render(
       <SignUpScreen navigation={mockNavigation as any} />
     );
 

@@ -1,3 +1,4 @@
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React from 'react';
 import {
   View,
@@ -6,14 +7,13 @@ import {
   TouchableOpacity,
 } from 'react-native';
 
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import AuthenticatedRoute from '@components/AuthenticatedRoute';
+import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
 import StarIcon from '@components/StarIcon';
 import { theme } from '@theme';
 import type { RootStackParamList } from '@types';
 
-import BackgroundWrapper from '@components/BackgroundWrapper';
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'EnterMirror'>;

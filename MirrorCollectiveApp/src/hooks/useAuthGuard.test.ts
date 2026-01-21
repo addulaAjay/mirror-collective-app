@@ -1,6 +1,8 @@
-import { renderHook, waitFor, act } from '@testing-library/react-native';
-import { useAuthGuard, useAuthHeaders } from './useAuthGuard';
+import { renderHook, waitFor } from '@testing-library/react-native';
+
 import { tokenManager } from '@services/tokenManager';
+
+import { useAuthGuard, useAuthHeaders } from './useAuthGuard';
 
 // Mocks
 jest.mock('@services/tokenManager', () => ({

@@ -1,6 +1,6 @@
+import { API_CONFIG } from '@constants/config';
 import type { DeviceRegisterRequest, DeviceRegisterResponse } from '@types';
 
-import { API_CONFIG } from '@constants/config';
 
 import { BaseApiService } from '../base';
 

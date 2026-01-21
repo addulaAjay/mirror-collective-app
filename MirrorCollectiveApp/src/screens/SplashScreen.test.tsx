@@ -1,7 +1,10 @@
-import React from 'react';
 import { render, waitFor, act } from '@testing-library/react-native';
-import SplashScreen from './SplashScreen';
+import React from 'react';
+
 import { authApiService } from '@services/api';
+
+import SplashScreen from './SplashScreen';
+
 
 // Mocks
 jest.mock('@services/api', () => ({

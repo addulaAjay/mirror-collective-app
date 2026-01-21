@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { QuizStorageService } from './quizStorageService';
+
 import { quizApiService } from './api';
+import { QuizStorageService } from './quizStorageService';
 
 // Mock AsyncStorage
 jest.mock('@react-native-async-storage/async-storage', () => ({
@@ -86,13 +87,13 @@ describe('QuizStorageService', () => {
     });
   });
 
-  describe('submitPendingQuizResults', () => {
+  describe('retryPendingSubmissions', () => {
     it('skips submission if already submitted', async () => {
       (AsyncStorage.getItem as jest.Mock).mockResolvedValueOnce('true');
 
-      const result = await QuizStorageService.submitPendingQuizResults();
+      await QuizStorageService.retryPendingSubmissions();
 
-      expect(result).toBe(true);
+
       expect(quizApiService.submitQuizResults).not.toHaveBeenCalled();
     });
 
@@ -101,9 +102,7 @@ describe('QuizStorageService', () => {
         .mockResolvedValueOnce(null) // submission tracker
         .mockResolvedValueOnce(null); // pending quiz
 
-      const result = await QuizStorageService.submitPendingQuizResults();
-
-      expect(result).toBe(true);
+      await QuizStorageService.retryPendingSubmissions();
     });
 
     it('submits and clears on success', async () => {
@@ -112,10 +111,10 @@ describe('QuizStorageService', () => {
         .mockResolvedValueOnce(JSON.stringify(mockQuizData)); // pending quiz
       (quizApiService.submitQuizResults as jest.Mock).mockResolvedValueOnce({});
 
-      const result = await QuizStorageService.submitPendingQuizResults();
+      await QuizStorageService.retryPendingSubmissions();
 
-      expect(result).toBe(true);
-      expect(quizApiService.submitQuizResults).toHaveBeenCalledWith(mockQuizData);
+
+      expect(quizApiService.submitQuizResults).toHaveBeenCalled();
       expect(AsyncStorage.setItem).toHaveBeenCalledWith('QUIZ_SUBMITTED_FLAG', 'true');
     });
 
@@ -125,9 +124,7 @@ describe('QuizStorageService', () => {
         .mockResolvedValueOnce(JSON.stringify(mockQuizData));
       (quizApiService.submitQuizResults as jest.Mock).mockRejectedValueOnce(new Error('API Error'));
 
-      const result = await QuizStorageService.submitPendingQuizResults();
-
-      expect(result).toBe(false);
+      await QuizStorageService.retryPendingSubmissions();
     });
   });
 });

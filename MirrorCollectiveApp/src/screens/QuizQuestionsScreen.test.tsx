@@ -1,7 +1,10 @@
+import { render, waitFor } from '@testing-library/react-native';
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
-import QuizQuestionsScreen from './QuizQuestionsScreen';
+
 import { QuizStorageService } from '@services/quizStorageService';
+
+import QuizQuestionsScreen from './QuizQuestionsScreen';
+
 
 // Mocks
 jest.mock('@components/LogoHeader', () => 'LogoHeader');

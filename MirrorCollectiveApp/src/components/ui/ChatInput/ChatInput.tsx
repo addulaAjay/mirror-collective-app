@@ -1,5 +1,3 @@
-import { COLORS, SHADOWS, SPACING } from '@constants';
-import { theme } from '@theme';
 import React from 'react';
 import {
   View,
@@ -9,6 +7,9 @@ import {
   StyleSheet,
 } from 'react-native';
 import Svg, { ClipPath, Defs, G, Path, Rect } from 'react-native-svg';
+
+import { COLORS, SHADOWS, SPACING } from '@constants';
+import { theme } from '@theme';
 
 
 interface ChatInputProps {

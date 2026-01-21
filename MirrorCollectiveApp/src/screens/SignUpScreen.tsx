@@ -11,7 +11,6 @@ import {
   Platform,
   TouchableWithoutFeedback,
   Keyboard,
-  Dimensions,
 } from 'react-native';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
@@ -21,7 +20,6 @@ import TextInputField from '@components/TextInputField';
 import { useSession } from '@context/SessionContext';
 import { theme } from '@theme';
 import { getApiErrorMessage } from '@utils/apiErrorUtils';
-const { width: screenWidth } = Dimensions.get('window');
 interface SignUpScreenProps {
   navigation: any;
 }
@@ -128,13 +126,13 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
   return (
     <KeyboardAvoidingView
       style={styles.keyboardContainer}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'undefined'}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
         <BackgroundWrapper style={styles.container}>
           <ScrollView
-            style={{ width: '100%' }}
+            style={styles.scrollWrapper}
             contentContainerStyle={styles.scrollContainer}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
@@ -292,6 +290,9 @@ const styles = StyleSheet.create({
     shadowRadius: 26,
     elevation: 10,
     alignSelf: 'stretch',
+  },
+  scrollWrapper: {
+    width: '100%',
   },
   scrollContainer: {
     flexGrow: 1,

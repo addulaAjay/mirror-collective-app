@@ -8,12 +8,10 @@ import {
   Dimensions,
 } from 'react-native';
 
-
-import { authApiService } from '@services/api';
-const { width: screenWidth, height: screenHeight } = Dimensions.get('screen');
-
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import type { RootStackParamList } from '@types';
+
+const { width: screenWidth, height: screenHeight } = Dimensions.get('screen');
 
 type SplashProps = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'Splash'>;
