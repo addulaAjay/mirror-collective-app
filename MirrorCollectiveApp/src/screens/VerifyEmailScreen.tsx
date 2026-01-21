@@ -1,8 +1,6 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { theme } from '@theme';
-import type { RootStackParamList } from '@types';
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -18,6 +16,8 @@ import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
 import { authApiService } from '@services/api';
 import { QuizStorageService } from '@services/quizStorageService';
+import { theme } from '@theme';
+import type { RootStackParamList } from '@types';
 import { getApiErrorMessage } from '@utils/apiErrorUtils';
 
 type VerifyEmailScreenNavigationProp = NativeStackNavigationProp<

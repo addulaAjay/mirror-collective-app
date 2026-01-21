@@ -1,11 +1,3 @@
-import {
-  COLORS,
-  SHADOWS,
-  SPACING,
-  // SCREEN_DIMENSIONS,
-  PLATFORM_SPECIFIC,
-} from '@constants';
-import { theme } from '@theme';
 import React, { useEffect } from 'react';
 import {
   View,
@@ -17,13 +9,20 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
 
 import AuthenticatedRoute from '@components/AuthenticatedRoute';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
 import { MessageBubble, ChatInput, LoadingIndicator } from '@components/ui';
+import {
+  COLORS,
+  SHADOWS,
+  SPACING,
+  // SCREEN_DIMENSIONS,
+  PLATFORM_SPECIFIC,
+} from '@constants';
 import { useChat } from '@hooks/useChat';
+import { theme } from '@theme';
 
 // Export content component for testing
 export function MirrorChatContent() {

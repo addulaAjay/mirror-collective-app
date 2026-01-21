@@ -10,23 +10,15 @@ import {
   type ImageStyle,
 } from 'react-native';
 
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+import BackgroundWrapper from '@components/BackgroundWrapper';
+import { useAuthGuard } from '@hooks/useAuthGuard';
+import type { RootStackParamList } from '@types';
 
-// Responsive size helper - scales with screen but has min/max bounds for cross-device compatibility
-const responsiveSize = (baseSize: number, minSize: number, maxSize: number) => {
-  const widthScale = screenWidth / 375; // Base on standard mobile width
-  const heightScale = screenHeight / 812; // Base on standard mobile height
-  const scale = Math.min(widthScale, heightScale);
-  const size = baseSize * scale;
-  return Math.max(minSize, Math.min(maxSize, size));
-};
+const { width: screenWidth } = Dimensions.get('window');
 
 // Check if device is a tablet
 const isTablet = screenWidth >= 600;
 
-import BackgroundWrapper from '@components/BackgroundWrapper';
-import { useAuthGuard } from '@hooks/useAuthGuard';
-import type { RootStackParamList } from '@types';
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'MirrorAnimation'>;

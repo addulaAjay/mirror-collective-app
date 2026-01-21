@@ -1,9 +1,9 @@
 import { renderHook } from '@testing-library/react-native';
 import { AppState } from 'react-native';
+
 import { useAppStateHandler } from './useAppStateHandler';
 
 // Mock AppState
-const mockAddEventListener = jest.fn();
 const mockRemove = jest.fn();
 
 jest.mock('react-native', () => ({

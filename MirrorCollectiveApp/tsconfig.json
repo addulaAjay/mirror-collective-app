@@ -54,6 +54,9 @@
       "@types/*": [
         "src/types/*"
       ],
+      "@quiz-types": [
+        "src/types/quiz"
+      ],
       "@context": [
         "src/context/index"
       ],

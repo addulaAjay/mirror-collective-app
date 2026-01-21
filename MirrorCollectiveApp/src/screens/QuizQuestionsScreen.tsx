@@ -1,8 +1,5 @@
-import { BORDER_RADIUS, COLORS, SPACING } from '@constants';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '@types';
-import type { QuizSubmissionRequest } from '@types';
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -24,8 +21,11 @@ import ImageOptionButton, {
 import LogoHeader from '@components/LogoHeader';
 import OptionButton from '@components/OptionsButton';
 import ProgressBar from '@components/ProgressBar';
+import { BORDER_RADIUS, COLORS, SPACING } from '@constants';
 import { quizApiService } from '@services/api/quiz';
 import { QuizStorageService } from '@services/quizStorageService';
+import type { QuizSubmissionRequest } from '@types';
+import type { RootStackParamList } from '@types';
 import type { QuizQuestion } from '@types';
 import {
   calculateQuizResult,
@@ -81,7 +81,7 @@ const QuizQuestionsScreen = () => {
     };
 
     initializeQuiz();
-  }, []);
+  }, [quizData.questions]);
 
   if (isLoading) {
     return (

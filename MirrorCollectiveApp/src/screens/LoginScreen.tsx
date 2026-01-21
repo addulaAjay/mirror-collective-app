@@ -1,4 +1,3 @@
-import { theme } from '@theme';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -23,6 +22,7 @@ import { useUser } from '@context/UserContext';
 import { quizApiService } from '@services/api/quiz';
 import PushNotificationService from '@services/PushNotificationService';
 import { QuizStorageService } from '@services/quizStorageService';
+import { theme } from '@theme';
 import { getApiErrorMessage } from '@utils/apiErrorUtils';
 
 const LoginScreen = ({ navigation, route }: any) => {

@@ -24,7 +24,6 @@ jest.mock('react-native-linear-gradient', () => {
 
 // Mock child components that might have complex logic/rendering
 jest.mock('@components/ui', () => {
-  const React = require('react');
   const { Text, TextInput, TouchableOpacity, View } = require('react-native');
   
   return {

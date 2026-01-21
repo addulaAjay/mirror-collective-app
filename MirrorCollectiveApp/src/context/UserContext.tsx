@@ -6,8 +6,8 @@ import React, {
   ReactNode,
 } from 'react';
 
-import PushNotificationService from '@services/PushNotificationService';
 import { authApiService } from '@services/api';
+import PushNotificationService from '@services/PushNotificationService';
 
 import { useSession } from './SessionContext';
 

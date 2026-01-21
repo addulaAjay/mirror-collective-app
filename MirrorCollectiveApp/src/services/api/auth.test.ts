@@ -1,5 +1,6 @@
-import { AuthApiService } from './auth';
 import { tokenManager } from '@services/tokenManager';
+
+import { AuthApiService } from './auth';
 
 // Mock dependencies
 jest.mock('@services/tokenManager', () => ({

@@ -3,7 +3,6 @@ import 'react-native-get-random-values';
 import 'react-native-url-polyfill/auto';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '@types';
 import React, { useEffect } from 'react';
 import { StatusBar } from 'react-native';
 
@@ -30,6 +29,7 @@ import SplashScreen from '@screens/SplashScreen';
 import TalkToMirrorScreen from '@screens/TalkToMirrorScreen';
 import VerifyEmailScreen from '@screens/VerifyEmailScreen';
 import PushNotificationService from '@services/PushNotificationService';
+import type { RootStackParamList } from '@types';
 
 
 import ErrorBoundary from './src/components/ErrorBoundary';
@@ -85,7 +85,7 @@ const AuthenticatedNavigator = () => (
 // Main Navigator that switches based on auth state
 const AppNavigator = () => {
   const { state } = useSession();
-  const { isAuthenticated, isLoading } = state;
+  const { isAuthenticated } = state;
 
   // Optionally show a loading screen while session is restoring
   // if (isLoading) {
@@ -95,9 +95,9 @@ const AppNavigator = () => {
 
   return (
     <NavigationContainer
-      onStateChange={state => {
+      onStateChange={navState => {
         if (__DEV__) {
-          console.log('Navigation state changed:', state);
+          console.log('Navigation state changed:', navState);
         }
       }}
     >
