@@ -16,6 +16,7 @@
 		5A6F1D7868FA433CAA13BACA /* CormorantGaramond-Light.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3447C12F5FFA4E4D8043327D /* CormorantGaramond-Light.ttf */; };
 		6D5DD1D771C147859EDBBECC /* CormorantGaramond-BoldItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 06C3CF094C7841D3AE1DCF76 /* CormorantGaramond-BoldItalic.ttf */; };
 		761780ED2CA45674006654EE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761780EC2CA45674006654EE /* AppDelegate.swift */; };
+		761780EF2CA45674006654EE /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 761780EE2CA45674006654EE /* GoogleService-Info.plist */; };
 		7D3A9FEED61A4AD5B32B8C70 /* CormorantGaramond-LightItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 2776399850D5486DB474B27F /* CormorantGaramond-LightItalic.ttf */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 		A4390833AB5E4BA2BCD0FF80 /* CormorantGaramond-Italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FA777DBE23EF404883BA9073 /* CormorantGaramond-Italic.ttf */; };
@@ -41,6 +42,7 @@
 		50F8B8FAB482B41BF0C30FF0 /* Pods-MirrorCollectiveApp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MirrorCollectiveApp.release.xcconfig"; path = "Target Support Files/Pods-MirrorCollectiveApp/Pods-MirrorCollectiveApp.release.xcconfig"; sourceTree = "<group>"; };
 		603826A3CC464B6D88130433 /* CormorantGaramond-Bold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "CormorantGaramond-Bold.ttf"; path = "../assets/fonts/CormorantGaramond-Bold.ttf"; sourceTree = "<group>"; };
 		761780EC2CA45674006654EE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = MirrorCollectiveApp/AppDelegate.swift; sourceTree = "<group>"; };
+		761780EE2CA45674006654EE /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "MirrorCollectiveApp/GoogleService-Info.plist"; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = MirrorCollectiveApp/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		B479706AE41D8625EBBADA69 /* Pods-MirrorCollectiveApp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MirrorCollectiveApp.debug.xcconfig"; path = "Target Support Files/Pods-MirrorCollectiveApp/Pods-MirrorCollectiveApp.debug.xcconfig"; sourceTree = "<group>"; };
 		E1E83D06AAA84D2D93496997 /* CormorantGaramond-Medium.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "CormorantGaramond-Medium.ttf"; path = "../assets/fonts/CormorantGaramond-Medium.ttf"; sourceTree = "<group>"; };
@@ -69,6 +71,7 @@
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */,
 				13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */,
+				761780EE2CA45674006654EE /* GoogleService-Info.plist */,
 			);
 			name = MirrorCollectiveApp;
 			sourceTree = "<group>";
@@ -215,6 +218,7 @@
 				37F30B3D49AA4EA18E634E28 /* CormorantGaramond-SemiBold.ttf in Resources */,
 				59ADE86C80FD41F8B4971B1B /* CormorantGaramond-SemiBoldItalic.ttf in Resources */,
 				F454EAE64A8C47D19E9D1002 /* Cormorant_Garamond.zip in Resources */,
+				761780EF2CA45674006654EE /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
