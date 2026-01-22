@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     lineHeight: 24,
     color: '#F2E2B1',
-    padding: SPACING.MD,
+    padding: SPACING.SM,
     backgroundColor: 'transparent',
   },
 
