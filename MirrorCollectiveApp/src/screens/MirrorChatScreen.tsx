@@ -2,7 +2,7 @@ import {
   COLORS,
   SHADOWS,
   SPACING,
-  // SCREEN_DIMENSIONS,
+  SCREEN_DIMENSIONS,
   PLATFORM_SPECIFIC,
 } from '@constants';
 import { theme } from '@theme';
@@ -66,7 +66,7 @@ export function MirrorChatContent() {
       style={styles.keyboardContainer}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={
-        Platform.OS === 'ios' ? PLATFORM_SPECIFIC.STATUS_BAR_HEIGHT : 0
+        Platform.OS === 'ios' ? PLATFORM_SPECIFIC.STATUS_BAR_HEIGHT : -70
       }
     >
       <SafeAreaView style={styles.safeArea}>
@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
     flex: 1,
 
     width: '100%',
-    // height: SCREEN_DIMENSIONS.HEIGHT * 0.72,
+    height: SCREEN_DIMENSIONS.HEIGHT * 0.72,
     borderRadius: SPACING.LG,
     paddingHorizontal: SPACING.XL,
     paddingTop: SPACING.XL,

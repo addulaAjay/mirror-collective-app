@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderRadius: SPACING.MD,
-    // paddingHorizontal: SPACING.XS,
+    paddingHorizontal: SPACING.XS,
     // paddingVertical: SPACING.XS,
     marginTop: SPACING.XL,
     marginBottom: SPACING.XL,
