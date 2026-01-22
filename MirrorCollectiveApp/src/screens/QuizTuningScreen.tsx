@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
     maxHeight: 400,
     shadowColor: '#E5D6B0',
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.3,
+    // shadowOpacity: 0.3,
     shadowRadius: 40,
   },
   messageContainer: {

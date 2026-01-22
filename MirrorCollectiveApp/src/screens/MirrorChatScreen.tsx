@@ -184,9 +184,10 @@ const styles = StyleSheet.create({
     width: '100%',
     // height: SCREEN_DIMENSIONS.HEIGHT * 0.72,
     borderRadius: SPACING.LG,
-    padding: SPACING.XL,
+    paddingHorizontal: SPACING.XL,
+    paddingTop: SPACING.XL,
     marginTop: SPACING.XL,
-    marginBottom: SPACING.SM,
+    // marginBottom: SPACING.SM,
     alignSelf: 'center',
     justifyContent: 'space-between',
 

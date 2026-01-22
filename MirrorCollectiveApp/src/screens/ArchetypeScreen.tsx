@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
     height: Math.min(screenHeight * 0.5, 424),
     shadowColor: '#E5D6B0',
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.3,
+    // shadowOpacity: 0.3,
     shadowRadius: 40,
   },
   descriptionContainer: {

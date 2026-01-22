@@ -11,7 +11,6 @@ import {
 import LinearGradient from 'react-native-linear-gradient';
 import Svg, { ClipPath, Defs, G, Path, Rect } from 'react-native-svg';
 
-
 interface ChatInputProps {
   value: string;
   onChangeText: (text: string) => void;
@@ -29,10 +28,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 }) => {
   return (
     <LinearGradient
-      colors={[
-        'rgba(253, 253, 249, 0.03)',
-        'rgba(253, 253, 249, 0.20)',
-      ]}
+      colors={['rgba(253, 253, 249, 0.03)', 'rgba(253, 253, 249, 0.20)']}
       start={{ x: 0.5, y: 0 }}
       end={{ x: 0.5, y: 1 }}
       style={styles.container}
@@ -56,15 +52,15 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           </G>
         </Svg>
       </TouchableOpacity>
-        <TextInput
-          style={styles.input}
-          value={value}
-          onChangeText={onChangeText}
-          placeholder={placeholder}
-          placeholderTextColor={COLORS.TEXT.TERTIARY}
-          editable={!disabled}
-          multiline
-        />
+      <TextInput
+        style={styles.input}
+        value={value}
+        onChangeText={onChangeText}
+        placeholder={placeholder}
+        placeholderTextColor={COLORS.TEXT.TERTIARY}
+        editable={!disabled}
+        multiline
+      />
       <TouchableOpacity
         style={styles.sendButton}
         onPress={onSend}
@@ -103,12 +99,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderRadius: SPACING.MD,
-    paddingHorizontal: SPACING.MD,
-    paddingVertical: SPACING.XS,
-    marginTop: SPACING.MD,
+    // paddingHorizontal: SPACING.XS,
+    // paddingVertical: SPACING.XS,
+    marginTop: SPACING.XL,
+    marginBottom: SPACING.XL,
     ...SHADOWS.MEDIUM,
-    borderWidth: 0.25,
+    // borderWidth: 0.25,
     borderColor: COLORS.BORDER.PRIMARY,
+    height: 65,
   },
 
   iconButton: {
