@@ -150,6 +150,7 @@ const QuizQuestionsScreen = () => {
 
     const newAnswers = [...answers, userAnswer];
     setAnswers(newAnswers);
+    setSelected(null);
 
     if (isLast) {
       // Use new scoring system to calculate quiz result
