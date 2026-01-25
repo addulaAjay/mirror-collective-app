@@ -8,8 +8,8 @@ import {
   Text,
   StyleSheet,
 } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import Svg, { ClipPath, Defs, G, Path, Rect } from 'react-native-svg';
-
 
 interface ChatInputProps {
   value: string;
@@ -27,7 +27,12 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   disabled = false,
 }) => {
   return (
-    <View style={styles.container}>
+    <LinearGradient
+      colors={['rgba(253, 253, 249, 0.03)', 'rgba(253, 253, 249, 0.20)']}
+      start={{ x: 0.5, y: 0 }}
+      end={{ x: 0.5, y: 1 }}
+      style={styles.container}
+    >
       <TouchableOpacity style={styles.iconButton} disabled={disabled}>
         <Svg width={22} height={22} viewBox="0 0 22 22" fill="none">
           <Defs>
@@ -47,15 +52,15 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           </G>
         </Svg>
       </TouchableOpacity>
-        <TextInput
-          style={styles.input}
-          value={value}
-          onChangeText={onChangeText}
-          placeholder={placeholder}
-          placeholderTextColor={COLORS.TEXT.TERTIARY}
-          editable={!disabled}
-          multiline
-        />
+      <TextInput
+        style={styles.input}
+        value={value}
+        onChangeText={onChangeText}
+        placeholder={placeholder}
+        placeholderTextColor={COLORS.TEXT.TERTIARY}
+        editable={!disabled}
+        multiline
+      />
       <TouchableOpacity
         style={styles.sendButton}
         onPress={onSend}
@@ -85,7 +90,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           </Svg>
         </Text>
       </TouchableOpacity>
-    </View>
+    </LinearGradient>
   );
 };
 
@@ -93,14 +98,15 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'linear-gradient(0deg, rgba(217, 217, 217, 0.15) 0%, rgba(155, 170, 194, 0.15) 100%)',
-    borderRadius: 13,
-    paddingHorizontal: SPACING.MD,
-    paddingVertical: SPACING.XS,
-    marginTop: SPACING.MD,
+    borderRadius: SPACING.MD,
+    paddingHorizontal: SPACING.XS,
+    // paddingVertical: SPACING.XS,
+    marginTop: SPACING.XL,
+    marginBottom: SPACING.XL,
     ...SHADOWS.MEDIUM,
-    borderWidth: 0.25,
+    // borderWidth: 0.25,
     borderColor: COLORS.BORDER.PRIMARY,
+    height: 65,
   },
 
   iconButton: {

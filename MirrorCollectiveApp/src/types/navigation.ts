@@ -1,3 +1,13 @@
+type ArchetypeRouteParams = {
+  archetype: {
+    name: string;
+    title: string;
+    description: string;
+    image: any;
+  };
+  quizResult?: any;
+};
+
 export type RootStackParamList = {
   Splash: undefined;
   MirrorAnimation: undefined;
@@ -13,17 +23,9 @@ export type RootStackParamList = {
   ForgotPassword: undefined;
   ResetPassword: { email: string };
   QuizWelcome: undefined;
-  QuizTuning: undefined;
+  QuizTuning: ArchetypeRouteParams;
   QuizQuestions: undefined;
-  Archetype: {
-    archetype: {
-      name: string;
-      title: string;
-      description: string;
-      image: any;
-    };
-    quizResult?: any;
-  };
+  Archetype: ArchetypeRouteParams;
 };
 
 export type ScreenName = keyof RootStackParamList;

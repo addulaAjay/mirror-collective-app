@@ -46,8 +46,8 @@ const ArchetypeScreen: React.FC<ArchetypeScreenProps> = ({ route }) => {
   const { archetype } = route.params;
 
   const handleContinue = () => {
-    // Navigate to next screen in the flow
-    navigation.navigate('QuizTuning');
+    // After viewing archetype, continue into auth flow
+    navigation.navigate('Login');
   };
 
   const handleRetake = () => {
@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
     height: Math.min(screenHeight * 0.5, 424),
     shadowColor: '#E5D6B0',
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.3,
+    // shadowOpacity: 0.3,
     shadowRadius: 40,
   },
   descriptionContainer: {

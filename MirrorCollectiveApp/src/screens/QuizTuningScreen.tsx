@@ -1,26 +1,20 @@
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '@types';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   Dimensions,
   Image,
 } from 'react-native';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
-import StarIcon from '@components/StarIcon';
 
-type QuizTuningScreenNavigationProp = NativeStackNavigationProp<
-  RootStackParamList,
-  'QuizTuning'
->;
-
+type QuizTuningScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'QuizTuning'>;
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('screen');
 
@@ -28,6 +22,22 @@ const { width: screenWidth, height: screenHeight } = Dimensions.get('screen');
 const QuizTuningScreen = () => {
   const { t } = useTranslation();
   const navigation = useNavigation<QuizTuningScreenNavigationProp>();
+  const route = useRoute();
+
+  // Extract archetype + quizResult passed from QuizQuestions
+  const { archetype, quizResult } = (route as any).params || {};
+
+  // Automatically navigate to Archetype once "tuning" is done
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      navigation.replace('Archetype', {
+        archetype,
+        quizResult,
+      } as any);
+    }, 2000);
+
+    return () => clearTimeout(timeout);
+  }, [navigation, archetype, quizResult]);
 
   return (
     <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage}>
@@ -52,16 +62,6 @@ const QuizTuningScreen = () => {
             {t('quiz.quizTuning.subMessage')}
           </Text>
         </View>
-
-        <TouchableOpacity
-          style={styles.enterButton}
-          onPress={() => navigation.navigate('Login')}
-          activeOpacity={0.8}
-        >
-          <StarIcon width={20} height={20} />
-          <Text style={styles.enterText}>{t('quiz.quizTuning.enterButton')}</Text>
-          <StarIcon width={20} height={20} />
-        </TouchableOpacity>
       </View>
     </BackgroundWrapper>
   );
@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
     maxHeight: 400,
     shadowColor: '#E5D6B0',
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.3,
+    // shadowOpacity: 0.3,
     shadowRadius: 40,
   },
   messageContainer: {
@@ -132,22 +132,5 @@ const styles = StyleSheet.create({
     color: '#FDFDF9',
     textAlign: 'center',
     lineHeight: Math.min(screenWidth * 0.064, 25),
-  },
-  enterButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Math.max(12, screenWidth * 0.03),
-    justifyContent: 'center',
-    marginTop: Math.max(20, screenHeight * 0.02),
-    paddingVertical: Math.max(12, screenHeight * 0.015),
-  },
-  enterText: {
-    fontFamily: 'CormorantGaramond-Light',
-    fontSize: Math.min(screenWidth * 0.056, 22),
-    fontWeight: '300',
-    color: '#E5D6B0',
-    textAlign: 'center',
-    textShadowColor: '#E5D6B0',
-    textShadowRadius: 8,
   },
 });
