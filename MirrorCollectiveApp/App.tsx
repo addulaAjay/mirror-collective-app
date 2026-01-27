@@ -29,38 +29,89 @@ import SignUpScreen from '@screens/SignUpScreen';
 import SplashScreen from '@screens/SplashScreen';
 import TalkToMirrorScreen from '@screens/TalkToMirrorScreen';
 import VerifyEmailScreen from '@screens/VerifyEmailScreen';
-const Stack = createNativeStackNavigator<RootStackParamList>();
+import MirrorEchoVaultHomeScreen from '@screens/echoVault/EchoVaultHomeScreen';
+import MirrorEchoVaultLibraryScreen from '@screens/echoVault/EchoVaultLibraryScreen';
+import NewEchoScreen from '@screens/echoVault/NewEchoVaultScreen';
+import NewEchoComposeScreen from '@screens/echoVault/NewEchoComposeScreen';
+import NewEchoAudioScreen from '@screens/echoVault/NewEchoAudioScreen';
+import NewEchoVideoScreen from '@screens/echoVault/NewEchoVideoScreen';
+import AddNewProfileScreen from '@screens/echoVault/AddNewProfileScreen';
+import ChooseRecipientScreen from '@screens/echoVault/ChooseRecipientScreen';
+import ChooseGuardianScreen from '@screens/echoVault/ChooseGuardianScreen';
+import EchoDetailScreen from '@screens/echoVault/EchoDetailScreen';
+import EchoAudioPlaybackScreen from '@screens/echoVault/EchoAudioPlaybackScreen';
+import EchoVideoPlaybackScreen from '@screens/echoVault/EchoVideoPlaybackScreen';
+import ManageGuardianScreen from '@screens/echoVault/ManageGuardianScreen';
+import { Screen } from 'react-native-screens';
 
+const Stack = createNativeStackNavigator<RootStackParamList>();
 // Wrapped MirrorChat component with error boundary
 const MirrorChatWithErrorBoundary = () => (
   <ChatErrorBoundary>
     <MirrorChatScreen />
   </ChatErrorBoundary>
 );
-
 // Auth Navigator (Public + Onboarding)
 const AuthNavigator = () => (
   <Stack.Navigator
-    initialRouteName="Splash"
+    initialRouteName="ManageGuardianScreen"
     screenOptions={{ headerShown: false }}
   >
+    <Stack.Screen
+      name="ManageGuardianScreen"
+      component={ManageGuardianScreen}
+    />
+    <Stack.Screen
+      name="EchoVideoPlaybackScreen"
+      component={EchoVideoPlaybackScreen}
+    />
+    <Stack.Screen
+      name="EchoAudioPlaybackScreen"
+      component={EchoAudioPlaybackScreen}
+    />
+    <Stack.Screen name="EchoDetailScreen" component={EchoDetailScreen} />
+    <Stack.Screen
+      name="ChooseGuardianScreen"
+      component={ChooseGuardianScreen}
+    />
+    <Stack.Screen
+      name="ChooseRecipientScreen"
+      component={ChooseRecipientScreen}
+    />
+    <Stack.Screen name="AddNewProfileScreen" component={AddNewProfileScreen} />
+    <Stack.Screen name="NewEchoVideoScreen" component={NewEchoVideoScreen} />
+    <Stack.Screen name="NewEchoAudioScreen" component={NewEchoAudioScreen} />
+    <Stack.Screen
+      name="NewEchoComposeScreen"
+      component={NewEchoComposeScreen}
+    />
+    <Stack.Screen name="NewEchoScreen" component={NewEchoScreen} />
+    <Stack.Screen
+      name="MirrorEchoVaultLibrary"
+      component={MirrorEchoVaultLibraryScreen}
+    />
+    <Stack.Screen
+      name="MirrorEchoVaultHome"
+      component={MirrorEchoVaultHomeScreen}
+    />
     <Stack.Screen name="Splash" component={SplashScreen} />
     <Stack.Screen name="MirrorAnimation" component={MirrorAnimationScreen} />
     <Stack.Screen name="AppExplanation" component={AppExplainerScreen} />
-    
     {/* Quiz Flow (Pre-Auth) */}
     <Stack.Screen name="QuizWelcome" component={QuizWelcomeScreen} />
     <Stack.Screen name="QuizTuning" component={QuizTuningScreen} />
     <Stack.Screen name="QuizQuestions" component={QuizQuestionsScreen} />
     <Stack.Screen name="Archetype" component={ArchetypeScreen} />
-    
     {/* Authentication */}
     <Stack.Screen name="Login" component={LoginScreen} />
     <Stack.Screen name="SignUp" component={SignUpScreen} />
     <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
     <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
     <Stack.Screen name="VerifyEmail" component={VerifyEmailScreen} />
-    <Stack.Screen name="EmailConfirmation" component={EmailConfirmationScreen} />
+    <Stack.Screen
+      name="EmailConfirmation"
+      component={EmailConfirmationScreen}
+    />
   </Stack.Navigator>
 );
 
