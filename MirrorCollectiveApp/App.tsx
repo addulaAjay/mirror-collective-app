@@ -12,6 +12,7 @@ import { SessionProvider, useSession } from '@context/SessionContext';
 import { UserProvider } from '@context/UserContext';
 import useAppStateHandler from '@hooks/useAppStateHandler';
 // Import your screens
+import AboutScreen from '@screens/AboutScreen';
 import AppExplainerScreen from '@screens/AppExplainerScreen';
 import AppVideoScreen from '@screens/AppVideoScreen';
 import ArchetypeScreen from '@screens/ArchetypeScreen';
@@ -21,13 +22,18 @@ import ForgotPasswordScreen from '@screens/ForgotPasswordScreen';
 import LoginScreen from '@screens/LoginScreen';
 import MirrorAnimationScreen from '@screens/MirrorAnimationScreen';
 import MirrorChatScreen from '@screens/MirrorChatScreen';
+import MirrorCodeLibraryCommingsoonScreen from '@screens/MirrorCodeLibraryCommingsoonScreen';
+import MirrorEchoCommingsoonScreen from '@screens/MirrorEchoCommingsoonScreen';
+import ProfileScreen from '@screens/ProfileScreen';
 import QuizQuestionsScreen from '@screens/QuizQuestionsScreen';
 import QuizTuningScreen from '@screens/QuizTuningScreen';
 import QuizWelcomeScreen from '@screens/QuizWelcomeScreen';
+import ReflectionRoomCommingsoonScreen from '@screens/ReflectionRoomCommingsoonScreen';
 import ResetPasswordScreen from '@screens/ResetPasswordScreen';
 import SignUpScreen from '@screens/SignUpScreen';
 import SplashScreen from '@screens/SplashScreen';
 import TalkToMirrorScreen from '@screens/TalkToMirrorScreen';
+import TheMirrorPledgeCommingsoonScreen from '@screens/TheMirrorPledgeCommingsoonScreen';
 import VerifyEmailScreen from '@screens/VerifyEmailScreen';
 import PushNotificationService from '@services/PushNotificationService';
 
@@ -48,6 +54,12 @@ const AuthNavigator = () => (
     initialRouteName="Splash"
     screenOptions={{ headerShown: false }}
   >
+    <Stack.Screen name="Profile" component={ProfileScreen} />
+    <Stack.Screen name="TheMirrorPledge" component={TheMirrorPledgeCommingsoonScreen} />
+    <Stack.Screen name="About" component={AboutScreen} />
+    <Stack.Screen name="MirrorCodeLibrary" component={MirrorCodeLibraryCommingsoonScreen} />
+    <Stack.Screen name="ReflectionRoom" component={ReflectionRoomCommingsoonScreen} />
+    <Stack.Screen name="MirrorEcho" component={MirrorEchoCommingsoonScreen} />
     <Stack.Screen name="Splash" component={SplashScreen} />
     <Stack.Screen name="MirrorAnimation" component={MirrorAnimationScreen} />
     <Stack.Screen name="AppExplanation" component={AppExplainerScreen} />
