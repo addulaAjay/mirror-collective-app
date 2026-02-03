@@ -33,7 +33,7 @@ const LoginScreen = ({ navigation, route }: any) => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const validateForm = (): boolean => {
     if (!email.trim()) {
       Alert.alert(t('common.error'), t('auth.login.missingEmail'));
@@ -109,7 +109,7 @@ const LoginScreen = ({ navigation, route }: any) => {
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
         <BackgroundWrapper style={styles.container}>
-          <LogoHeader />
+          <LogoHeader onMenuPress={() => setDrawerOpen(!drawerOpen)} />{' '}
           <View style={styles.contentContainer}>
             <Text style={styles.title}>{t('auth.login.title')}</Text>
 
