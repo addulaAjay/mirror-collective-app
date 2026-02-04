@@ -191,6 +191,16 @@ const LoginScreen = ({ navigation, route }: any) => {
               )}
 
               <TouchableOpacity
+                onPress={navigateToForgotPassword}
+                disabled={isLoading}
+                style={styles.forgotPasswordContainer}
+              >
+                <Text style={styles.forgotPasswordText}>
+                  {t('auth.login.forgotPassword')}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
                 style={styles.enterButton}
                 onPress={handleSignIn}
                 disabled={isLoading}
@@ -206,15 +216,7 @@ const LoginScreen = ({ navigation, route }: any) => {
               </TouchableOpacity>
             </View>
 
-            <TouchableOpacity
-              onPress={navigateToForgotPassword}
-              disabled={isLoading}
-              style={styles.forgotPasswordContainer}
-            >
-              <Text style={styles.forgotPasswordText}>
-                {t('auth.login.forgotPassword')}
-              </Text>
-            </TouchableOpacity>
+
 
             <View style={styles.signupContainer}>
               <Text style={styles.signupText}>
@@ -252,7 +254,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 40,
+    paddingHorizontal: 0,
     gap: 40,
     width: '100%',
     maxWidth: 313,
@@ -303,14 +305,19 @@ const styles = StyleSheet.create({
     fontSize: 28,
   },
   forgotPasswordContainer: {
-    marginTop: 0,
+    marginTop: 20,
+    width: '100%',
+    alignItems: 'center',
+    paddingHorizontal: 12,
   },
   forgotPasswordText: {
     fontFamily: 'CormorantGaramond-Italic',
-    fontSize: 20,
-    lineHeight: 25,
+    fontSize: 18,
+    lineHeight: 22,
     color: '#FDFDF9',
     textDecorationLine: 'underline' as const,
+    textAlign: 'center',
+    flexShrink: 1,
   },
   signupContainer: {
     alignItems: 'center',
