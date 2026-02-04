@@ -243,7 +243,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 40,
+    paddingHorizontal: 0,
     gap: 40,
     width: '100%',
     maxWidth: 313,
