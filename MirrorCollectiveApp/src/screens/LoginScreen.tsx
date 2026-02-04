@@ -84,7 +84,7 @@ const LoginScreen = ({ navigation, route }: any) => {
         setUser(data.user);
         await QuizStorageService.markAccountReady();
         setErrorMessage(null);
-        
+
         // Sync quiz results from server (cross-device sync)
         try {
           const quizResponse = await quizApiService.getMyQuizResults();
@@ -97,7 +97,7 @@ const LoginScreen = ({ navigation, route }: any) => {
         } catch (quizError) {
           console.warn('Failed to sync quiz data:', quizError);
         }
-        
+
         // Check if there are any pending offline quiz submissions to retry
         await QuizStorageService.retryPendingSubmissions();
 
@@ -182,6 +182,16 @@ const LoginScreen = ({ navigation, route }: any) => {
               )}
 
               <TouchableOpacity
+                onPress={navigateToForgotPassword}
+                disabled={isLoading}
+                style={styles.forgotPasswordContainer}
+              >
+                <Text style={styles.forgotPasswordText}>
+                  {t('auth.login.forgotPassword')}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
                 style={styles.enterButton}
                 onPress={handleSignIn}
                 disabled={isLoading}
@@ -197,15 +207,7 @@ const LoginScreen = ({ navigation, route }: any) => {
               </TouchableOpacity>
             </View>
 
-            <TouchableOpacity
-              onPress={navigateToForgotPassword}
-              disabled={isLoading}
-              style={styles.forgotPasswordContainer}
-            >
-              <Text style={styles.forgotPasswordText}>
-                {t('auth.login.forgotPassword')}
-              </Text>
-            </TouchableOpacity>
+
 
             <View style={styles.signupContainer}>
               <Text style={styles.signupText}>
@@ -294,14 +296,19 @@ const styles = StyleSheet.create({
     fontSize: 28,
   },
   forgotPasswordContainer: {
-    marginTop: 0,
+    marginTop: 20,
+    width: '100%',
+    alignItems: 'center',
+    paddingHorizontal: 12,
   },
   forgotPasswordText: {
     fontFamily: 'CormorantGaramond-Italic',
-    fontSize: 20,
-    lineHeight: 25,
+    fontSize: 18,
+    lineHeight: 22,
     color: '#FDFDF9',
     textDecorationLine: 'underline' as const,
+    textAlign: 'center',
+    flexShrink: 1,
   },
   signupContainer: {
     alignItems: 'center',
