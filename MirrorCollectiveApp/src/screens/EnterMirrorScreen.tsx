@@ -1,3 +1,6 @@
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { theme } from '@theme';
+import type { RootStackParamList } from '@types';
 import React from 'react';
 import {
   View,
@@ -6,14 +9,11 @@ import {
   TouchableOpacity,
 } from 'react-native';
 
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import AuthenticatedRoute from '@components/AuthenticatedRoute';
+import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
 import StarIcon from '@components/StarIcon';
-import { theme } from '@theme';
-import type { RootStackParamList } from '@types';
 
-import BackgroundWrapper from '@components/BackgroundWrapper';
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'EnterMirror'>;
@@ -32,8 +32,9 @@ const EnterMirrorScreen: React.FC<Props> = ({ navigation }) => {
         <View style={styles.contentContainer}>
           {/* Main Welcome Message */}
           <View style={styles.messageSection}>
-            <Text style={styles.title}>YOU ARE SEEN.{'\n'} YOU ARE HOME.</Text>
-            <Text style={styles.subtitle}>Your unique reflection has been {'\n'}received.{'\n'}{'\n'} The Mirror is now attuned to your unfolding story—ready to uncover the patterns that shape you, support your growth, and evolve with you.</Text>
+            <Text style={styles.title}>YOU’RE IN.{'\n'}THIS IS YOUR SPACE TO GROW.</Text>
+            <Text style={styles.subtitle}>Your reflection is captured. {'\n'} The Mirror is now tuned to you — {'\n'}your patterns, your growth, your {'\n'}progress.{'\n'}{'\n'} No pressure. No judgment. Just {'\n'}clarity, over time. </Text>
+              <Text style={styles.subtitleItalic}>It’s time to step into a journey toward {'\n'} a better you.</Text>
           </View>
 
           {/* Enter Button */}
@@ -73,7 +74,7 @@ const styles = StyleSheet.create({
     ...theme.typography.styles.headline,
     color: '#F2E2B1',
     fontFamily: 'CormorantGaramond-Regular',
-    fontSize: 40,
+    fontSize: 32,
     fontWeight: '600',
     textAlign: 'center',
     lineHeight: 48,
@@ -81,12 +82,23 @@ const styles = StyleSheet.create({
   subtitle: {
     ...theme.typography.styles.welcome,
     fontFamily: 'Inter',
+    fontStyle: 'normal',
     color: '#FDFDF9',
     fontSize: 18,
     fontWeight: '300',
     textAlign: 'center',
     lineHeight: 24,
     marginTop: 16,
+  },
+  subtitleItalic: {
+    ...theme.typography.styles.welcome,
+    fontFamily: 'Inter',
+    fontStyle: 'italic',
+    color: '#FDFDF9',
+    fontSize: 18,
+    fontWeight: '300',
+    textAlign: 'center',
+    lineHeight: 24,
   },
   bodyText: {
     ...theme.typography.styles.body,
@@ -103,10 +115,10 @@ const styles = StyleSheet.create({
   enterText: {
     ...theme.typography.styles.button,
     fontFamily: 'CormorantGaramond-Regular',
-    fontSize: 40,
+    fontSize: 32,
     lineHeight: 48,
     color: theme.colors.button.primary,
-    fontWeight: '300',
+    fontWeight: '400',
     textShadowColor: 'rgba(229, 214, 176, 0.50)',
     textTransform: 'uppercase',
     textShadowRadius: 4,
