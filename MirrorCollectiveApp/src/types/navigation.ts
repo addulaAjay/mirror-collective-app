@@ -10,6 +10,12 @@ type ArchetypeRouteParams = {
 
 export type RootStackParamList = {
   Splash: undefined;
+  MirrorEcho: undefined;
+  ReflectionRoom: undefined;
+  MirrorCodeLibrary: undefined;
+  TheMirrorPledge: undefined;
+  About: undefined;
+  Profile: undefined;
   MirrorAnimation: undefined;
   EnterMirror: undefined;
   EmailConfirmation: undefined;

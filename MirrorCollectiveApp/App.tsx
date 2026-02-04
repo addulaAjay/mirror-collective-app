@@ -1,17 +1,18 @@
 import '@i18n'; // Initialize i18n configuration
+import 'react-native-get-random-values';
+import 'react-native-url-polyfill/auto';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '@types';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { StatusBar } from 'react-native';
 
 import { ChatErrorBoundary } from '@components/error';
-import ErrorBoundary from '@components/ErrorBoundary';
 import { SessionProvider, useSession } from '@context/SessionContext';
 import { UserProvider } from '@context/UserContext';
 import useAppStateHandler from '@hooks/useAppStateHandler';
-
 // Import your screens
+import AboutScreen from '@screens/AboutScreen';
 import AppExplainerScreen from '@screens/AppExplainerScreen';
 import AppVideoScreen from '@screens/AppVideoScreen';
 import ArchetypeScreen from '@screens/ArchetypeScreen';
@@ -21,13 +22,18 @@ import ForgotPasswordScreen from '@screens/ForgotPasswordScreen';
 import LoginScreen from '@screens/LoginScreen';
 import MirrorAnimationScreen from '@screens/MirrorAnimationScreen';
 import MirrorChatScreen from '@screens/MirrorChatScreen';
+import MirrorCodeLibraryCommingsoonScreen from '@screens/MirrorCodeLibraryCommingsoonScreen';
+import MirrorEchoCommingsoonScreen from '@screens/MirrorEchoCommingsoonScreen';
+import ProfileScreen from '@screens/ProfileScreen';
 import QuizQuestionsScreen from '@screens/QuizQuestionsScreen';
 import QuizTuningScreen from '@screens/QuizTuningScreen';
 import QuizWelcomeScreen from '@screens/QuizWelcomeScreen';
+import ReflectionRoomCommingsoonScreen from '@screens/ReflectionRoomCommingsoonScreen';
 import ResetPasswordScreen from '@screens/ResetPasswordScreen';
 import SignUpScreen from '@screens/SignUpScreen';
 import SplashScreen from '@screens/SplashScreen';
 import TalkToMirrorScreen from '@screens/TalkToMirrorScreen';
+import TheMirrorPledgeCommingsoonScreen from '@screens/TheMirrorPledgeCommingsoonScreen';
 import VerifyEmailScreen from '@screens/VerifyEmailScreen';
 import MirrorEchoVaultHomeScreen from '@screens/echoVault/EchoVaultHomeScreen';
 import MirrorEchoVaultLibraryScreen from '@screens/echoVault/EchoVaultLibraryScreen';
@@ -44,6 +50,9 @@ import EchoVideoPlaybackScreen from '@screens/echoVault/EchoVideoPlaybackScreen'
 import ManageGuardianScreen from '@screens/echoVault/ManageGuardianScreen';
 import { Screen } from 'react-native-screens';
 
+import PushNotificationService from '@services/PushNotificationService';
+
+import ErrorBoundary from './src/components/ErrorBoundary';
 const Stack = createNativeStackNavigator<RootStackParamList>();
 // Wrapped MirrorChat component with error boundary
 const MirrorChatWithErrorBoundary = () => (
@@ -94,6 +103,21 @@ const AuthNavigator = () => (
       name="MirrorEchoVaultHome"
       component={MirrorEchoVaultHomeScreen}
     />
+    <Stack.Screen name="Profile" component={ProfileScreen} />
+    <Stack.Screen
+      name="TheMirrorPledge"
+      component={TheMirrorPledgeCommingsoonScreen}
+    />
+    <Stack.Screen name="About" component={AboutScreen} />
+    <Stack.Screen
+      name="MirrorCodeLibrary"
+      component={MirrorCodeLibraryCommingsoonScreen}
+    />
+    <Stack.Screen
+      name="ReflectionRoom"
+      component={ReflectionRoomCommingsoonScreen}
+    />
+    <Stack.Screen name="MirrorEcho" component={MirrorEchoCommingsoonScreen} />
     <Stack.Screen name="Splash" component={SplashScreen} />
     <Stack.Screen name="MirrorAnimation" component={MirrorAnimationScreen} />
     <Stack.Screen name="AppExplanation" component={AppExplainerScreen} />
@@ -137,7 +161,7 @@ const AppNavigator = () => {
   // Optionally show a loading screen while session is restoring
   // if (isLoading) {
   //   // Cast SplashScreen or pass mock props since it's just a loader here
-  //   return <SplashScreen navigation={null as any} />; 
+  //   return <SplashScreen navigation={null as any} />;
   // }
 
   return (
@@ -154,16 +178,17 @@ const AppNavigator = () => {
 };
 
 const App = () => {
-  // Handle app state changes for better crash recovery
   useAppStateHandler({
     onForeground: async () => {
       if (__DEV__) {
         console.log('App came to foreground');
       }
-      
+
       // Try to submit any pending offline quiz results
       try {
-        const { QuizStorageService } = await import('@services/quizStorageService');
+        const { QuizStorageService } = await import(
+          '@services/quizStorageService'
+        );
         await QuizStorageService.retryPendingSubmissions();
       } catch (error) {
         console.warn('Failed to retry quiz submissions on foreground:', error);
@@ -177,15 +202,23 @@ const App = () => {
     },
   });
 
+  useEffect(() => {
+    // Set up foreground push notification handling.
+    // This does not show a system permission prompt; it only
+    // decides what happens when a push arrives while the app
+    // is open.
+    PushNotificationService.initializeForegroundHandler();
+  }, []);
+
   return (
     <ErrorBoundary>
       <SessionProvider>
         <UserProvider>
           <React.Fragment>
-            <StatusBar 
-              translucent 
-              backgroundColor="transparent" 
-              barStyle="light-content" 
+            <StatusBar
+              translucent
+              backgroundColor="transparent"
+              barStyle="light-content"
             />
             <AppNavigator />
           </React.Fragment>

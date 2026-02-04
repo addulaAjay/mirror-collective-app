@@ -1,5 +1,5 @@
 import { theme } from '@theme';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   View,
@@ -20,8 +20,9 @@ import StarIcon from '@components/StarIcon';
 import TextInputField from '@components/TextInputField';
 import { useSession } from '@context/SessionContext';
 import { useUser } from '@context/UserContext';
-import { QuizStorageService } from '@services/quizStorageService';
 import { quizApiService } from '@services/api/quiz';
+import PushNotificationService from '@services/PushNotificationService';
+import { QuizStorageService } from '@services/quizStorageService';
 import { getApiErrorMessage } from '@utils/apiErrorUtils';
 
 const LoginScreen = ({ navigation, route }: any) => {
@@ -34,6 +35,33 @@ const LoginScreen = ({ navigation, route }: any) => {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [hasShownNotificationPrompt, setHasShownNotificationPrompt] =
+    useState(false);
+
+  useEffect(() => {
+    const shouldShowPrompt = route?.params?.showNotificationPrompt;
+    const emailFromParams = route?.params?.email;
+
+    if (!shouldShowPrompt || !emailFromParams || hasShownNotificationPrompt) {
+      return;
+    }
+
+    setHasShownNotificationPrompt(true);
+
+    PushNotificationService.promptForNotificationPermissionAndRegister(
+      emailFromParams,
+    ).catch((error: unknown) => {
+      console.error(
+        'Error during push notification registration from LoginScreen:',
+        error,
+      );
+    });
+  }, [
+    route?.params?.showNotificationPrompt,
+    route?.params?.email,
+    hasShownNotificationPrompt,
+  ]);
+
   const validateForm = (): boolean => {
     if (!email.trim()) {
       Alert.alert(t('common.error'), t('auth.login.missingEmail'));
@@ -65,7 +93,7 @@ const LoginScreen = ({ navigation, route }: any) => {
         setUser(data.user);
         await QuizStorageService.markAccountReady();
         setErrorMessage(null);
-        
+
         // Sync quiz results from server (cross-device sync)
         try {
           const quizResponse = await quizApiService.getMyQuizResults();
@@ -78,7 +106,7 @@ const LoginScreen = ({ navigation, route }: any) => {
         } catch (quizError) {
           console.warn('Failed to sync quiz data:', quizError);
         }
-        
+
         // Check if there are any pending offline quiz submissions to retry
         await QuizStorageService.retryPendingSubmissions();
 
@@ -305,7 +333,6 @@ const styles = StyleSheet.create({
     color: '#E5D6B0',
     textDecorationLine: 'underline' as const,
     textDecorationStyle: 'solid' as const,
-
   },
 });
 

@@ -6,6 +6,7 @@ import React, {
   ReactNode,
 } from 'react';
 
+import PushNotificationService from '@services/PushNotificationService';
 import { authApiService } from '@services/api';
 
 import { useSession } from './SessionContext';
@@ -54,12 +55,17 @@ export const UserProvider = ({ children }: UserProviderProps) => {
        // Optimization: fetch only if user is null
        if (!user) {
           refreshUser();
+       } else {
+          // Initialize push notification handlers once user is available
+          PushNotificationService.initialize(user.id).catch((err: any) => {
+            console.error('Failed to initialize push notification service:', err);
+          });
        }
     } else {
       // If not authenticated, clear user data
       setUser(null);
     }
-  }, [sessionState.isAuthenticated]);
+  }, [sessionState.isAuthenticated, user]);
 
   const contextValue: UserContextType = {
     user,
