@@ -1,5 +1,4 @@
-// NewEchoComposeScreen.tsx
-import React, { useMemo, useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -12,18 +11,18 @@ import {
   Platform,
   Modal,
   Pressable,
+  Alert,
+  ActivityIndicator,
+  PermissionsAndroid,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import AudioRecorderPlayer from 'react-native-audio-recorder-player';
+import { Camera, useCameraDevice, useCameraPermission, useMicrophonePermission } from 'react-native-vision-camera';
+import { echoApiService } from '@services/api';
+import { RootStackParamList } from '@types';
 
-type RootStackParamList = {
-  NewEchoCompose: {
-    mode?: 'text' | 'audio' | 'video';
-    recipientName?: string; // e.g. "Alia"
-  };
-};
-
-type Props = NativeStackScreenProps<RootStackParamList, 'NewEchoCompose'>;
+type Props = NativeStackScreenProps<RootStackParamList, 'NewEchoComposeScreen'>;
 
 const { width: W } = Dimensions.get('window');
 
@@ -34,10 +33,25 @@ const SURFACE_BORDER_2 = 'rgba(253, 253, 249, 0.08)';
 
 const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
   const mode = route.params?.mode ?? 'text';
-  const recipientName = route.params?.recipientName; // For Alia
+  const { recipientName, title, category, hasRecipient, recipientId } = route.params || {};
 
   const [message, setMessage] = useState('');
   const [showUploadSheet, setShowUploadSheet] = useState(false);
+  
+  // Media State
+  const [isRecording, setIsRecording] = useState(false);
+  const [mediaUri, setMediaUri] = useState<string | null>(null);
+  const [recordingDuration, setRecordingDuration] = useState(0);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Audio Recorder
+  const audioRecorderPlayer = React.useRef(AudioRecorderPlayer).current;
+
+  // Video Camera
+  const device = useCameraDevice('front');
+  const camera = React.useRef<Camera>(null);
+  const { hasPermission: hasCamPermission, requestPermission: requestCamPermission } = useCameraPermission();
+  const { hasPermission: hasMicPermission, requestPermission: requestMicPermission } = useMicrophonePermission();
 
   const contentWidth = useMemo(() => Math.min(W * 0.88, 360), []);
 
@@ -46,8 +60,177 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
     return 'NEW ECHO';
   }, [recipientName]);
 
-  const onSave = () => {
-    // TODO: wire to API / storage
+  /* ---------- Logic ---------- */
+
+  // Audio Recording
+  const toggleAudioRecording = async () => {
+    if (isRecording) {
+      await stopAudioRecording();
+    } else {
+      await startAudioRecording();
+    }
+  };
+
+  const startAudioRecording = async () => {
+    // Request microphone permission for iOS
+    if (Platform.OS === 'ios') {
+      if (!hasMicPermission) {
+        const granted = await requestMicPermission();
+        if (!granted) {
+          Alert.alert('Permission Required', 'Microphone access is needed to record audio.');
+          return;
+        }
+      }
+    } else if (Platform.OS === 'android') {
+      try {
+        const grants = await PermissionsAndroid.requestMultiple([
+          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+          PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+          PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
+        ]);
+        if (
+          grants['android.permission.WRITE_EXTERNAL_STORAGE'] !== PermissionsAndroid.RESULTS.GRANTED &&
+          grants['android.permission.READ_EXTERNAL_STORAGE'] !== PermissionsAndroid.RESULTS.GRANTED &&
+          grants['android.permission.RECORD_AUDIO'] !== PermissionsAndroid.RESULTS.GRANTED
+        ) {
+          console.log('All required permissions not granted');
+          Alert.alert('Permission Required', 'Audio recording permissions are needed.');
+          return;
+        }
+      } catch (err) {
+        console.warn(err);
+        return;
+      }
+    }
+
+    try {
+      // For iOS, we need to set audio options explicitly
+      const audioSet: any = {
+        AVEncoderAudioQualityKeyIOS: 96, // Audio quality (0-127)
+        AVNumberOfChannelsKeyIOS: 1,
+        AVSampleRateKeyIOS: 44100,
+      };
+      
+      // Start recording - let the library choose the path
+      const result = await audioRecorderPlayer.startRecorder(
+        undefined, // Use default path
+        audioSet,  // iOS audio settings
+        false,     // metering (not needed)
+      );
+      console.log('Recording started:', result);
+      
+      audioRecorderPlayer.addRecordBackListener((e: any) => {
+        setRecordingDuration(Math.floor(e.currentPosition / 1000));
+        return;
+      });
+      setIsRecording(true);
+    } catch (error: any) {
+      console.error('Failed to start audio recording:', error);
+      Alert.alert('Recording Error', `Recording setup failed: ${error.message || 'Unknown error'}`);
+    }
+  };
+
+  const stopAudioRecording = async () => {
+    try {
+      const result = await audioRecorderPlayer.stopRecorder();
+      audioRecorderPlayer.removeRecordBackListener();
+      setMediaUri(result);
+      setIsRecording(false);
+    } catch (error) {
+      console.error('Failed to stop audio recording:', error);
+    }
+  };
+
+  // Video Recording
+  const toggleVideoRecording = async () => {
+    if (isRecording) {
+      await stopVideoRecording();
+    } else {
+      await startVideoRecording();
+    }
+  };
+
+  const startVideoRecording = async () => {
+    if (!hasCamPermission) await requestCamPermission();
+    if (!hasMicPermission) await requestMicPermission();
+
+    if (camera.current) {
+        camera.current.startRecording({
+            onRecordingFinished: (video) => {
+                console.log('Video recorded:', video);
+                setMediaUri(video.path);
+                setIsRecording(false);
+            },
+            onRecordingError: (error) => {
+                console.error('Video recording error:', error);
+                setIsRecording(false);
+            }
+        });
+        setIsRecording(true);
+    }
+  };
+
+  const stopVideoRecording = async () => {
+    if (camera.current) {
+        await camera.current.stopRecording();
+    }
+  };
+
+  const onSave = async () => {
+    if (mode === 'text' && !message.trim()) {
+       Alert.alert('Empty Echo', 'Please write something.');
+       return;
+    }
+    if ((mode === 'audio' || mode === 'video') && !mediaUri) {
+       Alert.alert('No Recording', 'Please record a message first.');
+       return;
+    }
+
+    setIsSaving(true);
+    try {
+       // 1. Create Echo Metadata
+       const createResponse = await echoApiService.createEcho({
+         title: title || 'Untitled Echo',
+         category: category || 'General',
+         echo_type: mode === 'text' ? 'TEXT' : mode === 'audio' ? 'AUDIO' : 'VIDEO',
+         recipient_id: recipientId,
+         content: mode === 'text' ? message : undefined,
+       });
+
+       if (!createResponse.success || !createResponse.data) {
+         throw new Error('Failed to create echo');
+       }
+       const echoId = createResponse.data.echo_id;
+
+       // 2. Upload Media if applicable
+       if (mode !== 'text' && mediaUri) {
+         // Use proper MIME types for S3 upload
+         const contentType = mode === 'audio' ? 'audio/mp4' : 'video/mp4';
+         
+         const uploadUrlResponse = await echoApiService.getUploadUrl(contentType, echoId);
+         if (uploadUrlResponse.success && uploadUrlResponse.data) {
+            await echoApiService.uploadMedia(
+              uploadUrlResponse.data.upload_url,
+              mediaUri,
+              contentType
+            );
+            // Update echo with media URL
+            await echoApiService.updateEcho(echoId, {
+               media_url: uploadUrlResponse.data.media_url,
+            });
+         }
+       }
+
+       Alert.alert('Success', 'Echo saved to vault!', [
+         { text: 'OK', onPress: () => navigation.navigate('MirrorEchoVaultHome' as any) }
+       ]);
+
+    } catch (error) {
+       console.error('Save failed:', error);
+       Alert.alert('Error', 'Failed to save echo.');
+    } finally {
+       setIsSaving(false);
+    }
   };
 
   const onUpload = () => {
@@ -149,12 +332,14 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
               </View>
 
               <View style={styles.centerIconWrap}>
-                <CircleIcon label="🎤" />
+                 <TouchableOpacity onPress={toggleAudioRecording}>
+                  <CircleIcon label={isRecording ? "⏹" : "🎤"} />
+                </TouchableOpacity>
               </View>
 
               <View style={styles.bottomButtonsRow}>
                 <SmallPillButton label="Upload File" onPress={onUpload} />
-                <SmallPillButton label="SAVE" onPress={onSave} />
+                <SmallPillButton label={isSaving ? "SAVING..." : "SAVE"} onPress={onSave} />
               </View>
             </>
           )}
@@ -168,18 +353,32 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
                 style={styles.bigBoxShell}
               >
                 <View style={[styles.bigBoxInnerBorder, { padding: 10 }]}>
-                  <View style={styles.videoPreviewPlaceholder}>
-                    <Text style={styles.previewHint}>Video preview</Text>
-                  </View>
+                    {device && (
+                        <Camera
+                            ref={camera}
+                            style={StyleSheet.absoluteFill}
+                            device={device}
+                            isActive={true}
+                            video={true}
+                            audio={true}
+                        />
+                    )}
+                    {!device && (
+                      <View style={styles.videoPreviewPlaceholder}>
+                        <Text style={styles.previewHint}>No Camera Device</Text>
+                      </View>
+                    )}
                 </View>
               </LinearGradient>
 
               <View style={styles.centerIconWrap}>
-                <CircleIcon label="📹" />
+                <TouchableOpacity onPress={toggleVideoRecording}>
+                    <CircleIcon label={isRecording ? "⏹" : "📹"} />
+                </TouchableOpacity>
               </View>
 
               <View style={styles.bottomButtonsRowSingle}>
-                <SmallPillButton label="SAVE" onPress={onSave} />
+                <SmallPillButton label={isSaving ? "SAVING..." : "SAVE"} onPress={onSave} />
               </View>
             </>
           )}

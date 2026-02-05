@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,15 +9,16 @@ import {
   TextInput,
   Dimensions,
   Platform,
+  FlatList,
+  ActivityIndicator,
+  Modal,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList } from '@types';
+import { echoApiService, Guardian } from '@services/api/echo';
 
-type RootStackParamList = {
-  ChooseGuardian: undefined;
-};
-
-type Props = NativeStackScreenProps<RootStackParamList, 'ChooseGuardian'>;
+type Props = NativeStackScreenProps<RootStackParamList, 'ChooseGuardianScreen'>;
 
 const { width } = Dimensions.get('window');
 
@@ -28,11 +29,33 @@ const BORDER = 'rgba(253,253,249,0.18)';
 const SURFACE = 'rgba(7,9,14,0.35)';
 
 const ChooseGuardianScreen: React.FC<Props> = ({ navigation }) => {
+  const [guardians, setGuardians] = useState<Guardian[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedGuardian, setSelectedGuardian] = useState<Guardian | null>(null);
+  const [showDropdown, setShowDropdown] = useState(false);
   const [notes, setNotes] = useState('');
   const [scope, setScope] = useState<string[]>([]);
   const [triggers, setTriggers] = useState<string[]>([]);
 
   const contentWidth = Math.min(width * 0.88, 360);
+
+  const fetchGuardians = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await echoApiService.getGuardians();
+      if (response.success && response.data) {
+        setGuardians(response.data);
+      }
+    } catch (err) {
+      console.error('Failed to load guardians:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchGuardians();
+  }, [fetchGuardians]);
 
   const toggle = (
     value: string,
@@ -42,6 +65,11 @@ const ChooseGuardianScreen: React.FC<Props> = ({ navigation }) => {
     setList(
       list.includes(value) ? list.filter(v => v !== value) : [...list, value],
     );
+  };
+
+  const handleSelectGuardian = (guardian: Guardian) => {
+    setSelectedGuardian(guardian);
+    setShowDropdown(false);
   };
 
   return (
@@ -98,10 +126,15 @@ const ChooseGuardianScreen: React.FC<Props> = ({ navigation }) => {
         <View style={[styles.content, { width: contentWidth }]}>
           {/* Guardian dropdown */}
           <Text style={styles.label}>Guardian</Text>
-          <View style={styles.inputShell}>
-            <Text style={styles.placeholder}>Choose from list</Text>
+          <TouchableOpacity
+            style={styles.inputShell}
+            onPress={() => setShowDropdown(true)}
+          >
+            <Text style={selectedGuardian ? styles.selectedText : styles.placeholder}>
+              {selectedGuardian ? selectedGuardian.name : 'Choose from list'}
+            </Text>
             <Text style={styles.chevron}>▾</Text>
-          </View>
+          </TouchableOpacity>
 
           {/* Scope of Access */}
           <SectionCard title="Scope of Access">
@@ -156,6 +189,43 @@ const ChooseGuardianScreen: React.FC<Props> = ({ navigation }) => {
             />
           </View>
         </View>
+
+        {/* Dropdown Modal */}
+        <Modal
+          visible={showDropdown}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowDropdown(false)}
+        >
+          <TouchableOpacity
+            style={styles.modalOverlay}
+            activeOpacity={1}
+            onPress={() => setShowDropdown(false)}
+          >
+            <View style={[styles.dropdownContainer, { width: contentWidth }]}>
+              <Text style={styles.dropdownTitle}>Select Guardian</Text>
+              {loading ? (
+                <ActivityIndicator size="small" color={GOLD} />
+              ) : guardians.length === 0 ? (
+                <Text style={styles.emptyText}>No guardians available</Text>
+              ) : (
+                <FlatList
+                  data={guardians}
+                  keyExtractor={item => item.id}
+                  renderItem={({ item }) => (
+                    <TouchableOpacity
+                      style={styles.dropdownItem}
+                      onPress={() => handleSelectGuardian(item)}
+                    >
+                      <Text style={styles.dropdownItemName}>{item.name}</Text>
+                      <Text style={styles.dropdownItemEmail}>{item.email}</Text>
+                    </TouchableOpacity>
+                  )}
+                />
+              )}
+            </View>
+          </TouchableOpacity>
+        </Modal>
       </View>
     </SafeAreaView>
   );
@@ -279,6 +349,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   placeholder: { color: 'rgba(253,253,249,0.55)', fontSize: 15 },
+  selectedText: { color: OFFWHITE, fontSize: 15 },
   chevron: { color: OFFWHITE, fontSize: 16 },
 
   /* Cards */
@@ -337,5 +408,47 @@ const styles = StyleSheet.create({
     color: OFFWHITE,
     fontSize: 15,
     textAlignVertical: 'top',
+  },
+
+  /* Modal */
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  dropdownContainer: {
+    backgroundColor: '#0B0F1A',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: BORDER,
+    padding: 16,
+    maxHeight: 300,
+  },
+  dropdownTitle: {
+    color: GOLD,
+    fontSize: 18,
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  dropdownItem: {
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: BORDER,
+  },
+  dropdownItemName: {
+    color: OFFWHITE,
+    fontSize: 16,
+  },
+  dropdownItemEmail: {
+    color: SUBTEXT,
+    fontSize: 12,
+    marginTop: 2,
+  },
+  emptyText: {
+    color: SUBTEXT,
+    fontSize: 14,
+    textAlign: 'center',
+    paddingVertical: 20,
   },
 });

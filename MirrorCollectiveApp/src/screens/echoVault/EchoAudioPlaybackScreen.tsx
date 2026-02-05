@@ -1,5 +1,5 @@
 // EchoAudioPlaybackScreen.tsx
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -10,18 +10,16 @@ import {
   Dimensions,
   Platform,
   ScrollView,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import AudioRecorderPlayer from 'react-native-audio-recorder-player';
+import { RootStackParamList } from '@types';
+import { echoApiService, EchoResponse } from '@services/api/echo';
 
-type RootStackParamList = {
-  EchoAudioPlayback: {
-    title?: string;
-    transcript?: string;
-  };
-};
-
-type Props = NativeStackScreenProps<RootStackParamList, 'EchoAudioPlayback'>;
+type Props = NativeStackScreenProps<RootStackParamList, 'EchoAudioPlaybackScreen'>;
 
 const { width: W, height: H } = Dimensions.get('window');
 
@@ -31,16 +29,119 @@ const BORDER = 'rgba(253,253,249,0.16)';
 const BORDER_SOFT = 'rgba(253,253,249,0.08)';
 const SURFACE = 'rgba(7,9,14,0.36)';
 
-const DEFAULT_TRANSCRIPT = `Today, as I watched you graduate, I felt time fold in on itself. I saw the child you once were—the small hands, the questions that never seemed to end, the way you looked to me for reassurance—and I saw the person standing before me now.`;
-
 const EchoAudioPlaybackScreen: React.FC<Props> = ({ navigation, route }) => {
-  const title = route.params?.title ?? 'Aaron’s Graduation';
-  const transcript = route.params?.transcript ?? DEFAULT_TRANSCRIPT;
-
+  const { echoId, title: paramsTitle } = route.params;
+  
+  const [echo, setEcho] = useState<EchoResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  
   const [playing, setPlaying] = useState(false);
+  const [duration, setDuration] = useState(0);
+  const [currentPosition, setCurrentPosition] = useState(0);
+
+  // AudioRecorderPlayer is exported as an instance, not a class
+  const audioPlayer = useRef(AudioRecorderPlayer).current;
 
   const contentWidth = useMemo(() => Math.min(W * 0.88, 360), []);
   const transcriptBoxH = useMemo(() => Math.min(H * 0.18, 150), []);
+
+  useEffect(() => {
+    fetchEchoDetails();
+    
+    // Cleanup on unmount
+    return () => {
+      stopPlayback();
+    };
+  }, [echoId]);
+
+  const fetchEchoDetails = async () => {
+    try {
+      setLoading(true);
+      const response = await echoApiService.getEcho(echoId);
+      if (response.data) {
+        setEcho(response.data);
+      } else {
+        Alert.alert('Error', 'Echo not found');
+        navigation.goBack();
+      }
+    } catch (error: any) {
+      console.error('Failed to fetch echo details:', error);
+      Alert.alert('Error', error.message || 'Failed to load echo details');
+      navigation.goBack();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onPlayPause = async () => {
+    if (!echo?.media_url) {
+      Alert.alert('No Audio', 'This echo does not have an audio file.');
+      return;
+    }
+
+    if (playing) {
+      await pausePlayback();
+    } else {
+      await startPlayback(echo.media_url);
+    }
+  };
+
+  const startPlayback = async (url: string) => {
+    try {
+      // If resuming
+      if (currentPosition > 0 && currentPosition < duration) {
+        await audioPlayer.resumePlayer();
+      } else {
+        // Start from beginning
+        await audioPlayer.startPlayer(url);
+        audioPlayer.addPlayBackListener((e) => {
+          setCurrentPosition(e.currentPosition);
+          setDuration(e.duration);
+          if (e.currentPosition === e.duration) {
+            setPlaying(false);
+            audioPlayer.stopPlayer();
+            setCurrentPosition(0);
+          }
+          return;
+        });
+      }
+      setPlaying(true);
+    } catch (error) {
+      console.error('Playback failed:', error);
+      Alert.alert('Playback Error', 'Could not play audio.');
+    }
+  };
+
+  const pausePlayback = async () => {
+    try {
+      await audioPlayer.pausePlayer();
+      setPlaying(false);
+    } catch (error) {
+      console.error('Pause failed:', error);
+    }
+  };
+
+  const stopPlayback = async () => {
+    try {
+      await audioPlayer.stopPlayer();
+      audioPlayer.removePlayBackListener();
+      setPlaying(false);
+      setCurrentPosition(0);
+    } catch (error) {
+      // Ignore if already stopped
+    }
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={GOLD} />
+      </View>
+    );
+  }
+
+  const displayTitle = echo?.title || paramsTitle || 'Untitled Echo';
+  const transcript = echo?.content || 'No transcript available for this echo.';
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -91,13 +192,13 @@ const EchoAudioPlaybackScreen: React.FC<Props> = ({ navigation, route }) => {
           </TouchableOpacity>
 
           <Text style={styles.screenTitle} numberOfLines={1}>
-            {title}
+            {displayTitle}
           </Text>
 
           <View style={styles.titleRightSpacer} />
         </View>
 
-        {/* Waveform */}
+        {/* Waveform (Visual only for now, could be animated based on volume) */}
         <View style={styles.waveWrap}>
           <Waveform active={playing} />
         </View>
@@ -106,7 +207,7 @@ const EchoAudioPlaybackScreen: React.FC<Props> = ({ navigation, route }) => {
         <View style={styles.playWrap}>
           <TouchableOpacity
             activeOpacity={0.9}
-            onPress={() => setPlaying(v => !v)}
+            onPress={onPlayPause}
           >
             <View style={styles.playOuter}>
               <View style={styles.playInner}>
@@ -114,6 +215,8 @@ const EchoAudioPlaybackScreen: React.FC<Props> = ({ navigation, route }) => {
               </View>
             </View>
           </TouchableOpacity>
+          {/* Debug/Progress Info Optional */}
+          {/* <Text style={{color:'white', marginTop:10}}>{Math.floor(currentPosition/1000)}s / {Math.floor(duration/1000)}s</Text> */}
         </View>
 
         {/* Transcript preview */}
@@ -156,10 +259,14 @@ export default EchoAudioPlaybackScreen;
 /* ---------- UI Bits ---------- */
 
 const Waveform = ({ active }: { active: boolean }) => {
+  // Simple random animation effect could be added here
+  // For now, static or simple toggle
   const bars = new Array(36).fill(0).map((_, i) => {
     const base = [8, 14, 22, 30, 22, 14][i % 6];
-    const bump = active ? ((i % 5) - 2) * 1.2 : 0;
-    return Math.max(6, base + bump);
+    // If active, make them dance slightly? Or just taller?
+    // Doing a simple static height change to indicate state
+    const bump = active ? ((i % 5) + 2) * 2 : 0;
+    return Math.max(6, base + bump); 
   });
 
   return (
@@ -225,6 +332,12 @@ const ActionPrimaryButton = ({
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#05060A' },
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: '#05060A',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   root: {
     flex: 1,
     alignItems: 'center',

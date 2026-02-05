@@ -21,7 +21,7 @@ type Props = {
 
 const EnterMirrorScreen: React.FC<Props> = ({ navigation }) => {
   const handleEnter = () => {
-    navigation.navigate('MirrorChat');
+    navigation.navigate('TalkToMirror');
   };
 
   return (

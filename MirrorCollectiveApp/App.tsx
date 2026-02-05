@@ -63,7 +63,7 @@ const MirrorChatWithErrorBoundary = () => (
 // Auth Navigator (Public + Onboarding)
 const AuthNavigator = () => (
   <Stack.Navigator
-    initialRouteName="ManageGuardianScreen"
+    initialRouteName="Splash"
     screenOptions={{ headerShown: false }}
   >
     <Stack.Screen
@@ -149,7 +149,27 @@ const AuthenticatedNavigator = () => (
     <Stack.Screen name="AppVideo" component={AppVideoScreen} />
     <Stack.Screen name="TalkToMirror" component={TalkToMirrorScreen} />
     <Stack.Screen name="MirrorChat" component={MirrorChatWithErrorBoundary} />
-    {/* If users can retake quiz while logged in, add them here too, or use a modal group */}
+    {/* Profile & Settings */}
+    <Stack.Screen name="Profile" component={ProfileScreen} />
+    <Stack.Screen name="About" component={AboutScreen} />
+    {/* Menu Screens */}
+    <Stack.Screen name="MirrorCodeLibrary" component={MirrorCodeLibraryCommingsoonScreen} />
+    <Stack.Screen name="ReflectionRoom" component={ReflectionRoomCommingsoonScreen} />
+    <Stack.Screen name="TheMirrorPledge" component={TheMirrorPledgeCommingsoonScreen} />
+    {/* Echo Vault Screens */}
+    <Stack.Screen name="MirrorEchoVaultHome" component={MirrorEchoVaultHomeScreen} />
+    <Stack.Screen name="MirrorEchoVaultLibrary" component={MirrorEchoVaultLibraryScreen} />
+    <Stack.Screen name="NewEchoScreen" component={NewEchoScreen} />
+    <Stack.Screen name="NewEchoComposeScreen" component={NewEchoComposeScreen} />
+    <Stack.Screen name="NewEchoAudioScreen" component={NewEchoAudioScreen} />
+    <Stack.Screen name="NewEchoVideoScreen" component={NewEchoVideoScreen} />
+    <Stack.Screen name="ManageGuardianScreen" component={ManageGuardianScreen} />
+    <Stack.Screen name="ChooseGuardianScreen" component={ChooseGuardianScreen} />
+    <Stack.Screen name="ChooseRecipientScreen" component={ChooseRecipientScreen} />
+    <Stack.Screen name="AddNewProfileScreen" component={AddNewProfileScreen} />
+    <Stack.Screen name="EchoDetailScreen" component={EchoDetailScreen} />
+    <Stack.Screen name="EchoAudioPlaybackScreen" component={EchoAudioPlaybackScreen} />
+    <Stack.Screen name="EchoVideoPlaybackScreen" component={EchoVideoPlaybackScreen} />
   </Stack.Navigator>
 );
 

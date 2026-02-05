@@ -16,13 +16,9 @@ import {
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList } from '@types';
 
-type RootStackParamList = {
-  NewEcho: undefined;
-  // add other routes as needed
-};
-
-type Props = NativeStackScreenProps<RootStackParamList, 'NewEcho'>;
+type Props = NativeStackScreenProps<RootStackParamList, 'NewEchoScreen'>;
 
 const { width: W, height: H } = Dimensions.get('window');
 
@@ -48,11 +44,22 @@ const NewEchoScreen: React.FC<Props> = ({ navigation }) => {
   );
   const [categoryOpen, setCategoryOpen] = useState(false);
 
+  const [selectedMode, setSelectedMode] = useState<'text' | 'audio' | 'video'>('text');
+
   const contentWidth = useMemo(() => Math.min(W * 0.88, 360), []);
 
   const onNext = () => {
-    // TODO: validate & navigate
-    // navigation.navigate('NextScreen' as any);
+    if (!title.trim()) {
+      // Alert.alert('Creating Echo', 'Please enter a title'); // valid validation
+      return;
+    }
+    // Navigate to Compose screen with params
+    navigation.navigate('NewEchoComposeScreen', {
+      mode: selectedMode,
+      title: title,
+      category: category || 'Uncategorized',
+      hasRecipient: recipientChoice === 'yes'
+    });
   };
 
   return (
@@ -206,9 +213,21 @@ const NewEchoScreen: React.FC<Props> = ({ navigation }) => {
 
           {/* Action buttons row */}
           <View style={styles.actionRow}>
-            <ActionSquare label="T" onPress={() => {}} />
-            <ActionSquare label="🎤" onPress={() => {}} />
-            <ActionSquare label="📹" onPress={() => {}} />
+            <ActionSquare 
+              label="T" 
+              selected={selectedMode === 'text'}
+              onPress={() => setSelectedMode('text')} 
+            />
+            <ActionSquare 
+              label="🎤" 
+              selected={selectedMode === 'audio'}
+              onPress={() => setSelectedMode('audio')} 
+            />
+            <ActionSquare 
+              label="📹" 
+              selected={selectedMode === 'video'}
+              onPress={() => setSelectedMode('video')} 
+            />
           </View>
 
           {/* Next */}
@@ -264,20 +283,22 @@ const NewEchoScreen: React.FC<Props> = ({ navigation }) => {
 const ActionSquare = ({
   label,
   onPress,
+  selected,
 }: {
   label: string;
   onPress: () => void;
+  selected?: boolean;
 }) => {
   return (
     <TouchableOpacity activeOpacity={0.9} onPress={onPress}>
       <LinearGradient
-        colors={['rgba(253,253,249,0.10)', 'rgba(253,253,249,0.03)']}
+        colors={selected ? ['rgba(215,192,138,0.20)', 'rgba(215,192,138,0.05)'] : ['rgba(253,253,249,0.10)', 'rgba(253,253,249,0.03)']}
         start={{ x: 0.5, y: 0 }}
         end={{ x: 0.5, y: 1 }}
-        style={styles.actionShell}
+        style={[styles.actionShell, selected && { borderColor: GOLD }]}
       >
-        <View style={styles.actionInnerBorder}>
-          <Text style={styles.actionIcon}>{label}</Text>
+        <View style={[styles.actionInnerBorder, selected && { backgroundColor: 'rgba(215,192,138,0.10)', borderColor: GOLD }]}>
+          <Text style={[styles.actionIcon, selected && { color: GOLD }]}>{label}</Text>
         </View>
       </LinearGradient>
     </TouchableOpacity>

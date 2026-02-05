@@ -13,12 +13,9 @@ import {
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList } from '@types';
 
-type RootStackParamList = {
-  NewEchoAudio: undefined;
-};
-
-type Props = NativeStackScreenProps<RootStackParamList, 'NewEchoAudio'>;
+type Props = NativeStackScreenProps<RootStackParamList, 'NewEchoAudioScreen'>;
 
 const { width: W, height: H } = Dimensions.get('window');
 

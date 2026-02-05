@@ -5,8 +5,7 @@ import {
   SCREEN_DIMENSIONS,
   PLATFORM_SPECIFIC,
 } from '@constants';
-import { theme } from '@theme';
-import React, { useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -18,74 +17,82 @@ import {
   useWindowDimensions,
   Platform,
   Image,
+  ActivityIndicator,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '@types';
+import { echoApiService, EchoResponse } from '@services/api/echo';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
 
 type EchoLibraryNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
-  'EchoLibrary'
+  'MirrorEchoVaultLibrary'
 >;
 
-type EchoItem = {
-  id: string;
-  title: string;
-  subtitle: string;
-  image: any;
-  recipient: string;
-};
-
-const MOCK_ECHOS: EchoItem[] = [
-  {
-    id: '1',
-    title: 'Voice of Becoming',
-    subtitle: 'Saved Feb 16th, 2025',
-    recipient: 'SARAH',
-  },
-  {
-    id: '2',
-    title: 'Brother’s Passing',
-    subtitle: 'Unlocks May 24th, 2025',
-    recipient: 'REBECCA',
-  },
-  {
-    id: '3',
-    title: 'Message to My Son',
-    subtitle: 'Unlocks Jun 16th, 2025',
-    recipient: 'JAMES',
-  },
-  {
-    id: '4',
-    title: 'Aaron’s Graduation',
-    subtitle: 'Unlocks Jul 9th, 2025',
-    recipient: 'AARON',
-  },
-];
+const GOLD = '#D7C08A';
+const SUBTEXT = 'rgba(253,253,249,0.65)';
 
 export function EchoLibraryContent() {
   const navigation = useNavigation<EchoLibraryNavigationProp>();
   const { width } = useWindowDimensions();
+  const [echoes, setEchoes] = useState<EchoResponse[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const cardMaxWidth = useMemo(
-    () => Math.min(width - SPACING.XL * 2, 440),
-    [width],
-  );
+  const cardMaxWidth = Math.min(width - SPACING.XL * 2, 440);
+
+  const fetchEchoes = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await echoApiService.getEchoes();
+      if (response.success && response.data) {
+        setEchoes(response.data);
+      } else {
+        setError(response.error || `Failed to load echoes (${JSON.stringify(response)})`);
+        console.log('Echo fetch error response:', response);
+      }
+    } catch (err: any) {
+      console.error('Echo load error:', err);
+      setError(`Failed to load echoes: ${err.message || JSON.stringify(err)}`);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchEchoes();
+  }, [fetchEchoes]);
 
   const handleMenu = () => {
     (navigation as any)?.openDrawer?.();
   };
 
   const handleCreateEcho = () => {
-    navigation.navigate('EchoCreate' as any);
+    navigation.navigate('NewEchoScreen');
   };
 
-  const handleOpenItem = (id: string) => {
-    navigation.navigate('EchoDetail' as any, { id });
+  const handleOpenItem = (item: EchoResponse) => {
+    if (item.echo_type === 'AUDIO') {
+      navigation.navigate('EchoAudioPlaybackScreen', { echoId: item.echo_id, title: item.title });
+    } else if (item.echo_type === 'VIDEO') {
+      navigation.navigate('EchoVideoPlaybackScreen', { echoId: item.echo_id, title: item.title });
+    } else {
+      navigation.navigate('EchoDetailScreen', { echoId: item.echo_id, title: item.title });
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
   };
 
   return (
@@ -139,36 +146,60 @@ export function EchoLibraryContent() {
                 <Text style={styles.headerRight}>CATEGORY</Text>
               </View>
 
-              <ScrollView
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={styles.listContent}
-              >
-                {MOCK_ECHOS.map(item => (
-                  <TouchableOpacity
-                    key={item.id}
-                    activeOpacity={0.9}
-                    onPress={() => handleOpenItem(item.id)}
-                    style={styles.row}
-                  >
-                    <View style={styles.rowLeft}>
-                      <View style={styles.avatar}>
-                        <Image source={require('../../assets/Group.png')} />
-                      </View>
-                      <View style={styles.rowTextWrap}>
-                        <Text style={styles.rowTitle}>{item.title}</Text>
-                        <Text style={styles.rowSub}>{item.subtitle}</Text>
-                      </View>
-                    </View>
-
-                    <View style={styles.rowRight}>
-                      <Text style={styles.recipientText}>{item.recipient}</Text>
-                      <View style={styles.smallInfoCircle}>
-                        <Text style={styles.smallInfoText}>i</Text>
-                      </View>
-                    </View>
+              {loading ? (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator size="large" color={GOLD} />
+                </View>
+              ) : error ? (
+                <View style={styles.errorContainer}>
+                  <Text style={styles.errorText}>{error}</Text>
+                  <TouchableOpacity onPress={fetchEchoes} style={styles.retryBtn}>
+                    <Text style={styles.retryText}>Retry</Text>
                   </TouchableOpacity>
-                ))}
-              </ScrollView>
+                </View>
+              ) : echoes.length === 0 ? (
+                <View style={styles.emptyContainer}>
+                  <Text style={styles.emptyText}>No echoes yet</Text>
+                  <Text style={styles.emptySubtext}>
+                    Create your first echo to preserve a message
+                  </Text>
+                </View>
+              ) : (
+                <ScrollView
+                  showsVerticalScrollIndicator={false}
+                  contentContainerStyle={styles.listContent}
+                >
+                  {echoes.map(item => (
+                    <TouchableOpacity
+                      key={item.echo_id}
+                      activeOpacity={0.9}
+                      onPress={() => handleOpenItem(item)}
+                      style={styles.row}
+                    >
+                      <View style={styles.rowLeft}>
+                        <View style={styles.avatar}>
+                          <Image source={require('../../assets/Group.png')} />
+                        </View>
+                        <View style={styles.rowTextWrap}>
+                          <Text style={styles.rowTitle}>{item.title}</Text>
+                          <Text style={styles.rowSub}>
+                            Saved {formatDate(item.created_at)}
+                          </Text>
+                        </View>
+                      </View>
+
+                      <View style={styles.rowRight}>
+                        <Text style={styles.recipientText}>
+                          {item.recipient?.name?.toUpperCase() || item.category}
+                        </Text>
+                        <View style={styles.smallInfoCircle}>
+                          <Text style={styles.smallInfoText}>i</Text>
+                        </View>
+                      </View>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              )}
             </View>
           </LinearGradient>
 
@@ -285,12 +316,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-
-  inboxIcon: {
-    color: 'rgba(242,226,177,0.9)',
-    fontSize: 14,
-    marginTop: -1,
   },
 
   inboxIconImage: {
@@ -455,5 +480,54 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     color: 'rgba(242,226,177,0.95)',
     letterSpacing: 1.6,
+  },
+
+  // Loading/Error/Empty states
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+  },
+  errorContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
+  },
+  errorText: {
+    color: '#ff6b6b',
+    fontSize: 14,
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  retryBtn: {
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: GOLD,
+  },
+  retryText: {
+    color: GOLD,
+    fontSize: 14,
+  },
+  emptyContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+  },
+  emptyText: {
+    color: SUBTEXT,
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  emptySubtext: {
+    color: SUBTEXT,
+    fontSize: 14,
+    textAlign: 'center',
+    opacity: 0.7,
   },
 });

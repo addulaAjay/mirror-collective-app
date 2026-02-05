@@ -12,12 +12,9 @@ import {
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList } from '@types';
 
-type RootStackParamList = {
-  AddNewProfile: undefined;
-};
-
-type Props = NativeStackScreenProps<RootStackParamList, 'AddNewProfile'>;
+type Props = NativeStackScreenProps<RootStackParamList, 'AddNewProfileScreen'>;
 
 const { width } = Dimensions.get('window');
 

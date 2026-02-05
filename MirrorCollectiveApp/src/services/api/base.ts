@@ -5,7 +5,7 @@ import type { ApiResponse, ApiError } from '@types';
 import { ApiErrorHandler } from './errorHandler';
 
 export class BaseApiService {
-  private readonly baseUrl: string;
+  public readonly baseUrl: string;
   private readonly timeout: number;
 
   constructor() {
@@ -15,7 +15,7 @@ export class BaseApiService {
 
   protected async makeRequest<T = any>(
     endpoint: string,
-    method: 'GET' | 'POST' | 'PUT' | 'DELETE' = 'GET',
+    method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' = 'GET',
     data?: any,
     requiresAuth: boolean = false,
   ): Promise<ApiResponse<T>> {
@@ -41,7 +41,7 @@ export class BaseApiService {
         signal: controller.signal,
       };
 
-      if (data && (method === 'POST' || method === 'PUT')) {
+      if (data && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
         config.body = JSON.stringify(data);
       }
 
@@ -66,16 +66,22 @@ export class BaseApiService {
       clearTimeout(timeoutId);
 
       if (!response.ok) {
-        // For auth endpoints and client errors, return error response instead of throwing
         if (ApiErrorHandler.shouldHandleGracefully(endpoint, response.status)) {
           return responseData;
         }
-        throw this.createApiError(responseData, response.status);
+        // Extract error message from response data
+        const errorMessage = responseData?.error || responseData?.message || `Server error: ${response.status}`;
+        throw this.createApiError(errorMessage, response.status);
       }
 
       return responseData;
-    } catch (error) {
+    } catch (error: any) {
       clearTimeout(timeoutId);
+
+      // If it is already an ApiError (custom), rethrow it
+      if (error && error.message && error.status) {
+         throw error;
+      }
 
       // Use centralized error handling for system errors
       const errorResponse = ApiErrorHandler.handleSystemError(error, {

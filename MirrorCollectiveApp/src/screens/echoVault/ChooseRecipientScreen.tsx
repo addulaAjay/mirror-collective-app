@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,15 +9,16 @@ import {
   TextInput,
   Dimensions,
   Platform,
+  FlatList,
+  ActivityIndicator,
+  Modal,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList } from '@types';
+import { echoApiService, Recipient } from '@services/api/echo';
 
-type RootStackParamList = {
-  ChooseRecipient: undefined;
-};
-
-type Props = NativeStackScreenProps<RootStackParamList, 'ChooseRecipient'>;
+type Props = NativeStackScreenProps<RootStackParamList, 'ChooseRecipientScreen'>;
 
 const { width } = Dimensions.get('window');
 
@@ -27,11 +28,45 @@ const SUBTEXT = 'rgba(253,253,249,0.65)';
 const BORDER = 'rgba(253,253,249,0.18)';
 
 const ChooseRecipientScreen: React.FC<Props> = ({ navigation }) => {
+  const [recipients, setRecipients] = useState<Recipient[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedRecipient, setSelectedRecipient] = useState<Recipient | null>(null);
+  const [showDropdown, setShowDropdown] = useState(false);
   const [legacy, setLegacy] = useState<'yes' | 'no' | null>(null);
   const [unlockOnDeath, setUnlockOnDeath] = useState(false);
   const [notes, setNotes] = useState('');
 
   const contentWidth = Math.min(width * 0.88, 360);
+
+  const fetchRecipients = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await echoApiService.getRecipients();
+      if (response.success && response.data) {
+        setRecipients(response.data);
+      }
+    } catch (err) {
+      console.error('Failed to load recipients:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchRecipients();
+  }, [fetchRecipients]);
+
+  const handleSelectRecipient = (recipient: Recipient) => {
+    setSelectedRecipient(recipient);
+    setShowDropdown(false);
+  };
+
+  const handleNext = () => {
+    if (selectedRecipient) {
+      // Navigate to next screen with recipient data
+      navigation.navigate('NewEchoScreen');
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -81,10 +116,15 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation }) => {
         <View style={[styles.content, { width: contentWidth }]}>
           {/* Recipient dropdown */}
           <Text style={styles.label}>Recipient</Text>
-          <View style={styles.inputShell}>
-            <Text style={styles.placeholder}>Choose from list</Text>
+          <TouchableOpacity
+            style={styles.inputShell}
+            onPress={() => setShowDropdown(true)}
+          >
+            <Text style={selectedRecipient ? styles.selectedText : styles.placeholder}>
+              {selectedRecipient ? selectedRecipient.name : 'Choose from list'}
+            </Text>
             <Text style={styles.chevron}>▾</Text>
-          </View>
+          </TouchableOpacity>
 
           {/* Legacy */}
           <View style={styles.legacyHeader}>
@@ -146,11 +186,52 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation }) => {
         </View>
 
         {/* Next */}
-        <TouchableOpacity style={styles.nextWrap}>
+        <TouchableOpacity
+          style={[styles.nextWrap, !selectedRecipient && styles.disabled]}
+          onPress={handleNext}
+          disabled={!selectedRecipient}
+        >
           <View style={styles.nextButton}>
             <Text style={styles.nextText}>NEXT</Text>
           </View>
         </TouchableOpacity>
+
+        {/* Dropdown Modal */}
+        <Modal
+          visible={showDropdown}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowDropdown(false)}
+        >
+          <TouchableOpacity
+            style={styles.modalOverlay}
+            activeOpacity={1}
+            onPress={() => setShowDropdown(false)}
+          >
+            <View style={[styles.dropdownContainer, { width: contentWidth }]}>
+              <Text style={styles.dropdownTitle}>Select Recipient</Text>
+              {loading ? (
+                <ActivityIndicator size="small" color={GOLD} />
+              ) : recipients.length === 0 ? (
+                <Text style={styles.emptyText}>No recipients available</Text>
+              ) : (
+                <FlatList
+                  data={recipients}
+                  keyExtractor={item => item.id}
+                  renderItem={({ item }) => (
+                    <TouchableOpacity
+                      style={styles.dropdownItem}
+                      onPress={() => handleSelectRecipient(item)}
+                    >
+                      <Text style={styles.dropdownItemName}>{item.name}</Text>
+                      <Text style={styles.dropdownItemEmail}>{item.email}</Text>
+                    </TouchableOpacity>
+                  )}
+                />
+              )}
+            </View>
+          </TouchableOpacity>
+        </Modal>
       </View>
     </SafeAreaView>
   );
@@ -259,6 +340,10 @@ const styles = StyleSheet.create({
     color: 'rgba(253,253,249,0.55)',
     fontSize: 15,
   },
+  selectedText: {
+    color: OFFWHITE,
+    fontSize: 15,
+  },
   chevron: { color: OFFWHITE, fontSize: 16 },
   calendar: { fontSize: 16 },
 
@@ -333,5 +418,50 @@ const styles = StyleSheet.create({
       ios: 'CormorantGaramond-Regular',
       android: 'serif',
     }),
+  },
+  disabled: {
+    opacity: 0.5,
+  },
+
+  /* Modal */
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  dropdownContainer: {
+    backgroundColor: '#0B0F1A',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: BORDER,
+    padding: 16,
+    maxHeight: 300,
+  },
+  dropdownTitle: {
+    color: GOLD,
+    fontSize: 18,
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  dropdownItem: {
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: BORDER,
+  },
+  dropdownItemName: {
+    color: OFFWHITE,
+    fontSize: 16,
+  },
+  dropdownItemEmail: {
+    color: SUBTEXT,
+    fontSize: 12,
+    marginTop: 2,
+  },
+  emptyText: {
+    color: SUBTEXT,
+    fontSize: 14,
+    textAlign: 'center',
+    paddingVertical: 20,
   },
 });

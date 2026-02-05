@@ -29,7 +29,7 @@ import LogoHeader from '@components/LogoHeader';
 
 type MirrorEchoNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
-  'MirrorEcho'
+  'MirrorEchoVaultHome'
 >;
 
 const COPY =
@@ -84,15 +84,15 @@ export function MirrorEchoContent() {
   };
 
   const handleInfo = () => {
-    navigation.navigate('MirrorEchoInfo' as any);
+    // navigation.navigate('MirrorEchoInfo' as any); // TODO: Add Info Screen
   };
 
   const handleStartEcho = () => {
-    navigation.navigate('EchoCreate' as any);
+    navigation.navigate('NewEchoScreen');
   };
 
   const handleViewVault = () => {
-    navigation.navigate('EchoVault' as any);
+    navigation.navigate('MirrorEchoVaultLibrary');
   };
 
   return (

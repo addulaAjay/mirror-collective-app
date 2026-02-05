@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,15 +9,15 @@ import {
   Dimensions,
   Platform,
   FlatList,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList } from '@types';
+import { echoApiService, Guardian } from '@services/api/echo';
 
-type RootStackParamList = {
-  ManageGuardian: undefined;
-};
-
-type Props = NativeStackScreenProps<RootStackParamList, 'ManageGuardian'>;
+type Props = NativeStackScreenProps<RootStackParamList, 'ManageGuardianScreen'>;
 
 const { width } = Dimensions.get('window');
 
@@ -27,15 +27,87 @@ const SUBTEXT = 'rgba(253,253,249,0.65)';
 const BORDER = 'rgba(253,253,249,0.16)';
 const SURFACE = 'rgba(7,9,14,0.35)';
 
-const GUARDIANS = [
-  { id: '1', name: 'EMMA', email: 'emma@email.com' },
-  { id: '2', name: 'JAMES', email: 'james@email.com' },
-  { id: '3', name: 'REBECCA', email: 'rebecca@email.com' },
-  { id: '4', name: 'SARAH', email: 'sarah@email.com' },
-];
-
 const ManageGuardianScreen: React.FC<Props> = ({ navigation }) => {
+  const [guardians, setGuardians] = useState<Guardian[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   const contentWidth = Math.min(width * 0.88, 360);
+
+  const fetchGuardians = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await echoApiService.getGuardians();
+      if (response.success && response.data) {
+        setGuardians(response.data);
+      } else {
+        setError(response.error || 'Failed to load guardians');
+      }
+    } catch (err) {
+      setError('Failed to load guardians');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchGuardians();
+  }, [fetchGuardians]);
+
+  const handleRemoveGuardian = async (id: string) => {
+    Alert.alert(
+      'Remove Guardian',
+      'Are you sure you want to remove this guardian?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Remove',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const response = await echoApiService.removeGuardian(id);
+              if (response.success) {
+                setGuardians(prev => prev.filter(g => g.id !== id));
+              } else {
+                Alert.alert('Error', response.error || 'Failed to remove guardian');
+              }
+            } catch (err) {
+              Alert.alert('Error', 'Failed to remove guardian');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleAddGuardian = () => {
+    navigation.navigate('AddNewProfileScreen');
+  };
+
+  const renderGuardianRow = ({ item }: { item: Guardian }) => (
+    <View style={styles.row}>
+      <View style={styles.avatar}>
+        <View style={styles.avatarInner} />
+      </View>
+
+      <View style={styles.rowText}>
+        <Text style={styles.name}>{item.name.toUpperCase()}</Text>
+        <Text style={styles.email}>{item.email}</Text>
+      </View>
+
+      <TouchableOpacity style={styles.selectBtn}>
+        <Text style={styles.selectText}>SELECT</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.deleteBtn}
+        onPress={() => handleRemoveGuardian(item.id)}
+      >
+        <Text style={styles.deleteIcon}>🗑</Text>
+      </TouchableOpacity>
+    </View>
+  );
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -87,16 +159,30 @@ const ManageGuardianScreen: React.FC<Props> = ({ navigation }) => {
         </Text>
 
         {/* List */}
-        <FlatList
-          data={GUARDIANS}
-          keyExtractor={item => item.id}
-          style={{ width: contentWidth, marginTop: 10 }}
-          contentContainerStyle={{ paddingBottom: 20 }}
-          renderItem={({ item }) => <GuardianRow {...item} />}
-        />
+        {loading ? (
+          <ActivityIndicator size="large" color={GOLD} style={{ marginTop: 40 }} />
+        ) : error ? (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>{error}</Text>
+            <TouchableOpacity onPress={fetchGuardians} style={styles.retryBtn}>
+              <Text style={styles.retryText}>Retry</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <FlatList
+            data={guardians}
+            keyExtractor={item => item.id}
+            style={{ width: contentWidth, marginTop: 10 }}
+            contentContainerStyle={{ paddingBottom: 20 }}
+            renderItem={renderGuardianRow}
+            ListEmptyComponent={
+              <Text style={styles.emptyText}>No guardians added yet</Text>
+            }
+          />
+        )}
 
         {/* Add Guardian */}
-        <TouchableOpacity style={styles.addWrap}>
+        <TouchableOpacity style={styles.addWrap} onPress={handleAddGuardian}>
           <View style={styles.addButton}>
             <Text style={styles.addText}>ADD GUARDIAN</Text>
           </View>
@@ -107,29 +193,6 @@ const ManageGuardianScreen: React.FC<Props> = ({ navigation }) => {
 };
 
 export default ManageGuardianScreen;
-
-/* ---------------- ROW COMPONENT ---------------- */
-
-const GuardianRow = ({ name, email }: { name: string; email: string }) => (
-  <View style={styles.row}>
-    <View style={styles.avatar}>
-      <View style={styles.avatarInner} />
-    </View>
-
-    <View style={styles.rowText}>
-      <Text style={styles.name}>{name}</Text>
-      <Text style={styles.email}>{email}</Text>
-    </View>
-
-    <TouchableOpacity style={styles.selectBtn}>
-      <Text style={styles.selectText}>SELECT</Text>
-    </TouchableOpacity>
-
-    <TouchableOpacity style={styles.deleteBtn}>
-      <Text style={styles.deleteIcon}>🗑</Text>
-    </TouchableOpacity>
-  </View>
-);
 
 /* ---------------- STYLES ---------------- */
 
@@ -278,5 +341,34 @@ const styles = StyleSheet.create({
       ios: 'CormorantGaramond-Regular',
       android: 'serif',
     }),
+  },
+
+  /* Error/Empty states */
+  errorContainer: {
+    marginTop: 40,
+    alignItems: 'center',
+  },
+  errorText: {
+    color: '#ff6b6b',
+    fontSize: 14,
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  retryBtn: {
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: GOLD,
+  },
+  retryText: {
+    color: GOLD,
+    fontSize: 14,
+  },
+  emptyText: {
+    color: SUBTEXT,
+    fontSize: 14,
+    textAlign: 'center',
+    marginTop: 40,
   },
 });

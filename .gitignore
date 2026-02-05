@@ -180,8 +180,6 @@ temp/
 .idea/
 
 # Local configuration files
-ios/GoogleService-Info.plist
-android/app/google-services.json
 
 # React Native CLI configuration
 .react-native/

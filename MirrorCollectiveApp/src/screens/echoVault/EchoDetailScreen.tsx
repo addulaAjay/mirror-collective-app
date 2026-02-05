@@ -1,5 +1,5 @@
 // EchoDetailScreen.tsx
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -12,18 +12,16 @@ import {
   ScrollView,
   Modal,
   Pressable,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList } from '@types';
+import { echoApiService, EchoResponse } from '@services/api/echo';
 
-type RootStackParamList = {
-  EchoDetail: {
-    title?: string;
-    body?: string;
-  };
-};
+type Props = NativeStackScreenProps<RootStackParamList, 'EchoDetailScreen'>;
 
-type Props = NativeStackScreenProps<RootStackParamList, 'EchoDetail'>;
 
 const { width: W, height: H } = Dimensions.get('window');
 
@@ -34,20 +32,56 @@ const BORDER = 'rgba(253,253,249,0.16)';
 const BORDER_SOFT = 'rgba(253,253,249,0.08)';
 const SURFACE = 'rgba(7,9,14,0.36)';
 
-const DEFAULT_BODY =
-  `Today, as I watched you graduate, I felt time fold in on itself. I saw the child you once were—the small hands, the questions that never seemed to end, the way you looked to me for reassurance—and I saw the person standing before me now, shaped by years of effort, uncertainty, growth, and grace.\n\n` +
-  `This moment is not a finish line. It’s a recognition of how far you’ve already traveled.\n\n` +
-  `There were days when the path felt clear, and days when it didn’t. Days when confidence came easily, and others when it had to be rebuilt from doubt. What matters most to me isn’t that you arrived here, but how you did—by learning to try again, by carrying kindness even when things felt heavy, and by becoming someone who listens to the world and to themselves.\n\n` +
-  `Keep going. Keep choosing what’s true. I’m proud of you.`;
-
 const EchoDetailScreen: React.FC<Props> = ({ navigation, route }) => {
-  const title = route.params?.title ?? 'Voice of Becoming';
-  const body = route.params?.body ?? DEFAULT_BODY;
+  const { echoId } = route.params; // Expect echoId to be passed
+  const [echo, setEcho] = useState<EchoResponse | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const [folderModalOpen, setFolderModalOpen] = useState(false);
 
   const contentWidth = useMemo(() => Math.min(W * 0.88, 360), []);
   const textBoxHeight = useMemo(() => Math.min(H * 0.54, 470), []);
+
+  useEffect(() => {
+    fetchEchoDetails();
+  }, [echoId]);
+
+  const fetchEchoDetails = async () => {
+    try {
+      setLoading(true);
+      const response = await echoApiService.getEcho(echoId);
+      if (response.data) {
+        setEcho(response.data);
+      } else {
+        Alert.alert('Error', 'Echo not found');
+        navigation.goBack();
+      }
+    } catch (error: any) {
+      console.error('Failed to fetch echo details:', error);
+      Alert.alert('Error', error.message || 'Failed to load echo details');
+      navigation.goBack();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={GOLD} />
+      </View>
+    );
+  }
+
+  if (!echo) {
+    return null; // Or some error state, but Alert should handle navigation back
+  }
+
+  const title = echo.title || 'Untitled Echo';
+  // Use content for TEXT echoes, or a placeholder explanation for others
+  const body = echo.echo_type === 'TEXT' 
+    ? (echo.content || 'No content provided.')
+    : `[${echo.echo_type} Content Placeholder]\n\nThis media type is not yet fully supported in this view.`;
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -270,6 +304,12 @@ const ActionPrimaryButton = ({
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#05060A' },
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: '#05060A',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   root: {
     flex: 1,
     alignItems: 'center',

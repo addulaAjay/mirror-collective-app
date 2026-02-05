@@ -11,12 +11,9 @@ import {
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList } from '@types';
 
-type RootStackParamList = {
-  NewEchoVideo: undefined;
-};
-
-type Props = NativeStackScreenProps<RootStackParamList, 'NewEchoVideo'>;
+type Props = NativeStackScreenProps<RootStackParamList, 'NewEchoVideoScreen'>;
 
 const { width } = Dimensions.get('window');
 
