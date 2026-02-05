@@ -142,7 +142,7 @@ class PushNotificationService {
   /**
    * Handle incoming FCM messages while app is in foreground.
    */
-  private initializeForegroundHandler(): void {
+  initializeForegroundHandler(): void {
     messaging().onMessage(async (remoteMessage: any) => {
       const title = remoteMessage.notification?.title || 'Mirror Collective';
       const body = remoteMessage.notification?.body || 
