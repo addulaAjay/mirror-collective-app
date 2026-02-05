@@ -35,7 +35,22 @@ const TalkToMirrorScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   const handleMenuPress = (label: string) => {
-    Alert.alert('Coming Soon', `${label} will be available shortly.`);
+    switch (label) {
+      case 'MIRROR ECHO':
+        navigation.navigate('MirrorEchoVaultHome');
+        break;
+      case 'CODE LIBRARY':
+        navigation.navigate('MirrorCodeLibrary');
+        break;
+      case 'REFLECTION ROOM':
+        navigation.navigate('ReflectionRoom');
+        break;
+      case 'MIRROR PLEDGE':
+        navigation.navigate('TheMirrorPledge');
+        break;
+      default:
+        Alert.alert('Coming Soon', `${label} will be available shortly.`);
+    }
   };
 
   return (

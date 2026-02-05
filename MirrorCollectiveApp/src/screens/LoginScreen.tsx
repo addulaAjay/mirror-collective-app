@@ -34,7 +34,9 @@ const LoginScreen = ({ navigation, route }: any) => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [hasShownNotificationPrompt, setHasShownNotificationPrompt] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [hasShownNotificationPrompt, setHasShownNotificationPrompt] =
+    useState(false);
 
   useEffect(() => {
     const shouldShowPrompt = route?.params?.showNotificationPrompt;
@@ -46,12 +48,19 @@ const LoginScreen = ({ navigation, route }: any) => {
 
     setHasShownNotificationPrompt(true);
 
-    PushNotificationService
-      .promptForNotificationPermissionAndRegister(emailFromParams)
-      .catch((error: unknown) => {
-        console.error('Error during push notification registration from LoginScreen:', error);
-      });
-  }, [route?.params?.showNotificationPrompt, route?.params?.email, hasShownNotificationPrompt]);
+    PushNotificationService.promptForNotificationPermissionAndRegister(
+      emailFromParams,
+    ).catch((error: unknown) => {
+      console.error(
+        'Error during push notification registration from LoginScreen:',
+        error,
+      );
+    });
+  }, [
+    route?.params?.showNotificationPrompt,
+    route?.params?.email,
+    hasShownNotificationPrompt,
+  ]);
 
   const validateForm = (): boolean => {
     if (!email.trim()) {
@@ -128,7 +137,10 @@ const LoginScreen = ({ navigation, route }: any) => {
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
         <BackgroundWrapper style={styles.container}>
-          <LogoHeader />
+          <LogoHeader
+            onMenuPress={() => setDrawerOpen(!drawerOpen)}
+            navigation={navigation}
+          />{' '}
           <View style={styles.contentContainer}>
             <Text style={styles.title}>{t('auth.login.title')}</Text>
 
@@ -206,8 +218,6 @@ const LoginScreen = ({ navigation, route }: any) => {
                 <StarIcon width={24} height={24} />
               </TouchableOpacity>
             </View>
-
-
 
             <View style={styles.signupContainer}>
               <Text style={styles.signupText}>
@@ -331,7 +341,6 @@ const styles = StyleSheet.create({
     color: '#E5D6B0',
     textDecorationLine: 'underline' as const,
     textDecorationStyle: 'solid' as const,
-
   },
 });
 

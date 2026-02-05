@@ -3,3 +3,4 @@ export * from './chat';
 export * from './base';
 export * from './quiz';
 export * from './session';
+export * from './echo';

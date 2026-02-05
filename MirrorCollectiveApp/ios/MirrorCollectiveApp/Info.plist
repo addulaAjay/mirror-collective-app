@@ -27,11 +27,16 @@
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
-		<false/>
-		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Mirror Collective needs access to your microphone to record audio echoes.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Mirror Collective needs access to your camera to record video echoes.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Mirror Collective needs access to your photo library to save or upload echoes.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
+
 	<string/>
 	<key>RCTNewArchEnabled</key>
 	<true/>
