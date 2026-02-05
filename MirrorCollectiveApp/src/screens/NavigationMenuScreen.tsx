@@ -49,8 +49,8 @@ const MirrorSideMenu: React.FC<MirrorSideMenuProps> = ({
   }, [isOpen, slideAnim]);
 
   const primaryItems = [
-    { label: 'MirrorGPT', route: 'MirrorGPT' },
-    { label: 'Echo Vault', route: 'EchoVault' },
+    { label: 'MirrorGPT', route: 'About' },
+    { label: 'Echo Vault', route: 'MirrorEcho' },
     { label: 'Reflection Room', route: 'ReflectionRoom' },
     { label: 'Code Library', route: 'CodeLibrary' },
     { label: 'Pledge', route: 'Pledge' },
@@ -112,15 +112,15 @@ const MirrorSideMenu: React.FC<MirrorSideMenuProps> = ({
 
           {/* User */}
           <View style={styles.userRow}>
-            <View style={styles.logoCircle}>
-              <View style={styles.logoCircleInner}>
-                <Image
-                  source={logoSource}
-                  style={styles.logo}
-                  resizeMode="contain"
-                />
-              </View>
-            </View>
+            {/* <View style={styles.logoCircle}>
+              <View style={styles.logoCircleInner}> */}
+            <Image
+              source={require('@assets/Mirror_Collective_Logo_RGB.png')}
+              style={[styles.logo]}
+              resizeMode="contain"
+            />
+            {/* </View> */}
+            {/* </View> */}
 
             <Text style={styles.userName}>{userName}</Text>
           </View>
@@ -182,8 +182,6 @@ const MirrorSideMenu: React.FC<MirrorSideMenuProps> = ({
                 </TouchableOpacity>
               ))}
             </View>
-
-            <View style={{ height: 24 }} />
           </ScrollView>
         </View>
       </Animated.View>
@@ -257,8 +255,8 @@ const styles = StyleSheet.create({
   },
 
   logoCircleInner: {
-    width: 30,
-    height: 30,
+    width: 38,
+    height: 38,
     borderRadius: 15,
     backgroundColor: 'rgba(10,14,26,0.18)',
     justifyContent: 'center',
@@ -266,14 +264,14 @@ const styles = StyleSheet.create({
   },
 
   logo: {
-    width: 22,
-    height: 22,
-    tintColor: GOLD, // remove this if your logo is already gold
-    opacity: 0.95,
+    width: 38,
+    height: 38,
+    // tintColor: GOLD, // remove this if your logo is already gold
+    // opacity: 0.01,
   },
 
   userName: {
-    fontSize: 30,
+    fontSize: 24,
     color: GOLD,
     fontFamily: 'CormorantGaramond-SemiBoldItalic',
     letterSpacing: 0.5,
@@ -294,10 +292,11 @@ const styles = StyleSheet.create({
   pillHit: {
     paddingHorizontal: 18,
     marginBottom: 10,
+    paddingTop: 10,
   },
 
   pill: {
-    height: 60,
+    height: 40,
     borderRadius: 10,
     backgroundColor: PILL_BG,
     justifyContent: 'center',
@@ -306,15 +305,19 @@ const styles = StyleSheet.create({
   },
 
   pillText: {
-    fontSize: 25,
+    fontSize: 20,
     color: 'rgba(255,255,255,0.92)',
     fontFamily: 'CormorantGaramond-Italic',
     letterSpacing: 0.8,
   },
 
   secondary: {
+    position: 'relative',
+    bottom: 0,
+    left: 0,
     paddingHorizontal: 18,
-    paddingTop: 8,
+    // paddingTop: 8,
+    marginBottom: 10,
   },
 
   secondaryItem: {
@@ -322,7 +325,7 @@ const styles = StyleSheet.create({
   },
 
   secondaryText: {
-    fontSize: 25,
+    fontSize: 20,
     color: 'rgba(255,255,255,0.88)',
     fontFamily: 'CormorantGaramond-Italic',
     letterSpacing: 0.7,

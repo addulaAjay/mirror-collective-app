@@ -137,7 +137,10 @@ const LoginScreen = ({ navigation, route }: any) => {
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
         <BackgroundWrapper style={styles.container}>
-          <LogoHeader onMenuPress={() => setDrawerOpen(!drawerOpen)} />{' '}
+          <LogoHeader
+            onMenuPress={() => setDrawerOpen(!drawerOpen)}
+            navigation={navigation}
+          />{' '}
           <View style={styles.contentContainer}>
             <Text style={styles.title}>{t('auth.login.title')}</Text>
 
@@ -215,8 +218,6 @@ const LoginScreen = ({ navigation, route }: any) => {
                 <StarIcon width={24} height={24} />
               </TouchableOpacity>
             </View>
-
-
 
             <View style={styles.signupContainer}>
               <Text style={styles.signupText}>
