@@ -32,7 +32,9 @@ import ReflectionRoomCommingsoonScreen from '@screens/ReflectionRoomCommingsoonS
 import ResetPasswordScreen from '@screens/ResetPasswordScreen';
 import SignUpScreen from '@screens/SignUpScreen';
 import SplashScreen from '@screens/SplashScreen';
+import StartFreeTrialScreen from '@screens/StartFreeTrialScreen';
 import TalkToMirrorScreen from '@screens/TalkToMirrorScreen';
+import TermsAndConditionsScreen from '@screens/TermsAndConditionsScreen';
 import TheMirrorPledgeCommingsoonScreen from '@screens/TheMirrorPledgeCommingsoonScreen';
 import VerifyEmailScreen from '@screens/VerifyEmailScreen';
 import MirrorEchoVaultHomeScreen from '@screens/echoVault/EchoVaultHomeScreen';
@@ -118,6 +120,8 @@ const AuthNavigator = () => (
       component={ReflectionRoomCommingsoonScreen}
     />
     <Stack.Screen name="MirrorEcho" component={MirrorEchoCommingsoonScreen} />
+    <Stack.Screen name="TermsAndConditions" component={TermsAndConditionsScreen} />
+    <Stack.Screen name="StartFreeTrial" component={StartFreeTrialScreen} />
     <Stack.Screen name="Splash" component={SplashScreen} />
     <Stack.Screen name="MirrorAnimation" component={MirrorAnimationScreen} />
     <Stack.Screen name="AppExplanation" component={AppExplainerScreen} />
@@ -176,7 +180,7 @@ const AuthenticatedNavigator = () => (
 // Main Navigator that switches based on auth state
 const AppNavigator = () => {
   const { state } = useSession();
-  const { isAuthenticated, isLoading } = state;
+  const { isAuthenticated } = state;
 
   // Optionally show a loading screen while session is restoring
   // if (isLoading) {
@@ -186,9 +190,9 @@ const AppNavigator = () => {
 
   return (
     <NavigationContainer
-      onStateChange={state => {
+      onStateChange={navState => {
         if (__DEV__) {
-          console.log('Navigation state changed:', state);
+          console.log('Navigation state changed:', navState);
         }
       }}
     >

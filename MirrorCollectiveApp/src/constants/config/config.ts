@@ -1,7 +1,7 @@
 import { Platform } from 'react-native';
 
 const DEFAULT_HOST = Platform.select({
-  android: 'http://10.0.2.2:8001',
+  android: 'https://f8lzhthj1l.execute-api.us-east-1.amazonaws.com',
   ios: 'https://f8lzhthj1l.execute-api.us-east-1.amazonaws.com',
   default: 'https://f8lzhthj1l.execute-api.us-east-1.amazonaws.com',
 });
