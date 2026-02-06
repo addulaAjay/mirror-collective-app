@@ -12,6 +12,7 @@ export type RootStackParamList = {
   Splash: undefined;
   TermsAndConditions: undefined;
   StartFreeTrial: undefined;
+  EchoVaultStorage: undefined;
   MirrorEcho: undefined;
   ReflectionRoom: undefined;
   MirrorCodeLibrary: undefined;

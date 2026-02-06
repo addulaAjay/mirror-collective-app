@@ -16,6 +16,20 @@ import AboutScreen from '@screens/AboutScreen';
 import AppExplainerScreen from '@screens/AppExplainerScreen';
 import AppVideoScreen from '@screens/AppVideoScreen';
 import ArchetypeScreen from '@screens/ArchetypeScreen';
+import AddNewProfileScreen from '@screens/echoVault/AddNewProfileScreen';
+import ChooseGuardianScreen from '@screens/echoVault/ChooseGuardianScreen';
+import ChooseRecipientScreen from '@screens/echoVault/ChooseRecipientScreen';
+import EchoAudioPlaybackScreen from '@screens/echoVault/EchoAudioPlaybackScreen';
+import EchoDetailScreen from '@screens/echoVault/EchoDetailScreen';
+import MirrorEchoVaultHomeScreen from '@screens/echoVault/EchoVaultHomeScreen';
+import MirrorEchoVaultLibraryScreen from '@screens/echoVault/EchoVaultLibraryScreen';
+import EchoVideoPlaybackScreen from '@screens/echoVault/EchoVideoPlaybackScreen';
+import ManageGuardianScreen from '@screens/echoVault/ManageGuardianScreen';
+import NewEchoAudioScreen from '@screens/echoVault/NewEchoAudioScreen';
+import NewEchoComposeScreen from '@screens/echoVault/NewEchoComposeScreen';
+import NewEchoScreen from '@screens/echoVault/NewEchoVaultScreen';
+import NewEchoVideoScreen from '@screens/echoVault/NewEchoVideoScreen';
+import EchoVaultStorageScreen from '@screens/EchoVaultStorageScreen';
 import EmailConfirmationScreen from '@screens/EmailConfirmationScreen';
 import EnterMirrorScreen from '@screens/EnterMirrorScreen';
 import ForgotPasswordScreen from '@screens/ForgotPasswordScreen';
@@ -37,21 +51,6 @@ import TalkToMirrorScreen from '@screens/TalkToMirrorScreen';
 import TermsAndConditionsScreen from '@screens/TermsAndConditionsScreen';
 import TheMirrorPledgeCommingsoonScreen from '@screens/TheMirrorPledgeCommingsoonScreen';
 import VerifyEmailScreen from '@screens/VerifyEmailScreen';
-import MirrorEchoVaultHomeScreen from '@screens/echoVault/EchoVaultHomeScreen';
-import MirrorEchoVaultLibraryScreen from '@screens/echoVault/EchoVaultLibraryScreen';
-import NewEchoScreen from '@screens/echoVault/NewEchoVaultScreen';
-import NewEchoComposeScreen from '@screens/echoVault/NewEchoComposeScreen';
-import NewEchoAudioScreen from '@screens/echoVault/NewEchoAudioScreen';
-import NewEchoVideoScreen from '@screens/echoVault/NewEchoVideoScreen';
-import AddNewProfileScreen from '@screens/echoVault/AddNewProfileScreen';
-import ChooseRecipientScreen from '@screens/echoVault/ChooseRecipientScreen';
-import ChooseGuardianScreen from '@screens/echoVault/ChooseGuardianScreen';
-import EchoDetailScreen from '@screens/echoVault/EchoDetailScreen';
-import EchoAudioPlaybackScreen from '@screens/echoVault/EchoAudioPlaybackScreen';
-import EchoVideoPlaybackScreen from '@screens/echoVault/EchoVideoPlaybackScreen';
-import ManageGuardianScreen from '@screens/echoVault/ManageGuardianScreen';
-import { Screen } from 'react-native-screens';
-
 import PushNotificationService from '@services/PushNotificationService';
 
 import ErrorBoundary from './src/components/ErrorBoundary';
@@ -122,6 +121,7 @@ const AuthNavigator = () => (
     <Stack.Screen name="MirrorEcho" component={MirrorEchoCommingsoonScreen} />
     <Stack.Screen name="TermsAndConditions" component={TermsAndConditionsScreen} />
     <Stack.Screen name="StartFreeTrial" component={StartFreeTrialScreen} />
+    <Stack.Screen name="EchoVaultStorage" component={EchoVaultStorageScreen} />
     <Stack.Screen name="Splash" component={SplashScreen} />
     <Stack.Screen name="MirrorAnimation" component={MirrorAnimationScreen} />
     <Stack.Screen name="AppExplanation" component={AppExplainerScreen} />
