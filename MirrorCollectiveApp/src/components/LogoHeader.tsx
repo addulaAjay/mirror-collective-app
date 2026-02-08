@@ -21,6 +21,7 @@ type LogoHeaderProps = {
   logoStyle?: StyleProp<ImageStyle>;
   textContainerStyle?: StyleProp<ViewStyle>;
   navigation?: any;
+  onMenuPress?: () => void;
 };
 
 const LogoHeader = ({
@@ -28,8 +29,18 @@ const LogoHeader = ({
   logoStyle,
   textContainerStyle,
   navigation,
+  onMenuPress,
 }: LogoHeaderProps) => {
   const [drawerOpen, setDrawerOpen] = useState(false);
+
+  // If onMenuPress is provided, use it. Otherwise, use internal drawer state.
+  const handleMenuPress = () => {
+    if (onMenuPress) {
+      onMenuPress();
+    } else {
+      setDrawerOpen(true);
+    }
+  };
 
   return (
     <>
@@ -47,7 +58,7 @@ const LogoHeader = ({
       <View style={styles.wrapper}>
         {/* Hamburger */}
         <Pressable
-          onPress={() => setDrawerOpen(true)}
+          onPress={handleMenuPress}
           hitSlop={12}
           style={styles.hamburgerButton}
         >

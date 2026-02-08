@@ -140,7 +140,7 @@ const LoginScreen = ({ navigation, route }: any) => {
           <LogoHeader
             onMenuPress={() => setDrawerOpen(!drawerOpen)}
             navigation={navigation}
-          />{' '}
+          />
           <View style={styles.contentContainer}>
             <Text style={styles.title}>{t('auth.login.title')}</Text>
 
