@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 
 import MirrorSideMenu from '../screens/NavigationMenuScreen';
-import { useUser } from '../context/UserContext';
+import { useUser } from '@context/UserContext';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
