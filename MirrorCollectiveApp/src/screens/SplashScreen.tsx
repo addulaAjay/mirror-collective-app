@@ -7,13 +7,12 @@ import {
   Image,
   Dimensions,
 } from 'react-native';
-
-
-import { authApiService } from '@services/api';
-const { width: screenWidth, height: screenHeight } = Dimensions.get('screen');
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import type { RootStackParamList } from '@types';
+
+const { width: screenWidth, height: screenHeight } = Dimensions.get('screen');
 
 type SplashProps = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'Splash'>;
@@ -22,9 +21,7 @@ type SplashProps = {
 const SplashScreen: React.FC<SplashProps> = ({ navigation }) => {
   useEffect(() => {
     const initializeApp = async () => {
-      // Session persistence is now active
-
-      // Navigate after clearing tokens
+      // Navigate after timeout
       const timer = setTimeout(() => {
         try {
           navigation.replace('MirrorAnimation');
@@ -51,22 +48,28 @@ const SplashScreen: React.FC<SplashProps> = ({ navigation }) => {
   }, [navigation]);
 
   return (
-    <BackgroundWrapper style={styles.container}>
-      <View style={styles.logoContainer}>
-        <Image
-          source={require('@assets/Mirror_Collective_Logo_RGB.png')}
-          style={styles.logo}
-          resizeMode="contain"
-        />
-        <Text style={styles.title}>The MIRROR COLLECTIVE</Text>
-      </View>
+    <BackgroundWrapper style={styles.bg}>
+      <SafeAreaView style={styles.safe}>
+        <View style={styles.logoContainer}>
+          <Image
+            source={require('@assets/Mirror_Collective_Logo_RGB.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+          <Text style={styles.title}>The MIRROR COLLECTIVE</Text>
+        </View>
+      </SafeAreaView>
     </BackgroundWrapper>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  bg: {
     flex: 1,
+  },
+  safe: {
+    flex: 1,
+    backgroundColor: 'transparent',
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: Math.max(24, screenWidth * 0.06),
@@ -85,16 +88,16 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   title: {
-    fontFamily: 'CormorantGaramond-Light', // Exact font from Figma
-    fontWeight: '300', // Light weight (300)
-    fontSize: Math.min(Math.max(screenWidth * 0.08, 28), 35), // Target 35px from Figma
-    lineHeight: Math.min(Math.max(screenWidth * 0.095, 34), 42), // Target ~42px from Figma
-    textAlign: 'center', // CENTER alignment from Figma
-    color: '#E5D6B0', // Exact color from Figma
-    textShadowOffset: { width: 0, height: 4 }, // Exact offset from Figma
-    textShadowRadius: 9, // Exact blur from Figma
-    textShadowColor: 'rgba(0, 0, 0, 0.25)', // Exact shadow color from Figma
-    textTransform: 'none', // Keep original case
+    fontFamily: 'CormorantGaramond-Light',
+    fontWeight: '300',
+    fontSize: Math.min(Math.max(screenWidth * 0.08, 28), 35),
+    lineHeight: Math.min(Math.max(screenWidth * 0.095, 34), 42),
+    textAlign: 'center',
+    color: '#E5D6B0',
+    textShadowOffset: { width: 0, height: 4 },
+    textShadowRadius: 9,
+    textShadowColor: 'rgba(0, 0, 0, 0.25)',
+    textTransform: 'none',
   },
 });
 

@@ -53,6 +53,11 @@ class PushNotificationService {
    */
   async getFCMToken(): Promise<string | undefined> {
     try {
+      // On iOS, we must register for remote messages first
+      if (Platform.OS === 'ios') {
+        await messaging().registerDeviceForRemoteMessages();
+      }
+
       // Always try to get the fresh token from Firebase first
       const fcmToken = await messaging().getToken();
       if (fcmToken) {
@@ -62,7 +67,13 @@ class PushNotificationService {
 
       // Fallback to cached token if Firebase is unavailable
       return await AsyncStorage.getItem('fcmToken') || undefined;
-    } catch (error) {
+    } catch (error: any) {
+      if (error?.message?.includes('no apns token specified')) {
+        console.warn(
+          'FCM Warning: No APNs token available. This is expected on iOS Simulator. Push notifications will not work.',
+        );
+        return undefined;
+      }
       console.error('Error getting FCM token:', error);
       return await AsyncStorage.getItem('fcmToken') || undefined;
     }
@@ -142,7 +153,7 @@ class PushNotificationService {
   /**
    * Handle incoming FCM messages while app is in foreground.
    */
-  private initializeForegroundHandler(): void {
+  initializeForegroundHandler(): void {
     messaging().onMessage(async (remoteMessage: any) => {
       const title = remoteMessage.notification?.title || 'Mirror Collective';
       const body = remoteMessage.notification?.body || 

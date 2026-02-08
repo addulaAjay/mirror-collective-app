@@ -1,3 +1,4 @@
+import { theme } from '@theme';
 import React, { useState } from 'react';
 import {
   TextInput,
@@ -5,10 +6,9 @@ import {
   View,
   TouchableOpacity,
   Text,
+  TextStyle,
 } from 'react-native';
 import Svg, { Mask, Rect, G, Path } from 'react-native-svg';
-
-import { theme } from '@theme';
 
 interface Props {
   placeholder: string;
@@ -25,6 +25,7 @@ interface Props {
   size: 'small' | 'normal' | 'medium';
   placeholderFontFamily?: string;
   inputTextStyle?: string;
+  placeholderStyle?: TextStyle;
 }
 
 const TextInputField = ({
@@ -41,6 +42,7 @@ const TextInputField = ({
   placeholderAlign,
   size,
   inputTextStyle,
+  placeholderStyle,
   testID,
 }: Props & { testID?: string }) => {
   const [isFocused, setIsFocused] = useState(false);
@@ -64,6 +66,7 @@ const TextInputField = ({
             placeholderAlign === 'left'
               ? styles.placeholderLeft
               : styles.placeholderCenter,
+            placeholderStyle,
           ]}
         >
           {placeholder}

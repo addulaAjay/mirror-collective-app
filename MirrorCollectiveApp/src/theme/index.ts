@@ -188,6 +188,14 @@ export const theme = {
         textDecorationLine: 'underline' as const,
       },
 
+      linkSmall: {
+        fontFamily: 'CormorantGaramond-Regular',
+        fontSize: 14,
+        lineHeight: 18,
+        color: '#F5E6B8',
+        textDecorationLine: 'underline' as const,
+      },
+
       linkLarge: {
         fontFamily: 'CormorantGaramond-Medium',
         fontSize: 18,

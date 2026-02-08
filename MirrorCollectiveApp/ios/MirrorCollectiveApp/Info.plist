@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-	<string>MirrorCollectiveApp</string>
+	<string>The Mirror Collective</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -27,11 +27,18 @@
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
-		<false/>
-		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Mirror Collective needs access to your microphone to record audio echoes.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Mirror Collective needs access to your camera to record video echoes.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Mirror Collective needs access to your photo library to save or upload echoes.</string>
+	<key>NSAppleMusicUsageDescription</key>
+	<string>Mirror Collective needs access to your media library to browse and upload audio files.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
+
 	<string/>
 	<key>RCTNewArchEnabled</key>
 	<true/>

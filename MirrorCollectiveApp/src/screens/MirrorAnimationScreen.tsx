@@ -9,6 +9,7 @@ import {
   type ViewStyle,
   type ImageStyle,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -32,15 +33,6 @@ type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'MirrorAnimation'>;
 };
 
-/**
- * MirrorAnimationScreen - Displays the mirror with glow effect
- *
- * Using layered approach with separate assets for flexibility.
- * For simpler approach with composite image, see MirrorAnimationScreen_SimpleVersion.tsx
- *
- * TODO: Once you export a composite image from Figma (Ellipse 734 + Asset 4 + Asset 3),
- * you can simplify this to just use a single Image component.
- */
 const MirrorAnimationScreen: React.FC<Props> = ({ navigation }) => {
   const { isAuthenticated, hasValidToken } = useAuthGuard();
 
@@ -88,41 +80,50 @@ const MirrorAnimationScreen: React.FC<Props> = ({ navigation }) => {
   }, [isAuthenticated, hasValidToken, navigation]);
 
   return (
-    <BackgroundWrapper style={styles.container}>
-      <View style={styles.contentContainer}>
-        <TouchableOpacity
-          onPress={handleEnter}
-          style={styles.mirrorContainer}
-          activeOpacity={0.8}
-        >
-          {/* Layer 1: Mirror frame (Asset 4) */}
-          <Image
-            source={require('@assets/Asset_4@2x-8.png')}
-            style={styles.mirrorFrame}
-            resizeMode="contain"
-          />
+    <BackgroundWrapper style={styles.bg}>
+      <SafeAreaView style={styles.safe}>
+        <View style={styles.contentContainer}>
+          <TouchableOpacity
+            onPress={handleEnter}
+            style={styles.mirrorContainer}
+            activeOpacity={0.8}
+          >
+            {/* Layer 1: Mirror frame (Asset 4) */}
+            <Image
+              source={require('@assets/Asset_4@2x-8.png')}
+              style={styles.mirrorFrame}
+              resizeMode="contain"
+            />
 
-          {/* Layer 2: Mirror reflection overlay (Asset 3) */}
-          <Image
-            source={require('@assets/Asset_3@2x-8.png')}
-            style={styles.mirrorReflection}
-            resizeMode="contain"
-          />
-        </TouchableOpacity>
-      </View>
+            {/* Layer 2: Mirror reflection overlay (Asset 3) */}
+            <Image
+              source={require('@assets/Asset_3@2x-8.png')}
+              style={styles.mirrorReflection}
+              resizeMode="contain"
+            />
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
     </BackgroundWrapper>
   );
 };
 
 const styles = StyleSheet.create<{
-  container: ViewStyle;
+  bg: ViewStyle;
+  safe: ViewStyle;
   contentContainer: ViewStyle;
   mirrorContainer: ViewStyle;
   mirrorFrame: ImageStyle;
   mirrorReflection: ImageStyle;
 }>({
-  container: {
+  bg: {
     flex: 1,
+  },
+  safe: {
+    flex: 1,
+    backgroundColor: 'transparent',
+    alignItems: 'center',
+    width: '100%',
   },
   contentContainer: {
     flex: 1,

@@ -12,7 +12,10 @@ import {
   TouchableOpacity,
   Alert,
   TextInput,
+  Platform,
 } from 'react-native';
+import { SafeAreaView } from "react-native-safe-area-context";
+import LinearGradient from 'react-native-linear-gradient';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
@@ -31,11 +34,13 @@ const VerifyEmailScreen = () => {
   const { t } = useTranslation();
   const navigation = useNavigation<VerifyEmailScreenNavigationProp>();
   const route = useRoute<VerifyEmailScreenRouteProp>();
-  const { email } = route.params;
+  const initialEmail = route.params?.email ?? '';
   const [verificationCode, setVerificationCode] = useState('');
   const [isResending, setIsResending] = useState(false);
   const [countdown, setCountdown] = useState(0);
   const [isVerifying, setIsVerifying] = useState(false);
+
+  const normalizedEmail = initialEmail.trim().toLowerCase();
 
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout>;
@@ -46,12 +51,19 @@ const VerifyEmailScreen = () => {
   }, [countdown]);
 
   const handleVerifyCode = async () => {
-    if (!verificationCode.trim()) {
+    const trimmedCode = verificationCode.trim();
+
+    if (!normalizedEmail) {
+      Alert.alert(t('common.error'), 'Please enter your email address');
+      return;
+    }
+
+    if (!trimmedCode) {
       Alert.alert(t('common.error'), 'Please enter the verification code');
       return;
     }
 
-    if (verificationCode.length !== 6) {
+    if (trimmedCode.length !== 6) {
       Alert.alert(t('common.error'), 'Verification code must be 6 digits');
       return;
     }
@@ -60,7 +72,7 @@ const VerifyEmailScreen = () => {
 
     if (__DEV__) {
       console.log('VerifyEmailScreen - verificationCode:', verificationCode);
-      console.log('VerifyEmailScreen - email:', email);
+      console.log('VerifyEmailScreen - email:', normalizedEmail);
     }
 
     try {
@@ -68,8 +80,8 @@ const VerifyEmailScreen = () => {
       const anonymousId = await QuizStorageService.getAnonymousId();
 
       const response = await authApiService.verifyEmail({
-        email,
-        verificationCode: verificationCode.trim(),
+        email: normalizedEmail,
+        verificationCode: trimmedCode,
         anonymousId: anonymousId, // Send anonymousId for backend linking
       });
 
@@ -84,13 +96,14 @@ const VerifyEmailScreen = () => {
             {
               text: t('auth.verifyEmail.enterButton'),
               onPress: () => {
-                // Navigate to Login (EnterMirror is only accessible after sign in)
+                // After successful verification, continue to Start Free Trial
                 navigation.reset({
                   index: 0,
-                  routes: [{
-                    name: 'Login',
-                    params: { email, showNotificationPrompt: true },
-                  }],
+                  routes: [
+                    {
+                      name: 'StartFreeTrial',
+                    },
+                  ],
                 });
               },
             },
@@ -118,10 +131,15 @@ const VerifyEmailScreen = () => {
       return;
     }
 
+    if (!normalizedEmail) {
+      Alert.alert(t('common.error'), 'Please enter your email address');
+      return;
+    }
+
     setIsResending(true);
 
     try {
-      const response = await authApiService.resendVerificationCode(email);
+      const response = await authApiService.resendVerificationCode(normalizedEmail);
 
       if (response.success) {
         setCountdown(60); // 60 second cooldown
@@ -142,102 +160,123 @@ const VerifyEmailScreen = () => {
 
   return (
     <BackgroundWrapper style={styles.container}>
-      <LogoHeader />
+      <SafeAreaView style={styles.safe}>
+        <LogoHeader />
 
-      <View style={styles.contentContainer}>
-        {/* Main Content */}
-        <View style={styles.messageContainer}>
-          {/* Header */}
-          <View style={styles.headerSection}>
-            <Text style={styles.title}>{t('auth.verifyEmail.title')}</Text>
-            <Text style={styles.subtitle}>
-              {t('auth.verifyEmail.subtitle')}
-            </Text>
-          </View>
+        <View style={styles.contentContainer}>
+          {/* Main Content */}
+          <View style={styles.messageContainer}>
+            {/* Header */}
+            <View style={styles.headerSection}>
+              <Text style={styles.title}>{t('auth.verifyEmail.title')}</Text>
+              <Text style={styles.subtitle}>
+                {t('auth.verifyEmail.subtitle')}
+              </Text>
+            </View>
 
-          {/* Verification Code Input */}
-          <View style={styles.codeSection}>
-            <TextInput
-              testID="verification-code-input"
-              style={styles.codeInput}
-              placeholder={t('auth.verifyEmail.codePlaceholder')}
-              placeholderTextColor={theme.colors.text.muted}
-              value={verificationCode}
-              onChangeText={setVerificationCode}
-              keyboardType="numeric"
-              maxLength={6}
-              autoFocus
-              textAlign="center"
-            />
-
-            <TouchableOpacity
-              testID="verify-button"
-              style={[
-                styles.verifyButton,
-                (isVerifying || verificationCode.length !== 6) &&
-                  styles.verifyButtonDisabled,
-              ]}
-              onPress={handleVerifyCode}
-              disabled={isVerifying || verificationCode.length !== 6}
-            >
-              <Text
-                style={[
-                  styles.verifyButtonText,
-                  (isVerifying || verificationCode.length !== 6) &&
-                    styles.verifyButtonTextDisabled,
-                ]}
+            {/* Verification Code Input */}
+            <View style={styles.codeSection}>
+              <LinearGradient
+                colors={['rgba(253, 253, 249, 0.04)', 'rgba(253, 253, 249, 0.01)']}
+                start={{ x: 0.5, y: 0 }}
+                end={{ x: 0.5, y: 1 }}
+                style={styles.codeInputWrapper}
               >
-                {isVerifying
-                  ? t('auth.verifyEmail.verifyingButton')
-                  : t('auth.verifyEmail.verifyButton')}
+                <TextInput
+                  testID="verification-code-input"
+                  style={styles.codeInput}
+                  placeholder={t('auth.verifyEmail.codePlaceholder')}
+                  placeholderTextColor={theme.colors.text.muted}
+                  value={verificationCode}
+                  onChangeText={setVerificationCode}
+                  keyboardType="numeric"
+                  maxLength={6}
+                  autoFocus
+                  textAlign="center"
+                />
+              </LinearGradient>
+
+              <TouchableOpacity
+                testID="verify-button"
+                style={[
+                  (isVerifying || verificationCode.trim().length !== 6) &&
+                    styles.verifyButtonDisabled,
+                ]}
+                onPress={handleVerifyCode}
+                disabled={isVerifying || verificationCode.trim().length !== 6}
+              >
+                <LinearGradient
+                  colors={['rgba(253, 253, 249, 0.04)', 'rgba(253, 253, 249, 0.01)']}
+                  start={{ x: 0.5, y: 0 }}
+                  end={{ x: 0.5, y: 1 }}
+                  style={styles.verifyButton}
+                >
+                  <Text
+                    style={[
+                      styles.verifyButtonText,
+                      (isVerifying || verificationCode.trim().length !== 6) &&
+                        styles.verifyButtonTextDisabled,
+                    ]}
+                  >
+                    {isVerifying
+                      ? t('auth.verifyEmail.verifyingButton')
+                      : t('auth.verifyEmail.verifyButton')}
+                  </Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+
+            {/* Resend Section */}
+            <View style={styles.resendSection}>
+              <Text style={styles.resendText}>
+                {t('auth.verifyEmail.resendPrompt')}
+              </Text>
+
+              <TouchableOpacity
+                testID="resend-button"
+                style={[
+                  (countdown > 0 || isResending) && styles.resendButtonDisabled,
+                ]}
+                onPress={handleResendEmail}
+                disabled={countdown > 0 || isResending}
+              >
+                <LinearGradient
+                  colors={['rgba(253, 253, 249, 0.04)', 'rgba(253, 253, 249, 0.01)']}
+                  start={{ x: 0.5, y: 0 }}
+                  end={{ x: 0.5, y: 1 }}
+                  style={styles.resendButton}
+                >
+                  <Text
+                    style={[
+                      styles.resendButtonText,
+                      (countdown > 0 || isResending) &&
+                        styles.resendButtonTextDisabled,
+                    ]}
+                  >
+                    {countdown > 0
+                      ? t('auth.verifyEmail.resendButtonWithTimer', {
+                          count: countdown,
+                        })
+                      : isResending
+                      ? t('auth.verifyEmail.sendingButton')
+                      : t('auth.verifyEmail.resendButton')}
+                  </Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+
+            {/* Back to Sign Up */}
+            <TouchableOpacity
+              onPress={() => navigation.goBack()}
+              style={styles.backButton}
+            >
+              <Text style={styles.backButtonText}>
+                {t('auth.verifyEmail.backToSignUp')}
               </Text>
             </TouchableOpacity>
           </View>
-
-          {/* Resend Section */}
-          <View style={styles.resendSection}>
-            <Text style={styles.resendText}>
-              {t('auth.verifyEmail.resendPrompt')}
-            </Text>
-
-            <TouchableOpacity
-              testID="resend-button"
-              style={[
-                styles.resendButton,
-                (countdown > 0 || isResending) && styles.resendButtonDisabled,
-              ]}
-              onPress={handleResendEmail}
-              disabled={countdown > 0 || isResending}
-            >
-              <Text
-                style={[
-                  styles.resendButtonText,
-                  (countdown > 0 || isResending) &&
-                    styles.resendButtonTextDisabled,
-                ]}
-              >
-                {countdown > 0
-                  ? t('auth.verifyEmail.resendButtonWithTimer', {
-                      count: countdown,
-                    })
-                  : isResending
-                  ? t('auth.verifyEmail.sendingButton')
-                  : t('auth.verifyEmail.resendButton')}
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Back to Sign Up */}
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            style={styles.backButton}
-          >
-            <Text style={styles.backButtonText}>
-              {t('auth.verifyEmail.backToSignUp')}
-            </Text>
-          </TouchableOpacity>
         </View>
-      </View>
+      </SafeAreaView>
     </BackgroundWrapper>
   );
 };
@@ -254,84 +293,111 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  safe: {
+    flex: 1,
+    backgroundColor: 'transparent',
+    width: '100%',
+  },
   contentContainer: {
     flex: 1,
     width: '100%',
     alignItems: 'center',
     paddingHorizontal: 44,
-    paddingTop: 150, // Space for LogoHeader (48 + 46 + 26 margin)
+    paddingTop: 20, 
     gap: 60,
   },
   messageContainer: {
     alignItems: 'center',
-    gap: 40,
+    gap: 0,
+    width: '100%',
     maxWidth: 305,
+    flex: 1,
+    justifyContent: 'center',
   },
   headerSection: {
     alignItems: 'center',
-    gap: 16,
+    gap: 24,
+    marginBottom: 24,
   },
   title: {
     ...theme.typography.styles.title,
+    alignSelf: 'stretch',
     color: '#F2E2B1',
-    fontFamily: 'CormorantGaramond-Italic',
+    fontFamily: 'CormorantGaramond-Regular',
     fontSize: 28,
+    fontStyle: 'normal',
     textAlign: 'center',
-    fontWeight: '300',
-    lineHeight: 36,
+    fontWeight: '400',
+    lineHeight: 36.4,
   },
   subtitle: {
     ...theme.typography.styles.body,
+    alignSelf: 'stretch',
     color: '#FDFDF9',
-    fontFamily: 'CormorantGaramond-Regular',
-    fontSize: 20,
+    fontFamily: 'Inter',
+    fontSize: 18,
+    fontStyle: 'normal',
     textAlign: 'center',
-    fontWeight: '400',
-    lineHeight: 28,
+    fontWeight: '300',
+    lineHeight: 27,
   },
   codeSection: {
     alignItems: 'center',
-    gap: 20,
-    width: '100%',
+    gap: 24,
+    alignSelf: 'stretch',
+    marginBottom: 48,
+  },
+  codeInputWrapper: {
+    width: 190,
+    alignSelf: 'center',
+    borderRadius: 12,
+    borderWidth: 0.5,
+    borderColor: '#A3B3CC',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: 'transparent',
+    ...(Platform.OS === 'web'
+      ? ({ backdropFilter: 'blur(30px)', WebkitBackdropFilter: 'blur(30px)' } as any)
+      : {}),
   },
   codeInput: {
-    width: 200,
-    height: 60,
-    borderRadius: 8,
-    borderWidth: 0.5,
-    borderColor: theme.colors.border.input,
-    backgroundColor: theme.colors.background.input,
+    width: '100%',
+    backgroundColor: 'transparent',
     ...theme.typography.styles.input,
+    fontFamily: 'CormorantGaramond-Italic',
     fontSize: 24,
     lineHeight: 30,
-    shadowColor: theme.shadows.input.color,
-    shadowOffset: theme.shadows.input.offset,
-    shadowOpacity: theme.shadows.input.opacity,
-    shadowRadius: theme.shadows.input.radius,
+    paddingVertical: 0,
+    paddingHorizontal: 0,
+    color: theme.colors.text.primary,
   },
 
   verifyButton: {
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: theme.colors.button.primary,
-    paddingHorizontal: 40,
+    flexDirection: 'row',
+    width: 171,
     paddingVertical: 12,
-    shadowColor: theme.shadows.button.color,
-    shadowOffset: theme.shadows.button.offset,
-    shadowOpacity: theme.shadows.button.opacity,
-    shadowRadius: theme.shadows.button.radius,
-    alignItems: 'center',
+    paddingHorizontal: 16,
     justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+    borderRadius: 12,
+    borderWidth: 0.5,
+    borderColor: '#A3B3CC',
+    backgroundColor: 'transparent',
+    ...(Platform.OS === 'web'
+      ? ({ backdropFilter: 'blur(30px)', WebkitBackdropFilter: 'blur(30px)' } as any)
+      : {}),
   },
   verifyButtonDisabled: {
-    borderColor: theme.colors.button.disabled,
     opacity: 0.6,
   },
   verifyButtonText: {
     ...theme.typography.styles.button,
     textAlign: 'center',
-    width: 220,
-    fontFamily: 'CormorantGaramond-Italic',
+    fontFamily: 'CormorantGaramond-Light',
     color: '#E5D6B0',
     fontSize: 20,
     fontWeight: '600',
@@ -345,27 +411,36 @@ const styles = StyleSheet.create({
   },
   resendSection: {
     alignItems: 'center',
-    gap: 10,
+    gap: 20,
+    width: '100%',
   },
   resendText: {
-    ...theme.typography.styles.body,
-    color: '#FDFDF9',
-    fontFamily: 'CormorantGaramond-Italic',
+    alignSelf: 'stretch',
+    color: '#A3B3CC',
     textAlign: 'center',
-    fontSize: 20,
-    fontWeight: '300',
-    lineHeight: 28,
+    fontFamily: 'Inter',
+    fontSize: 16,
+    fontStyle: 'italic',
+    fontWeight: '400',
+    lineHeight: 24,
+    flexShrink: 1,
+    includeFontPadding: false,
   },
   resendButton: {
-    marginTop: 20,
-    width: '100%',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#A3B3CC',
-    paddingVertical: 10,
-    paddingHorizontal: 72,
+    flexDirection: 'row',
+    width: 171,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(253, 253, 249, 0.05)',
+    gap: 8,
+    borderRadius: 12,
+    borderWidth: 0.5,
+    borderColor: '#A3B3CC',
+    backgroundColor: 'transparent',
+    ...(Platform.OS === 'web'
+      ? ({ backdropFilter: 'blur(30px)', WebkitBackdropFilter: 'blur(30px)' } as any)
+      : {}),
   },
   resendButtonDisabled: {
     opacity: 0.6,
@@ -386,12 +461,18 @@ const styles = StyleSheet.create({
   backButton: {
     marginTop: 20,
     padding: 10,
+    alignSelf: 'stretch',
   },
   backButtonText: {
-    fontFamily: 'CormorantGaramond-Italic',
-    color: '#FDFDF9',
-    fontSize: 18,
-    textDecorationLine: 'underline',
+    alignSelf: 'stretch',
+    color: '#A3B3CC',
+    textAlign: 'center',
+    fontFamily: 'Inter',
+    fontSize: 16,
+    fontStyle: 'italic',
+    fontWeight: '400',
+    lineHeight: 24,
+    includeFontPadding: false,
   },
 });
 

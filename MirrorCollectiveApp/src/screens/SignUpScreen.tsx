@@ -14,6 +14,7 @@ import {
   Keyboard,
   Dimensions,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
@@ -124,157 +125,158 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
   const navigateToLogin = () => {
     navigation.navigate('Login');
   };
-
   return (
     <KeyboardAvoidingView
       style={styles.keyboardContainer}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'undefined'}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
     >
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
         <BackgroundWrapper style={styles.container}>
-          <ScrollView
-            style={{ width: '100%' }}
-            contentContainerStyle={styles.scrollContainer}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-            keyboardDismissMode={
-              Platform.OS === 'ios' ? 'interactive' : 'on-drag'
-            }
-          >
+          <SafeAreaView style={styles.safe}>
             <LogoHeader />
+            <ScrollView
+              style={{ width: '100%' }}
+              contentContainerStyle={styles.scrollContainer}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              keyboardDismissMode={
+                Platform.OS === 'ios' ? 'interactive' : 'on-drag'
+              }
+            >
 
-            <View style={styles.contentContainer}>
-              {/* Header Section */}
-              <View style={styles.headerSection}>
-                <Text style={styles.title}>{t('auth.signup.title')}</Text>
-                <Text style={styles.subtitle}>{t('auth.signup.subtitle')}</Text>
-              </View>
+              <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                <View style={styles.contentContainer}>
+                  {/* Header Section */}
+                  <View style={styles.headerSection}>
+                    <Text style={styles.title}>{t('auth.signup.title')}</Text>
+                    <Text style={styles.subtitle}>{t('auth.signup.subtitle')}</Text>
+                  </View>
 
-              {/* Form Section */}
-              <View style={styles.formSection}>
-                {/* Full Name Field */}
-                <View style={styles.fieldContainer}>
-                  <Text style={styles.fieldLabel}>
-                    {t('auth.signup.fields.fullName')}
-                  </Text>
-                  <TextInputField
-                    size="medium"
-                    placeholder={t('auth.signup.fields.fullNamePlaceholder')}
-                    value={fullName}
-                    onChangeText={setFullName}
-                    autoCapitalize="words"
-                    autoComplete="name"
-                    placeholderAlign="left"
-                    placeholderFontFamily="regular"
-                    inputTextStyle="gold-regular"
-                    testID="fullname-input"
-                  />
+                  {/* Form Section */}
+                  <View style={styles.formSection}>
+                    {/* Full Name Field */}
+                    <View style={styles.fieldContainer}>
+                      <Text style={styles.fieldLabel}>
+                        {t('auth.signup.fields.fullName')}
+                      </Text>
+                      <TextInputField
+                        size="medium"
+                        placeholder={t('auth.signup.fields.fullNamePlaceholder')}
+                        value={fullName}
+                        onChangeText={setFullName}
+                        autoCapitalize="words"
+                        autoComplete="name"
+                        placeholderAlign="left"
+                        placeholderFontFamily="regular"
+                        inputTextStyle="gold-regular"
+                        testID="fullname-input"
+                      />
+                    </View>
+
+                    {/* Email Field */}
+                    <View style={styles.fieldContainer}>
+                      <Text style={styles.fieldLabel}>
+                        {t('auth.signup.fields.email')}
+                      </Text>
+                      <TextInputField
+                        size="medium"
+                        placeholder={t('auth.signup.fields.emailPlaceholder')}
+                        value={email}
+                        onChangeText={setEmail}
+                        keyboardType="email-address"
+                        autoCapitalize="none"
+                        autoComplete="email"
+                        placeholderAlign="left"
+                        placeholderFontFamily="regular"
+                        inputTextStyle="gold-regular"
+                        testID="email-input"
+                      />
+                    </View>
+
+                    {/* Password Field */}
+                    <View style={styles.fieldContainer}>
+                      <Text style={styles.fieldLabel}>
+                        {t('auth.signup.fields.password')}
+                      </Text>
+                      <TextInputField
+                        size="medium"
+                        placeholder={t('auth.signup.fields.passwordPlaceholder')}
+                        value={password}
+                        onChangeText={setPassword}
+                        secureTextEntry={!showPassword}
+                        showPasswordToggle={true}
+                        isPasswordVisible={showPassword}
+                        onTogglePassword={() => setShowPassword(!showPassword)}
+                        placeholderAlign="left"
+                        placeholderFontFamily="regular"
+                        inputTextStyle="gold-regular"
+                        testID="password-input"
+                      />
+                    </View>
+
+                    {/* Confirm Password Field */}
+                    <View style={styles.fieldContainer}>
+                      <Text style={styles.fieldLabel}>
+                        {t('auth.signup.fields.confirmPassword')}
+                      </Text>
+                      <TextInputField
+                        size="medium"
+                        placeholder={t(
+                          'auth.signup.fields.confirmPasswordPlaceholder',
+                        )}
+                        value={confirmPassword}
+                        onChangeText={setConfirmPassword}
+                        secureTextEntry={!showConfirmPassword}
+                        showPasswordToggle={true}
+                        isPasswordVisible={showConfirmPassword}
+                        placeholderAlign="left"
+                        placeholderFontFamily="regular"
+                        inputTextStyle="gold-regular"
+                        onTogglePassword={() =>
+                          setShowConfirmPassword(!showConfirmPassword)
+                        }
+                        testID="confirm-password-input"
+                      />
+                    </View>
+                  </View>
+
+                  {/* Continue Button */}
+                  <TouchableOpacity
+                    style={styles.continueButton}
+                    onPress={handleSignUp}
+                    disabled={isLoading}
+                    activeOpacity={0.8}
+                    testID="signup-button"
+                  >
+                    <StarIcon width={20} height={20} />
+                    <Text style={styles.continueText}>
+                      {isLoading
+                        ? t('auth.signup.buttons.creating')
+                        : t('auth.signup.buttons.continue')}
+                    </Text>
+                    <StarIcon width={20} height={20} />
+                  </TouchableOpacity>
+
+                  {/* Login Link */}
+                  <View style={styles.loginContainer}>
+                    <Text style={styles.loginText}>
+                      {t('auth.signup.footer.alreadyMember')}
+                    </Text>
+                    <TouchableOpacity
+                      onPress={navigateToLogin}
+                      disabled={isLoading}
+                      testID="login-link"
+                    >
+                      <Text style={styles.loginLink}>
+                        {t('auth.signup.footer.signIn')}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
-
-                {/* Email Field */}
-                <View style={styles.fieldContainer}>
-                  <Text style={styles.fieldLabel}>
-                    {t('auth.signup.fields.email')}
-                  </Text>
-                  <TextInputField
-                    size="medium"
-                    placeholder={t('auth.signup.fields.emailPlaceholder')}
-                    value={email}
-                    onChangeText={setEmail}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    autoComplete="email"
-                    placeholderAlign="left"
-                    placeholderFontFamily="regular"
-                    inputTextStyle="gold-regular"
-                    testID="email-input"
-                  />
-                </View>
-
-                {/* Password Field */}
-                <View style={styles.fieldContainer}>
-                  <Text style={styles.fieldLabel}>
-                    {t('auth.signup.fields.password')}
-                  </Text>
-                  <TextInputField
-                    size="medium"
-                    placeholder={t('auth.signup.fields.passwordPlaceholder')}
-                    value={password}
-                    onChangeText={setPassword}
-                    secureTextEntry={!showPassword}
-                    showPasswordToggle={true}
-                    isPasswordVisible={showPassword}
-                    onTogglePassword={() => setShowPassword(!showPassword)}
-                    placeholderAlign="left"
-                    placeholderFontFamily="regular"
-                    inputTextStyle="gold-regular"
-                    testID="password-input"
-                  />
-                </View>
-
-                {/* Confirm Password Field */}
-                <View style={styles.fieldContainer}>
-                  <Text style={styles.fieldLabel}>
-                    {t('auth.signup.fields.confirmPassword')}
-                  </Text>
-                  <TextInputField
-                    size="medium"
-                    placeholder={t(
-                      'auth.signup.fields.confirmPasswordPlaceholder',
-                    )}
-                    value={confirmPassword}
-                    onChangeText={setConfirmPassword}
-                    secureTextEntry={!showConfirmPassword}
-                    showPasswordToggle={true}
-                    isPasswordVisible={showConfirmPassword}
-                    placeholderAlign="left"
-                    placeholderFontFamily="regular"
-                    inputTextStyle="gold-regular"
-                    onTogglePassword={() =>
-                      setShowConfirmPassword(!showConfirmPassword)
-                    }
-                    testID="confirm-password-input"
-                  />
-                </View>
-              </View>
-
-              {/* Continue Button */}
-              <TouchableOpacity
-                style={styles.continueButton}
-                onPress={handleSignUp}
-                disabled={isLoading}
-                activeOpacity={0.8}
-                testID="signup-button"
-              >
-                <StarIcon width={20} height={20} />
-                <Text style={styles.continueText}>
-                  {isLoading
-                    ? t('auth.signup.buttons.creating')
-                    : t('auth.signup.buttons.continue')}
-                </Text>
-                <StarIcon width={20} height={20} />
-              </TouchableOpacity>
-
-              {/* Login Link */}
-              <View style={styles.loginContainer}>
-                <Text style={styles.loginText}>
-                  {t('auth.signup.footer.alreadyMember')}
-                </Text>
-                <TouchableOpacity
-                  onPress={navigateToLogin}
-                  disabled={isLoading}
-                  testID="login-link"
-                >
-                  <Text style={styles.loginLink}>
-                    {t('auth.signup.footer.signIn')}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </ScrollView>
+              </TouchableWithoutFeedback>
+            </ScrollView>
+          </SafeAreaView>
         </BackgroundWrapper>
-      </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
   );
 };
@@ -282,28 +284,26 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
 const styles = StyleSheet.create({
   keyboardContainer: {
     flex: 1,
-    backgroundColor: '#0B0F1C',
   },
   container: {
-    borderRadius: 15,
-    shadowColor: '#000',
-    shadowOffset: { width: -1, height: 5 },
-    shadowOpacity: 0.25,
-    shadowRadius: 26,
-    elevation: 10,
+    flex: 1,
     alignSelf: 'stretch',
+  },
+  safe: {
+    flex: 1,
+    backgroundColor: 'transparent',
   },
   scrollContainer: {
     flexGrow: 1,
     width: '100%',
     alignItems: 'center',
-    paddingVertical: 20,
+    paddingVertical: 0,
     paddingBottom: 100,
   },
   contentContainer: {
     width: '100%',
     alignItems: 'center',
-    paddingTop: 120,
+    paddingTop: 20,
     gap: 32,
     paddingBottom: 100,
   },
@@ -320,6 +320,7 @@ const styles = StyleSheet.create({
     fontWeight: '300',
     textAlign: 'center',
     lineHeight: 38,
+    marginTop: 20, // Added consistency
   },
   subtitle: {
     ...theme.typography.styles.subtitle,

@@ -12,7 +12,10 @@ import {
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
+import { StatusBar } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import StarIcon from '@components/StarIcon';
+import { useUser } from '@context/UserContext';
 import type { RootStackParamList } from '@types';
 
 interface Props {
@@ -30,24 +33,48 @@ const MENU_OPTIONS = [
 ];
 
 const TalkToMirrorScreen: React.FC<Props> = ({ navigation }) => {
+  const { user } = useUser();
+  const firstName = user?.fullName ? user.fullName.split(' ')[0] : 'Friend';
+
   const handleTalkPress = () => {
     navigation.navigate('MirrorChat');
   };
 
   const handleMenuPress = (label: string) => {
-    Alert.alert('Coming Soon', `${label} will be available shortly.`);
+    switch (label) {
+      case 'MIRROR ECHO':
+        navigation.navigate('MirrorEchoVaultHome');
+        break;
+      case 'CODE LIBRARY':
+        navigation.navigate('MirrorCodeLibrary');
+        break;
+      case 'REFLECTION ROOM':
+        navigation.navigate('ReflectionRoom');
+        break;
+      case 'MIRROR PLEDGE':
+        navigation.navigate('TheMirrorPledge');
+        break;
+      default:
+        Alert.alert('Coming Soon', `${label} will be available shortly.`);
+    }
   };
 
   return (
     <BackgroundWrapper style={styles.container}>
-      <LogoHeader />
+      <SafeAreaView style={styles.safe}>
+        <StatusBar
+          barStyle="light-content"
+          translucent
+          backgroundColor="transparent"
+        />
+        <LogoHeader />
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.contentContainer}>
-          <Text style={styles.greeting}>Welcome back, Stacey</Text>
+          <Text style={styles.greeting}>Welcome back, {firstName}</Text>
 
           <View style={styles.heroWrapper}>
             <Image
@@ -84,6 +111,7 @@ const TalkToMirrorScreen: React.FC<Props> = ({ navigation }) => {
           </View>
         </View>
       </ScrollView>
+      </SafeAreaView>
     </BackgroundWrapper>
   );
 };
@@ -91,17 +119,19 @@ const TalkToMirrorScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 10,
-    paddingHorizontal: 20,
-    paddingBottom: 32,
-    backgroundColor: '#050912',
     alignItems: 'center',
+  },
+  safe: {
+    flex: 1,
+    width: '100%',
+    backgroundColor: 'transparent',
   },
   contentContainer: {
     flex: 1,
     width: '100%',
     alignItems: 'center',
-    paddingTop: 25, // Space for LogoHeader (48 + 46 + 26 margin)
+    paddingHorizontal: 20,
+    paddingBottom: 32,
   },
   scrollView: {
     flex: 1,
@@ -139,7 +169,7 @@ const styles = StyleSheet.create({
     fontSize: 28,
     color: '#F4EFE4',
     textAlign: 'center',
-    marginTop: 60,
+    marginTop: 20, // Reduced from 80 for better consistency
   },
   heroWrapper: {
     alignItems: 'center',

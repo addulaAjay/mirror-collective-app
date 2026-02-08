@@ -14,7 +14,9 @@ import {
   Dimensions,
   Alert,
   ActivityIndicator,
+  StatusBar,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import questionsData from '@assets/questions.json';
 import BackgroundWrapper from '@components/BackgroundWrapper';
@@ -86,27 +88,41 @@ const QuizQuestionsScreen = () => {
   if (isLoading) {
     return (
       <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage}>
-        <View style={styles.loadingContainer}>
+        <SafeAreaView style={styles.safe}>
+          <StatusBar
+            barStyle="light-content"
+            translucent
+            backgroundColor="transparent"
+          />
           <LogoHeader />
-          <View style={styles.loadingContent}>
-            <ActivityIndicator size="large" color="#E5D6B0" />
-            <Text style={styles.loadingText}>{t('quiz.quizQuestions.loading')}</Text>
+          <View style={styles.loadingContainer}>
+            <View style={styles.loadingContent}>
+              <ActivityIndicator size="large" color="#E5D6B0" />
+              <Text style={styles.loadingText}>{t('quiz.quizQuestions.loading')}</Text>
+            </View>
           </View>
-        </View>
+        </SafeAreaView>
       </BackgroundWrapper>
     );
   }
 
   // Ensure questions exist
   if (!questions || questions.length === 0) {
-     return (
-        <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage}>
-            <View style={styles.container}>
-                <LogoHeader />
-                <Text style={styles.question}>Unable to load quiz. Please try again later.</Text>
-             </View>
-        </BackgroundWrapper>
-     );
+    return (
+      <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage}>
+        <SafeAreaView style={styles.safe}>
+          <StatusBar
+            barStyle="light-content"
+            translucent
+            backgroundColor="transparent"
+          />
+          <LogoHeader />
+          <View style={styles.container}>
+            <Text style={styles.question}>Unable to load quiz. Please try again later.</Text>
+          </View>
+        </SafeAreaView>
+      </BackgroundWrapper>
+    );
   }
 
   const currentQuestion = questions[currentIndex];
@@ -273,8 +289,14 @@ const QuizQuestionsScreen = () => {
 
   return (
     <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage}>
+      <SafeAreaView style={styles.safe}>
+        <StatusBar
+          barStyle="light-content"
+          translucent
+          backgroundColor="transparent"
+        />
+      <LogoHeader />
       <View style={styles.container}>
-        <LogoHeader />
 
         {/* Progress Bar - exact positioning from Figma */}
         <View style={styles.progressWrap}>
@@ -332,8 +354,9 @@ const QuizQuestionsScreen = () => {
           </View>
         </View>
       </View>
-    </BackgroundWrapper>
-  );
+    </SafeAreaView>
+  </BackgroundWrapper>
+);
 };
 
 export default QuizQuestionsScreen;
@@ -341,7 +364,10 @@ export default QuizQuestionsScreen;
 const styles = StyleSheet.create({
   bg: {
     flex: 1,
-    backgroundColor: '#0B0F1C',
+  },
+  safe: {
+    flex: 1,
+    backgroundColor: 'transparent',
   },
   loadingContainer: {
      flex: 1,
@@ -371,9 +397,9 @@ const styles = StyleSheet.create({
 
   container: {
     paddingHorizontal: Math.max(40, screenWidth * 0.102), // Match Figma padding
-    paddingTop: Math.max(40, screenHeight * 0.047), // Reduced to prevent overlap
     paddingBottom: Math.max(30, screenHeight * 0.035),
     alignItems: 'center',
+    flex: 1,
   },
   imageGrid: {
     flexDirection: 'row',
@@ -442,7 +468,7 @@ const styles = StyleSheet.create({
   progressWrap: {
     width: Math.min(screenWidth * 0.796, 313), // Match header and question width
     alignItems: 'center',
-    marginTop: Math.max(60, screenHeight * 0.1), // Standardized spacing across all screens
+    marginTop: 80,
     marginBottom: Math.max(20, screenHeight * 0.025),
   },
   nextButton: {

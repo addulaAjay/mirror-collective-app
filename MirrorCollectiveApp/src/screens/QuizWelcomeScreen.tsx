@@ -1,8 +1,10 @@
 import { BORDER_RADIUS, COLORS, SPACING } from '@constants';
 import { useNavigation } from '@react-navigation/native';
+import LogoHeader from '@components/LogoHeader';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '@types';
 import React from 'react';
+import { useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,9 +15,12 @@ import {
   type TextStyle,
   type ImageStyle,
   Alert,
+  StatusBar,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 
+import questionsData from '@assets/questions.json';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import GradientButton from '@components/GradientButton';
 
@@ -40,8 +45,6 @@ const isTablet = screenWidth >= 600;
 
 
 import { QuizStorageService } from '@services/quizStorageService';
-import questionsData from '@assets/questions.json';
-import { useEffect } from 'react';
 import type { QuizData } from '@utils/archetypeScoring';
 
 // Static image mapping (centralize this if used in multiple places)
@@ -63,52 +66,52 @@ const QuizWelcomeScreen = () => {
 
   useEffect(() => {
     const checkPendingResults = async () => {
-       try {
-         const pendingResults = await QuizStorageService.getPendingQuizResults();
-         if (pendingResults && pendingResults.archetypeResult && pendingResults.detailedResult) {
-            console.log('Found pending quiz results, redirecting to Archetype screen');
-            
-            const archetypeKey = pendingResults.archetypeResult.name.toLowerCase();
-            const archetypeData = quizData.archetypes[archetypeKey];
-            
-            if (archetypeData) {
-               const archetypeWithImage = {
-                 ...archetypeData,
-                 image: archetypeImages[archetypeData.imagePath as keyof typeof archetypeImages],
-               };
+      try {
+        const pendingResults = await QuizStorageService.getPendingQuizResults();
+        if (pendingResults && pendingResults.archetypeResult && pendingResults.detailedResult) {
+          console.log('Found pending quiz results, redirecting to Archetype screen');
 
-               navigation.reset({
-                 index: 0,
-                 routes: [{
-                    name: 'Archetype',
-                    params: {
-                       archetype: archetypeWithImage,
-                       quizResult: pendingResults.detailedResult
-                    }
-                 }]
-               });
-            }
-         }
-       } catch (error) {
-         console.error('Error checking pending quiz results:', error);
-       }
+          const archetypeKey = pendingResults.archetypeResult.name.toLowerCase();
+          const archetypeData = quizData.archetypes[archetypeKey];
+
+          if (archetypeData) {
+            const archetypeWithImage = {
+              ...archetypeData,
+              image: archetypeImages[archetypeData.imagePath as keyof typeof archetypeImages],
+            };
+
+            navigation.reset({
+              index: 0,
+              routes: [{
+                name: 'Archetype',
+                params: {
+                  archetype: archetypeWithImage,
+                  quizResult: pendingResults.detailedResult
+                }
+              }]
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Error checking pending quiz results:', error);
+      }
     };
-    
+
     checkPendingResults();
   }, [navigation]);
 
   // const route = useRoute<QuizWelcomeScreenRouteProp>();
   return (
     <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage}>
-      <View style={styles.container}>
+      <SafeAreaView style={styles.safe}>
+        <StatusBar
+          barStyle="light-content"
+          translucent
+          backgroundColor="transparent"
+        />
+        <LogoHeader />
+        <View style={styles.container}>
         <View style={styles.topContent}>
-          <View style={styles.logoContainer}>
-            <Image
-              source={require('../assets/mirror-collective-logo-circle.png')}
-              style={styles.logo}
-              resizeMode="contain"
-            />
-          </View>
 
           <View style={styles.welcomeContainer}>
             <Text style={styles.welcome}>WELCOME</Text>
@@ -124,28 +127,16 @@ const QuizWelcomeScreen = () => {
             />
             <View style={styles.cardContent}>
               <Text style={styles.description}>
-                <Text style={styles.regularText}>This isn't a quiz.</Text>
-                {'\n'}
-                <Text style={styles.italicHighlight}>
-                  It's a reflection.
-                </Text>
+                <Text style={styles.regularText}>A few quick reflections to {'\n'} reveal your<Text style={styles.italicHighlight}> starting role.</Text></Text>
                 {'\n\n'}
-                <Text style={styles.regularText}>These first prompts help the Mirror understand your inner style— </Text>
+                <Text style={styles.regularText}> No judgment. No labels.  </Text>
                 {'\n'}
-                <Text style={styles.italicHighlight}>how you see, feel, and grow.</Text>
-                {/* <Text style={styles.regularText}> right now.</Text> */}
+                <Text style={styles.italicHighlight}>Just insight.</Text>
                 {'\n\n'}
                 <Text style={styles.regularText}>
-                  There’s no right answer. 
+                  This is where 
                 </Text>
-                {'\n'}
-                <Text style={styles.italicHighlight}>Just be you.  </Text>
-
-              </Text>
-              <Text style={[styles.emphasis, styles.descriptionMaxWidth]}>
-                <Text style={styles.emphasisText}>Let the </Text>
-                <Text style={styles.mirrorHighlight}>Mirror</Text>
-                <Text style={styles.emphasisText}> listen.</Text>
+                <Text style={styles.italicHighlight}> change begins.</Text>
               </Text>
             </View>
           </View>
@@ -178,7 +169,8 @@ const QuizWelcomeScreen = () => {
             </Text>
           )}
         </View>
-      </View>
+        </View>
+      </SafeAreaView>
     </BackgroundWrapper>
   );
 };
@@ -187,6 +179,7 @@ export default QuizWelcomeScreen;
 
 const styles = StyleSheet.create<{
   bg: ViewStyle;
+  safe: ViewStyle;
   bgImage: ImageStyle;
   container: ViewStyle;
   topContent: ViewStyle;
@@ -213,7 +206,10 @@ const styles = StyleSheet.create<{
 }>({
   bg: {
     flex: 1,
-    backgroundColor: '#0B0F1C',
+  },
+  safe: {
+    flex: 1,
+    backgroundColor: 'transparent',
   },
   bgImage: {
     resizeMode: 'cover',
@@ -221,25 +217,21 @@ const styles = StyleSheet.create<{
   container: {
     flex: 1,
     paddingHorizontal: isTablet ? '10%' : '8%', // Flexible horizontal padding
-    paddingTop: screenHeight * 0.06, // 6% of screen height
     paddingBottom: screenHeight * 0.05, // 5% of screen height
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
   },
   topContent: {
-    flex: 1,
+    flex: 0,
     alignItems: 'center',
     justifyContent: 'flex-start',
     width: '100%',
   },
   logoContainer: {
-    alignItems: 'center',
-    marginTop: screenHeight * 0.02,
-    marginBottom: screenHeight * 0.03,
+    display: 'none',
   },
   logo: {
-    width: responsiveFontSize(80, 60, 100),
-    height: responsiveFontSize(80, 60, 100),
+    display: 'none',
   },
   welcomeContainer: {
     alignItems: 'center',
@@ -329,7 +321,7 @@ const styles = StyleSheet.create<{
     width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: screenHeight * 0.04,
+    paddingTop: screenHeight * 0.08,
   },
   glassButtonWrapper: {
     // Override GradientButton's default outer glow to match the smaller outlined style

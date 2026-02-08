@@ -22,7 +22,7 @@ describe('TalkToMirrorScreen', () => {
   it('renders correctly', () => {
     const { getByText } = render(<TalkToMirrorScreen navigation={mockNavigation} />);
 
-    expect(getByText('Welcome back, Stacey')).toBeTruthy();
+    expect(getByText('Welcome back, Friend')).toBeTruthy();
     expect(getByText('TALK TO MIRROR')).toBeTruthy();
     expect(getByText('CODE LIBRARY')).toBeTruthy();
     expect(getByText('MIRROR ECHO')).toBeTruthy();

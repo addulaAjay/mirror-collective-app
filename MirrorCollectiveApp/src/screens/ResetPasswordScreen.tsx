@@ -7,13 +7,15 @@ import {
   View,
   Text,
   StyleSheet,
-  
   TouchableOpacity,
   Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from 'react-native';
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
@@ -127,117 +129,123 @@ const ResetPasswordScreen = () => {
       <BackgroundWrapper
         style={styles.container}
       >
-        <ScrollView
-          contentContainerStyle={styles.scrollContainer}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-        >
+        <SafeAreaView style={styles.safe}>
           <LogoHeader />
+          <ScrollView
+            contentContainerStyle={styles.scrollContainer}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode={
+              Platform.OS === 'ios' ? 'interactive' : 'on-drag'
+            }
+          >
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+              <View style={styles.contentContainer}>
+                {/* Header Section */}
+                <View style={styles.headerSection}>
+                  <Text style={styles.title}>{t('auth.resetPassword.title')}</Text>
+                  <Text style={styles.subtitle}>
+                    {t('auth.forgotPassword.subtitle')}
+                    {'\n'}
+                    <Text style={styles.emailText}>{email}</Text>
+                  </Text>
+                </View>
 
-          <View style={styles.contentContainer}>
-            {/* Header Section */}
-            <View style={styles.headerSection}>
-              <Text style={styles.title}>{t('auth.resetPassword.title')}</Text>
-              <Text style={styles.subtitle}>
-                {t('auth.forgotPassword.subtitle')}
-                {'\n'}
-                <Text style={styles.emailText}>{email}</Text>
-              </Text>
-            </View>
+                {/* Form Section */}
+                <View style={styles.formSection}>
+                  {/* Reset Code Field */}
+                  <View style={styles.fieldContainer}>
+                    <Text style={styles.fieldLabel}>Reset Code</Text>
+                    <TextInputField
+                      testID="reset-code-input"
+                      placeholder="6-digit reset code"
+                      value={resetCode}
+                      onChangeText={setResetCode}
+                      keyboardType="numeric"
+                      autoCapitalize="none"
+                      autoComplete="off"
+                      size="small"
+                    />
+                  </View>
 
-            {/* Form Section */}
-            <View style={styles.formSection}>
-              {/* Reset Code Field */}
-              <View style={styles.fieldContainer}>
-                <Text style={styles.fieldLabel}>Reset Code</Text>
-                <TextInputField
-                  testID="reset-code-input"
-                  placeholder="6-digit reset code"
-                  value={resetCode}
-                  onChangeText={setResetCode}
-                  keyboardType="numeric"
-                  autoCapitalize="none"
-                  autoComplete="off"
-                  size="small"
-                />
+                  {/* New Password Field */}
+                  <View style={styles.fieldContainer}>
+                    <Text style={styles.fieldLabel}>{t('auth.resetPassword.passwordPlaceholder')}</Text>
+                    <TextInputField
+                      testID="new-password-input"
+                      placeholder={t('auth.resetPassword.passwordPlaceholder')}
+                      value={newPassword}
+                      onChangeText={setNewPassword}
+                      secureTextEntry={!isPasswordVisible}
+                      autoCapitalize="none"
+                      autoComplete="password"
+                      showPasswordToggle={true}
+                      isPasswordVisible={isPasswordVisible}
+                      size="small"
+                      onTogglePassword={() =>
+                        setIsPasswordVisible(!isPasswordVisible)
+                      }
+                    />
+                  </View>
+
+                  {/* Confirm Password Field */}
+                  <View style={styles.fieldContainer}>
+                    <Text style={styles.fieldLabel}>{t('auth.signup.fields.confirmPassword')}</Text>
+                    <TextInputField
+                      testID="confirm-password-input"
+                      placeholder={t('auth.signup.fields.confirmPasswordPlaceholder')}
+                      value={confirmPassword}
+                      onChangeText={setConfirmPassword}
+                      secureTextEntry={!isConfirmPasswordVisible}
+                      autoCapitalize="none"
+                      autoComplete="password"
+                      showPasswordToggle={true}
+                      isPasswordVisible={isConfirmPasswordVisible}
+                      size="small"
+                      onTogglePassword={() =>
+                        setIsConfirmPasswordVisible(!isConfirmPasswordVisible)
+                      }
+                    />
+                  </View>
+
+                  <Text style={styles.passwordRequirements}>
+                    {t('auth.validation.weakPasswordMessage')}
+                  </Text>
+
+                  {state.error && (
+                    <Text style={styles.errorText}>{state.error}</Text>
+                  )}
+
+                  {/* Reset Password Button */}
+                  <TouchableOpacity
+                    style={styles.enterButton}
+                    testID="reset-password-button"
+                    onPress={handleResetPassword}
+                    disabled={isLoading}
+                    activeOpacity={0.8}
+                  >
+                    <StarIcon width={24} height={24} />
+                    <Text style={styles.enterText}>
+                      {isLoading ? t('auth.resetPassword.resettingButton') : t('auth.resetPassword.resetButton')}
+                    </Text>
+                    <StarIcon width={24} height={24} />
+                  </TouchableOpacity>
+                </View>
+
+                {/* Back to Login */}
+                <TouchableOpacity
+                  onPress={handleBackToLogin}
+                  style={styles.backLink}
+                  testID="back-to-login-button"
+                >
+                  <Text style={styles.backLinkText}>
+                    {t('auth.forgotPassword.backToLogin')}
+                  </Text>
+                </TouchableOpacity>
               </View>
-
-              {/* New Password Field */}
-              <View style={styles.fieldContainer}>
-                <Text style={styles.fieldLabel}>{t('auth.resetPassword.passwordPlaceholder')}</Text>
-                <TextInputField
-                  testID="new-password-input"
-                  placeholder={t('auth.resetPassword.passwordPlaceholder')}
-                  value={newPassword}
-                  onChangeText={setNewPassword}
-                  secureTextEntry={!isPasswordVisible}
-                  autoCapitalize="none"
-                  autoComplete="password"
-                  showPasswordToggle={true}
-                  isPasswordVisible={isPasswordVisible}
-                  size="small"
-                  onTogglePassword={() =>
-                    setIsPasswordVisible(!isPasswordVisible)
-                  }
-                />
-              </View>
-
-              {/* Confirm Password Field */}
-              <View style={styles.fieldContainer}>
-                <Text style={styles.fieldLabel}>{t('auth.signup.fields.confirmPassword')}</Text>
-                <TextInputField
-                  testID="confirm-password-input"
-                  placeholder={t('auth.signup.fields.confirmPasswordPlaceholder')}
-                  value={confirmPassword}
-                  onChangeText={setConfirmPassword}
-                  secureTextEntry={!isConfirmPasswordVisible}
-                  autoCapitalize="none"
-                  autoComplete="password"
-                  showPasswordToggle={true}
-                  isPasswordVisible={isConfirmPasswordVisible}
-                  size="small"
-                  onTogglePassword={() =>
-                    setIsConfirmPasswordVisible(!isConfirmPasswordVisible)
-                  }
-                />
-              </View>
-
-              <Text style={styles.passwordRequirements}>
-                {t('auth.validation.weakPasswordMessage')}
-              </Text>
-
-              {state.error && (
-                <Text style={styles.errorText}>{state.error}</Text>
-              )}
-
-              {/* Reset Password Button */}
-              <TouchableOpacity
-                style={styles.enterButton}
-                testID="reset-password-button"
-                onPress={handleResetPassword}
-                disabled={isLoading}
-                activeOpacity={0.8}
-              >
-                <StarIcon width={24} height={24} />
-                <Text style={styles.enterText}>
-                  {isLoading ? t('auth.resetPassword.resettingButton') : t('auth.resetPassword.resetButton')}
-                </Text>
-                <StarIcon width={24} height={24} />
-              </TouchableOpacity>
-            </View>
-
-            {/* Back to Login */}
-            <TouchableOpacity
-              onPress={handleBackToLogin}
-              style={styles.backLink}
-              testID="back-to-login-button"
-            >
-              <Text style={styles.backLinkText}>
-                {t('auth.forgotPassword.backToLogin')}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
+            </TouchableWithoutFeedback>
+          </ScrollView>
+        </SafeAreaView>
       </BackgroundWrapper>
     </KeyboardAvoidingView>
   );
@@ -247,6 +255,11 @@ const styles = StyleSheet.create({
   keyboardContainer: {
     flex: 1,
   },
+  safe: {
+    flex: 1,
+    backgroundColor: 'transparent',
+    width: '100%',
+  },
   container: {
     borderRadius: 15,
     shadowColor: '#000',
@@ -254,6 +267,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 26,
     elevation: 10,
+    flex: 1,
   },
   scrollContainer: {
     flexGrow: 1,
@@ -266,7 +280,7 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     paddingHorizontal: 40,
-    paddingTop: 120, // Space for LogoHeader (48 + 46 + 26 margin)
+    paddingTop: 0, 
     gap: 40,
   },
   headerSection: {

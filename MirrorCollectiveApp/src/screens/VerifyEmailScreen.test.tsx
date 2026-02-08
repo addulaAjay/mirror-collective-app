@@ -37,7 +37,8 @@ jest.mock('@services/api', () => ({
 // Mock QuizStorageService
 jest.mock('@services/quizStorageService', () => ({
   QuizStorageService: {
-    submitPendingQuizResults: jest.fn(),
+    retryPendingSubmissions: jest.fn(),
+    getAnonymousId: jest.fn().mockResolvedValue('test-anon-id'),
   },
 }));
 
@@ -71,7 +72,7 @@ describe('VerifyEmailScreen', () => {
 
   it('calls verifyEmail on valid code', async () => {
     (authApiService.verifyEmail as jest.Mock).mockResolvedValueOnce({ success: true });
-    (QuizStorageService.submitPendingQuizResults as jest.Mock).mockResolvedValueOnce(true);
+    (QuizStorageService.retryPendingSubmissions as jest.Mock).mockResolvedValueOnce(undefined);
 
     const { getByTestId } = render(<VerifyEmailScreen />);
     

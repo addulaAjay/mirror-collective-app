@@ -10,13 +10,14 @@ import {
   Dimensions,
   TouchableOpacity,
   Image,
+  StatusBar,
 } from 'react-native';
-
-
-import { QuizStorageService } from '@services/quizStorageService';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Alert } from 'react-native';
+
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
+import { QuizStorageService } from '@services/quizStorageService';
 
 
 type ArchetypeScreenNavigationProp = NativeStackNavigationProp<
@@ -81,8 +82,14 @@ const ArchetypeScreen: React.FC<ArchetypeScreenProps> = ({ route }) => {
 
   return (
     <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage}>
-      <TouchableOpacity testID="archetype-container" style={styles.container} onPress={handleContinue}>
-        <LogoHeader />
+      <SafeAreaView style={styles.safe}>
+        <StatusBar
+          barStyle="light-content"
+          translucent
+          backgroundColor="transparent"
+        />
+          <LogoHeader />
+          <TouchableOpacity testID="archetype-container" style={styles.container} onPress={handleContinue}>
 
         {/* Archetype Title */}
         <View style={styles.titleContainer}>
@@ -112,26 +119,12 @@ const ArchetypeScreen: React.FC<ArchetypeScreenProps> = ({ route }) => {
                     : styles.questionText
                 }
               >
-                {paragraphIndex === 0
-                  ? paragraph.split(' ').map((word, index) => (
-                      <Text
-                        key={index}
-                        style={
-                          index === 0
-                            ? styles.descriptionFirstWord
-                            : styles.descriptionRest
-                        }
-                      >
-                        {word}
-                        {index < paragraph.split(' ').length - 1 ? ' ' : ''}
-                      </Text>
-                    ))
-                  : paragraph}
+                {paragraph}
               </Text>
             ))}
         </View>
         <View style={styles.hintContainer}>
-          <Text style={styles.hintText}>Click anywhere to continue</Text>
+          <Text style={styles.hintText}>Tap anywhere to continue</Text>
         </View>
 
         {/* Continue Text */}
@@ -141,7 +134,8 @@ const ArchetypeScreen: React.FC<ArchetypeScreenProps> = ({ route }) => {
         <TouchableOpacity onPress={handleRetake} style={styles.retakeButton}>
           <Text style={styles.retakeText}>{t('quiz.archetype.retakeButton') || 'Not you? Retake Quiz'}</Text>
         </TouchableOpacity>
-      </TouchableOpacity>
+        </TouchableOpacity>
+      </SafeAreaView>
     </BackgroundWrapper>
   );
 };
@@ -151,20 +145,22 @@ export default ArchetypeScreen;
 const styles = StyleSheet.create({
   bg: {
     flex: 1,
-    backgroundColor: '#0B0F1C',
+  },
+  safe: {
+    flex: 1,
+    backgroundColor: 'transparent',
   },
   bgImage: {
     resizeMode: 'cover',
   },
   container: {
     paddingHorizontal: Math.max(20, screenWidth * 0.051),
-    paddingTop: Math.max(48, screenHeight * 0.056),
     paddingBottom: Math.max(30, screenHeight * 0.035),
     alignItems: 'center',
   },
   titleContainer: {
     alignItems: 'center',
-    marginTop: Math.max(60, screenHeight * 0.1),
+    marginTop: 20,
     // marginBottom: Math.max(60, screenHeight * 0.01),
   },
   title: {
@@ -200,7 +196,8 @@ const styles = StyleSheet.create({
     marginBottom: Math.max(16, screenHeight * 0.02),
   },
   hintText: {
-    fontFamily: 'CormorantGaramond-Regular',
+    fontFamily: 'CormorantGaramond-Light',
+    fontStyle: 'normal',
     fontSize: Math.min(screenWidth * 0.061, 24),
     fontWeight: '400',
     color: '#F2E2B1',
@@ -208,26 +205,18 @@ const styles = StyleSheet.create({
     lineHeight: Math.min(screenWidth * 0.079, 31.2),
   },
   description: {
-    fontFamily: 'CormorantGaramond-Light',
-    fontSize: Math.min(screenWidth * 0.051, 20),
+    fontFamily: 'Inter',
+    fontStyle: 'italic',
+    fontSize: Math.min(screenWidth * 0.051, 18),
     fontWeight: '300',
     lineHeight: Math.min(screenWidth * 0.064, 25),
     color: '#FDFDF9',
     textAlign: 'center',
   },
-  descriptionFirstWord: {
-    fontFamily: 'CormorantGaramond-BoldItalic',
-    fontSize: Math.min(screenWidth * 0.051, 20),
-    color: '#FDFDF9',
-  },
-  descriptionRest: {
-    fontFamily: 'CormorantGaramond-Light',
-    fontSize: Math.min(screenWidth * 0.051, 20),
-    color: '#FDFDF9',
-  },
   questionText: {
-    fontFamily: 'CormorantGaramond-MediumItalic',
-    fontSize: Math.min(screenWidth * 0.051, 20),
+    fontFamily: 'Inter',
+    fontWeight: '400',
+    fontSize: Math.min(screenWidth * 0.051, 18),
     color: '#FDFDF9',
     textAlign: 'center',
     marginTop: Math.max(10, screenHeight * 0.012),

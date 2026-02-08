@@ -1,9 +1,12 @@
 import { Platform } from 'react-native';
 
 const DEFAULT_HOST = Platform.select({
-  android: 'http://10.0.2.2:8001',
-  ios: 'https://f8lzhthj1l.execute-api.us-east-1.amazonaws.com',
-  default: 'https://f8lzhthj1l.execute-api.us-east-1.amazonaws.com',
+  android: 'http://192.168.1.8:8001',
+  // For physical device testing, use Mac's local IP
+  // For simulator, use 127.0.0.1
+  ios: 'http://192.168.1.8:8001',
+  //ios: 'http://127.0.0.1:8001',
+  default: 'http://127.0.0.1:8001',
 });
 
 const HOST_OVERRIDE =
