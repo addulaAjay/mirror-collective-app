@@ -35,6 +35,8 @@
 	<string>Mirror Collective needs access to your camera to record video echoes.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Mirror Collective needs access to your photo library to save or upload echoes.</string>
+	<key>NSAppleMusicUsageDescription</key>
+	<string>Mirror Collective needs access to your media library to browse and upload audio files.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 
 	<string/>

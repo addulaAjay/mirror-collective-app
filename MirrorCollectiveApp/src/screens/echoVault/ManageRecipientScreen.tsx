@@ -11,14 +11,17 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
+import { SvgXml } from 'react-native-svg';
+import { MOTIF_ICONS, getMotifIcon } from '@assets/motifs/MotifAssets';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '@types';
-import { echoApiService, Guardian } from '@services/api/echo';
+import { echoApiService, Recipient } from '@services/api/echo';
 import LogoHeader from '@components/LogoHeader';
+import { useFocusEffect } from '@react-navigation/native';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'ManageGuardianScreen'>;
+type Props = NativeStackScreenProps<RootStackParamList, 'ManageRecipientScreen'>;
 
 const { width } = Dimensions.get('window');
 
@@ -28,38 +31,40 @@ const SUBTEXT = 'rgba(253,253,249,0.65)';
 const BORDER = 'rgba(253,253,249,0.16)';
 const SURFACE = 'rgba(7,9,14,0.35)';
 
-const ManageGuardianScreen: React.FC<Props> = ({ navigation }) => {
-  const [guardians, setGuardians] = useState<Guardian[]>([]);
+const ManageRecipientScreen: React.FC<Props> = ({ navigation }) => {
+  const [recipients, setRecipients] = useState<Recipient[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const contentWidth = Math.min(width * 0.88, 360);
 
-  const fetchGuardians = useCallback(async () => {
+  const fetchRecipients = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await echoApiService.getGuardians();
+      const response = await echoApiService.getRecipients();
       if (response.success && response.data) {
-        setGuardians(response.data);
+        setRecipients(response.data);
       } else {
-        setError(response.error || 'Failed to load guardians');
+        setError(response.error || 'Failed to load recipients');
       }
     } catch (err) {
-      setError('Failed to load guardians');
+      setError('Failed to load recipients');
     } finally {
       setLoading(false);
     }
   }, []);
 
-  useEffect(() => {
-    fetchGuardians();
-  }, [fetchGuardians]);
+  useFocusEffect(
+    useCallback(() => {
+      fetchRecipients();
+    }, [fetchRecipients])
+  );
 
-  const handleRemoveGuardian = async (id: string) => {
+  const handleRemoveRecipient = async (id: string) => {
     Alert.alert(
-      'Remove Guardian',
-      'Are you sure you want to remove this guardian?',
+      'Remove Recipient',
+      'Are you sure you want to remove this recipient?',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -67,14 +72,14 @@ const ManageGuardianScreen: React.FC<Props> = ({ navigation }) => {
           style: 'destructive',
           onPress: async () => {
             try {
-              const response = await echoApiService.removeGuardian(id);
+              const response = await echoApiService.removeRecipient(id);
               if (response.success) {
-                setGuardians(prev => prev.filter(g => g.guardian_id !== id));
+                setRecipients(prev => prev.filter(r => r.recipient_id !== id));
               } else {
-                Alert.alert('Error', response.error || 'Failed to remove guardian');
+                Alert.alert('Error', response.error || 'Failed to remove recipient');
               }
             } catch (err) {
-              Alert.alert('Error', 'Failed to remove guardian');
+              Alert.alert('Error', 'Failed to remove recipient');
             }
           },
         },
@@ -82,14 +87,30 @@ const ManageGuardianScreen: React.FC<Props> = ({ navigation }) => {
     );
   };
 
-  const handleAddGuardian = () => {
+  const handleAddRecipient = () => {
     navigation.navigate('AddNewProfileScreen');
   };
 
-  const renderGuardianRow = ({ item }: { item: Guardian }) => (
+  const handleManageGuardians = () => {
+    navigation.navigate('ManageGuardianScreen');
+  };
+
+  const renderRecipientRow = ({ item }: { item: Recipient }) => (
     <View style={styles.row}>
       <View style={styles.avatar}>
-        <View style={styles.avatarInner} />
+        {item.motif && getMotifIcon(item.motif) ? (
+          <View style={{ width: 28, height: 28 }}>
+            <SvgXml
+              xml={getMotifIcon(item.motif)?.xml || ''}
+              width="100%"
+              height="100%"
+            />
+          </View>
+        ) : item.motif ? (
+          <Text style={{ fontSize: 20 }}>{item.motif}</Text>
+        ) : (
+          <View style={styles.avatarInner} />
+        )}
       </View>
 
       <View style={styles.rowText}>
@@ -97,13 +118,9 @@ const ManageGuardianScreen: React.FC<Props> = ({ navigation }) => {
         <Text style={styles.email}>{item.email}</Text>
       </View>
 
-      <TouchableOpacity style={styles.selectBtn}>
-        <Text style={styles.selectText}>SELECT</Text>
-      </TouchableOpacity>
-
       <TouchableOpacity
         style={styles.deleteBtn}
-        onPress={() => handleRemoveGuardian(item.guardian_id)}
+        onPress={() => handleRemoveRecipient(item.recipient_id)}
       >
         <Text style={styles.deleteIcon}>🗑</Text>
       </TouchableOpacity>
@@ -128,7 +145,7 @@ const ManageGuardianScreen: React.FC<Props> = ({ navigation }) => {
               <Text style={styles.backArrow}>←</Text>
             </TouchableOpacity>
 
-            <Text style={styles.title}>MANAGE{'\n'}GUARDIAN</Text>
+            <Text style={styles.title}>MANAGE{'\n'}RECIPIENTS</Text>
 
             <View style={{ width: 24 }} />
           </View>
@@ -136,7 +153,7 @@ const ManageGuardianScreen: React.FC<Props> = ({ navigation }) => {
 
         {/* Description */}
         <Text style={[styles.description, { width: contentWidth }]}>
-          Selected recipients will be able to access your legacy echoes.
+          Create and manage the people you want to leave echoes for.
         </Text>
 
         {/* List */}
@@ -145,35 +162,41 @@ const ManageGuardianScreen: React.FC<Props> = ({ navigation }) => {
         ) : error ? (
           <View style={styles.errorContainer}>
             <Text style={styles.errorText}>{error}</Text>
-            <TouchableOpacity onPress={fetchGuardians} style={styles.retryBtn}>
+            <TouchableOpacity onPress={fetchRecipients} style={styles.retryBtn}>
               <Text style={styles.retryText}>Retry</Text>
             </TouchableOpacity>
           </View>
         ) : (
           <FlatList
-            data={guardians}
-            keyExtractor={item => item.guardian_id}
-            style={{ width: contentWidth, marginTop: 10 }}
-            contentContainerStyle={{ paddingBottom: 20 }}
-            renderItem={renderGuardianRow}
+            data={recipients}
+            keyExtractor={item => item.recipient_id}
+            style={{ width: contentWidth, marginTop: 10, flex: 1 }}
+            contentContainerStyle={{ paddingBottom: 100 }}
+            renderItem={renderRecipientRow}
             ListEmptyComponent={
-              <Text style={styles.emptyText}>No guardians added yet</Text>
+              <Text style={styles.emptyText}>No recipients added yet</Text>
             }
           />
         )}
 
-        {/* Add Guardian */}
-        <TouchableOpacity style={styles.addWrap} onPress={handleAddGuardian}>
-          <View style={styles.addButton}>
-            <Text style={styles.addText}>ADD GUARDIAN</Text>
-          </View>
-        </TouchableOpacity>
+        {/* Buttons */}
+        <View style={[styles.buttonContainer, { width: contentWidth }]}>
+          <TouchableOpacity style={styles.addWrap} onPress={handleAddRecipient}>
+            <View style={styles.addButton}>
+              <Text style={styles.addText}>ADD RECIPIENT</Text>
+            </View>
+          </TouchableOpacity>
+          
+          <TouchableOpacity style={styles.guardianWrap} onPress={handleManageGuardians}>
+            <Text style={styles.guardianText}>MANAGE GUARDIANS</Text>
+          </TouchableOpacity>
+        </View>
       </SafeAreaView>
     </BackgroundWrapper>
   );
 };
 
-export default ManageGuardianScreen;
+export default ManageRecipientScreen;
 
 /* ---------------- STYLES ---------------- */
 
@@ -259,20 +282,6 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
 
-  selectBtn: {
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: 'rgba(215,192,138,0.45)',
-    marginRight: 8,
-  },
-  selectText: {
-    color: GOLD,
-    fontSize: 12,
-    letterSpacing: 1,
-  },
-
   deleteBtn: {
     width: 32,
     height: 32,
@@ -281,27 +290,52 @@ const styles = StyleSheet.create({
     borderColor: BORDER,
     alignItems: 'center',
     justifyContent: 'center',
+    marginLeft: 8,
   },
   deleteIcon: {
     fontSize: 14,
     color: OFFWHITE,
   },
 
-  /* Add button */
+  /* Buttons */
+  buttonContainer: {
+    position: 'absolute',
+    bottom: 30,
+    gap: 12,
+  },
   addWrap: {
-    marginBottom: 20,
+    width: '100%',
   },
   addButton: {
-    paddingHorizontal: 36,
-    paddingVertical: 12,
+    width: '100%',
+    paddingVertical: 14,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: 'rgba(215,192,138,0.45)',
     backgroundColor: 'rgba(7,9,14,0.4)',
+    alignItems: 'center',
   },
   addText: {
     color: GOLD,
     fontSize: 16,
+    letterSpacing: 1.5,
+    fontFamily: Platform.select({
+      ios: 'CormorantGaramond-Regular',
+      android: 'serif',
+    }),
+  },
+  guardianWrap: {
+    width: '100%',
+    paddingVertical: 14,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(215,192,138,0.25)',
+    backgroundColor: 'rgba(7,9,14,0.2)',
+    alignItems: 'center',
+  },
+  guardianText: {
+    color: SUBTEXT,
+    fontSize: 14,
     letterSpacing: 1.5,
     fontFamily: Platform.select({
       ios: 'CormorantGaramond-Regular',

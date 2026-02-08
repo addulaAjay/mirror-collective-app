@@ -22,7 +22,9 @@ export interface EchoResponse {
     recipient_id: string;
     name: string;
     email: string;
+    motif?: string;
   };
+  scheduled_at?: string; // ISO date string
 }
 
 export interface UploadUrlResponse {

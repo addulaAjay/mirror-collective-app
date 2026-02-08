@@ -12,6 +12,7 @@ import {
   type ImageStyle,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import HomeIcon from './HomeIcon';
 
 import MirrorSideMenu from '../screens/NavigationMenuScreen';
 import { useUser } from '@context/UserContext';
@@ -98,8 +99,18 @@ const LogoHeader = ({
           </View>
         </View>
 
-        {/* Right side spacer to keep logo perfectly centered */}
-        <View style={styles.rightContainer} />
+        {/* Right side spacer or Home button to keep logo perfectly centered */}
+        <View style={styles.rightContainer}>
+          {isAuthenticated && (
+            <Pressable
+              onPress={() => navigation.navigate('TalkToMirror')}
+              hitSlop={12}
+              style={styles.homeButton}
+            >
+              <HomeIcon width={24} height={24} color="#E5D6B0" />
+            </Pressable>
+          )}
+        </View>
       </View>
     </>
   );
@@ -152,6 +163,11 @@ const styles = StyleSheet.create({
   },
   rightContainer: {
     width: 30, // Matches leftContainer for centering
+    justifyContent: 'center',
+    alignItems: 'flex-end',
+  },
+  homeButton: {
+    zIndex: 11,
   },
   hamburgerButton: {
     zIndex: 11,

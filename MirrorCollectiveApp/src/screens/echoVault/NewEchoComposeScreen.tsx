@@ -13,7 +13,10 @@ import {
   Alert,
   ActivityIndicator,
   PermissionsAndroid,
+  Linking,
 } from 'react-native';
+import DocumentPicker from 'react-native-document-picker';
+import { launchImageLibrary } from 'react-native-image-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -23,6 +26,7 @@ import { echoApiService } from '@services/api';
 import { RootStackParamList } from '@types';
 import LogoHeader from '@components/LogoHeader';
 import BackgroundWrapper from '@components/BackgroundWrapper';
+import StarIcon from '@components/StarIcon';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'NewEchoComposeScreen'>;
 
@@ -43,8 +47,11 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
   // Media State
   const [isRecording, setIsRecording] = useState(false);
   const [mediaUri, setMediaUri] = useState<string | null>(null);
+  const [mediaFile, setMediaFile] = useState<{ name: string; type: string } | null>(null);
   const [recordingDuration, setRecordingDuration] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
+  const [isPicking, setIsPicking] = useState(false);
+  const [pendingPicker, setPendingPicker] = useState<'audio' | 'video' | 'text' | null>(null);
 
   // Audio Recorder
   const audioRecorderPlayer = React.useRef(AudioRecorderPlayer).current;
@@ -61,6 +68,19 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
     if (recipientName?.trim()) return `For ${recipientName.trim()}`;
     return 'NEW ECHO';
   }, [recipientName]);
+
+  // Cleanup on unmount
+  React.useEffect(() => {
+    return () => {
+      // Stop audio
+      audioRecorderPlayer.stopRecorder().catch(() => {});
+      audioRecorderPlayer.removeRecordBackListener();
+      // Stop video
+      if (camera.current) {
+        camera.current.stopRecording().catch(() => {});
+      }
+    };
+  }, []);
 
   /* ---------- Logic ---------- */
 
@@ -79,7 +99,14 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
       if (!hasMicPermission) {
         const granted = await requestMicPermission();
         if (!granted) {
-          Alert.alert('Permission Required', 'Microphone access is needed to record audio.');
+          Alert.alert(
+            'Permission Required', 
+            'Microphone access is needed to record audio. Please enable it in your settings.',
+            [
+              { text: 'Cancel', style: 'cancel' },
+              { text: 'Open Settings', onPress: () => Linking.openSettings() },
+            ]
+          );
           return;
         }
       }
@@ -96,7 +123,14 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
           grants['android.permission.RECORD_AUDIO'] !== PermissionsAndroid.RESULTS.GRANTED
         ) {
           console.log('All required permissions not granted');
-          Alert.alert('Permission Required', 'Audio recording permissions are needed.');
+          Alert.alert(
+            'Permission Required', 
+            'Audio recording permissions are needed. Please enable them in your settings.',
+            [
+              { text: 'Cancel', style: 'cancel' },
+              { text: 'Open Settings', onPress: () => Linking.openSettings() },
+            ]
+          );
           return;
         }
       } catch (err) {
@@ -153,8 +187,17 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
   };
 
   const startVideoRecording = async () => {
-    if (!hasCamPermission) await requestCamPermission();
-    if (!hasMicPermission) await requestMicPermission();
+    if (!hasCamPermission || !hasMicPermission) {
+      Alert.alert(
+        'Permission Required',
+        'Camera and Microphone permissions are needed to record video. Please enable them in your settings.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Open Settings', onPress: () => Linking.openSettings() },
+        ]
+      );
+      return;
+    }
 
     if (camera.current) {
         camera.current.startRecording({
@@ -204,24 +247,24 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
        }
        const echoId = createResponse.data.echo_id;
 
-       // 2. Upload Media if applicable
-       if (mode !== 'text' && mediaUri) {
-         // Use proper MIME types for S3 upload
-         const contentType = mode === 'audio' ? 'audio/mp4' : 'video/mp4';
-         
-         const uploadUrlResponse = await echoApiService.getUploadUrl(contentType, echoId);
-         if (uploadUrlResponse.success && uploadUrlResponse.data) {
-            await echoApiService.uploadMedia(
-              uploadUrlResponse.data.upload_url,
-              mediaUri,
-              contentType
-            );
-            // Update echo with media URL
-            await echoApiService.updateEcho(echoId, {
-               media_url: uploadUrlResponse.data.media_url,
-            });
-         }
-       }
+        // 2. Upload Media if applicable
+        if (mode !== 'text' && mediaUri) {
+          // Use picked file type if available, otherwise default to mp4
+          const contentType = mediaFile?.type || (mode === 'audio' ? 'audio/mp4' : 'video/mp4');
+          
+          const uploadUrlResponse = await echoApiService.getUploadUrl(contentType, echoId);
+          if (uploadUrlResponse.success && uploadUrlResponse.data) {
+             await echoApiService.uploadMedia(
+               uploadUrlResponse.data.upload_url,
+               mediaUri,
+               contentType
+             );
+             // Update echo with media URL
+             await echoApiService.updateEcho(echoId, {
+                media_url: uploadUrlResponse.data.media_url,
+             });
+          }
+        }
 
        Alert.alert('Success', 'Echo saved to vault!', [
          { text: 'OK', onPress: () => navigation.navigate('MirrorEchoVaultHome' as any) }
@@ -236,8 +279,105 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
   };
 
   const onUpload = () => {
-    // TODO: open document picker / gallery / etc.
     setShowUploadSheet(true);
+  };
+
+  /**
+   * On iOS, we must wait for the Modal to be fully dismissed before
+   * presenting the system picker, otherwise it can hang or stay transparent.
+   */
+  const handleModalDismissed = () => {
+    if (!pendingPicker) return;
+    
+    const type = pendingPicker;
+    setPendingPicker(null);
+    
+    // Brief additional timeout for safety
+    setTimeout(() => {
+      if (type === 'audio') executePickAudio();
+      else if (type === 'video') executePickVideo();
+      else if (type === 'text') executePickText();
+    }, 100);
+  };
+
+  const handlePickAudio = async () => {
+    if (isPicking) return;
+    if (isRecording) {
+      await stopAudioRecording();
+    }
+    setPendingPicker('audio');
+    setShowUploadSheet(false);
+  };
+
+  const executePickAudio = async () => {
+    try {
+      setIsPicking(true);
+      const res = await DocumentPicker.pickSingle({
+        type: [DocumentPicker.types.audio],
+      });
+      if (res) {
+        setMediaUri(res.uri);
+        setMediaFile({ name: res.name || 'audio.m4a', type: res.type || 'audio/m4a' });
+        setRecordingDuration(0); // Reset duration if file picked
+      }
+    } catch (err) {
+      if (!DocumentPicker.isCancel(err)) console.error(err);
+    } finally {
+      setIsPicking(false);
+    }
+  };
+
+  const handlePickVideo = async () => {
+    if (isPicking) return;
+    if (isRecording) {
+      await stopVideoRecording();
+    }
+    setPendingPicker('video');
+    setShowUploadSheet(false);
+  };
+
+  const executePickVideo = async () => {
+    try {
+      setIsPicking(true);
+      const result = await launchImageLibrary({
+        mediaType: 'video',
+        quality: 1,
+      });
+      if (result.assets && result.assets.length > 0) {
+        const asset = result.assets[0];
+        setMediaUri(asset.uri || null);
+        setMediaFile({ name: asset.fileName || 'video.mp4', type: asset.type || 'video/mp4' });
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsPicking(false);
+    }
+  };
+
+  const handlePickText = async () => {
+    if (isPicking) return;
+    setPendingPicker('text');
+    setShowUploadSheet(false);
+  };
+
+  const executePickText = async () => {
+    try {
+      setIsPicking(true);
+      const res = await DocumentPicker.pickSingle({
+        type: [DocumentPicker.types.plainText, DocumentPicker.types.allFiles],
+      });
+      if (res && res.uri) {
+        setMediaFile({ name: res.name || 'document.txt', type: res.type || 'text/plain' });
+        const response = await fetch(res.uri);
+        const text = await response.text();
+        setMessage(text);
+      }
+    } catch (err) {
+      if (!DocumentPicker.isCancel(err)) console.error(err);
+    } finally {
+      setIsPicking(false);
+    }
   };
 
   return (
@@ -294,15 +434,34 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
 
               <View style={styles.bottomButtonsRow}>
                 <SmallPillButton label="Upload File" onPress={onUpload} />
-                <SmallPillButton label="SAVE" onPress={onSave} />
               </View>
+
+              <TouchableOpacity
+                style={[styles.saveAction, isSaving && styles.disabled]}
+                onPress={onSave}
+                disabled={isSaving}
+              >
+                <StarIcon width={24} height={24} color={GOLD} />
+                <Text style={styles.saveActionText}>SAVE</Text>
+                <StarIcon width={24} height={24} color={GOLD} />
+              </TouchableOpacity>
             </>
           )}
 
           {mode === 'audio' && (
             <>
               <View style={styles.audioWaveWrap}>
-                <Waveform />
+                {mediaUri && mediaFile ? (
+                  <View style={styles.pickedMediaContainer}>
+                    <Text style={styles.pickedMediaIcon}>📄</Text>
+                    <Text style={styles.pickedMediaName} numberOfLines={1}>{mediaFile.name}</Text>
+                    <TouchableOpacity onPress={() => { setMediaUri(null); setMediaFile(null); }}>
+                      <Text style={styles.removeMediaText}>Remove</Text>
+                    </TouchableOpacity>
+                  </View>
+                ) : (
+                  <Waveform />
+                )}
               </View>
 
               <View style={styles.centerIconWrap}>
@@ -313,8 +472,17 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
 
               <View style={styles.bottomButtonsRow}>
                 <SmallPillButton label="Upload File" onPress={onUpload} />
-                <SmallPillButton label={isSaving ? "SAVING..." : "SAVE"} onPress={onSave} />
               </View>
+
+              <TouchableOpacity
+                style={[styles.saveAction, isSaving && styles.disabled]}
+                onPress={onSave}
+                disabled={isSaving}
+              >
+                <StarIcon width={24} height={24} color={GOLD} />
+                <Text style={styles.saveActionText}>{isSaving ? "SAVING..." : "SAVE"}</Text>
+                <StarIcon width={24} height={24} color={GOLD} />
+              </TouchableOpacity>
             </>
           )}
 
@@ -327,7 +495,15 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
                 style={styles.bigBoxShell}
               >
                 <View style={[styles.bigBoxInnerBorder, { padding: 10 }]}>
-                    {device && (
+                    {mediaUri && mediaFile ? (
+                      <View style={[styles.videoPreviewPlaceholder, { backgroundColor: 'transparent' }]}>
+                         <Text style={styles.pickedMediaIcon}>🎬</Text>
+                         <Text style={styles.pickedMediaName} numberOfLines={1}>{mediaFile.name}</Text>
+                         <TouchableOpacity onPress={() => { setMediaUri(null); setMediaFile(null); }}>
+                           <Text style={styles.removeMediaText}>Remove</Text>
+                         </TouchableOpacity>
+                      </View>
+                    ) : device ? (
                         <Camera
                             ref={camera}
                             style={StyleSheet.absoluteFill}
@@ -336,8 +512,7 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
                             video={true}
                             audio={true}
                         />
-                    )}
-                    {!device && (
+                    ) : (
                       <View style={styles.videoPreviewPlaceholder}>
                         <Text style={styles.previewHint}>No Camera Device</Text>
                       </View>
@@ -351,9 +526,15 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
                 </TouchableOpacity>
               </View>
 
-              <View style={styles.bottomButtonsRowSingle}>
-                <SmallPillButton label={isSaving ? "SAVING..." : "SAVE"} onPress={onSave} />
-              </View>
+              <TouchableOpacity
+                style={[styles.saveAction, isSaving && styles.disabled]}
+                onPress={onSave}
+                disabled={isSaving}
+              >
+                <StarIcon width={24} height={24} color={GOLD} />
+                <Text style={styles.saveActionText}>{isSaving ? "SAVING..." : "SAVE"}</Text>
+                <StarIcon width={24} height={24} color={GOLD} />
+              </TouchableOpacity>
             </>
           )}
         </View>
@@ -364,20 +545,23 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
           transparent
           animationType="fade"
           onRequestClose={() => setShowUploadSheet(false)}
+          onDismiss={handleModalDismissed}
         >
           <Pressable
             style={styles.modalBackdrop}
             onPress={() => setShowUploadSheet(false)}
           >
             <Pressable style={[styles.modalCard, { width: contentWidth }]}>
-              <Text style={styles.modalTitle}>Upload</Text>
+              <Text style={styles.modalTitle}>Choose an Option</Text>
 
               <TouchableOpacity
                 activeOpacity={0.85}
                 style={styles.modalItem}
-                onPress={() => setShowUploadSheet(false)}
+                onPress={mode === 'text' ? handlePickText : mode === 'audio' ? handlePickAudio : handlePickVideo}
               >
-                <Text style={styles.modalItemText}>Choose a file (stub)</Text>
+                <Text style={styles.modalItemText}>
+                  {mode === 'text' ? 'Import Text File' : mode === 'audio' ? 'Import Audio File' : 'Choose from Gallery'}
+                </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -385,7 +569,7 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
                 style={styles.modalItem}
                 onPress={() => setShowUploadSheet(false)}
               >
-                <Text style={styles.modalItemText}>Cancel</Text>
+                <Text style={styles.modalItemCancel}>Cancel</Text>
               </TouchableOpacity>
             </Pressable>
           </Pressable>
@@ -450,7 +634,7 @@ const Waveform = () => {
 /** ---------- Styles ---------- */
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: 'transparent' },
+  safe: { flex: 1, backgroundColor: 'transparent', alignItems: 'center' },
   root: {
     flex: 1,
     alignItems: 'center',
@@ -568,17 +752,32 @@ const styles = StyleSheet.create({
 
   bottomButtonsRow: {
     flexDirection: 'row',
-    gap: 12,
-    marginTop: 16,
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  bottomButtonsRowSingle: {
-    flexDirection: 'row',
-    gap: 12,
     marginTop: 16,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  saveAction: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+    justifyContent: 'center',
+    marginTop: 32,
+    marginBottom: 20,
+  },
+  saveActionText: {
+    color: GOLD,
+    fontSize: 24,
+    fontFamily: Platform.select({
+      ios: 'CormorantGaramond-Regular',
+      android: 'serif',
+    }),
+    textShadowColor: 'rgba(229, 214, 176, 0.5)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 9,
+    letterSpacing: 2,
+  },
+  disabled: {
+    opacity: 0.5,
   },
 
   pillShell: {
@@ -699,9 +898,40 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(253,253,249,0.04)',
   },
   modalItemText: {
-    color: OFFWHITE,
+    color: GOLD,
     fontSize: 15,
     textAlign: 'center',
+    letterSpacing: 1,
+  },
+  modalItemCancel: {
+    color: '#ff6b6b',
+    fontSize: 15,
+    textAlign: 'center',
+  },
+  pickedMediaContainer: {
+    alignItems: 'center',
+    gap: 12,
+  },
+  pickedMediaIcon: {
+    fontSize: 56,
+    color: GOLD,
+    opacity: 0.8,
+  },
+  pickedMediaName: {
+    color: OFFWHITE,
+    fontSize: 16,
+    textAlign: 'center',
+    paddingHorizontal: 20,
+    fontFamily: Platform.select({
+      ios: 'CormorantGaramond-Regular',
+      android: 'serif',
+    }),
+  },
+  removeMediaText: {
+    color: '#ff6b6b',
+    fontSize: 14,
+    textDecorationLine: 'underline',
+    marginTop: 8,
   },
 });
 

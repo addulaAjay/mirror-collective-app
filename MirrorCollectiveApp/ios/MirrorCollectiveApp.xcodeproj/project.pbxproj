@@ -329,6 +329,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = MirrorCollectiveApp/MirrorCollectiveApp.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 4K673G7Y5A;
@@ -346,7 +347,6 @@
 					"-lc++",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.mirrorcollective.app;
-				CODE_SIGN_ENTITLEMENTS = MirrorCollectiveApp/MirrorCollectiveApp.entitlements;
 				PRODUCT_NAME = MirrorCollectiveApp;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -360,6 +360,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = MirrorCollectiveApp/MirrorCollectiveApp.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 4K673G7Y5A;
@@ -376,7 +377,6 @@
 					"-lc++",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.mirrorcollective.app;
-				CODE_SIGN_ENTITLEMENTS = MirrorCollectiveApp/MirrorCollectiveApp.entitlements;
 				PRODUCT_NAME = MirrorCollectiveApp;
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";

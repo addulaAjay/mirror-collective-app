@@ -24,6 +24,8 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '@types';
 import { echoApiService, EchoResponse } from '@services/api/echo';
+import { SvgXml } from 'react-native-svg';
+import { MOTIF_ICONS, getMotifIcon } from '@assets/motifs/MotifAssets';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
@@ -33,8 +35,12 @@ type EchoLibraryNavigationProp = NativeStackNavigationProp<
   'MirrorEchoVaultLibrary'
 >;
 
-const GOLD = '#D7C08A';
-const SUBTEXT = 'rgba(253,253,249,0.65)';
+const GOLD = '#F2E2B1';
+const SUBTEXT = 'rgba(253,253,249,0.92)';
+
+// Mock data or icons if needed. Using local assets for consistency if available, otherwise icons.
+// For Mail icon, we can use an image or existing icon component.
+// Assuming we need to add specific styling.
 
 export function EchoLibraryContent() {
   const navigation = useNavigation<EchoLibraryNavigationProp>();
@@ -87,6 +93,10 @@ export function EchoLibraryContent() {
     }
   };
 
+  const handleManageRecipients = () => {
+    navigation.navigate('ManageRecipientScreen');
+  };
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
@@ -108,23 +118,37 @@ export function EchoLibraryContent() {
         <View style={styles.contentWrapper}>
           <LogoHeader navigation={navigation} />
 
-          <View style={styles.topRow}>
-            <View style={styles.logoWrap}>
-              <Text style={styles.title}>ECHO LIBRARY</Text>
+          <View style={styles.headerSection}>
+            <Text style={styles.title}>MY ECHO LIBRARY</Text>
+            <View style={styles.subtitleContainer}>
+              <Text style={styles.subtitle}>
+                Save what matters — when it matters most.
+              </Text>
+              <Text style={[styles.subtitle, styles.subtitleItalic]}>
+                Not everything is meant to disappear.
+              </Text>
             </View>
           </View>
 
-          <Text style={styles.subtitle}>
-            Preserve echoes that hold meaning beyond{'\n'}the present moment.
-          </Text>
-
           <LinearGradient
-            colors={['rgba(155, 170, 194, 0.05)', 'rgba(155, 170, 194, 0.22)']}
+            colors={['rgba(253, 253, 249, 0.04)', 'rgba(253, 253, 249, 0.01)']}
             start={{ x: 0.5, y: 0 }}
             end={{ x: 0.5, y: 1 }}
             style={styles.card}
           >
-            <View style={{ flex: 1 }}>
+            {/* Echo Inbox Header */}
+            <View style={styles.inboxHeader}>
+              <View style={styles.inboxIconContainer}>
+                <Image
+                  source={require('@assets/mail.png')}
+                  style={{ width: 24, height: 24, tintColor: GOLD }}
+                  resizeMode="contain"
+                />
+              </View>
+              <Text style={styles.inboxTitle}>Echo Inbox</Text>
+            </View>
+
+            <View style={{ flex: 1, width: '100%' }}>
               <View style={styles.tableHeader}>
                 <TouchableOpacity 
                   style={styles.headerTab}
@@ -135,7 +159,6 @@ export function EchoLibraryContent() {
                     styles.headerText, 
                     activeTab === 'RECIPIENT' ? styles.activeHeader : styles.inactiveHeader
                   ]}>RECIPIENT</Text>
-                  {activeTab === 'RECIPIENT' && <View style={styles.activeIndicator} />}
                 </TouchableOpacity>
 
                 <TouchableOpacity 
@@ -147,7 +170,6 @@ export function EchoLibraryContent() {
                     styles.headerText, 
                     activeTab === 'CATEGORY' ? styles.activeHeader : styles.inactiveHeader
                   ]}>CATEGORY</Text>
-                  {activeTab === 'CATEGORY' && <View style={styles.activeIndicator} />}
                 </TouchableOpacity>
               </View>
 
@@ -181,27 +203,46 @@ export function EchoLibraryContent() {
                       onPress={() => handleOpenItem(item)}
                       style={styles.row}
                     >
+                      {/* Recipient / Category Column */}
                       <View style={styles.rowLeft}>
-                        <View style={styles.avatar}>
-                          <Image source={require('../../assets/Group.png')} />
+                        {/* Avatar/Icon Group */}
+                        <View style={styles.avatarGroup}>
+                           <View style={styles.avatarContainer}>
+                              {item.recipient?.motif && getMotifIcon(item.recipient.motif) ? (
+                                <View style={{ width: 24, height: 24 }}>
+                                  <SvgXml 
+                                    xml={getMotifIcon(item.recipient.motif)?.xml || ''} 
+                                    width="100%" 
+                                    height="100%" 
+                                  />
+                                </View>
+                              ) : item.recipient?.motif ? (
+                                <Text style={{ fontSize: 18 }}>{item.recipient.motif}</Text>
+                              ) : (
+                                <Image 
+                                  source={require('@assets/Group.png')} 
+                                  style={styles.avatarImage} 
+                                />
+                              )}
+                           </View>
                         </View>
+                        
                         <View style={styles.rowTextWrap}>
-                          <Text style={styles.rowTitle}>{item.title}</Text>
+                          <Text style={styles.rowTitle} numberOfLines={1}>{item.title}</Text>
                           <Text style={styles.rowSub}>
-                            Saved {formatDate(item.created_at)}
+                             {item.scheduled_at ? `Unlocks ${formatDate(item.scheduled_at)}` : `Saved ${formatDate(item.created_at)}`}
                           </Text>
                         </View>
                       </View>
 
+                      {/* Right Side: Recipient/Category Name */}
                       <View style={styles.rowRight}>
-                        <Text style={styles.recipientText}>
+                         <Text style={styles.recipientText}>
                           {activeTab === 'RECIPIENT' 
                             ? (item.recipient?.name?.toUpperCase() || 'UNASSIGNED')
                             : (item.category?.toUpperCase() || 'UNCATEGORIZED')}
                         </Text>
-                        <View style={styles.smallInfoCircle}>
-                          <Text style={styles.smallInfoText}>i</Text>
-                        </View>
+                         <Text style={styles.arrowIcon}>{'>'}</Text>
                       </View>
                     </TouchableOpacity>
                   ))}
@@ -210,13 +251,23 @@ export function EchoLibraryContent() {
             </View>
           </LinearGradient>
 
-          <TouchableOpacity
-            onPress={handleCreateEcho}
-            activeOpacity={0.9}
-            style={styles.createButton}
-          >
-            <Text style={styles.createText}>CREATE AN ECHO</Text>
-          </TouchableOpacity>
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              onPress={handleCreateEcho}
+              activeOpacity={0.9}
+              style={styles.createButton}
+            >
+              <Text style={styles.buttonText}>CREATE AN ECHO</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={handleManageRecipients}
+              activeOpacity={0.9}
+              style={styles.secondaryButton}
+            >
+              <Text style={styles.buttonText}>MANAGE RECIPIENTS</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </SafeAreaView>
     </BackgroundWrapper>
@@ -239,272 +290,212 @@ const styles = StyleSheet.create({
   },
 
   topRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: SPACING.XL,
-    marginTop: 30, // Consistent with other title rows
+    // Removed, replaced by headerSection
   },
-
-  iconButton: {
-    width: 44,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  menuIcon: {
-    color: 'rgba(253,253,249,0.92)',
-    fontSize: 22,
-    marginTop: -1,
-  },
-
-  logoWrap: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: 200,
-    height: 44,
-  },
-
-  inlineLogoHeader: {
-    position: 'relative',
-    top: 0,
-  },
-
-  iconSpacer: {
-    width: 44,
-    height: 44,
-  },
-
   contentWrapper: {
     flex: 1,
     width: '100%',
     alignItems: 'center',
-    paddingTop: 0, // Header already has padding
+    paddingTop: 0,
     paddingHorizontal: SPACING.XL,
     paddingBottom: Platform.OS === 'ios' ? 18 : 12,
   },
-
-  title: {
-    fontFamily: 'CormorantGaramond-Light',
-    fontSize: 24,
-    fontWeight: '300',
-    lineHeight: 28,
-    color: '#F2E2B1',
-    textAlign: 'center',
-    letterSpacing: 1.2,
-    textShadowColor: COLORS.TEXT.TITLE,
-    textShadowRadius: 8,
-  },
-
-  subtitle: {
-    fontFamily: 'CormorantGaramond-Regular',
-    fontSize: 14,
-    lineHeight: 20,
-    color: '#FFFFFF',
-    textAlign: 'center',
-    marginTop: 8,
-    marginBottom: 12,
-    opacity: 0.9,
-  },
-
-  inboxRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginTop: 2,
-    marginBottom: 14,
-  },
-
-  inboxIconBox: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  inboxIconImage: {
-    width: 14,
-    height: 14,
-    tintColor: 'rgba(242,226,177,0.9)',
-  },
-
-  inboxText: {
-    fontFamily: 'CormorantGaramond-Regular',
-    fontSize: 25,
-    lineHeight: 25,
-    color: '#F2E2B1',
-    letterSpacing: 0.6,
-  },
-
-  gradientWrapper: {
-    width: '100%',
-    borderRadius: SPACING.XL,
-    alignSelf: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(229,214,176,0.18)',
-  },
-
-  card: {
-    width: '100%',
-    borderRadius: SPACING.LG,
-    paddingHorizontal: SPACING.LG,
-    paddingTop: SPACING.LG,
-    paddingBottom: SPACING.LG,
-    alignSelf: 'center',
-    ...SHADOWS.LIGHT,
-    backgroundColor: 'rgba(12,17,31,0.65)',
-    borderWidth: 1,
-    borderColor: 'rgba(229,214,176,0.12)',
-    minHeight: SCREEN_DIMENSIONS.HEIGHT * 0.48,
-    maxHeight: SCREEN_DIMENSIONS.HEIGHT * 0.56,
-  },
-
-  tableHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 0,
-    paddingBottom: 0,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(229,214,176,0.12)',
-  },
-
-  headerTab: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 12,
-    position: 'relative',
-  },
-
-  headerText: {
-    fontFamily: 'CormorantGaramond-Regular',
-    fontSize: 16,
-    letterSpacing: 1.2,
-    textAlign: 'center',
-  },
-
-  activeHeader: {
-    color: GOLD,
-    fontFamily: 'CormorantGaramond-Bold',
-  },
-
-  inactiveHeader: {
-    color: 'rgba(255,255,255,0.4)',
-  },
-
-  activeIndicator: {
-    position: 'absolute',
-    bottom: -1,
-    left: '20%',
-    right: '20%',
-    height: 2,
-    backgroundColor: GOLD,
-    borderRadius: 1,
-  },
-
-  listContent: {
-    paddingTop: 10,
-    paddingBottom: 6,
-  },
-
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(229,214,176,0.12)',
-  },
-
-  rowLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    flex: 1,
-    paddingRight: 10,
-  },
-
-  avatar: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    borderWidth: 1,
-    borderColor: 'rgba(229,214,176,0.75)',
-    backgroundColor: 'rgba(229,214,176,0.1)',
-  },
-
-  rowTextWrap: {
-    flex: 1,
-  },
-
-  rowTitle: {
-    fontFamily: 'CormorantGaramond-Bold',
-    fontSize: 14,
-    color: 'rgba(253,253,249,0.92)',
-  },
-
-  rowSub: {
-    fontFamily: 'CormorantGaramond-Italic',
-    fontSize: 14,
-    color: 'rgba(253,253,249,0.55)',
-    marginTop: 2,
-  },
-
   rowRight: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
   },
+  headerSection: {
+    marginTop: 20,
+    marginBottom: 20,
+    alignItems: 'center',
+    width: '100%',
+  },
+  subtitleContainer: {
+    marginTop: 8,
+    alignItems: 'center',
+  },
+  subtitleItalic: {
+    fontFamily: 'Inter-Italic', // Assuming Inter-Italic exists, else CormorantGaramond-Italic
+    marginTop: 0,
+  },
+  listContent: {
+      paddingBottom: 20,
+  },
+  // INBOX HEADER
+  inboxHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#A3B3CC',
+    width: '100%',
+    marginBottom: 0,
+  },
+  inboxIconContainer: {
+     width: 24,
+     height: 24,
+     marginRight: 8,
+     justifyContent: 'center',
+     alignItems: 'center',
+  },
+  inboxTitle: {
+    fontFamily: 'CormorantGaramond-Regular',
+    fontSize: 28,
+    color: GOLD,
+    textAlign: 'center',
+  },
 
+  // CARD / LIST
+  card: {
+    width: '100%',
+    borderRadius: 16,
+    // paddingHorizontal: SPACING.LG, // Moved padding to children if needed
+    // paddingTop: 0,
+    // paddingBottom: SPACING.LG,
+    alignSelf: 'center',
+    ...SHADOWS.LIGHT,
+    // backgroundColor: 'rgba(12,17,31,0.65)', // Gradient used instead
+    borderWidth: 0.5,
+    borderColor: 'rgba(96, 115, 159, 1)', // border-inverse-1
+    flex: 1, // Take available space
+    marginBottom: 20,
+    overflow: 'hidden',
+  },
+
+  // TABS
+  tableHeader: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    gap: 32,
+    // borderBottomWidth: 1, // Removed border
+  },
+  headerTab: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#A3B3CC', // Default subtle border
+    paddingBottom: 2,
+  },
+  headerText: {
+    fontFamily: 'CormorantGaramond-Regular',
+    fontSize: 24,
+    textAlign: 'center',
+  },
+  activeHeader: {
+    color: '#FDFDF9', // Figma says text-paragraph-2 #FDFDF9 for Recipient?
+    // Wait, Figma: RECIPIENT text color #FDFDF9, Category #A3B3CC
+  },
+  inactiveHeader: {
+    color: '#A3B3CC', // text-inverse-paragraph-2
+    borderBottomWidth: 0, // Inactive doesn't have border in Figma snippet? 
+    // Actually Figma snippet shows: border-b for RECIPIENT.
+  },
+  activeIndicator: {
+      // Replaced by borderBottom on tab
+  },
+
+  // LIST ROWS
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    borderBottomWidth: 0.25,
+    borderBottomColor: '#D9A766', // border-brand-active
+  },
+  rowLeft: {
+     flexDirection: 'row',
+     alignItems: 'center',
+     gap: 12,
+     flex: 1,
+  },
+  avatarGroup: {
+     // Container for avatar
+  },
+  avatarContainer: {
+     width: 40,
+     height: 40,
+     borderRadius: 20,
+     backgroundColor: 'rgba(197, 158, 95, 0.05)',
+     borderWidth: 0.5,
+     borderColor: '#F2E2B1',
+     justifyContent: 'center',
+     alignItems: 'center',
+     // Shadow...
+  },
+  avatarImage: {
+     width: 20,
+     height: 20,
+     // tintColor: GOLD,
+  },
+  rowTextWrap: {
+     marginLeft: 0,
+     flex: 1,
+  },
+  rowTitle: {
+     fontFamily: 'CormorantGaramond-Regular',
+     fontSize: 20,
+     color: '#FFFFFF',
+     lineHeight: 26,
+  },
+  rowSub: {
+     fontFamily: 'Inter-LightItalic', // Assuming font
+     fontSize: 14,
+     color: '#FFFFFF', // Italic text color
+     opacity: 0.8,
+  },
   recipientText: {
-    fontFamily: 'CormorantGaramond-Regular',
-    fontSize: 12,
-    letterSpacing: 1.2,
-    color: 'rgba(242,226,177,0.7)',
+     fontFamily: 'Inter-Light',
+     fontSize: 16,
+     color: GOLD,
+     marginRight: 8,
   },
-
-  smallInfoCircle: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    borderWidth: 1,
-    borderColor: 'rgba(229,214,176,0.55)',
-    backgroundColor: 'rgba(9,14,28,0.45)',
-    alignItems: 'center',
-    justifyContent: 'center',
+  arrowIcon: {
+      color: GOLD,
+      fontSize: 14,
+      fontFamily: 'Inter-Regular', 
   },
-
-  smallInfoText: {
-    fontFamily: 'CormorantGaramond-Regular',
-    fontSize: 12,
-    color: 'rgba(229,214,176,0.9)',
-    marginTop: -1,
+  
+  // BUTTONS
+  buttonContainer: {
+      width: '100%',
+      gap: 12,
+      marginBottom: 20,
   },
-
   createButton: {
-    width: '72%',
-    maxWidth: 320,
+    width: '100%',
     height: 52,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: 'rgba(229,214,176,0.55)',
-    backgroundColor: 'rgba(12,18,32,0.45)',
+    borderRadius: 12,
+    borderWidth: 0.5,
+    borderColor: '#A3B3CC',
+    // backgroundColor: gradient handled in render? 
+    // Figma uses gradient background for button.
+    backgroundColor: 'rgba(253, 253, 249, 0.04)', // Approximate
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 14,
   },
-
-  createText: {
+  secondaryButton: {
+    width: '100%',
+    height: 52,
+    borderRadius: 12,
+    borderWidth: 0.5,
+    borderColor: '#A3B3CC',
+    backgroundColor: 'rgba(253, 253, 249, 0.04)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  buttonText: {
     fontFamily: 'CormorantGaramond-Regular',
-    fontSize: 18,
-    fontWeight: '400',
-    color: 'rgba(242,226,177,0.95)',
-    letterSpacing: 1.6,
+    fontSize: 24,
+    color: GOLD,
+    textAlign: 'center',
+    textShadowColor: 'rgba(229, 214, 176, 0.5)',
+    textShadowRadius: 9,
   },
 
-  // Loading/Error/Empty states
+  // ... keep loading/error styles
   loadingContainer: {
     flex: 1,
     alignItems: 'center',
@@ -552,4 +543,21 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     opacity: 0.7,
   },
+  title: {
+    fontFamily: 'CormorantGaramond-Regular',
+    fontSize: 28,
+    color: GOLD,
+    textAlign: 'center',
+    textShadowColor: '#F0D4A8',
+    textShadowRadius: 16,
+    letterSpacing: 2,
+  },
+  subtitle: {
+    fontFamily: 'Inter-Light', // Assuming Inter-Light
+    fontSize: 16,
+    color: '#FFFFFF',
+    textAlign: 'center',
+    lineHeight: 24,
+  },
+  // Removed old styles: iconButton, menuIcon, inlineLogoHeader, iconSpacer, inboxRow, inboxIconBox, etc.
 });

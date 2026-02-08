@@ -1,4 +1,4 @@
-// NewEchoScreen.tsx
+// NewEchoVaultScreen.tsx
 import React, { useMemo, useState } from 'react';
 import {
   View,
@@ -11,6 +11,9 @@ import {
   Modal,
   Pressable,
   Platform,
+  Image,
+  ScrollView,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import BackgroundWrapper from '@components/BackgroundWrapper';
@@ -18,13 +21,15 @@ import LinearGradient from 'react-native-linear-gradient';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '@types';
 import LogoHeader from '@components/LogoHeader';
+import StarIcon from '@components/StarIcon';
+
 
 type Props = NativeStackScreenProps<RootStackParamList, 'NewEchoScreen'>;
 
 const { width: W, height: H } = Dimensions.get('window');
 
-const GOLD = '#D7C08A';
-const OFFWHITE = 'rgba(253, 253, 249, 0.92)';
+const GOLD = '#F2E2B1'; // Updated from Figma: #F2E2B1
+const OFFWHITE = '#FDFDF9'; // Updated from Figma: #FDFDF9
 const SURFACE_BORDER = 'rgba(253, 253, 249, 0.18)';
 const SURFACE_BORDER_2 = 'rgba(253, 253, 249, 0.08)';
 
@@ -84,145 +89,156 @@ const NewEchoScreen: React.FC<Props> = ({ navigation }) => {
         {/* Top Header */}
         <LogoHeader navigation={navigation} />
 
-        {/* Back row + title */}
-        <View style={styles.titleRowContainer}>
-          <View style={[styles.titleRow, { width: contentWidth }]}>
-            <TouchableOpacity
-              activeOpacity={0.8}
-              style={styles.backBtn}
-              onPress={() => navigation.goBack()}
-            >
-              <Text style={styles.backIcon}>‹</Text>
-            </TouchableOpacity>
-
-            <Text style={styles.screenTitle}>NEW ECHO</Text>
-
-            {/* spacer to balance back icon */}
-            <View style={styles.titleRightSpacer} />
-          </View>
-        </View>
-
-        {/* Content */}
-        <View style={[styles.content, { width: contentWidth }]}>
-          {/* Title input */}
-          <LinearGradient
-            colors={['rgba(253,253,249,0.08)', 'rgba(253,253,249,0.03)']}
-            start={{ x: 0.5, y: 0 }}
-            end={{ x: 0.5, y: 1 }}
-            style={styles.inputShell}
-          >
-            <View style={styles.inputInnerBorder}>
-              <TextInput
-                value={title}
-                onChangeText={setTitle}
-                placeholder="Enter Title here"
-                placeholderTextColor="rgba(253,253,249,0.55)"
-                style={styles.textInput}
-              />
-            </View>
-          </LinearGradient>
-
-          {/* Brain illustration placeholder */}
-          <View style={styles.illustrationWrap}>
-            {/* Replace with your brain image/svg */}
-            <View style={styles.brainPlaceholder}>
-              <Text style={styles.brainText}>✦</Text>
-            </View>
-          </View>
-
-          {/* Category dropdown */}
+        {/* Updated Header Layout per Figma */}
+        <View style={styles.headerContainer}>
           <TouchableOpacity
-            activeOpacity={0.9}
-            onPress={() => setCategoryOpen(true)}
+            activeOpacity={0.8}
+            style={styles.backBtn}
+            onPress={() => navigation.goBack()}
           >
-            <LinearGradient
-              colors={['rgba(253,253,249,0.07)', 'rgba(253,253,249,0.03)']}
-              start={{ x: 0.5, y: 0 }}
-              end={{ x: 0.5, y: 1 }}
-              style={styles.dropdownShell}
-            >
-              <View style={styles.dropdownInnerBorder}>
-                <Text
-                  style={[
-                    styles.dropdownText,
-                    !category && { color: 'rgba(253,253,249,0.70)' },
-                  ]}
-                >
-                  {category ?? 'Choose echo category'}
-                </Text>
-                <Text style={styles.dropdownChevron}>▾</Text>
-              </View>
-            </LinearGradient>
+            <Text style={{ color: GOLD, fontSize: 30 }}>‹</Text>
           </TouchableOpacity>
+          
+          <Text style={styles.screenTitle}>NEW ECHO</Text>
+          
+          <View style={styles.headerSpacer} />
+        </View>
 
-          {/* Recipient yes/no */}
-          <View style={styles.recipientRow}>
-            <Text style={styles.recipientLabel}>Do you have a recipient?</Text>
-
-            <View style={styles.recipientOptions}>
-              <TouchableOpacity
-                activeOpacity={0.85}
-                style={styles.recipientOption}
-                onPress={() => setRecipientChoice('yes')}
+        <KeyboardAvoidingView 
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+          style={{ flex: 1, width: '100%' }}
+        >
+          <ScrollView 
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.scrollContent}
+          >
+            {/* Content */}
+            <View style={[styles.content, { width: contentWidth }]}>
+              {/* Title input - Updated Styling */}
+              <LinearGradient
+                colors={['rgba(253,253,249,0.04)', 'rgba(253,253,249,0.01)']}
+                start={{ x: 0.5, y: 0 }}
+                end={{ x: 0.5, y: 1 }}
+                style={styles.inputShell}
               >
-                <View
-                  style={[
-                    styles.checkbox,
-                    recipientChoice === 'yes' && styles.checkboxChecked,
-                  ]}
+                <View style={styles.inputContainer}>
+                    <TextInput
+                        value={title}
+                        onChangeText={setTitle}
+                        placeholder="Enter Title here"
+                        placeholderTextColor="rgba(253,253,249,0.5)"
+                        style={styles.textInput}
+                    />
+                </View>
+              </LinearGradient>
+
+              {/* Illustration - Replaced Placeholder */}
+              <View style={styles.illustrationWrap}>
+                <Image
+                    source={require('@assets/mirror_echo_illustration.png')}
+                    style={styles.illustrationImage}
+                    resizeMode="contain"
                 />
-                <Text style={styles.recipientOptionText}>YES</Text>
+              </View>
+
+              {/* Category dropdown - Updated Styling */}
+              <TouchableOpacity
+                activeOpacity={0.9}
+                onPress={() => setCategoryOpen(true)}
+                style={{ width: '100%' }}
+              >
+                <LinearGradient
+                  colors={['rgba(253,253,249,0.04)', 'rgba(253,253,249,0.01)']}
+                  start={{ x: 0.5, y: 0 }}
+                  end={{ x: 0.5, y: 1 }}
+                  style={styles.dropdownShell}
+                >
+                    <View style={styles.dropdownContent}>
+                        {/* Icon + Text Group */}
+                        <View style={styles.dropdownLeft}>
+                            <Text style={{ color: OFFWHITE, fontSize: 18, transform: [{ scaleY: -1 }] }}>▾</Text>
+                        </View>
+
+                         <Text
+                            style={[
+                                styles.dropdownText,
+                                !category && { color: OFFWHITE, opacity: 0.9 }, 
+                            ]}
+                            >
+                            {category ?? 'Choose echo category'}
+                        </Text>
+
+                        <View style={styles.dropdownRight}>
+                             <Text style={{ color: OFFWHITE, fontSize: 18, transform: [{ scaleY: -1 }] }}>▾</Text>
+                        </View>
+                    </View>
+                </LinearGradient>
               </TouchableOpacity>
 
-              <TouchableOpacity
-                activeOpacity={0.85}
-                style={styles.recipientOption}
-                onPress={() => setRecipientChoice('no')}
-              >
-                <View
-                  style={[
-                    styles.checkbox,
-                    recipientChoice === 'no' && styles.checkboxChecked,
-                  ]}
+
+              {/* Recipient yes/no - Updated to "Do you have a recipient?" block */}
+              <View style={styles.recipientQuestion}>
+                <Text style={styles.recipientQuestion}>Do you have a recipient?</Text>
+                
+                <View style={styles.recipientButtons}>
+                     <TouchableOpacity
+                        activeOpacity={0.8}
+                        style={styles.recipientBtn}
+                        onPress={() => setRecipientChoice('yes')}
+                     >
+                        <View style={[styles.radioOuter, recipientChoice === 'yes' && styles.radioOuterSelected]}>
+                            {recipientChoice === 'yes' && <View style={styles.radioInner} />}
+                        </View>
+                        <Text style={[styles.recipientBtnText, recipientChoice === 'yes' && styles.recipientBtnTextSelected]}>YES</Text>
+                     </TouchableOpacity>
+
+                     <TouchableOpacity
+                        activeOpacity={0.8}
+                        style={styles.recipientBtn}
+                        onPress={() => setRecipientChoice('no')}
+                     >
+                        <View style={[styles.radioOuter, recipientChoice === 'no' && styles.radioOuterSelected]}>
+                             {recipientChoice === 'no' && <View style={styles.radioInner} />}
+                        </View>
+                        <Text style={[styles.recipientBtnText, recipientChoice === 'no' && styles.recipientBtnTextSelected]}>NO</Text>
+                     </TouchableOpacity>
+                </View>
+              </View>
+
+
+
+              {/* Action buttons row - Updated Icons */}
+              <View style={styles.actionRow}>
+                <ActionSquare 
+                  emoji="T" 
+                  selected={selectedMode === 'text'}
+                  onPress={() => setSelectedMode('text')} 
                 />
-                <Text style={styles.recipientOptionText}>NO</Text>
+                <ActionSquare 
+                  emoji="🎤" 
+                  selected={selectedMode === 'audio'}
+                  onPress={() => setSelectedMode('audio')} 
+                />
+                <ActionSquare 
+                  emoji="📹" 
+                  selected={selectedMode === 'video'}
+                  onPress={() => setSelectedMode('video')} 
+                />
+              </View>
+
+              {/* Next Button - Updated to Standard Primary Action Style */}
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={onNext}
+                style={styles.nextWrap}
+              >
+                <StarIcon width={24} height={24} />
+                <Text style={styles.nextText}>NEXT</Text>
+                <StarIcon width={24} height={24} />
               </TouchableOpacity>
             </View>
-          </View>
-
-          {/* Action buttons row */}
-          <View style={styles.actionRow}>
-            <ActionSquare 
-              label="T" 
-              selected={selectedMode === 'text'}
-              onPress={() => setSelectedMode('text')} 
-            />
-            <ActionSquare 
-              label="🎤" 
-              selected={selectedMode === 'audio'}
-              onPress={() => setSelectedMode('audio')} 
-            />
-            <ActionSquare 
-              label="📹" 
-              selected={selectedMode === 'video'}
-              onPress={() => setSelectedMode('video')} 
-            />
-          </View>
-
-          {/* Next */}
-          <TouchableOpacity activeOpacity={0.9} onPress={onNext}>
-            <LinearGradient
-              colors={['rgba(253,253,249,0.10)', 'rgba(253,253,249,0.03)']}
-              start={{ x: 0.5, y: 0 }}
-              end={{ x: 0.5, y: 1 }}
-              style={styles.nextShell}
-            >
-              <View style={styles.nextInnerBorder}>
-                <Text style={styles.nextText}>NEXT</Text>
-              </View>
-            </LinearGradient>
-          </TouchableOpacity>
-        </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
 
         {/* Category modal */}
         <Modal
@@ -260,25 +276,26 @@ const NewEchoScreen: React.FC<Props> = ({ navigation }) => {
 };
 
 const ActionSquare = ({
-  label,
+  emoji,
   onPress,
   selected,
 }: {
-  label: string;
+  emoji: string;
   onPress: () => void;
   selected?: boolean;
 }) => {
   return (
-    <TouchableOpacity activeOpacity={0.9} onPress={onPress}>
+    <TouchableOpacity activeOpacity={0.9} onPress={onPress} style={{ flex: 1 }}>
       <LinearGradient
-        colors={selected ? ['rgba(215,192,138,0.20)', 'rgba(215,192,138,0.05)'] : ['rgba(253,253,249,0.10)', 'rgba(253,253,249,0.03)']}
+        colors={['rgba(253,253,249,0.05)', 'rgba(253,253,249,0.01)']} 
         start={{ x: 0.5, y: 0 }}
         end={{ x: 0.5, y: 1 }}
-        style={[styles.actionShell, selected && { borderColor: GOLD }]}
+        style={[
+            styles.actionShell, 
+            selected && { borderColor: GOLD, backgroundColor: 'rgba(242, 226, 177, 0.1)' } 
+        ]}
       >
-        <View style={[styles.actionInnerBorder, selected && { backgroundColor: 'rgba(215,192,138,0.10)', borderColor: GOLD }]}>
-          <Text style={[styles.actionIcon, selected && { color: GOLD }]}>{label}</Text>
-        </View>
+          <Text style={{ fontSize: 30, color: selected ? GOLD : 'rgba(242, 226, 177, 0.92)' }}>{emoji}</Text>
       </LinearGradient>
     </TouchableOpacity>
   );
@@ -294,225 +311,224 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
-  titleRowContainer: {
+  /* Header */
+  headerContainer: {
     width: '100%',
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    paddingHorizontal: 24,
+    marginTop: 20,
+    marginBottom: 10,
   },
   backBtn: {
-    width: 44,
-    height: 44,
+    width: 40,
+    height: 40,
     justifyContent: 'center',
-    alignItems: 'flex-start',
-  },
-  backIcon: {
-    color: 'rgba(215,192,138,0.9)',
-    fontSize: 30,
-    marginLeft: 2,
+    alignItems: 'center',
+    borderRadius: 20,
+    backgroundColor: 'rgba(0,0,0,0.2)' // Add a subtle back for touch target
   },
   screenTitle: {
-    color: 'rgba(215,192,138,0.92)',
-    fontSize: 34,
+    color: '#F2E2B1',
+    fontSize: 28,
     letterSpacing: 2,
     fontFamily: Platform.select({
       ios: 'CormorantGaramond-Regular',
       android: 'serif',
     }),
+    textShadowColor: 'rgba(240, 212, 168, 0.4)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 16,
   },
-  titleRightSpacer: {
-    width: 44,
-    height: 44,
+  headerSpacer: {
+      width: 40, // Balance back button
   },
 
+  scrollContent: {
+      flexGrow: 1,
+      alignItems: 'center',
+      paddingBottom: 60,
+  },
   content: {
-    marginTop: 18,
+    paddingTop: 10,
     alignItems: 'center',
-    flex: 1,
+    width: '100%',
   },
 
+  /* Title Input */
   inputShell: {
     width: '100%',
-    borderRadius: 18,
-    padding: 1,
-    borderWidth: 1,
-    borderColor: SURFACE_BORDER_2,
+    borderRadius: 12,
+    borderWidth: 0.5,
+    borderColor: '#A3B3CC', // var(--border/subtle)
+    marginBottom: 24,
   },
-  inputInnerBorder: {
-    borderRadius: 17,
-    borderWidth: 1,
-    borderColor: SURFACE_BORDER,
-    paddingHorizontal: 18,
-    paddingVertical: 14,
-    backgroundColor: 'rgba(7,9,14,0.35)',
+  inputContainer: {
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      alignItems: 'center',
+      justifyContent: 'center',
   },
   textInput: {
-    color: OFFWHITE,
-    fontSize: 16,
-    textAlign: 'center',
+    color: '#FDFDF9', // var(--text/paragraph-2)
+    fontSize: 16, // var(--font/size/s)
+    fontFamily: 'Inter', // var(--font/family/body)
     fontStyle: 'italic',
-    letterSpacing: 0.5,
+    textAlign: 'center',
+    width: '100%',
   },
 
+  /* Illustration */
   illustrationWrap: {
     width: '100%',
     alignItems: 'center',
-    marginTop: 26,
-    marginBottom: 22,
-    flexGrow: 1,
     justifyContent: 'center',
+    height: 160, 
+    marginBottom: 20,
   },
-  brainPlaceholder: {
-    width: Math.min(W * 0.52, 220),
-    height: Math.min(W * 0.42, 180),
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: 'rgba(215,192,138,0.25)',
-    backgroundColor: 'rgba(215,192,138,0.06)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  brainText: {
-    color: 'rgba(215,192,138,0.7)',
-    fontSize: 28,
+  illustrationImage: {
+      width: '100%',
+      height: '100%',
   },
 
+  /* Dropdown */
   dropdownShell: {
     width: '100%',
-    borderRadius: 18,
-    padding: 1,
-    borderWidth: 1,
-    borderColor: SURFACE_BORDER_2,
-    marginBottom: 14,
-  },
-  dropdownInnerBorder: {
-    borderRadius: 17,
-    borderWidth: 1,
-    borderColor: SURFACE_BORDER,
-    paddingHorizontal: 18,
-    paddingVertical: 14,
-    backgroundColor: 'rgba(7,9,14,0.30)',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  dropdownText: {
-    color: OFFWHITE,
-    fontSize: 16,
-    fontStyle: 'italic',
-    letterSpacing: 0.4,
-  },
-  dropdownChevron: {
-    color: OFFWHITE,
-    fontSize: 18,
-    opacity: 0.9,
-    marginLeft: 10,
-  },
-
-  recipientRow: {
-    width: '100%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 6,
-    marginBottom: 16,
-  },
-  recipientLabel: {
-    color: 'rgba(253,253,249,0.75)',
-    fontSize: 16,
-    fontStyle: 'italic',
-  },
-  recipientOptions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 18,
-  },
-  recipientOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  checkbox: {
-    width: 18,
-    height: 18,
-    borderRadius: 3,
-    borderWidth: 2,
-    borderColor: 'rgba(215,192,138,0.85)',
-    backgroundColor: 'transparent',
-  },
-  checkboxChecked: {
-    backgroundColor: 'rgba(215,192,138,0.55)',
-  },
-  recipientOptionText: {
-    color: 'rgba(253,253,249,0.75)',
-    fontSize: 14,
-    letterSpacing: 1.4,
-  },
-
-  actionRow: {
-    width: '100%',
-    marginTop: 4,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 18,
-  },
-  actionShell: {
-    width: Math.min(W * 0.23, 92),
-    height: Math.min(W * 0.23, 92),
-    borderRadius: 18,
-    padding: 1,
-    borderWidth: 1,
-    borderColor: SURFACE_BORDER_2,
-  },
-  actionInnerBorder: {
-    flex: 1,
-    borderRadius: 17,
-    borderWidth: 1,
-    borderColor: SURFACE_BORDER,
-    backgroundColor: 'rgba(7,9,14,0.28)',
-    alignItems: 'center',
+    borderRadius: 12,
+    borderWidth: 0.25,
+    borderColor: '#60739F', // var(--border/inverse-1)
+    // Wait, in Figma, Component 2 (Dropdown) is above the recipient block.
+    marginBottom: 24, 
+    height: 48,
     justifyContent: 'center',
   },
-  actionIcon: {
-    color: 'rgba(215,192,138,0.92)',
-    fontSize: 30,
-    fontFamily: Platform.select({
-      ios: 'CormorantGaramond-Regular',
-      android: 'serif',
-    }),
+  dropdownContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+  },
+  dropdownText: {
+    color: '#FDFDF9',
+    fontSize: 16,
+    fontFamily: 'Inter',
+    fontStyle: 'italic',
+  },
+  dropdownLeft: {
+      width: 24,
+      alignItems: 'center',
+  },
+  dropdownRight: {
+    width: 24,
+    alignItems: 'center',
+  },
+  
+  /* Recipient Block - Changed to Column for Visibility */
+  recipientBlock: {
+      width: '100%',
+      borderRadius: 14,
+      borderWidth: 1,
+      borderColor: 'rgba(253, 253, 249, 0.12)',
+      padding: 16,
+      marginBottom: 20,
+      backgroundColor: 'rgba(253, 253, 249, 0.02)',
+  },
+  recipientQuestion: {
+      color: '#FDFDF9',
+      fontSize: 16,
+      fontFamily: 'Inter',
+      fontStyle: 'italic',
+      marginBottom: 16,
+      textAlign: 'center',
+  },
+  recipientButtons: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 32,
+  },
+  recipientBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+  },
+  radioOuter: {
+      width: 20,
+      height: 20,
+      borderRadius: 10,
+      borderWidth: 1.5,
+      borderColor: '#F2E2B1',
+      alignItems: 'center',
+      justifyContent: 'center',
+  },
+  radioOuterSelected: {
+      borderColor: '#F2E2B1',
+  },
+  radioInner: {
+      width: 10,
+      height: 10,
+      borderRadius: 5,
+      backgroundColor: '#F2E2B1',
+  },
+  recipientBtnText: {
+      color: '#F2E2B1',
+      fontSize: 16,
+      fontFamily: 'Inter',
+      fontWeight: '500',
+  },
+  recipientBtnTextSelected: {
+      fontWeight: '700',
   },
 
-  nextShell: {
-    alignSelf: 'center',
-    marginTop: 2,
-    borderRadius: 18,
-    padding: 1,
-    borderWidth: 1,
-    borderColor: 'rgba(215,192,138,0.35)',
-    marginBottom: 22,
+
+  /* Action Row */
+  actionRow: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-between', // gap 32px in Figma, assume justify-between handles for small screens, or gap.
+    gap: 16,
+    marginBottom: 32,
   },
-  nextInnerBorder: {
-    borderRadius: 17,
-    borderWidth: 1,
-    borderColor: 'rgba(215,192,138,0.45)',
+  actionShell: {
+    flex: 1, // Distribute evenly
+    height: 72, // Fixed height from Figma
+    borderRadius: 12,
+    borderWidth: 0.5,
+    borderColor: '#F2E2B1', // var(--border/brand)
+    alignItems: 'center',
+    justifyContent: 'center',
+    // Shadow from Figma
+    shadowColor: '#F2E2B1',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 32,
+    elevation: 5,
+  },
+
+  /* Next Button - Updated to Star Flanked Style */
+  nextWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 16,
+    marginTop: 20, // Reduced from 40 for better visibility
+    width: '100%',
     paddingVertical: 10,
-    paddingHorizontal: 34,
-    backgroundColor: 'rgba(7,9,14,0.22)',
   },
   nextText: {
-    color: 'rgba(215,192,138,0.92)',
-    fontSize: 22,
-    letterSpacing: 2,
-    fontFamily: Platform.select({
-      ios: 'CormorantGaramond-Regular',
-      android: 'serif',
-    }),
+    fontFamily: 'CormorantGaramond-Medium',
+    fontSize: 28,
+    fontWeight: '500',
+    color: '#E5D6B0',
+    textShadowColor: 'rgba(229, 214, 176, 0.5)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 8,
+    textTransform: 'uppercase',
   },
 
+
+  /* Modal */
   modalBackdrop: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.55)',

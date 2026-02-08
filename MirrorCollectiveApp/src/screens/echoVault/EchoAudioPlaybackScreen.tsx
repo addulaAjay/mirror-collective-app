@@ -146,15 +146,14 @@ const EchoAudioPlaybackScreen: React.FC<Props> = ({ navigation, route }) => {
   const transcript = echo?.content || 'No transcript available for this echo.';
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <StatusBar
-        barStyle="light-content"
-        translucent
-        backgroundColor="transparent"
-      />
-      <BackgroundWrapper style={styles.root}>
+    <BackgroundWrapper style={styles.root}>
+      <SafeAreaView style={styles.safe}>
+        <StatusBar
+          barStyle="light-content"
+          translucent
+          backgroundColor="transparent"
+        />
 
-        {/* Header */}
         {/* Header */}
         <LogoHeader navigation={navigation} />
 
@@ -226,8 +225,8 @@ const EchoAudioPlaybackScreen: React.FC<Props> = ({ navigation, route }) => {
           <ActionPrimaryButton label="VAULT" onPress={() => {}} />
           <ActionIconButton label="✎" onPress={() => {}} />
         </View>
-      </BackgroundWrapper>
-    </SafeAreaView>
+      </SafeAreaView>
+    </BackgroundWrapper>
   );
 };
 
@@ -308,7 +307,7 @@ const ActionPrimaryButton = ({
 /* ---------- Styles ---------- */
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#05060A' },
+  safe: { flex: 1, backgroundColor: 'transparent', alignItems: 'center' },
   loadingContainer: {
     flex: 1,
     backgroundColor: '#05060A',
@@ -376,14 +375,17 @@ const styles = StyleSheet.create({
   backIcon: { color: 'rgba(215,192,138,0.9)', fontSize: 30, marginLeft: 2 },
   screenTitle: {
     color: 'rgba(215,192,138,0.92)',
-    fontSize: 26,
-    letterSpacing: 1.2,
+    fontSize: 28,
+    letterSpacing: 2,
     fontFamily: Platform.select({
       ios: 'CormorantGaramond-Regular',
       android: 'serif',
     }),
     maxWidth: '78%',
     textAlign: 'center',
+    textShadowColor: 'rgba(240, 212, 168, 0.4)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 16,
   },
   titleRightSpacer: { width: 44, height: 44 },
 

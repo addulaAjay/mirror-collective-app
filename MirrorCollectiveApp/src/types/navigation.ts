@@ -56,9 +56,20 @@ export type RootStackParamList = {
     recipientId?: string;
     recipient?: any;
   };
-  NewEchoAudioScreen: undefined;
-  NewEchoVideoScreen: undefined;
+  NewEchoAudioScreen: {
+    recipientId?: string;
+    recipientName?: string;
+    title?: string;
+    category?: string;
+  };
+  NewEchoVideoScreen: {
+    recipientId?: string;
+    recipientName?: string;
+    title?: string;
+    category?: string;
+  };
   ManageGuardianScreen: undefined;
+  ManageRecipientScreen: undefined;
   ChooseGuardianScreen: undefined;
   ChooseRecipientScreen: {
     title: string;

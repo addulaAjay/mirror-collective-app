@@ -270,12 +270,15 @@ const styles = StyleSheet.create({
   title: {
     textAlign: 'center',
     color: GOLD,
-    fontSize: 26,
-    letterSpacing: 1.5,
+    fontSize: 28,
+    letterSpacing: 2,
     fontFamily: Platform.select({
       ios: 'CormorantGaramond-Regular',
       android: 'serif',
     }),
+    textShadowColor: 'rgba(240, 212, 168, 0.4)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 16,
   },
 
   description: {

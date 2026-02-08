@@ -73,16 +73,14 @@ const EchoVideoPlaybackScreen: React.FC<Props> = ({ navigation, route }) => {
   };
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <StatusBar
-        barStyle="light-content"
-        translucent
-        backgroundColor="transparent"
-      />
+    <BackgroundWrapper style={styles.root}>
+      <SafeAreaView style={styles.safe}>
+        <StatusBar
+          barStyle="light-content"
+          translucent
+          backgroundColor="transparent"
+        />
 
-      <BackgroundWrapper style={styles.root}>
-
-        {/* Header */}
         {/* Header */}
         <LogoHeader navigation={navigation} />
 
@@ -170,8 +168,8 @@ const EchoVideoPlaybackScreen: React.FC<Props> = ({ navigation, route }) => {
           <ActionPrimaryButton label="VAULT" />
           <ActionIconButton label="✎" />
         </View>
-      </BackgroundWrapper>
-    </SafeAreaView>
+      </SafeAreaView>
+    </BackgroundWrapper>
   );
 };
 
@@ -212,7 +210,7 @@ const ActionPrimaryButton = ({ label }: { label: string }) => (
 /* ---------- Styles ---------- */
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#05060A' },
+  safe: { flex: 1, backgroundColor: 'transparent', alignItems: 'center' },
   root: {
     flex: 1,
     alignItems: 'center',
@@ -256,14 +254,17 @@ const styles = StyleSheet.create({
   backIcon: { color: GOLD, fontSize: 30 },
   screenTitle: {
     color: GOLD,
-    fontSize: 26,
-    letterSpacing: 1.2,
+    fontSize: 28,
+    letterSpacing: 2,
     textAlign: 'center',
     maxWidth: '78%',
     fontFamily: Platform.select({
       ios: 'CormorantGaramond-Regular',
       android: 'serif',
     }),
+    textShadowColor: 'rgba(240, 212, 168, 0.4)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 16,
   },
   titleRightSpacer: { width: 44 },
 

@@ -26,6 +26,7 @@ import MirrorEchoVaultHomeScreen from '@screens/echoVault/EchoVaultHomeScreen';
 import MirrorEchoVaultLibraryScreen from '@screens/echoVault/EchoVaultLibraryScreen';
 import EchoVideoPlaybackScreen from '@screens/echoVault/EchoVideoPlaybackScreen';
 import ManageGuardianScreen from '@screens/echoVault/ManageGuardianScreen';
+import ManageRecipientScreen from '@screens/echoVault/ManageRecipientScreen';
 import NewEchoAudioScreen from '@screens/echoVault/NewEchoAudioScreen';
 import NewEchoComposeScreen from '@screens/echoVault/NewEchoComposeScreen';
 import NewEchoScreen from '@screens/echoVault/NewEchoVaultScreen';
@@ -172,6 +173,7 @@ const AuthenticatedNavigator = () => (
     <Stack.Screen name="NewEchoAudioScreen" component={NewEchoAudioScreen} />
     <Stack.Screen name="NewEchoVideoScreen" component={NewEchoVideoScreen} />
     <Stack.Screen name="ManageGuardianScreen" component={ManageGuardianScreen} />
+    <Stack.Screen name="ManageRecipientScreen" component={ManageRecipientScreen} />
     <Stack.Screen name="ChooseGuardianScreen" component={ChooseGuardianScreen} />
     <Stack.Screen name="ChooseRecipientScreen" component={ChooseRecipientScreen} />
     <Stack.Screen name="AddNewProfileScreen" component={AddNewProfileScreen} />

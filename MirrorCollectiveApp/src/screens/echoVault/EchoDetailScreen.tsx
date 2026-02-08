@@ -308,14 +308,17 @@ const styles = StyleSheet.create({
   backIcon: { color: 'rgba(215,192,138,0.9)', fontSize: 30, marginLeft: 2 },
   screenTitle: {
     color: 'rgba(215,192,138,0.92)',
-    fontSize: 26,
-    letterSpacing: 1.2,
+    fontSize: 28,
+    letterSpacing: 2,
     fontFamily: Platform.select({
       ios: 'CormorantGaramond-Regular',
       android: 'serif',
     }),
     maxWidth: '78%',
     textAlign: 'center',
+    textShadowColor: 'rgba(240, 212, 168, 0.4)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 16,
   },
   titleRightSpacer: { width: 44, height: 44 },
 

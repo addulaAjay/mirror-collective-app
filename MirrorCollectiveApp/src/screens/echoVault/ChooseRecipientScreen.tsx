@@ -18,6 +18,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '@types';
 import { echoApiService, Recipient } from '@services/api/echo';
 import LogoHeader from '@components/LogoHeader';
+import StarIcon from '@components/StarIcon';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ChooseRecipientScreen'>;
 
@@ -79,14 +80,13 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
   };
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <StatusBar
-        barStyle="light-content"
-        translucent
-        backgroundColor="transparent"
-      />
-
-      <BackgroundWrapper style={styles.root}>
+    <BackgroundWrapper style={styles.root}>
+      <SafeAreaView style={styles.safe}>
+        <StatusBar
+          barStyle="light-content"
+          translucent
+          backgroundColor="transparent"
+        />
 
         {/* Header */}
         {/* Header */}
@@ -118,9 +118,11 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
           </TouchableOpacity>
 
           {/* Legacy */}
-          <View style={styles.legacyHeader}>
+          <View style={styles.legacyRow}>
             <Text style={styles.label}>Legacy</Text>
-            <Text style={styles.infoIcon}>ⓘ</Text>
+            <TouchableOpacity hitSlop={10}>
+              <Text style={styles.infoIcon}>ⓘ</Text>
+            </TouchableOpacity>
           </View>
 
           <Text style={styles.subLabel}>Is this a legacy echo?</Text>
@@ -178,13 +180,13 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
 
         {/* Next */}
         <TouchableOpacity
-          style={[styles.nextWrap, !selectedRecipient && styles.disabled]}
+          style={[styles.nextAction, !selectedRecipient && styles.disabled]}
           onPress={handleNext}
           disabled={!selectedRecipient}
         >
-          <View style={styles.nextButton}>
-            <Text style={styles.nextText}>NEXT</Text>
-          </View>
+          <StarIcon width={24} height={24} color={GOLD} />
+          <Text style={styles.nextActionText}>NEXT</Text>
+          <StarIcon width={24} height={24} color={GOLD} />
         </TouchableOpacity>
 
         {/* Dropdown Modal */}
@@ -233,8 +235,8 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
             </View>
           </TouchableOpacity>
         </Modal>
-      </BackgroundWrapper>
-    </SafeAreaView>
+      </SafeAreaView>
+    </BackgroundWrapper>
   );
 };
 
@@ -260,10 +262,9 @@ const CheckOption = ({
 /* ---------------- STYLES ---------------- */
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#05060A' },
+  safe: { flex: 1, backgroundColor: 'transparent', alignItems: 'center' },
   root: {
     flex: 1,
-    alignItems: 'center',
   },
 
   /* Header */
@@ -296,8 +297,11 @@ const styles = StyleSheet.create({
   title: {
     textAlign: 'center',
     color: GOLD,
-    fontSize: 26,
-    letterSpacing: 1.5,
+    fontSize: 28,
+    letterSpacing: 0,
+    textShadowColor: GOLD,
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 16,
     fontFamily: Platform.select({
       ios: 'CormorantGaramond-Regular',
       android: 'serif',
@@ -309,31 +313,45 @@ const styles = StyleSheet.create({
 
   label: {
     color: GOLD,
-    fontSize: 16,
+    fontSize: 20,
     marginBottom: 6,
     fontFamily: Platform.select({
-      ios: 'CormorantGaramond-Regular',
+      ios: 'CormorantGaramond-Medium',
       android: 'serif',
     }),
   },
   subLabel: {
-    color: SUBTEXT,
-    fontSize: 14,
-    marginBottom: 6,
+    color: '#60739F',
+    fontSize: 16,
+    fontStyle: 'italic',
+    marginBottom: 8,
+    fontFamily: Platform.select({
+      ios: 'Inter-Italic',
+      android: 'sans-serif',
+    }),
   },
-  subtle: { color: SUBTEXT, fontSize: 12 },
+  subtle: { 
+    color: GOLD, 
+    fontSize: 14,
+    fontFamily: Platform.select({
+      ios: 'Inter-Light',
+      android: 'sans-serif',
+    }),
+    opacity: 0.8,
+  },
 
   inputShell: {
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: BORDER,
-    backgroundColor: 'rgba(7,9,14,0.35)',
-    paddingHorizontal: 14,
-    paddingVertical: 14,
+    borderRadius: 12,
+    borderWidth: 0.5,
+    borderColor: '#60739F',
+    backgroundColor: 'rgba(253,253,249,0.04)',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 12,
+    minHeight: 48,
   },
   placeholder: {
     color: 'rgba(253,253,249,0.55)',
@@ -346,13 +364,18 @@ const styles = StyleSheet.create({
   chevron: { color: OFFWHITE, fontSize: 16 },
   calendar: { fontSize: 16 },
 
-  legacyHeader: {
+  legacyRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    marginTop: 6,
+    gap: 8,
+    marginTop: 18,
+    marginBottom: 6,
   },
-  infoIcon: { color: GOLD, fontSize: 14 },
+  infoIcon: { 
+    color: GOLD, 
+    fontSize: 16,
+    opacity: 0.8,
+  },
 
   row: {
     flexDirection: 'row',
@@ -367,9 +390,9 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   checkbox: {
-    width: 18,
-    height: 18,
-    borderRadius: 3,
+    width: 16,
+    height: 16,
+    borderRadius: 0, // Making it a square for now, or match Figma's Component 7
     borderWidth: 1,
     borderColor: GOLD,
     backgroundColor: 'transparent',
@@ -378,9 +401,12 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(215,192,138,0.7)',
   },
   checkLabel: {
-    color: OFFWHITE,
+    color: GOLD,
     fontSize: 14,
-    letterSpacing: 1,
+    fontFamily: Platform.select({
+      ios: 'Inter-Regular',
+      android: 'sans-serif',
+    }),
   },
   checkboxLabel: {
     color: OFFWHITE,
@@ -400,23 +426,25 @@ const styles = StyleSheet.create({
   },
 
   /* Next */
-  nextWrap: { marginTop: 10 },
-  nextButton: {
-    paddingHorizontal: 36,
-    paddingVertical: 12,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: 'rgba(215,192,138,0.45)',
-    backgroundColor: 'rgba(7,9,14,0.4)',
+  nextAction: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+    justifyContent: 'center',
+    marginTop: 40,
+    marginBottom: 40,
   },
-  nextText: {
+  nextActionText: {
     color: GOLD,
-    fontSize: 18,
-    letterSpacing: 1.5,
+    fontSize: 24,
     fontFamily: Platform.select({
       ios: 'CormorantGaramond-Regular',
       android: 'serif',
     }),
+    textShadowColor: 'rgba(229, 214, 176, 0.5)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 9,
+    letterSpacing: 2,
   },
   disabled: {
     opacity: 0.5,
