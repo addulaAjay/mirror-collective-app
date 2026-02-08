@@ -13,11 +13,13 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
+import BackgroundWrapper from '@components/BackgroundWrapper';
 import LinearGradient from 'react-native-linear-gradient';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import AudioRecorderPlayer from 'react-native-audio-recorder-player';
 import { RootStackParamList } from '@types';
 import { echoApiService, EchoResponse } from '@services/api/echo';
+import LogoHeader from '@components/LogoHeader';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'EchoAudioPlaybackScreen'>;
 
@@ -150,36 +152,11 @@ const EchoAudioPlaybackScreen: React.FC<Props> = ({ navigation, route }) => {
         translucent
         backgroundColor="transparent"
       />
-      <View style={styles.root}>
-        {/* Background */}
-        <LinearGradient
-          colors={['#05060A', '#070915', '#0B0F1A']}
-          style={StyleSheet.absoluteFill}
-        />
+      <BackgroundWrapper style={styles.root}>
 
         {/* Header */}
-        <View style={[styles.headerRow, { width: contentWidth }]}>
-          <TouchableOpacity
-            activeOpacity={0.85}
-            style={styles.iconBtn}
-            onPress={() => {}}
-          >
-            <Text style={styles.iconText}>≡</Text>
-          </TouchableOpacity>
-
-          <View style={styles.brandWrap}>
-            <View style={styles.logoCircle}>
-              <Text style={styles.logoMark}>⟡</Text>
-            </View>
-            <View style={styles.brandTextWrap}>
-              <Text style={styles.brandTop}>The</Text>
-              <Text style={styles.brandMain}>MIRROR</Text>
-              <Text style={styles.brandMain}>COLLECTIVE</Text>
-            </View>
-          </View>
-
-          <View style={styles.headerRightSpacer} />
-        </View>
+        {/* Header */}
+        <LogoHeader navigation={navigation} />
 
         {/* Back + Title */}
         <View style={[styles.titleRow, { width: contentWidth }]}>
@@ -249,7 +226,7 @@ const EchoAudioPlaybackScreen: React.FC<Props> = ({ navigation, route }) => {
           <ActionPrimaryButton label="VAULT" onPress={() => {}} />
           <ActionIconButton label="✎" onPress={() => {}} />
         </View>
-      </View>
+      </BackgroundWrapper>
     </SafeAreaView>
   );
 };
@@ -387,7 +364,7 @@ const styles = StyleSheet.create({
   headerRightSpacer: { width: 44, height: 44 },
 
   titleRow: {
-    marginTop: 18,
+    marginTop: 120,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',

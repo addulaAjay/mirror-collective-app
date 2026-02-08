@@ -12,10 +12,12 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
+import BackgroundWrapper from '@components/BackgroundWrapper';
 import Video, { VideoRef } from 'react-native-video';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '@types';
 import { echoApiService, EchoResponse } from '../../services/api/echo';
+import LogoHeader from '@components/LogoHeader';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'EchoVideoPlaybackScreen'>;
 
@@ -78,30 +80,11 @@ const EchoVideoPlaybackScreen: React.FC<Props> = ({ navigation, route }) => {
         backgroundColor="transparent"
       />
 
-      <View style={styles.root}>
-        {/* Background */}
-        <LinearGradient
-          colors={['#05060A', '#070915', '#0B0F1A']}
-          style={StyleSheet.absoluteFill}
-        />
+      <BackgroundWrapper style={styles.root}>
 
         {/* Header */}
-        <View style={[styles.headerRow, { width: contentWidth }]}>
-          <TouchableOpacity style={styles.iconBtn}>
-            <Text style={styles.iconText}>≡</Text>
-          </TouchableOpacity>
-
-          <View style={styles.brandWrap}>
-            <View style={styles.logoCircle} />
-            <View style={styles.brandTextWrap}>
-              <Text style={styles.brandTop}>The</Text>
-              <Text style={styles.brandMain}>MIRROR</Text>
-              <Text style={styles.brandMain}>COLLECTIVE</Text>
-            </View>
-          </View>
-
-          <View style={styles.headerRightSpacer} />
-        </View>
+        {/* Header */}
+        <LogoHeader navigation={navigation} />
 
         {/* Back + Title */}
         <View style={[styles.titleRow, { width: contentWidth }]}>
@@ -187,7 +170,7 @@ const EchoVideoPlaybackScreen: React.FC<Props> = ({ navigation, route }) => {
           <ActionPrimaryButton label="VAULT" />
           <ActionIconButton label="✎" />
         </View>
-      </View>
+      </BackgroundWrapper>
     </SafeAreaView>
   );
 };
@@ -266,7 +249,7 @@ const styles = StyleSheet.create({
 
   /* Title */
   titleRow: {
-    marginTop: 18,
+    marginTop: 120,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',

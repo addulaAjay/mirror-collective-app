@@ -104,17 +104,7 @@ export function EchoLibraryContent() {
       />
 
       <BackgroundWrapper style={styles.background}>
-        <View style={styles.topRow}>
-          <TouchableOpacity onPress={handleMenu} style={styles.iconButton}>
-            <Text style={styles.menuIcon}>☰</Text>
-          </TouchableOpacity>
-
-          <View style={styles.logoWrap}>
-            <LogoHeader containerStyle={styles.inlineLogoHeader} />
-          </View>
-
-          <View style={styles.iconSpacer} />
-        </View>
+        <LogoHeader navigation={navigation} />
 
         <View style={styles.contentWrapper}>
           <Text style={styles.title}>MY ECHO LIBRARY</Text>
@@ -274,7 +264,7 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
     alignItems: 'center',
-    paddingTop: 18,
+    paddingTop: 120,
     paddingBottom: Platform.OS === 'ios' ? 18 : 12,
   },
 

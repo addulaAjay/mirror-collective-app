@@ -104,21 +104,7 @@ export function MirrorEchoContent() {
       />
 
       <BackgroundWrapper style={styles.background}>
-        <View style={styles.topRow}>
-          <TouchableOpacity
-            onPress={handleMenu}
-            activeOpacity={0.85}
-            style={styles.iconButton}
-          >
-            <Text style={styles.menuIcon}>☰</Text>
-          </TouchableOpacity>
-
-          <View style={styles.logoWrap}>
-            <LogoHeader />
-          </View>
-
-          <View style={styles.iconSpacer} />
-        </View>
+        <LogoHeader navigation={navigation} />
 
         <ScrollView
           style={styles.scroll}
@@ -240,7 +226,7 @@ const styles = StyleSheet.create({
   scroll: {
     flex: 1,
     width: '100%',
-    marginTop: 14,
+    marginTop: 120,
   },
 
   scrollContent: {

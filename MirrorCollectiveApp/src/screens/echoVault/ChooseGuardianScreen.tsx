@@ -13,10 +13,11 @@ import {
   ActivityIndicator,
   Modal,
 } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
+import BackgroundWrapper from '@components/BackgroundWrapper';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '@types';
 import { echoApiService, Guardian } from '@services/api/echo';
+import LogoHeader from '@components/LogoHeader';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ChooseGuardianScreen'>;
 
@@ -80,30 +81,11 @@ const ChooseGuardianScreen: React.FC<Props> = ({ navigation }) => {
         backgroundColor="transparent"
       />
 
-      <View style={styles.root}>
-        {/* Background */}
-        <LinearGradient
-          colors={['#05060A', '#070915', '#0B0F1A']}
-          style={StyleSheet.absoluteFill}
-        />
+      <BackgroundWrapper style={styles.root}>
 
         {/* Header */}
-        <View style={[styles.header, { width: contentWidth }]}>
-          <TouchableOpacity style={styles.iconBtn}>
-            <Text style={styles.iconText}>≡</Text>
-          </TouchableOpacity>
-
-          <View style={styles.brand}>
-            <View style={styles.logoCircle} />
-            <View>
-              <Text style={styles.brandSmall}>The</Text>
-              <Text style={styles.brandText}>MIRROR</Text>
-              <Text style={styles.brandText}>COLLECTIVE</Text>
-            </View>
-          </View>
-
-          <View style={{ width: 44 }} />
-        </View>
+        {/* Header */}
+        <LogoHeader navigation={navigation} />
 
         {/* Title */}
         <View style={[styles.titleRow, { width: contentWidth }]}>
@@ -226,7 +208,7 @@ const ChooseGuardianScreen: React.FC<Props> = ({ navigation }) => {
             </View>
           </TouchableOpacity>
         </Modal>
-      </View>
+      </BackgroundWrapper>
     </SafeAreaView>
   );
 };
@@ -298,7 +280,7 @@ const styles = StyleSheet.create({
 
   /* Title */
   titleRow: {
-    marginTop: 18,
+    marginTop: 120,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',

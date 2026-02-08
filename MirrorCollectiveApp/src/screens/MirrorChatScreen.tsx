@@ -24,10 +24,12 @@ import AuthenticatedRoute from '@components/AuthenticatedRoute';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
 import { MessageBubble, ChatInput, LoadingIndicator } from '@components/ui';
+import { useNavigation } from '@react-navigation/native';
 import { useChat } from '@hooks/useChat';
 
 // Export content component for testing
 export function MirrorChatContent() {
+  const navigation = useNavigation();
   const {
     messages,
     draft,
@@ -77,7 +79,7 @@ export function MirrorChatContent() {
         />
 
         <BackgroundWrapper style={styles.background}>
-          <LogoHeader />
+          <LogoHeader navigation={navigation} />
 
           <View style={styles.chatWrapper}>
             <LinearGradient

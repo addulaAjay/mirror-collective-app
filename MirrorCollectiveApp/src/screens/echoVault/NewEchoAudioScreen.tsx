@@ -12,8 +12,10 @@ import {
   Pressable,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
+import BackgroundWrapper from '@components/BackgroundWrapper';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '@types';
+import LogoHeader from '@components/LogoHeader';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'NewEchoAudioScreen'>;
 
@@ -46,39 +48,11 @@ const NewEchoAudioScreen: React.FC<Props> = ({ navigation }) => {
         backgroundColor="transparent"
       />
 
-      <View style={styles.root}>
-        {/* Background */}
-        <LinearGradient
-          colors={['#05060A', '#070915', '#0B0F1A']}
-          style={StyleSheet.absoluteFill}
-        />
+      <BackgroundWrapper style={styles.root}>
 
         {/* Header: hamburger + centered brand */}
-        <View style={[styles.headerRow, { width: contentWidth }]}>
-          <TouchableOpacity
-            activeOpacity={0.85}
-            style={styles.iconBtn}
-            onPress={() => {}}
-          >
-            <Text style={styles.iconText}>≡</Text>
-          </TouchableOpacity>
-
-          <View style={styles.brandWrap}>
-            {/* Replace with your actual logo */}
-            <View style={styles.logoCircle}>
-              <Text style={styles.logoMark}>⟡</Text>
-            </View>
-
-            <View style={styles.brandTextWrap}>
-              <Text style={styles.brandTop}>The</Text>
-              <Text style={styles.brandMain}>MIRROR</Text>
-              <Text style={styles.brandMain}>COLLECTIVE</Text>
-            </View>
-          </View>
-
-          {/* spacer keeps logo centered */}
-          <View style={styles.headerRightSpacer} />
-        </View>
+        {/* Header: hamburger + centered brand */}
+        <LogoHeader navigation={navigation} />
 
         {/* Back + title */}
         <View style={[styles.titleRow, { width: contentWidth }]}>
@@ -126,7 +100,7 @@ const NewEchoAudioScreen: React.FC<Props> = ({ navigation }) => {
             <PillButton label="SAVE" onPress={onSave} />
           </View>
         </View>
-      </View>
+      </BackgroundWrapper>
     </SafeAreaView>
   );
 };
@@ -233,7 +207,7 @@ const styles = StyleSheet.create({
   headerRightSpacer: { width: 44, height: 44 },
 
   titleRow: {
-    marginTop: 18,
+    marginTop: 120,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',

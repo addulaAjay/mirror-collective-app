@@ -21,6 +21,8 @@ import AudioRecorderPlayer from 'react-native-audio-recorder-player';
 import { Camera, useCameraDevice, useCameraPermission, useMicrophonePermission } from 'react-native-vision-camera';
 import { echoApiService } from '@services/api';
 import { RootStackParamList } from '@types';
+import LogoHeader from '@components/LogoHeader';
+import BackgroundWrapper from '@components/BackgroundWrapper';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'NewEchoComposeScreen'>;
 
@@ -246,37 +248,10 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
         backgroundColor="transparent"
       />
 
-      <View style={styles.root}>
-        {/* Background */}
-        <LinearGradient
-          colors={['#05060A', '#070915', '#0B0F1A']}
-          style={StyleSheet.absoluteFill}
-        />
+      <BackgroundWrapper style={styles.root}>
 
         {/* Header (menu + centered brand) */}
-        <View style={[styles.headerRow, { width: contentWidth }]}>
-          <TouchableOpacity
-            activeOpacity={0.85}
-            style={styles.iconBtn}
-            onPress={() => {}}
-          >
-            <Text style={styles.iconText}>≡</Text>
-          </TouchableOpacity>
-
-          <View style={styles.brandWrap}>
-            <View style={styles.logoCircle}>
-              <Text style={styles.logoMark}>⟡</Text>
-            </View>
-            <View style={styles.brandTextWrap}>
-              <Text style={styles.brandTop}>The</Text>
-              <Text style={styles.brandMain}>MIRROR</Text>
-              <Text style={styles.brandMain}>COLLECTIVE</Text>
-            </View>
-          </View>
-
-          {/* spacer keeps brand optically centered */}
-          <View style={styles.headerRightSpacer} />
-        </View>
+        <LogoHeader navigation={navigation} />
 
         {/* Back + Title (centered) */}
         <View style={[styles.titleRow, { width: contentWidth }]}>
@@ -416,7 +391,7 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
             </Pressable>
           </Pressable>
         </Modal>
-      </View>
+      </BackgroundWrapper>
     </SafeAreaView>
   );
 };
@@ -526,7 +501,7 @@ const styles = StyleSheet.create({
   headerRightSpacer: { width: 44, height: 44 },
 
   titleRow: {
-    marginTop: 18,
+    marginTop: 120,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',

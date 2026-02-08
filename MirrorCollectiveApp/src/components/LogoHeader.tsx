@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 
 import MirrorSideMenu from '../screens/NavigationMenuScreen';
+import { useUser } from '../context/UserContext';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -32,6 +33,8 @@ const LogoHeader = ({
   onMenuPress,
 }: LogoHeaderProps) => {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const { user } = useUser();
+  const displayName = user?.fullName || 'Guest';
 
   // If onMenuPress is provided, use it. Otherwise, use internal drawer state.
   const handleMenuPress = () => {
@@ -46,7 +49,7 @@ const LogoHeader = ({
     <>
       <MirrorSideMenu
         isOpen={drawerOpen}
-        userName="Stacey Finster"
+        userName={displayName}
         onClose={() => setDrawerOpen(false)}
         onNavigate={route => {
           setDrawerOpen(false);

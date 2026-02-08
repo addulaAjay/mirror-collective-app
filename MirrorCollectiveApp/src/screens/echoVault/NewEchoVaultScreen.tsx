@@ -14,9 +14,11 @@ import {
   Pressable,
   Platform,
 } from 'react-native';
+import BackgroundWrapper from '@components/BackgroundWrapper';
 import LinearGradient from 'react-native-linear-gradient';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '@types';
+import LogoHeader from '@components/LogoHeader';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'NewEchoScreen'>;
 
@@ -71,41 +73,11 @@ const NewEchoScreen: React.FC<Props> = ({ navigation }) => {
       />
 
       {/* Background */}
-      <View style={styles.root}>
-        {/* If you have a real background image, replace with ImageBackground */}
-        <LinearGradient
-          colors={['#06070A', '#0A0C12', '#0B0F1A']}
-          style={StyleSheet.absoluteFill}
-        />
+      <BackgroundWrapper style={styles.root}>
 
         {/* Top Header */}
-        <View style={[styles.headerRow, { width: contentWidth }]}>
-          <TouchableOpacity
-            activeOpacity={0.8}
-            style={styles.iconBtn}
-            onPress={() => {
-              // open drawer / menu
-            }}
-          >
-            <Text style={styles.iconText}>≡</Text>
-          </TouchableOpacity>
-
-          <View style={styles.brandWrap}>
-            {/* Replace with your logo asset */}
-            <View style={styles.logoCircle}>
-              <Text style={styles.logoMark}>⟡</Text>
-            </View>
-
-            <View style={styles.brandTextWrap}>
-              <Text style={styles.brandTop}>The</Text>
-              <Text style={styles.brandMain}>MIRROR</Text>
-              <Text style={styles.brandMain}>COLLECTIVE</Text>
-            </View>
-          </View>
-
-          {/* spacer to keep brand centered */}
-          <View style={styles.headerRightSpacer} />
-        </View>
+        {/* Top Header */}
+        <LogoHeader navigation={navigation} />
 
         {/* Back row + title */}
         <View style={[styles.titleRow, { width: contentWidth }]}>
@@ -275,7 +247,7 @@ const NewEchoScreen: React.FC<Props> = ({ navigation }) => {
             </Pressable>
           </Pressable>
         </Modal>
-      </View>
+      </BackgroundWrapper>
     </SafeAreaView>
   );
 };
@@ -374,7 +346,7 @@ const styles = StyleSheet.create({
   },
 
   titleRow: {
-    marginTop: 26,
+    marginTop: 120,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',

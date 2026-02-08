@@ -13,6 +13,7 @@ import {
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
 import StarIcon from '@components/StarIcon';
+import { useUser } from '@context/UserContext';
 import type { RootStackParamList } from '@types';
 
 interface Props {
@@ -30,6 +31,9 @@ const MENU_OPTIONS = [
 ];
 
 const TalkToMirrorScreen: React.FC<Props> = ({ navigation }) => {
+  const { user } = useUser();
+  const firstName = user?.fullName ? user.fullName.split(' ')[0] : 'Friend';
+
   const handleTalkPress = () => {
     navigation.navigate('MirrorChat');
   };
@@ -62,7 +66,7 @@ const TalkToMirrorScreen: React.FC<Props> = ({ navigation }) => {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.contentContainer}>
-          <Text style={styles.greeting}>Welcome back, Stacey</Text>
+          <Text style={styles.greeting}>Welcome back, {firstName}</Text>
 
           <View style={styles.heroWrapper}>
             <Image

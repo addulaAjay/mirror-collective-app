@@ -346,6 +346,7 @@
 					"-lc++",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.mirrorcollective.app;
+				CODE_SIGN_ENTITLEMENTS = MirrorCollectiveApp/MirrorCollectiveApp.entitlements;
 				PRODUCT_NAME = MirrorCollectiveApp;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -375,6 +376,7 @@
 					"-lc++",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.mirrorcollective.app;
+				CODE_SIGN_ENTITLEMENTS = MirrorCollectiveApp/MirrorCollectiveApp.entitlements;
 				PRODUCT_NAME = MirrorCollectiveApp;
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
