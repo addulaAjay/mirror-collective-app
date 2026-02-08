@@ -12,12 +12,12 @@ import {
   Text,
   StyleSheet,
   StatusBar,
-  SafeAreaView,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
   Keyboard,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 
 import AuthenticatedRoute from '@components/AuthenticatedRoute';
@@ -71,14 +71,8 @@ export function MirrorChatContent() {
         Platform.OS === 'ios' ? PLATFORM_SPECIFIC.STATUS_BAR_HEIGHT : -70
       }
     >
-      <SafeAreaView style={styles.safeArea}>
-        <StatusBar
-          translucent
-          backgroundColor="transparent"
-          barStyle="light-content"
-        />
-
-        <BackgroundWrapper style={styles.background}>
+      <BackgroundWrapper style={styles.background}>
+        <SafeAreaView style={styles.safeArea}>
           <LogoHeader navigation={navigation} />
 
           <View style={styles.chatWrapper}>
@@ -124,8 +118,8 @@ export function MirrorChatContent() {
               <Text style={styles.footerText} />
             </View>
           </View>
-        </BackgroundWrapper>
-      </SafeAreaView>
+        </SafeAreaView>
+      </BackgroundWrapper>
     </KeyboardAvoidingView>
   );
 }
@@ -141,8 +135,7 @@ export default function MirrorChatScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: COLORS.BACKGROUND.PRIMARY,
-    paddingTop: PLATFORM_SPECIFIC.STATUS_BAR_HEIGHT,
+    backgroundColor: 'transparent',
   },
   keyboardContainer: {
     flex: 1,
@@ -150,8 +143,6 @@ const styles = StyleSheet.create({
 
   background: {
     flex: 1,
-    // paddingTop: 120, // Space for LogoHeader (48 + 46 + 26 margin)
-    paddingHorizontal: SPACING.XL,
     justifyContent: 'flex-start',
   },
 
@@ -159,6 +150,7 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
     paddingTop: 20,
+    paddingHorizontal: SPACING.XL,
   },
 
   footerText: {
@@ -204,7 +196,7 @@ const styles = StyleSheet.create({
     lineHeight: 28,
     color: COLORS.TEXT.TITLE,
     textAlign: 'center',
-    paddingTop: 50,
+    paddingTop: 30,
   },
 
   messagesWrapper: {

@@ -3,12 +3,12 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   StatusBar,
   TouchableOpacity,
   Dimensions,
   Platform,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -26,16 +26,14 @@ const NewEchoVideoScreen: React.FC<Props> = ({ navigation }) => {
   const contentWidth = Math.min(width * 0.88, 360);
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <StatusBar
-        barStyle="light-content"
-        translucent
-        backgroundColor="transparent"
-      />
+    <BackgroundWrapper style={styles.root}>
+      <SafeAreaView style={styles.safe}>
+        <StatusBar
+          barStyle="light-content"
+          translucent
+          backgroundColor="transparent"
+        />
 
-      <BackgroundWrapper style={styles.root}>
-
-        {/* Header */}
         {/* Header */}
         <LogoHeader navigation={navigation} />
 
@@ -67,10 +65,10 @@ const NewEchoVideoScreen: React.FC<Props> = ({ navigation }) => {
             <Text style={styles.saveText}>SAVE</Text>
           </View>
         </TouchableOpacity>
-      </BackgroundWrapper>
-    </SafeAreaView>
+      </SafeAreaView>
+    </BackgroundWrapper>
   );
-};
+}
 
 export default NewEchoVideoScreen;
 
@@ -79,17 +77,15 @@ export default NewEchoVideoScreen;
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#05060A',
+    backgroundColor: 'transparent',
   },
   root: {
     flex: 1,
     alignItems: 'center',
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight ?? 0 : 0,
   },
 
   /* Header */
   header: {
-    marginTop: 10,
     height: 56,
     flexDirection: 'row',
     alignItems: 'center',
@@ -129,7 +125,7 @@ const styles = StyleSheet.create({
 
   /* Title */
   titleRow: {
-    marginTop: 120,
+    marginTop: 20,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',

@@ -4,16 +4,15 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   StatusBar,
   TouchableOpacity,
   TextInput,
   Dimensions,
-  Image,
   Modal,
   Pressable,
   Platform,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LinearGradient from 'react-native-linear-gradient';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -52,47 +51,55 @@ const NewEchoScreen: React.FC<Props> = ({ navigation }) => {
 
   const onNext = () => {
     if (!title.trim()) {
-      // Alert.alert('Creating Echo', 'Please enter a title'); // valid validation
       return;
     }
+
+    if (recipientChoice === 'yes') {
+      navigation.navigate('ChooseRecipientScreen', {
+        title,
+        category: category || 'Uncategorized',
+        mode: selectedMode,
+      });
+      return;
+    }
+
     // Navigate to Compose screen with params
     navigation.navigate('NewEchoComposeScreen', {
       mode: selectedMode,
       title: title,
       category: category || 'Uncategorized',
-      hasRecipient: recipientChoice === 'yes'
+      hasRecipient: false,
     });
   };
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <StatusBar
-        barStyle="light-content"
-        translucent
-        backgroundColor="transparent"
-      />
+    <BackgroundWrapper style={styles.root}>
+      <SafeAreaView style={styles.safe}>
+        <StatusBar
+          barStyle="light-content"
+          translucent
+          backgroundColor="transparent"
+        />
 
-      {/* Background */}
-      <BackgroundWrapper style={styles.root}>
-
-        {/* Top Header */}
         {/* Top Header */}
         <LogoHeader navigation={navigation} />
 
         {/* Back row + title */}
-        <View style={[styles.titleRow, { width: contentWidth }]}>
-          <TouchableOpacity
-            activeOpacity={0.8}
-            style={styles.backBtn}
-            onPress={() => navigation.goBack()}
-          >
-            <Text style={styles.backIcon}>‹</Text>
-          </TouchableOpacity>
+        <View style={styles.titleRowContainer}>
+          <View style={[styles.titleRow, { width: contentWidth }]}>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              style={styles.backBtn}
+              onPress={() => navigation.goBack()}
+            >
+              <Text style={styles.backIcon}>‹</Text>
+            </TouchableOpacity>
 
-          <Text style={styles.screenTitle}>NEW ECHO</Text>
+            <Text style={styles.screenTitle}>NEW ECHO</Text>
 
-          {/* spacer to balance back icon */}
-          <View style={styles.titleRightSpacer} />
+            {/* spacer to balance back icon */}
+            <View style={styles.titleRightSpacer} />
+          </View>
         </View>
 
         {/* Content */}
@@ -247,8 +254,8 @@ const NewEchoScreen: React.FC<Props> = ({ navigation }) => {
             </Pressable>
           </Pressable>
         </Modal>
-      </BackgroundWrapper>
-    </SafeAreaView>
+      </SafeAreaView>
+    </BackgroundWrapper>
   );
 };
 
@@ -280,73 +287,19 @@ const ActionSquare = ({
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#05060A',
+    backgroundColor: 'transparent',
+    alignItems: 'center',
   },
   root: {
     flex: 1,
-    alignItems: 'center',
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight ?? 0 : 0,
   },
 
-  headerRow: {
-    marginTop: 10,
-    height: 56,
-    flexDirection: 'row',
+  titleRowContainer: {
+    width: '100%',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    marginTop: 20,
   },
-  iconBtn: {
-    width: 44,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  iconText: {
-    color: OFFWHITE,
-    fontSize: 24,
-    opacity: 0.9,
-  },
-  brandWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  logoCircle: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    borderWidth: 1,
-    borderColor: 'rgba(215,192,138,0.55)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(215,192,138,0.10)',
-  },
-  logoMark: {
-    color: GOLD,
-    fontSize: 16,
-  },
-  brandTextWrap: {
-    alignItems: 'center',
-  },
-  brandTop: {
-    color: 'rgba(215,192,138,0.85)',
-    fontSize: 10,
-    letterSpacing: 1,
-    marginBottom: 1,
-  },
-  brandMain: {
-    color: 'rgba(215,192,138,0.92)',
-    fontSize: 12,
-    letterSpacing: 2,
-    lineHeight: 14,
-  },
-  headerRightSpacer: {
-    width: 44,
-    height: 44,
-  },
-
   titleRow: {
-    marginTop: 120,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',

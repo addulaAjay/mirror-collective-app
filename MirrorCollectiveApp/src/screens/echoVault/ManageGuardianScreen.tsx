@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   StatusBar,
   TouchableOpacity,
   Dimensions,
@@ -12,6 +11,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '@types';
@@ -69,7 +69,7 @@ const ManageGuardianScreen: React.FC<Props> = ({ navigation }) => {
             try {
               const response = await echoApiService.removeGuardian(id);
               if (response.success) {
-                setGuardians(prev => prev.filter(g => g.id !== id));
+                setGuardians(prev => prev.filter(g => g.guardian_id !== id));
               } else {
                 Alert.alert('Error', response.error || 'Failed to remove guardian');
               }
@@ -103,7 +103,7 @@ const ManageGuardianScreen: React.FC<Props> = ({ navigation }) => {
 
       <TouchableOpacity
         style={styles.deleteBtn}
-        onPress={() => handleRemoveGuardian(item.id)}
+        onPress={() => handleRemoveGuardian(item.guardian_id)}
       >
         <Text style={styles.deleteIcon}>🗑</Text>
       </TouchableOpacity>
@@ -111,28 +111,27 @@ const ManageGuardianScreen: React.FC<Props> = ({ navigation }) => {
   );
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <StatusBar
-        barStyle="light-content"
-        translucent
-        backgroundColor="transparent"
-      />
+    <BackgroundWrapper style={styles.root}>
+      <SafeAreaView style={styles.safe}>
+        <StatusBar
+          barStyle="light-content"
+          translucent
+          backgroundColor="transparent"
+        />
 
-      <BackgroundWrapper style={styles.root}>
-
-        {/* Header */}
-        {/* Header */}
         <LogoHeader navigation={navigation} />
 
         {/* Title */}
-        <View style={[styles.titleRow, { width: contentWidth }]}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Text style={styles.backArrow}>←</Text>
-          </TouchableOpacity>
+        <View style={styles.titleRowContainer}>
+          <View style={[styles.titleRow, { width: contentWidth }]}>
+            <TouchableOpacity onPress={() => navigation.goBack()}>
+              <Text style={styles.backArrow}>←</Text>
+            </TouchableOpacity>
 
-          <Text style={styles.title}>MANAGE GUARDIAN</Text>
+            <Text style={styles.title}>MANAGE{'\n'}GUARDIAN</Text>
 
-          <View style={{ width: 24 }} />
+            <View style={{ width: 24 }} />
+          </View>
         </View>
 
         {/* Description */}
@@ -153,7 +152,7 @@ const ManageGuardianScreen: React.FC<Props> = ({ navigation }) => {
         ) : (
           <FlatList
             data={guardians}
-            keyExtractor={item => item.id}
+            keyExtractor={item => item.guardian_id}
             style={{ width: contentWidth, marginTop: 10 }}
             contentContainerStyle={{ paddingBottom: 20 }}
             renderItem={renderGuardianRow}
@@ -169,8 +168,8 @@ const ManageGuardianScreen: React.FC<Props> = ({ navigation }) => {
             <Text style={styles.addText}>ADD GUARDIAN</Text>
           </View>
         </TouchableOpacity>
-      </BackgroundWrapper>
-    </SafeAreaView>
+      </SafeAreaView>
+    </BackgroundWrapper>
   );
 };
 
@@ -179,36 +178,18 @@ export default ManageGuardianScreen;
 /* ---------------- STYLES ---------------- */
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#05060A' },
+  safe: { flex: 1, backgroundColor: 'transparent', alignItems: 'center' },
   root: {
     flex: 1,
-    alignItems: 'center',
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight ?? 0 : 0,
   },
-
-  /* Header */
-  header: {
-    marginTop: 10,
-    height: 56,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  iconBtn: { width: 44, height: 44, justifyContent: 'center' },
-  iconText: { color: OFFWHITE, fontSize: 22 },
-  brand: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  logoCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: GOLD,
-  },
-  brandSmall: { color: GOLD, fontSize: 10, letterSpacing: 1 },
-  brandText: { color: GOLD, fontSize: 12, letterSpacing: 2, lineHeight: 14 },
 
   /* Title */
+  titleRowContainer: {
+    width: '100%',
+    alignItems: 'center',
+    marginTop: 20,
+  },
   titleRow: {
-    marginTop: 120,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',

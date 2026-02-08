@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   StatusBar,
   TouchableOpacity,
   TextInput,
@@ -15,6 +14,7 @@ import {
   ActivityIndicator,
   PermissionsAndroid,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import AudioRecorderPlayer from 'react-native-audio-recorder-player';
@@ -241,14 +241,13 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
   };
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <StatusBar
-        barStyle="light-content"
-        translucent
-        backgroundColor="transparent"
-      />
-
-      <BackgroundWrapper style={styles.root}>
+    <BackgroundWrapper style={styles.root}>
+      <SafeAreaView style={styles.safe}>
+        <StatusBar
+          barStyle="light-content"
+          translucent
+          backgroundColor="transparent"
+        />
 
         {/* Header (menu + centered brand) */}
         <LogoHeader navigation={navigation} />
@@ -391,8 +390,8 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
             </Pressable>
           </Pressable>
         </Modal>
-      </BackgroundWrapper>
-    </SafeAreaView>
+      </SafeAreaView>
+    </BackgroundWrapper>
   );
 };
 
@@ -451,15 +450,13 @@ const Waveform = () => {
 /** ---------- Styles ---------- */
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#05060A' },
+  safe: { flex: 1, backgroundColor: 'transparent' },
   root: {
     flex: 1,
     alignItems: 'center',
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight ?? 0 : 0,
   },
 
   headerRow: {
-    marginTop: 10,
     height: 56,
     flexDirection: 'row',
     alignItems: 'center',
@@ -501,7 +498,7 @@ const styles = StyleSheet.create({
   headerRightSpacer: { width: 44, height: 44 },
 
   titleRow: {
-    marginTop: 120,
+    marginTop: 20,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',

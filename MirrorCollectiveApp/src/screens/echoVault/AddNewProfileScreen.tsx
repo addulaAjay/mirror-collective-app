@@ -3,17 +3,19 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   StatusBar,
   TouchableOpacity,
   TextInput,
   Dimensions,
   Platform,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '@types';
 import LogoHeader from '@components/LogoHeader';
+import { echoApiService } from '@services/api/echo';
+import { Alert, ActivityIndicator } from 'react-native';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AddNewProfileScreen'>;
 
@@ -26,6 +28,36 @@ const SUBTEXT = 'rgba(253,253,249,0.75)';
 const AddNewProfileScreen: React.FC<Props> = ({ navigation }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [motif, setMotif] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleAddRecipient = async () => {
+    if (!name.trim() || !email.trim()) {
+      Alert.alert('Error', 'Please enter a name and email address');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await echoApiService.addRecipient({ 
+        name, 
+        email, 
+        motif: motif.trim() || undefined 
+      });
+      if (response.success) {
+        Alert.alert('Success', 'Recipient added successfully', [
+          { text: 'OK', onPress: () => navigation.goBack() }
+        ]);
+      } else {
+        Alert.alert('Error', response.error || 'Failed to add recipient');
+      }
+    } catch (error) {
+      console.error('Add recipient error:', error);
+      Alert.alert('Error', 'An unexpected error occurred');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const contentWidth = Math.min(width * 0.88, 360);
 
@@ -39,7 +71,6 @@ const AddNewProfileScreen: React.FC<Props> = ({ navigation }) => {
 
       <BackgroundWrapper style={styles.root}>
 
-        {/* Header */}
         {/* Header */}
         <LogoHeader navigation={navigation} />
 
@@ -64,7 +95,11 @@ const AddNewProfileScreen: React.FC<Props> = ({ navigation }) => {
         <View style={styles.iconWrap}>
           <View style={styles.iconOuter}>
             <View style={styles.iconInner}>
-              <Text style={styles.iconLabel}>Add Icon</Text>
+              {motif ? (
+                <Text style={[styles.iconLabel, { fontSize: 48 }]}>{motif}</Text>
+              ) : (
+                <Text style={styles.iconLabel}>Add Icon</Text>
+              )}
             </View>
           </View>
         </View>
@@ -94,12 +129,31 @@ const AddNewProfileScreen: React.FC<Props> = ({ navigation }) => {
               autoCapitalize="none"
             />
           </View>
+
+          <Text style={[styles.label, { marginTop: 16 }]}>Motif / Symbol (Optional)</Text>
+          <View style={styles.inputShell}>
+            <TextInput
+              value={motif}
+              onChangeText={setMotif}
+              placeholder="e.g. 🕊️, 🌿, or a special word"
+              placeholderTextColor="rgba(253,253,249,0.45)"
+              style={styles.input}
+            />
+          </View>
         </View>
 
         {/* Add Button */}
-        <TouchableOpacity style={styles.addWrap}>
+        <TouchableOpacity 
+          style={styles.addWrap}
+          onPress={handleAddRecipient}
+          disabled={loading}
+        >
           <View style={styles.addButton}>
-            <Text style={styles.addText}>ADD</Text>
+            {loading ? (
+              <ActivityIndicator color={GOLD} />
+            ) : (
+              <Text style={styles.addText}>ADD</Text>
+            )}
           </View>
         </TouchableOpacity>
       </BackgroundWrapper>
@@ -119,12 +173,10 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     alignItems: 'center',
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight ?? 0 : 0,
   },
 
   /* Header */
   header: {
-    marginTop: 10,
     height: 56,
     flexDirection: 'row',
     alignItems: 'center',
@@ -164,7 +216,7 @@ const styles = StyleSheet.create({
 
   /* Title */
   titleRow: {
-    marginTop: 120,
+    marginTop: 30,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',

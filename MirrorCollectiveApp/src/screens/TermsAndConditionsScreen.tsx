@@ -14,6 +14,7 @@ import {
     type ImageStyle,
     ScrollView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
@@ -28,18 +29,12 @@ const DESIGN_WIDTH = 393;
 const DESIGN_HEIGHT = 852;
 
 const outerContainerPaddingHorizontal = Math.max(24, (24 * screenWidth) / DESIGN_WIDTH);
-const outerContainerPaddingTop = Math.max(48, (48 * screenHeight) / DESIGN_HEIGHT);
 const outerContainerPaddingBottom = Math.max(53, (53 * screenHeight) / DESIGN_HEIGHT);
 
-const availableHeight = Math.max(0, screenHeight - outerContainerPaddingTop - outerContainerPaddingBottom);
-
 // Reserve vertical space for the absolutely-positioned LogoHeader
-// (Other screens use ~120px: 48 top + ~46 logo + ~26 breathing room)
 const contentStartY = Math.max(120, (120 * screenHeight) / DESIGN_HEIGHT);
-const outerBoxMarginTop = Math.max(0, contentStartY - outerContainerPaddingTop);
 
 const outerBoxWidth = (345 * screenWidth) / DESIGN_WIDTH;
-const outerBoxHeight = Math.min((751 * screenHeight) / DESIGN_HEIGHT, Math.max(0, availableHeight - outerBoxMarginTop));
 const outerBoxGap = (40 * screenHeight) / DESIGN_HEIGHT;
 const innerBoxGap = (24 * screenHeight) / DESIGN_HEIGHT;
 
@@ -47,10 +42,6 @@ const titleLineHeight = Math.min(screenWidth * 0.094, 36);
 const titleHeight = titleLineHeight * 2;
 const checkboxRowHeight = 24;
 const continueButtonHeight = 12 * 2 + 22;
-const cardFixedHeight = Math.max(
-    240,
-    outerBoxHeight - titleHeight - outerBoxGap - (checkboxRowHeight + continueButtonHeight + innerBoxGap * 2),
-);
 
 const cardMaxWidth = 313;
 const cardWidth = Math.min(cardMaxWidth, outerBoxWidth);
@@ -67,8 +58,8 @@ const TermsAndConditionsScreen = () => {
 
     return (
         <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage}>
-            <View style={styles.outerBoxContainer}>
-                
+            <SafeAreaView style={styles.safe}>
+                <View style={styles.outerBoxContainer}>
                     <LogoHeader />
 
                     <View style={styles.outerBox}>
@@ -204,8 +195,8 @@ const TermsAndConditionsScreen = () => {
                             </TouchableOpacity>
                         </View>
                     </View>
-                
-            </View>
+                </View>
+            </SafeAreaView>
         </BackgroundWrapper>
     );
 };
@@ -215,8 +206,8 @@ export default TermsAndConditionsScreen;
 const styles = StyleSheet.create<{
     bg: ViewStyle;
     bgImage: ImageStyle;
+    safe: ViewStyle;
     outerBoxContainer: ViewStyle;
-    container: ViewStyle;
     headerRow: ViewStyle;
     backButton: ViewStyle;
     backArrow: ImageStyle;
@@ -247,16 +238,15 @@ const styles = StyleSheet.create<{
     bgImage: {
         resizeMode: 'cover',
     },
-
+    safe: {
+        flex: 1,
+        backgroundColor: 'transparent',
+    },
     outerBoxContainer: {
         flex: 1,
         paddingHorizontal: outerContainerPaddingHorizontal,
-        paddingTop: outerContainerPaddingTop,
+        paddingTop: 20,
         paddingBottom: outerContainerPaddingBottom,
-    },
-
-    container: {
-        flex: 1,
         alignItems: 'center',
     },
     headerRow: {
@@ -282,11 +272,11 @@ const styles = StyleSheet.create<{
     },
     outerBox: {
         width: outerBoxWidth,
-        height: outerBoxHeight,
+        flex: 1,
         flexDirection: 'column',
         alignItems: 'center',
         gap: outerBoxGap,
-        marginTop: outerBoxMarginTop,
+        marginTop: 20,
     },
     innerBox: {
         flexDirection: 'column',
@@ -316,7 +306,7 @@ const styles = StyleSheet.create<{
         // Match QuizWelcomeScreen glass card styling
         width: cardWidth,
         alignSelf: 'center',
-        height: cardFixedHeight,
+        flex: 1,
         padding: 20,
         borderRadius: 13,
         borderWidth: 0.25,
@@ -326,7 +316,7 @@ const styles = StyleSheet.create<{
         shadowOffset: { width: 0, height: 0 },
         shadowOpacity: 0.3,
         shadowRadius: 15,
-        boxShadow: '0 0 15px 0 rgba(229, 214, 176, 0.30)',
+        // boxShadow: '0 0 15px 0 rgba(229, 214, 176, 0.30)', // Not supported in RN, using shadow props
     },
     cardGradient: {
         ...StyleSheet.absoluteFillObject,
@@ -371,6 +361,7 @@ const styles = StyleSheet.create<{
         flexDirection: 'row',
         alignItems: 'center',
         width: '100%',
+        marginTop: 10,
     },
     checkboxBox: {
         width: 20,
@@ -409,6 +400,7 @@ const styles = StyleSheet.create<{
         borderColor: '#A3B3CC',
         paddingVertical: 12,
         paddingHorizontal: 16,
+        marginTop: 10,
     },
     continueButtonDisabled: {
         opacity: 0.5,

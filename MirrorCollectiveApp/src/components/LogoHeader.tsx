@@ -11,9 +11,11 @@ import {
   type ViewStyle,
   type ImageStyle,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
 import MirrorSideMenu from '../screens/NavigationMenuScreen';
 import { useUser } from '@context/UserContext';
+import { useSession } from '@context/SessionContext';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -29,11 +31,15 @@ const LogoHeader = ({
   containerStyle,
   logoStyle,
   textContainerStyle,
-  navigation,
+  navigation: propNavigation,
   onMenuPress,
 }: LogoHeaderProps) => {
+  const internalNavigation = useNavigation();
+  const navigation = propNavigation || internalNavigation;
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { user } = useUser();
+  const { state } = useSession();
+  const { isAuthenticated } = state;
   const displayName = user?.fullName || 'Guest';
 
   // If onMenuPress is provided, use it. Otherwise, use internal drawer state.
@@ -47,30 +53,35 @@ const LogoHeader = ({
 
   return (
     <>
-      <MirrorSideMenu
-        isOpen={drawerOpen}
-        userName={displayName}
-        onClose={() => setDrawerOpen(false)}
-        onNavigate={route => {
-          setDrawerOpen(false);
-          if (navigation) {
-            navigation.navigate(route as never);
-          }
-        }}
-      />
+      {isAuthenticated && (
+        <MirrorSideMenu
+          isOpen={drawerOpen}
+          userName={displayName}
+          onClose={() => setDrawerOpen(false)}
+          onNavigate={route => {
+            setDrawerOpen(false);
+            if (navigation) {
+              navigation.navigate(route as never);
+            }
+          }}
+        />
+      )}
       <View style={styles.wrapper}>
-        {/* Hamburger */}
-        <Pressable
-          onPress={handleMenuPress}
-          hitSlop={12}
-          style={styles.hamburgerButton}
-        >
-          <View style={styles.hamburger}>
-            <View style={styles.hamLine} />
-            <View style={styles.hamLine} />
-            <View style={styles.hamLine} />
-          </View>
-        </Pressable>
+        <View style={styles.leftContainer}>
+          {isAuthenticated && (
+            <Pressable
+              onPress={handleMenuPress}
+              hitSlop={12}
+              style={styles.hamburgerButton}
+            >
+              <View style={styles.hamburger}>
+                <View style={styles.hamLine} />
+                <View style={styles.hamLine} />
+                <View style={styles.hamLine} />
+              </View>
+            </Pressable>
+          )}
+        </View>
 
         {/* Centered Logo + Text */}
         <View style={[styles.container, containerStyle]}>
@@ -86,6 +97,9 @@ const LogoHeader = ({
             <Text style={textStyles.textNormal}>COLLECTIVE</Text>
           </View>
         </View>
+
+        {/* Right side spacer to keep logo perfectly centered */}
+        <View style={styles.rightContainer} />
       </View>
     </>
   );
@@ -121,16 +135,25 @@ const textStyles = StyleSheet.create({
 
 const styles = StyleSheet.create({
   wrapper: {
-    position: 'absolute',
-    top: Math.max(48, screenHeight * 0.056),
+    alignSelf: 'stretch',
     width: '100%',
     zIndex: 10,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    minHeight: 60, // Ensure consistent height
+  },
+  leftContainer: {
+    width: 30, // Fixed width for alignment
+    justifyContent: 'center',
+    alignItems: 'flex-start',
+  },
+  rightContainer: {
+    width: 30, // Matches leftContainer for centering
   },
   hamburgerButton: {
-    position: 'absolute',
-    left: 20,
-    top: 6,
     zIndex: 11,
   },
   hamburger: {
@@ -148,7 +171,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: Math.max(8, screenWidth * 0.02),
     alignItems: 'center',
-    alignSelf: 'center',
   },
   logo: {
     width: Math.min(Math.max(screenWidth * 0.117, 36), 46),

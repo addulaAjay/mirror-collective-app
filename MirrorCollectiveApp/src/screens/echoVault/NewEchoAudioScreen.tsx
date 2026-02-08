@@ -4,13 +4,13 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   StatusBar,
   TouchableOpacity,
   Dimensions,
   Platform,
   Pressable,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -41,16 +41,14 @@ const NewEchoAudioScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <StatusBar
-        barStyle="light-content"
-        translucent
-        backgroundColor="transparent"
-      />
+    <BackgroundWrapper style={styles.root}>
+      <SafeAreaView style={styles.safe}>
+        <StatusBar
+          barStyle="light-content"
+          translucent
+          backgroundColor="transparent"
+        />
 
-      <BackgroundWrapper style={styles.root}>
-
-        {/* Header: hamburger + centered brand */}
         {/* Header: hamburger + centered brand */}
         <LogoHeader navigation={navigation} />
 
@@ -100,8 +98,8 @@ const NewEchoAudioScreen: React.FC<Props> = ({ navigation }) => {
             <PillButton label="SAVE" onPress={onSave} />
           </View>
         </View>
-      </BackgroundWrapper>
-    </SafeAreaView>
+      </SafeAreaView>
+    </BackgroundWrapper>
   );
 };
 
@@ -157,15 +155,13 @@ const Waveform = ({ active }: { active: boolean }) => {
 /* ---------- Styles ---------- */
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#05060A' },
+  safe: { flex: 1, backgroundColor: 'transparent' },
   root: {
     flex: 1,
     alignItems: 'center',
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight ?? 0 : 0,
   },
 
   headerRow: {
-    marginTop: 10,
     height: 56,
     flexDirection: 'row',
     alignItems: 'center',
@@ -207,7 +203,7 @@ const styles = StyleSheet.create({
   headerRightSpacer: { width: 44, height: 44 },
 
   titleRow: {
-    marginTop: 120,
+    marginTop: 20,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',

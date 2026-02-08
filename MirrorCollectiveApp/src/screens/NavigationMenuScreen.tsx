@@ -11,13 +11,13 @@ import {
   StatusBar,
   ScrollView,
   Image,
-  Platform,
   ImageSourcePropType,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-const DRAWER_WIDTH = Math.round(SCREEN_WIDTH * 0.78); // matches your expected
+const DRAWER_WIDTH = Math.round(SCREEN_WIDTH * 0.78); 
 
 type MirrorSideMenuProps = {
   isOpen: boolean;
@@ -28,7 +28,7 @@ type MirrorSideMenuProps = {
 };
 
 const GOLD = '#E5D6B0';
-const PANEL = '#1E2741'; // solid navy like expected
+const PANEL = '#1E2741'; 
 const PILL_BG = '#1A2239';
 
 const MirrorSideMenu: React.FC<MirrorSideMenuProps> = ({
@@ -36,8 +36,8 @@ const MirrorSideMenu: React.FC<MirrorSideMenuProps> = ({
   userName = 'Guest',
   onClose,
   onNavigate,
-  logoSource = require('@assets/Mirror_Collective_Logo_RGB.png'),
 }) => {
+  const insets = useSafeAreaInsets();
   const slideAnim = React.useRef(new Animated.Value(-DRAWER_WIDTH)).current;
 
   React.useEffect(() => {
@@ -49,15 +49,15 @@ const MirrorSideMenu: React.FC<MirrorSideMenuProps> = ({
   }, [isOpen, slideAnim]);
 
   const primaryItems = [
-    { label: 'MirrorGPT', route: 'About' },
-    { label: 'Echo Vault', route: 'MirrorEcho' },
+    { label: 'MirrorGPT', route: 'TalkToMirror' },
+    { label: 'Echo Vault', route: 'MirrorEchoVaultHome' },
     { label: 'Reflection Room', route: 'ReflectionRoom' },
-    { label: 'Code Library', route: 'CodeLibrary' },
-    { label: 'Pledge', route: 'Pledge' },
+    { label: 'Code Library', route: 'MirrorCodeLibrary' },
+    { label: 'Pledge', route: 'TheMirrorPledge' },
   ];
 
   const secondaryItems = [
-    { label: 'Settings', route: 'Settings' },
+    { label: 'Settings', route: 'Profile' },
     { label: 'About Us', route: 'About' },
     { label: 'FAQ', route: 'FAQ' },
   ];
@@ -88,9 +88,9 @@ const MirrorSideMenu: React.FC<MirrorSideMenuProps> = ({
         ]}
       >
         {/* Panel */}
-        <View style={styles.panel}>
+        <View style={[styles.panel, { paddingBottom: insets.bottom }]}>
           {/* Top controls */}
-          <View style={styles.topRow}>
+          <View style={[styles.topRow, { paddingTop: Math.max(insets.top, 20) }]}>
             <TouchableOpacity
               style={styles.iconBtn}
               onPress={() => {}}
@@ -112,16 +112,11 @@ const MirrorSideMenu: React.FC<MirrorSideMenuProps> = ({
 
           {/* User */}
           <View style={styles.userRow}>
-            {/* <View style={styles.logoCircle}>
-              <View style={styles.logoCircleInner}> */}
             <Image
               source={require('@assets/Mirror_Collective_Logo_RGB.png')}
               style={[styles.logo]}
               resizeMode="contain"
             />
-            {/* </View> */}
-            {/* </View> */}
-
             <Text style={styles.userName}>{userName}</Text>
           </View>
 
@@ -135,7 +130,7 @@ const MirrorSideMenu: React.FC<MirrorSideMenuProps> = ({
             <View style={styles.pillList}>
               {primaryItems.map(item => (
                 <TouchableOpacity
-                  key={item.route}
+                  key={item.label}
                   activeOpacity={0.85}
                   onPress={() => {
                     onClose();
@@ -143,9 +138,7 @@ const MirrorSideMenu: React.FC<MirrorSideMenuProps> = ({
                   }}
                   style={styles.pillHit}
                 >
-                  {/* SINGLE pill layer (no blur, no nested borders = no “double-pill”) */}
                   <View style={styles.pill}>
-                    {/* soft horizontal center glow (matches expected) */}
                     <LinearGradient
                       colors={[
                         'rgba(255,255,255,0.00)',
@@ -163,14 +156,14 @@ const MirrorSideMenu: React.FC<MirrorSideMenuProps> = ({
               ))}
             </View>
 
-            {/* Big empty space like expected */}
+            {/* Big empty space */}
             <View style={{ height: 34 }} />
 
             {/* Secondary links */}
             <View style={styles.secondary}>
               {secondaryItems.map(item => (
                 <TouchableOpacity
-                  key={item.route}
+                  key={item.label}
                   activeOpacity={0.85}
                   onPress={() => {
                     onClose();
@@ -195,7 +188,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.45)',
   },
 
-  // TRUE top-left anchor
   drawer: {
     position: 'absolute',
     left: 0,
@@ -203,7 +195,6 @@ const styles = StyleSheet.create({
     height: SCREEN_HEIGHT,
   },
 
-  // Solid panel like expected
   panel: {
     flex: 1,
     backgroundColor: PANEL,
@@ -213,7 +204,6 @@ const styles = StyleSheet.create({
   },
 
   topRow: {
-    paddingTop: 22, // aligns like expected under status bar
     paddingHorizontal: 18,
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -242,32 +232,9 @@ const styles = StyleSheet.create({
     paddingBottom: 18,
   },
 
-  logoCircle: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: 'rgba(229,214,176,0.30)',
-    borderWidth: 1,
-    borderColor: 'rgba(229,214,176,0.65)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-
-  logoCircleInner: {
-    width: 38,
-    height: 38,
-    borderRadius: 15,
-    backgroundColor: 'rgba(10,14,26,0.18)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-
   logo: {
     width: 38,
     height: 38,
-    // tintColor: GOLD, // remove this if your logo is already gold
-    // opacity: 0.01,
   },
 
   userName: {
@@ -288,7 +255,6 @@ const styles = StyleSheet.create({
     paddingTop: 6,
   },
 
-  // same inset as expected
   pillHit: {
     paddingHorizontal: 18,
     marginBottom: 10,
@@ -316,7 +282,6 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     paddingHorizontal: 18,
-    // paddingTop: 8,
     marginBottom: 10,
   },
 

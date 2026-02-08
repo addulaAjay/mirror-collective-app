@@ -18,6 +18,7 @@ export type RootStackParamList = {
   MirrorCodeLibrary: undefined;
   TheMirrorPledge: undefined;
   About: undefined;
+  FAQ: undefined;
   Profile: undefined;
   MirrorAnimation: undefined;
   EnterMirror: undefined;
@@ -59,12 +60,20 @@ export type RootStackParamList = {
   NewEchoVideoScreen: undefined;
   ManageGuardianScreen: undefined;
   ChooseGuardianScreen: undefined;
-  ChooseRecipientScreen: undefined;
+  ChooseRecipientScreen: {
+    title: string;
+    category: string;
+    mode: 'text' | 'audio' | 'video';
+  };
   AddNewProfileScreen: undefined;
   EchoDetailScreen: { echoId: string; title?: string; body?: string };
   EchoAudioPlaybackScreen: { echoId: string; title?: string; transcript?: string };
   EchoVideoPlaybackScreen: { echoId: string; title?: string };
 };
 
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+
 export type ScreenName = keyof RootStackParamList;
+
+export type LoginScreenProps = NativeStackScreenProps<RootStackParamList, 'Login'>;
 

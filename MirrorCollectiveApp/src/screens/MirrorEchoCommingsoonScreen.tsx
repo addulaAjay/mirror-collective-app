@@ -1,5 +1,7 @@
 import React from 'react';
-import { Dimensions, Image, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, Image, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
@@ -10,40 +12,48 @@ const { width: screenWidth, height: screenHeight } = Dimensions.get('screen');
 const verticalGap = Math.max(32, screenHeight * 0.04);
 
 const MirrorEchoCommingsoonScreen: React.FC = () => {
+  const navigation = useNavigation();
+
   return (
     <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage}>
-      <View style={styles.container}>
-        <LogoHeader />
+      <SafeAreaView style={styles.safe}>
+        <View style={styles.container}>
+          <LogoHeader />
 
-        {/* Title */}
-        <View style={styles.titleContainer}>
-          <Text style={styles.title}>MIRROR ECHO</Text>
-        </View>
+          {/* Title Row */}
+          <View style={styles.titleRow}>
+            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+              <Text style={styles.backArrow}>←</Text>
+            </TouchableOpacity>
+            <Text style={styles.title}>MIRROR ECHO</Text>
+            <View style={{ width: 30 }} />
+          </View>
 
-        {/* Illustration */}
-        <View style={styles.imageContainer}>
-          <Image
-            source={require('@assets/mirror-echo-map.png')}
-            style={styles.illustrationImage}
-            resizeMode="contain"
-          />
-        </View>
+          {/* Illustration */}
+          <View style={styles.imageContainer}>
+            <Image
+              source={require('@assets/mirror-echo-map.png')}
+              style={styles.illustrationImage}
+              resizeMode="contain"
+            />
+          </View>
 
-        {/* Description */}
-        <View style={styles.descriptionContainer}>
-          <Text style={styles.description}>
-            Preserve your legacy in the Echo Vault — {'\n'}
-a secure space to create and save your most {'\n'} meaningful memories, reflections, and {'\n'} moments that matter.  A living record, kept {'\n'} for yourself or gifted to someone you love
-          </Text>
-        </View>
+          {/* Description */}
+          <View style={styles.descriptionContainer}>
+            <Text style={styles.description}>
+              Preserve your legacy in the Echo Vault — {'\n'}
+              a secure space to create and save your most {'\n'} meaningful memories, reflections, and {'\n'} moments that matter.  A living record, kept {'\n'} for yourself or gifted to someone you love
+            </Text>
+          </View>
 
-        {/* Coming soon footer */}
-        <View style={styles.footerContainer}>
-          <StarIcon width={24} height={24} />
-          <Text style={styles.footerText}>COMING SOON</Text>
-          <StarIcon width={24} height={24} />
+          {/* Coming soon footer */}
+          <View style={styles.footerContainer}>
+            <StarIcon width={24} height={24} />
+            <Text style={styles.footerText}>COMING SOON</Text>
+            <StarIcon width={24} height={24} />
+          </View>
         </View>
-      </View>
+      </SafeAreaView>
     </BackgroundWrapper>
   );
 };
@@ -58,52 +68,55 @@ const styles = StyleSheet.create({
   bgImage: {
     resizeMode: 'cover',
   },
+  safe: {
+    flex: 1,
+    backgroundColor: 'transparent',
+    width: '100%',
+  },
   container: {
     flex: 1,
     paddingHorizontal: Math.max(20, screenWidth * 0.051),
-    paddingTop: Math.max(48, screenHeight * 0.056),
+    paddingTop: 20,
     paddingBottom: Math.max(30, screenHeight * 0.035),
     alignItems: 'center',
   },
-  titleContainer: {
+  titleRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginTop: Math.max(60, screenHeight * 0.1),
+    justifyContent: 'space-between',
+    width: '100%',
+    paddingHorizontal: 20,
+    marginTop: Math.max(40, screenHeight * 0.05),
     marginBottom: verticalGap,
+  },
+  backBtn: {
+    width: 30,
+    height: 30,
+    justifyContent: 'center',
+  },
+  backArrow: {
+    fontSize: 24,
+    color: '#F2E2B1',
+    fontWeight: '300',
   },
   title: {
     fontFamily: 'CormorantGaramond-Light',
-    fontSize: Math.min(screenWidth * 0.082, 32),
+    fontSize: Math.min(screenWidth * 0.06, 24),
     fontWeight: '400',
-    lineHeight: Math.min(screenWidth * 0.082 * 1.3, 41.6),
     color: '#F2E2B1',
     textAlign: 'center',
     textShadowColor: '#E5D6B0',
     textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 20,
-    letterSpacing: 4,
+    textShadowRadius: 10,
+    letterSpacing: 2,
   },
   imageContainer: {
     justifyContent: 'center',
     alignItems: 'center',
   },
-  illustrationPlaceholder: {
-    width: Math.min(screenWidth * 0.7, 275),
-    height: Math.min(screenHeight * 0.4, 320),
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(229, 214, 176, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(7, 12, 26, 0.7)',
-  },
   illustrationImage: {
     width: Math.min(screenWidth * 0.7, 275),
     height: Math.min(screenHeight * 0.4, 320),
-  },
-  illustrationPlaceholderText: {
-    fontFamily: 'CormorantGaramond-Regular',
-    fontSize: 16,
-    color: 'rgba(229, 214, 176, 0.7)',
   },
   descriptionContainer: {
     width: Math.min(screenWidth * 0.8, 313),
@@ -117,9 +130,6 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     color: '#FDFDF9',
     textAlign: 'center',
-  },
-  descriptionSecondary: {
-    marginTop: verticalGap,
   },
   footerContainer: {
     position: 'absolute',

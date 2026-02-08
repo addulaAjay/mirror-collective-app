@@ -7,6 +7,7 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
@@ -27,31 +28,37 @@ const EmailConfirmationScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   return (
-    <BackgroundWrapper style={styles.container}>
-      <LogoHeader />
+    <BackgroundWrapper style={styles.bg}>
+      <SafeAreaView style={styles.safe}>
+        <LogoHeader />
 
-      <View style={styles.content}>
-        <Text style={styles.title}>{t('auth.emailConfirmation.title')}</Text>
-        <Text style={styles.bodyText}>
-          {t('auth.emailConfirmation.body')}
-        </Text>
-        <Text style={styles.helperText}>{t('auth.emailConfirmation.helper')}</Text>
+        <View style={styles.content}>
+          <Text style={styles.title}>{t('auth.emailConfirmation.title')}</Text>
+          <Text style={styles.bodyText}>
+            {t('auth.emailConfirmation.body')}
+          </Text>
+          <Text style={styles.helperText}>{t('auth.emailConfirmation.helper')}</Text>
 
-        <TouchableOpacity testID="resend-button" style={styles.button} onPress={handleResend} activeOpacity={0.85}>
-          <Text style={styles.buttonText}>{t('auth.emailConfirmation.resendButton')}</Text>
-        </TouchableOpacity>
-      </View>
+          <TouchableOpacity testID="resend-button" style={styles.button} onPress={handleResend} activeOpacity={0.85}>
+            <Text style={styles.buttonText}>{t('auth.emailConfirmation.resendButton')}</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
     </BackgroundWrapper>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  bg: {
     flex: 1,
-    paddingHorizontal: 32,
-    paddingTop: 64,
-    paddingBottom: 40,
+  },
+  safe: {
+    flex: 1,
+    backgroundColor: 'transparent',
     alignItems: 'center',
+    width: '100%',
+    paddingHorizontal: 32,
+    paddingBottom: 40,
   },
   content: {
     flex: 1,

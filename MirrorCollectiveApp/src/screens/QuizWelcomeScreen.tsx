@@ -1,5 +1,6 @@
 import { BORDER_RADIUS, COLORS, SPACING } from '@constants';
 import { useNavigation } from '@react-navigation/native';
+import LogoHeader from '@components/LogoHeader';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '@types';
 import React from 'react';
@@ -14,7 +15,9 @@ import {
   type TextStyle,
   type ImageStyle,
   Alert,
+  StatusBar,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 
 import questionsData from '@assets/questions.json';
@@ -100,15 +103,15 @@ const QuizWelcomeScreen = () => {
   // const route = useRoute<QuizWelcomeScreenRouteProp>();
   return (
     <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage}>
-      <View style={styles.container}>
+      <SafeAreaView style={styles.safe}>
+        <StatusBar
+          barStyle="light-content"
+          translucent
+          backgroundColor="transparent"
+        />
+        <LogoHeader />
+        <View style={styles.container}>
         <View style={styles.topContent}>
-          <View style={styles.logoContainer}>
-            <Image
-              source={require('../assets/mirror-collective-logo-circle.png')}
-              style={styles.logo}
-              resizeMode="contain"
-            />
-          </View>
 
           <View style={styles.welcomeContainer}>
             <Text style={styles.welcome}>WELCOME</Text>
@@ -166,7 +169,8 @@ const QuizWelcomeScreen = () => {
             </Text>
           )}
         </View>
-      </View>
+        </View>
+      </SafeAreaView>
     </BackgroundWrapper>
   );
 };
@@ -175,6 +179,7 @@ export default QuizWelcomeScreen;
 
 const styles = StyleSheet.create<{
   bg: ViewStyle;
+  safe: ViewStyle;
   bgImage: ImageStyle;
   container: ViewStyle;
   topContent: ViewStyle;
@@ -201,7 +206,10 @@ const styles = StyleSheet.create<{
 }>({
   bg: {
     flex: 1,
-    backgroundColor: '#0B0F1C',
+  },
+  safe: {
+    flex: 1,
+    backgroundColor: 'transparent',
   },
   bgImage: {
     resizeMode: 'cover',
@@ -209,7 +217,6 @@ const styles = StyleSheet.create<{
   container: {
     flex: 1,
     paddingHorizontal: isTablet ? '10%' : '8%', // Flexible horizontal padding
-    paddingTop: screenHeight * 0.06, // 6% of screen height
     paddingBottom: screenHeight * 0.05, // 5% of screen height
     alignItems: 'center',
     justifyContent: 'flex-start',
@@ -221,13 +228,10 @@ const styles = StyleSheet.create<{
     width: '100%',
   },
   logoContainer: {
-    alignItems: 'center',
-    marginTop: screenHeight * 0.08,
-    marginBottom: screenHeight * 0.04,
+    display: 'none',
   },
   logo: {
-    width: responsiveFontSize(80, 60, 100),
-    height: responsiveFontSize(80, 60, 100),
+    display: 'none',
   },
   welcomeContainer: {
     alignItems: 'center',

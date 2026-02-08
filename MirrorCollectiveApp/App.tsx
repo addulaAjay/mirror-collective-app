@@ -6,6 +6,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '@types';
 import React, { useEffect } from 'react';
 import { StatusBar } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { ChatErrorBoundary } from '@components/error';
 import { SessionProvider, useSession } from '@context/SessionContext';
@@ -51,6 +52,7 @@ import TalkToMirrorScreen from '@screens/TalkToMirrorScreen';
 import TermsAndConditionsScreen from '@screens/TermsAndConditionsScreen';
 import TheMirrorPledgeCommingsoonScreen from '@screens/TheMirrorPledgeCommingsoonScreen';
 import VerifyEmailScreen from '@screens/VerifyEmailScreen';
+import FAQScreen from '@screens/FAQScreen';
 import PushNotificationService from '@services/PushNotificationService';
 
 import ErrorBoundary from './src/components/ErrorBoundary';
@@ -110,6 +112,7 @@ const AuthNavigator = () => (
       component={TheMirrorPledgeCommingsoonScreen}
     />
     <Stack.Screen name="About" component={AboutScreen} />
+    <Stack.Screen name="FAQ" component={FAQScreen} />
     <Stack.Screen
       name="MirrorCodeLibrary"
       component={MirrorCodeLibraryCommingsoonScreen}
@@ -156,6 +159,7 @@ const AuthenticatedNavigator = () => (
     {/* Profile & Settings */}
     <Stack.Screen name="Profile" component={ProfileScreen} />
     <Stack.Screen name="About" component={AboutScreen} />
+    <Stack.Screen name="FAQ" component={FAQScreen} />
     {/* Menu Screens */}
     <Stack.Screen name="MirrorCodeLibrary" component={MirrorCodeLibraryCommingsoonScreen} />
     <Stack.Screen name="ReflectionRoom" component={ReflectionRoomCommingsoonScreen} />
@@ -235,20 +239,22 @@ const App = () => {
   }, []);
 
   return (
-    <ErrorBoundary>
-      <SessionProvider>
-        <UserProvider>
-          <React.Fragment>
-            <StatusBar
-              translucent
-              backgroundColor="transparent"
-              barStyle="light-content"
-            />
-            <AppNavigator />
-          </React.Fragment>
-        </UserProvider>
-      </SessionProvider>
-    </ErrorBoundary>
+    <SafeAreaProvider>
+      <ErrorBoundary>
+        <SessionProvider>
+          <UserProvider>
+            <React.Fragment>
+              <StatusBar
+                translucent
+                backgroundColor="transparent"
+                barStyle="light-content"
+              />
+              <AppNavigator />
+            </React.Fragment>
+          </UserProvider>
+        </SessionProvider>
+      </ErrorBoundary>
+    </SafeAreaProvider>
   );
 };
 

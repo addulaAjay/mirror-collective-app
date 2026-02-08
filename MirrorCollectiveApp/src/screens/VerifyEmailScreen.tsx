@@ -14,6 +14,7 @@ import {
   TextInput,
   Platform,
 } from 'react-native';
+import { SafeAreaView } from "react-native-safe-area-context";
 import LinearGradient from 'react-native-linear-gradient';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
@@ -159,121 +160,123 @@ const VerifyEmailScreen = () => {
 
   return (
     <BackgroundWrapper style={styles.container}>
-      <LogoHeader />
+      <SafeAreaView style={styles.safe}>
+        <LogoHeader />
 
-      <View style={styles.contentContainer}>
-        {/* Main Content */}
-        <View style={styles.messageContainer}>
-          {/* Header */}
-          <View style={styles.headerSection}>
-            <Text style={styles.title}>{t('auth.verifyEmail.title')}</Text>
-            <Text style={styles.subtitle}>
-              {t('auth.verifyEmail.subtitle')}
-            </Text>
-          </View>
+        <View style={styles.contentContainer}>
+          {/* Main Content */}
+          <View style={styles.messageContainer}>
+            {/* Header */}
+            <View style={styles.headerSection}>
+              <Text style={styles.title}>{t('auth.verifyEmail.title')}</Text>
+              <Text style={styles.subtitle}>
+                {t('auth.verifyEmail.subtitle')}
+              </Text>
+            </View>
 
-          {/* Verification Code Input */}
-          <View style={styles.codeSection}>
-            <LinearGradient
-              colors={['rgba(253, 253, 249, 0.04)', 'rgba(253, 253, 249, 0.01)']}
-              start={{ x: 0.5, y: 0 }}
-              end={{ x: 0.5, y: 1 }}
-              style={styles.codeInputWrapper}
-            >
-              <TextInput
-                testID="verification-code-input"
-                style={styles.codeInput}
-                placeholder={t('auth.verifyEmail.codePlaceholder')}
-                placeholderTextColor={theme.colors.text.muted}
-                value={verificationCode}
-                onChangeText={setVerificationCode}
-                keyboardType="numeric"
-                maxLength={6}
-                autoFocus
-                textAlign="center"
-              />
-            </LinearGradient>
-
-            <TouchableOpacity
-              testID="verify-button"
-              style={[
-                (isVerifying || verificationCode.trim().length !== 6) &&
-                  styles.verifyButtonDisabled,
-              ]}
-              onPress={handleVerifyCode}
-              disabled={isVerifying || verificationCode.trim().length !== 6}
-            >
+            {/* Verification Code Input */}
+            <View style={styles.codeSection}>
               <LinearGradient
                 colors={['rgba(253, 253, 249, 0.04)', 'rgba(253, 253, 249, 0.01)']}
                 start={{ x: 0.5, y: 0 }}
                 end={{ x: 0.5, y: 1 }}
-                style={styles.verifyButton}
+                style={styles.codeInputWrapper}
               >
-                <Text
-                  style={[
-                    styles.verifyButtonText,
-                    (isVerifying || verificationCode.trim().length !== 6) &&
-                      styles.verifyButtonTextDisabled,
-                  ]}
-                >
-                  {isVerifying
-                    ? t('auth.verifyEmail.verifyingButton')
-                    : t('auth.verifyEmail.verifyButton')}
-                </Text>
+                <TextInput
+                  testID="verification-code-input"
+                  style={styles.codeInput}
+                  placeholder={t('auth.verifyEmail.codePlaceholder')}
+                  placeholderTextColor={theme.colors.text.muted}
+                  value={verificationCode}
+                  onChangeText={setVerificationCode}
+                  keyboardType="numeric"
+                  maxLength={6}
+                  autoFocus
+                  textAlign="center"
+                />
               </LinearGradient>
-            </TouchableOpacity>
-          </View>
 
-          {/* Resend Section */}
-          <View style={styles.resendSection}>
-            <Text style={styles.resendText}>
-              {t('auth.verifyEmail.resendPrompt')}
-            </Text>
+              <TouchableOpacity
+                testID="verify-button"
+                style={[
+                  (isVerifying || verificationCode.trim().length !== 6) &&
+                    styles.verifyButtonDisabled,
+                ]}
+                onPress={handleVerifyCode}
+                disabled={isVerifying || verificationCode.trim().length !== 6}
+              >
+                <LinearGradient
+                  colors={['rgba(253, 253, 249, 0.04)', 'rgba(253, 253, 249, 0.01)']}
+                  start={{ x: 0.5, y: 0 }}
+                  end={{ x: 0.5, y: 1 }}
+                  style={styles.verifyButton}
+                >
+                  <Text
+                    style={[
+                      styles.verifyButtonText,
+                      (isVerifying || verificationCode.trim().length !== 6) &&
+                        styles.verifyButtonTextDisabled,
+                    ]}
+                  >
+                    {isVerifying
+                      ? t('auth.verifyEmail.verifyingButton')
+                      : t('auth.verifyEmail.verifyButton')}
+                  </Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
 
+            {/* Resend Section */}
+            <View style={styles.resendSection}>
+              <Text style={styles.resendText}>
+                {t('auth.verifyEmail.resendPrompt')}
+              </Text>
+
+              <TouchableOpacity
+                testID="resend-button"
+                style={[
+                  (countdown > 0 || isResending) && styles.resendButtonDisabled,
+                ]}
+                onPress={handleResendEmail}
+                disabled={countdown > 0 || isResending}
+              >
+                <LinearGradient
+                  colors={['rgba(253, 253, 249, 0.04)', 'rgba(253, 253, 249, 0.01)']}
+                  start={{ x: 0.5, y: 0 }}
+                  end={{ x: 0.5, y: 1 }}
+                  style={styles.resendButton}
+                >
+                  <Text
+                    style={[
+                      styles.resendButtonText,
+                      (countdown > 0 || isResending) &&
+                        styles.resendButtonTextDisabled,
+                    ]}
+                  >
+                    {countdown > 0
+                      ? t('auth.verifyEmail.resendButtonWithTimer', {
+                          count: countdown,
+                        })
+                      : isResending
+                      ? t('auth.verifyEmail.sendingButton')
+                      : t('auth.verifyEmail.resendButton')}
+                  </Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+
+            {/* Back to Sign Up */}
             <TouchableOpacity
-              testID="resend-button"
-              style={[
-                (countdown > 0 || isResending) && styles.resendButtonDisabled,
-              ]}
-              onPress={handleResendEmail}
-              disabled={countdown > 0 || isResending}
+              onPress={() => navigation.goBack()}
+              style={styles.backButton}
             >
-              <LinearGradient
-                colors={['rgba(253, 253, 249, 0.04)', 'rgba(253, 253, 249, 0.01)']}
-                start={{ x: 0.5, y: 0 }}
-                end={{ x: 0.5, y: 1 }}
-                style={styles.resendButton}
-              >
-                <Text
-                  style={[
-                    styles.resendButtonText,
-                    (countdown > 0 || isResending) &&
-                      styles.resendButtonTextDisabled,
-                  ]}
-                >
-                  {countdown > 0
-                    ? t('auth.verifyEmail.resendButtonWithTimer', {
-                        count: countdown,
-                      })
-                    : isResending
-                    ? t('auth.verifyEmail.sendingButton')
-                    : t('auth.verifyEmail.resendButton')}
-                </Text>
-              </LinearGradient>
+              <Text style={styles.backButtonText}>
+                {t('auth.verifyEmail.backToSignUp')}
+              </Text>
             </TouchableOpacity>
           </View>
-
-          {/* Back to Sign Up */}
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            style={styles.backButton}
-          >
-            <Text style={styles.backButtonText}>
-              {t('auth.verifyEmail.backToSignUp')}
-            </Text>
-          </TouchableOpacity>
         </View>
-      </View>
+      </SafeAreaView>
     </BackgroundWrapper>
   );
 };
@@ -290,12 +293,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  safe: {
+    flex: 1,
+    backgroundColor: 'transparent',
+    width: '100%',
+  },
   contentContainer: {
     flex: 1,
     width: '100%',
     alignItems: 'center',
     paddingHorizontal: 44,
-    paddingTop: 200,
+    paddingTop: 20, 
     gap: 60,
   },
   messageContainer: {
@@ -303,6 +311,8 @@ const styles = StyleSheet.create({
     gap: 0,
     width: '100%',
     maxWidth: 305,
+    flex: 1,
+    justifyContent: 'center',
   },
   headerSection: {
     alignItems: 'center',

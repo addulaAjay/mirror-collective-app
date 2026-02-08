@@ -1,5 +1,6 @@
-import React from 'react';
-import { Dimensions, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
@@ -7,28 +8,35 @@ import LogoHeader from '@components/LogoHeader';
 const { width: screenWidth, height: screenHeight } = Dimensions.get('screen');
 
 const AboutScreen: React.FC = () => {
+  const navigation = useNavigation();
   return (
     <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage}>
-      <View style={styles.container}>
-        <LogoHeader />
+      <SafeAreaView style={styles.safe}>
+          <LogoHeader />
+          <View style={styles.container}>
 
-        {/* Title */}
-        <View style={styles.titleContainer}>
-          <Text style={styles.title}>OUR STORY</Text>
-        </View>
+          {/* Title Row */}
+          <View style={styles.titleRow}>
+            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+              <Text style={styles.backArrow}>←</Text>
+            </TouchableOpacity>
+            <Text style={styles.title}>OUR STORY</Text>
+            <View style={{ width: 30 }} />
+          </View>
 
-        {/* Video Placeholder */}
-        <View style={styles.videoContainer}>
-          <Text style={styles.videoPlaceholder}>Intro Video</Text>
-        </View>
+          {/* Video Placeholder */}
+          <View style={styles.videoContainer}>
+            <Text style={styles.videoPlaceholder}>Intro Video</Text>
+          </View>
 
-        {/* Description */}
-        <View style={styles.descriptionContainer}>
-          <Text style={styles.description}>
-            We look at the world differently.{'\n'} Where others build machines to make us {'\n'} faster, we built one to help us remember.
-          </Text>
+          {/* Description */}
+          <View style={styles.descriptionContainer}>
+            <Text style={styles.description}>
+              We look at the world differently.{'\n'} Where others build machines to make us {'\n'} faster, we built one to help us remember.
+            </Text>
+          </View>
         </View>
-      </View>
+      </SafeAreaView>
     </BackgroundWrapper>
   );
 };
@@ -43,30 +51,49 @@ const styles = StyleSheet.create({
   bgImage: {
     resizeMode: 'cover',
   },
+  safe: {
+    flex: 1,
+    backgroundColor: 'transparent',
+    alignItems: 'center',
+    width: '100%',
+  },
   container: {
     flex: 1,
     paddingHorizontal: Math.max(20, screenWidth * 0.051),
-    paddingTop: Math.max(48, screenHeight * 0.056),
+    paddingTop: 0,
     paddingBottom: Math.max(30, screenHeight * 0.035),
     alignItems: 'center',
+    width: '100%',
   },
-  titleContainer: {
+  titleRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginTop: Math.max(60, screenHeight * 0.1),
+    justifyContent: 'space-between',
+    width: '100%',
+    paddingHorizontal: 20,
+    marginTop: 30, // Reduced from Math.max(60, screenHeight * 0.1)
     marginBottom: Math.max(48, screenHeight * 0.06),
+  },
+  backBtn: {
+    width: 30,
+    height: 30,
+    justifyContent: 'center',
+  },
+  backArrow: {
+    fontSize: 24,
+    color: '#F2E2B1',
+    fontWeight: '300',
   },
   title: {
     fontFamily: 'CormorantGaramond-Light',
     fontSize: Math.min(screenWidth * 0.082, 32),
     fontWeight: '400',
-    lineHeight: Math.min(screenWidth * 0.082 * 1.3, 41.6),
     color: '#F2E2B1',
     textAlign: 'center',
     textShadowColor: '#E5D6B0',
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 10,
     letterSpacing: 4,
-    alignSelf: 'stretch',
   },
   videoContainer: {
     height: Math.min(screenHeight * 0.59, 509),

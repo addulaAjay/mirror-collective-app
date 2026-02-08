@@ -13,6 +13,7 @@ import {
   type TextStyle,
   type ImageStyle,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
@@ -21,25 +22,15 @@ import StarIcon from '@components/StarIcon';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'StartFreeTrial'>;
 
-// Use window (usable viewport) instead of screen (includes status/nav bars)
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 const DESIGN_WIDTH = 393;
 const DESIGN_HEIGHT = 852;
 
 const outerContainerPaddingHorizontal = Math.max(24, (24 * screenWidth) / DESIGN_WIDTH);
-const outerContainerPaddingTop = Math.max(48, (48 * screenHeight) / DESIGN_HEIGHT);
 const outerContainerPaddingBottom = Math.max(53, (53 * screenHeight) / DESIGN_HEIGHT);
 
-const availableHeight = Math.max(0, screenHeight - outerContainerPaddingTop - outerContainerPaddingBottom);
-
-// Reserve vertical space for the absolutely-positioned LogoHeader
-const contentStartY = Math.max(120, (120 * screenHeight) / DESIGN_HEIGHT);
-const outerBoxMarginTop = Math.max(0, contentStartY - outerContainerPaddingTop);
-
 const outerBoxWidth = (345 * screenWidth) / DESIGN_WIDTH;
-const outerBoxHeight = Math.min((751 * screenHeight) / DESIGN_HEIGHT, Math.max(0, availableHeight - outerBoxMarginTop));
-
 const sectionGap = Math.max(16, (16 * screenHeight) / DESIGN_HEIGHT);
 
 const cardMaxWidth = 313;
@@ -56,129 +47,131 @@ const StartFreeTrialScreen = () => {
 
   return (
     <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage}>
-      <View style={styles.outerBoxContainer}>
-        <LogoHeader />
+      <SafeAreaView style={styles.safe}>
+        <View style={styles.outerBoxContainer}>
+          <LogoHeader />
 
-        <View style={styles.outerBox}>
-          <View style={styles.headerRow}>
-            <TouchableOpacity
-              accessibilityRole="button"
-              onPress={() => navigation.goBack()}
-              style={styles.backButton}
-            >
-              <Image
-                source={require('../assets/back-arrow.png')}
-                style={styles.backArrow}
-                accessibilityIgnoresInvertColors
-              />
-            </TouchableOpacity>
+          <View style={styles.outerBox}>
+            <View style={styles.headerRow}>
+              <TouchableOpacity
+                accessibilityRole="button"
+                onPress={() => navigation.goBack()}
+                style={styles.backButton}
+              >
+                <Image
+                  source={require('../assets/back-arrow.png')}
+                  style={styles.backArrow}
+                  accessibilityIgnoresInvertColors
+                />
+              </TouchableOpacity>
 
-            <View style={styles.titleContainer}>
-              <Text style={styles.title}>Start your{`\n`}14 Day free trial</Text>
-              <Text style={styles.subtitle}>
-                Reflect, remember, and track what’s{`\n`}changing in real time.
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.innerBox}>
-            <View style={styles.cardWrapper}>
-              <LinearGradient
-                colors={cardGradient}
-                start={{ x: 0.5, y: 0 }}
-                end={{ x: 0.5, y: 1 }}
-                style={styles.cardGradient}
-                pointerEvents="none"
-              />
-              <View style={styles.cardContent}>
-                <Text style={styles.cardTitle}>Mirror Core</Text>
-                <Text style={styles.cardSubtitle}>Your daily reflective companion.</Text>
-
-                <View style={styles.starDividerRow}>
-                  <LinearGradient
-                    colors={['#F2E2B1', '#CFA64F']}
-                    start={{ x: 0, y: 0.5 }}
-                    end={{ x: 1, y: 0.5 }}
-                    style={styles.starDividerLine}
-                  />
-                  <StarIcon width={18} height={18} color="#F2E2B1" />
-                  <LinearGradient
-                    colors={['#CFA64F', '#F2E2B1']}
-                    start={{ x: 0, y: 0.5 }}
-                    end={{ x: 1, y: 0.5 }}
-                    style={styles.starDividerLine}
-                  />
-                </View>
-
-                <View style={styles.bullets}>
-                  <View style={styles.bulletRow}>
-                    <Text style={styles.bulletMarker}>•</Text>
-                    <Text style={styles.bulletLine}>
-                      <Text style={styles.bulletLead}>MirrorGPT</Text> — reflect, process,{`\n`}and gain clarity
-                    </Text>
-                  </View>
-                  <View style={styles.bulletRow}>
-                    <Text style={styles.bulletMarker}>•</Text>
-                    <Text style={styles.bulletLine}>
-                      <Text style={styles.bulletLead}>Echo Map + micro-practices</Text> —{`\n`}see patterns and shift them
-                    </Text>
-                  </View>
-                  <View style={styles.bulletRow}>
-                    <Text style={styles.bulletMarker}>•</Text>
-                    <Text style={styles.bulletLine}>
-                      <Text style={styles.bulletLead}>Private Echo Vault (50 GB)</Text> —{`\n`}your memories, your story
-                    </Text>
-                  </View>
-                </View>
-
-                <LinearGradient
-                    colors={['#F2E2B1', '#CFA64F']}
-                    start={{ x: 0, y: 0.5 }}
-                    end={{ x: 1, y: 0.5 }}
-                    style={styles.DividerLine}
-                  />
-
-                <View style={styles.priceLine}>
-                  <Text style={styles.priceAmount}>$15.99</Text>
-                  <Text style={styles.pricePerMonth}> /month </Text>
-                  <View style={styles.priceOrContainer}>
-                    <Text style={styles.priceOr}> or </Text>
-                  </View>
-                  <Text style={styles.priceYearAmount}> $139</Text>
-                  <Text style={styles.priceYearSuffix}> /year</Text>
-                </View>
-
-                <TouchableOpacity
-                  accessibilityRole="button"
-                  activeOpacity={0.85}
-                  onPress={() => {
-                    // TODO: Hook up purchase flow
-                  }}
-                >
-                  <LinearGradient
-                    colors={['rgba(253, 253, 249, 0.03)', 'rgba(253, 253, 249, 0.20)']}
-                    start={{ x: 0.5, y: 0 }}
-                    end={{ x: 0.5, y: 1 }}
-                    style={styles.ctaButton}
-                  >
-                    <Text style={styles.ctaButtonText}>START FREE TRIAL</Text>
-                  </LinearGradient>
-                </TouchableOpacity>
-
-                <Text style={styles.cancelText}>Cancel anytime.</Text>
+              <View style={styles.titleContainer}>
+                <Text style={styles.title}>Start{`\n`}14 Day free trial</Text>
+                <Text style={styles.subtitle}>
+                  Reflect, remember, and track what’s{`\n`}changing in real time.
+                </Text>
               </View>
             </View>
 
-            <View style={styles.footerLinksRow}>
-              <Text style={styles.footerLinkText}>Terms</Text>
-              <Text style={styles.footerLinkText}>·</Text>
-              <Text style={styles.footerLinkText}>Privacy</Text>
-              <Text style={styles.footerLinkText}>·</Text>
-              <Text style={styles.footerLinkText}>Restore Purchase</Text>
+            <View style={styles.innerBox}>
+              <View style={styles.cardWrapper}>
+                <LinearGradient
+                  colors={cardGradient}
+                  start={{ x: 0.5, y: 0 }}
+                  end={{ x: 0.5, y: 1 }}
+                  style={styles.cardGradient}
+                  pointerEvents="none"
+                />
+                <View style={styles.cardContent}>
+                  <Text style={styles.cardTitle}>Mirror Core</Text>
+                  <Text style={styles.cardSubtitle}>Your daily reflective companion.</Text>
+
+                  <View style={styles.starDividerRow}>
+                    <LinearGradient
+                      colors={['#F2E2B1', '#CFA64F']}
+                      start={{ x: 0, y: 0.5 }}
+                      end={{ x: 1, y: 0.5 }}
+                      style={styles.starDividerLine}
+                    />
+                    <StarIcon width={18} height={18} color="#F2E2B1" />
+                    <LinearGradient
+                      colors={['#CFA64F', '#F2E2B1']}
+                      start={{ x: 0, y: 0.5 }}
+                      end={{ x: 1, y: 0.5 }}
+                      style={styles.starDividerLine}
+                    />
+                  </View>
+
+                  <View style={styles.bullets}>
+                    <View style={styles.bulletRow}>
+                      <Text style={styles.bulletMarker}>•</Text>
+                      <Text style={styles.bulletLine}>
+                        <Text style={styles.bulletLead}>MirrorGPT</Text> — reflect, process,{`\n`}and gain clarity
+                      </Text>
+                    </View>
+                    <View style={styles.bulletRow}>
+                      <Text style={styles.bulletMarker}>•</Text>
+                      <Text style={styles.bulletLine}>
+                        <Text style={styles.bulletLead}>Echo Map + micro-practices</Text> —{`\n`}see patterns and shift them
+                      </Text>
+                    </View>
+                    <View style={styles.bulletRow}>
+                      <Text style={styles.bulletMarker}>•</Text>
+                      <Text style={styles.bulletLine}>
+                        <Text style={styles.bulletLead}>Private Echo Vault (50 GB)</Text> —{`\n`}your memories, your story
+                      </Text>
+                    </View>
+                  </View>
+
+                  <LinearGradient
+                      colors={['#F2E2B1', '#CFA64F']}
+                      start={{ x: 0, y: 0.5 }}
+                      end={{ x: 1, y: 0.5 }}
+                      style={styles.DividerLine}
+                    />
+
+                  <View style={styles.priceLine}>
+                    <Text style={styles.priceAmount}>$15.99</Text>
+                    <Text style={styles.pricePerMonth}> /month </Text>
+                    <View style={styles.priceOrContainer}>
+                      <Text style={styles.priceOr}> or </Text>
+                    </View>
+                    <Text style={styles.priceYearAmount}> $139</Text>
+                    <Text style={styles.priceYearSuffix}> /year</Text>
+                  </View>
+
+                  <TouchableOpacity
+                    accessibilityRole="button"
+                    activeOpacity={0.85}
+                    onPress={() => {
+                      // TODO: Hook up purchase flow
+                    }}
+                  >
+                    <LinearGradient
+                      colors={['rgba(253, 253, 249, 0.03)', 'rgba(253, 253, 249, 0.20)']}
+                      start={{ x: 0.5, y: 0 }}
+                      end={{ x: 0.5, y: 1 }}
+                      style={styles.ctaButton}
+                    >
+                      <Text style={styles.ctaButtonText}>START FREE TRIAL</Text>
+                    </LinearGradient>
+                  </TouchableOpacity>
+
+                  <Text style={styles.cancelText}>Cancel anytime.</Text>
+                </View>
+              </View>
+
+              <View style={styles.footerLinksRow}>
+                <Text style={styles.footerLinkText}>Terms</Text>
+                <Text style={styles.footerLinkText}>·</Text>
+                <Text style={styles.footerLinkText}>Privacy</Text>
+                <Text style={styles.footerLinkText}>·</Text>
+                <Text style={styles.footerLinkText}>Restore Purchase</Text>
+              </View>
             </View>
           </View>
         </View>
-      </View>
+      </SafeAreaView>
     </BackgroundWrapper>
   );
 };
@@ -188,6 +181,7 @@ export default StartFreeTrialScreen;
 const styles = StyleSheet.create<{
   bg: ViewStyle;
   bgImage: ImageStyle;
+  safe: ViewStyle;
   outerBoxContainer: ViewStyle;
   outerBox: ViewStyle;
   headerRow: ViewStyle;
@@ -232,21 +226,25 @@ const styles = StyleSheet.create<{
     bgImage: {
       resizeMode: 'cover',
     },
-
+    safe: {
+      flex: 1,
+      backgroundColor: 'transparent',
+    },
     outerBoxContainer: {
       flex: 1,
       paddingHorizontal: outerContainerPaddingHorizontal,
-      paddingTop: outerContainerPaddingTop,
+      paddingTop: 20,
       paddingBottom: outerContainerPaddingBottom,
+      alignItems: 'center',
     },
 
     outerBox: {
       width: outerBoxWidth,
-      height: outerBoxHeight,
+      flex: 1,
       flexDirection: 'column',
       alignItems: 'center',
       gap: sectionGap,
-      marginTop: outerBoxMarginTop,
+      marginTop: 20,
     },
 
     headerRow: {
@@ -308,12 +306,9 @@ const styles = StyleSheet.create<{
       alignItems: 'center',
       gap: sectionGap,
       flexGrow: 1,
-      flexShrink: 0,
-      flexBasis: 0,
       alignSelf: 'stretch',
       paddingHorizontal: innerBoxSidePadding,
       justifyContent: 'flex-start',
-    //   paddingBottom: 16,
     },
 
     cardWrapper: {
@@ -329,7 +324,6 @@ const styles = StyleSheet.create<{
       shadowOffset: { width: 0, height: 0 },
       shadowOpacity: 1,
       shadowRadius: 25,
-      boxShadow: '0 0 25px 0 rgba(163, 179, 204, 0.30)',
     },
     cardGradient: {
       ...StyleSheet.absoluteFillObject,
@@ -514,7 +508,6 @@ const styles = StyleSheet.create<{
       shadowOffset: { width: 0, height: 0 },
       shadowOpacity: 0.25,
       shadowRadius: 16,
-      boxShadow: '0 0 16px 0 rgba(242, 226, 177, 0.25)',
     },
     ctaButtonText: {
       fontFamily: 'CormorantGaramond-Regular',

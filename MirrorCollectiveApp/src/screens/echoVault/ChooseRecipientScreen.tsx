@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   StatusBar,
   TouchableOpacity,
   TextInput,
@@ -13,6 +12,7 @@ import {
   ActivityIndicator,
   Modal,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '@types';
@@ -28,7 +28,8 @@ const OFFWHITE = 'rgba(253,253,249,0.92)';
 const SUBTEXT = 'rgba(253,253,249,0.65)';
 const BORDER = 'rgba(253,253,249,0.18)';
 
-const ChooseRecipientScreen: React.FC<Props> = ({ navigation }) => {
+const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
+  const { title, category, mode } = route.params; 
   const [recipients, setRecipients] = useState<Recipient[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedRecipient, setSelectedRecipient] = useState<Recipient | null>(null);
@@ -65,7 +66,15 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation }) => {
   const handleNext = () => {
     if (selectedRecipient) {
       // Navigate to next screen with recipient data
-      navigation.navigate('NewEchoScreen');
+      navigation.navigate('NewEchoComposeScreen', {
+        mode,
+        title,
+        category,
+        hasRecipient: true,
+        recipient: selectedRecipient,
+        recipientId: selectedRecipient.recipient_id,
+        recipientName: selectedRecipient.name,
+      });
     }
   };
 
@@ -199,7 +208,7 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation }) => {
               ) : (
                 <FlatList
                   data={recipients}
-                  keyExtractor={item => item.id}
+                  keyExtractor={item => item.recipient_id}
                   renderItem={({ item }) => (
                     <TouchableOpacity
                       style={styles.dropdownItem}
@@ -211,6 +220,16 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation }) => {
                   )}
                 />
               )}
+              {/* Add New Recipient Button */}
+              <TouchableOpacity
+                style={styles.addNewButton}
+                onPress={() => {
+                   setShowDropdown(false);
+                   navigation.navigate('AddNewProfileScreen');
+                }}
+              >
+                  <Text style={styles.addNewText}>+ Add New Recipient</Text>
+              </TouchableOpacity>
             </View>
           </TouchableOpacity>
         </Modal>
@@ -245,12 +264,10 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     alignItems: 'center',
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight ?? 0 : 0,
   },
 
   /* Header */
   header: {
-    marginTop: 10,
     height: 56,
     flexDirection: 'row',
     alignItems: 'center',
@@ -270,7 +287,7 @@ const styles = StyleSheet.create({
 
   /* Title */
   titleRow: {
-    marginTop: 120,
+    marginTop: 30,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -445,5 +462,19 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
     paddingVertical: 20,
+  },
+  addNewButton: {
+    paddingVertical: 14,
+    borderTopWidth: 1,
+    borderTopColor: BORDER,
+    alignItems: 'center',
+  },
+  addNewText: {
+    color: GOLD,
+    fontSize: 16,
+    fontFamily: Platform.select({
+       ios: 'CormorantGaramond-SemiBold',
+       android: 'serif',
+    }),
   },
 });

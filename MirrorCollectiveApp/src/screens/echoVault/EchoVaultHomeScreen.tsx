@@ -3,26 +3,23 @@ import {
   SHADOWS,
   SPACING,
   SCREEN_DIMENSIONS,
-  PLATFORM_SPECIFIC,
 } from '@constants';
-import { theme } from '@theme';
 import React, { useMemo } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   StatusBar,
-  SafeAreaView,
   TouchableOpacity,
   Image,
   useWindowDimensions,
   Platform,
   ScrollView,
 } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
-import { useNavigation } from '@react-navigation/native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '@types';
+import { useNavigation } from '@react-navigation/native';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
@@ -54,16 +51,6 @@ export function MirrorEchoContent() {
     [width],
   );
 
-  const titleFontSize = useMemo(() => {
-    const size = 36 * scale;
-    return Math.max(30, Math.min(44, size));
-  }, [scale]);
-
-  const copyFontSize = useMemo(() => {
-    const size = 18 * scale;
-    return Math.max(16, Math.min(20, size));
-  }, [scale]);
-
   const buttonHeight = useMemo(() => {
     const h = 52 * scale;
     return Math.max(48, Math.min(58, h));
@@ -73,15 +60,6 @@ export function MirrorEchoContent() {
     const w = cardMaxWidth * 0.78;
     return Math.max(220, Math.min(320, w));
   }, [cardMaxWidth]);
-
-  const imageHeight = useMemo(() => {
-    const h = height * 0.46;
-    return Math.max(260, Math.min(520, h));
-  }, [height]);
-
-  const handleMenu = () => {
-    (navigation as any)?.openDrawer?.();
-  };
 
   const handleInfo = () => {
     // navigation.navigate('MirrorEchoInfo' as any); // TODO: Add Info Screen
@@ -96,14 +74,14 @@ export function MirrorEchoContent() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar
-        translucent
-        backgroundColor="transparent"
-        barStyle="light-content"
-      />
+    <BackgroundWrapper style={styles.background}>
+      <SafeAreaView style={styles.safeArea}>
+        <StatusBar
+          translucent
+          backgroundColor="transparent"
+          barStyle="light-content"
+        />
 
-      <BackgroundWrapper style={styles.background}>
         <LogoHeader navigation={navigation} />
 
         <ScrollView
@@ -112,12 +90,6 @@ export function MirrorEchoContent() {
           showsVerticalScrollIndicator={false}
           bounces
         >
-          {/* <LinearGradient
-            colors={['rgba(155, 170, 194, 0.01)', 'rgba(155, 170, 194, 0.18)']}
-            start={{ x: 0.5, y: 0 }}
-            end={{ x: 0.5, y: 1 }}
-            style={[styles.gradientWrapper, { maxWidth: cardMaxWidth }]}
-          > */}
           <View style={[styles.card]}>
             <View style={styles.titleRow}>
               <Text style={[styles.title]}>MIRROR ECHO</Text>
@@ -168,10 +140,9 @@ export function MirrorEchoContent() {
               </TouchableOpacity>
             </View>
           </View>
-          {/* </LinearGradient> */}
         </ScrollView>
-      </BackgroundWrapper>
-    </SafeAreaView>
+      </SafeAreaView>
+    </BackgroundWrapper>
   );
 }
 
@@ -182,51 +153,18 @@ export default function MirrorEchoScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: COLORS.BACKGROUND.PRIMARY,
-    paddingTop: PLATFORM_SPECIFIC.STATUS_BAR_HEIGHT,
+    backgroundColor: 'transparent',
   },
 
   background: {
     flex: 1,
-    paddingHorizontal: SPACING.XL,
     justifyContent: 'flex-start',
-  },
-
-  topRow: {
-    width: '100%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingTop: 6,
-  },
-
-  iconButton: {
-    width: 44,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  menuIcon: {
-    color: 'rgba(253,253,249,0.92)',
-    fontSize: 22,
-    marginTop: -1,
-  },
-
-  logoWrap: {
-    flex: 1,
-    alignItems: 'center',
-  },
-
-  iconSpacer: {
-    width: 44,
-    height: 44,
   },
 
   scroll: {
     flex: 1,
     width: '100%',
-    marginTop: 120,
+    paddingHorizontal: SPACING.XL,
   },
 
   scrollContent: {
@@ -235,17 +173,11 @@ const styles = StyleSheet.create({
     paddingBottom: Platform.OS === 'ios' ? 24 : 18,
   },
 
-  gradientWrapper: {
-    width: '100%',
-    borderRadius: SPACING.XL,
-    alignSelf: 'center',
-  },
-
   card: {
     width: '100%',
     borderRadius: SPACING.LG,
     paddingHorizontal: SPACING.XL,
-    paddingTop: 80,
+    paddingTop: 10,
     paddingBottom: SPACING.XL,
     alignSelf: 'center',
     ...SHADOWS.LIGHT,
@@ -257,6 +189,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingTop: 10,
     paddingBottom: 10,
+    marginTop: 30, // Consistent with other title rows
   },
 
   title: {

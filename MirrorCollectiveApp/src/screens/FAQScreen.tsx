@@ -10,7 +10,9 @@ import {
   Platform,
   UIManager,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
+import { useNavigation } from '@react-navigation/native';
 
 import BackgroundWrapper from '../components/BackgroundWrapper';
 import LogoHeader from '../components/LogoHeader';
@@ -64,6 +66,7 @@ const SECTIONS: Section[] = [
 ];
 
 export default function FAQScreen() {
+  const navigation = useNavigation();
   const [openSections, setOpenSections] = React.useState<
     Record<string, boolean>
   >(() => {
@@ -89,122 +92,134 @@ export default function FAQScreen() {
 
   return (
     <BackgroundWrapper>
-      {/* Top row: hamburger + centered logo */}
-      <View style={styles.topRow}>
-        <View style={styles.logoCenter}>
-          <LogoHeader />
-        </View>
+      <SafeAreaView style={styles.safe}>
+        <LogoHeader />
 
-        <View style={{ width: 44 }} />
-      </View>
+        <ScrollView
+          contentContainerStyle={styles.content}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Title Row */}
+          <View style={styles.titleRow}>
+            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+              <Text style={styles.backArrow}>←</Text>
+            </TouchableOpacity>
+            <Text style={styles.title}>FAQ</Text>
+            <View style={{ width: 30 }} />
+          </View>
 
-      <ScrollView
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-      >
-        <Text style={styles.title}>FAQ</Text>
+          {SECTIONS.map(section => {
+            const isSectionOpen = !!openSections[section.title];
+            return (
+              <View key={section.title} style={styles.section}>
+                <TouchableOpacity
+                  style={styles.sectionHeader}
+                  onPress={() => toggleSection(section.title)}
+                  activeOpacity={0.85}
+                >
+                  <Text style={styles.sectionTitle}>{section.title}</Text>
+                  <Text style={styles.sectionChevron}>
+                    {isSectionOpen ? '▴' : '▾'}
+                  </Text>
+                </TouchableOpacity>
 
-        {SECTIONS.map(section => {
-          const isSectionOpen = !!openSections[section.title];
-          return (
-            <View key={section.title} style={styles.section}>
-              <TouchableOpacity
-                style={styles.sectionHeader}
-                onPress={() => toggleSection(section.title)}
-                activeOpacity={0.85}
-              >
-                <Text style={styles.sectionTitle}>{section.title}</Text>
-                <Text style={styles.sectionChevron}>
-                  {isSectionOpen ? '▴' : '▾'}
-                </Text>
-              </TouchableOpacity>
+                {isSectionOpen ? (
+                  <View>
+                    {section.items.map((item, idx) => {
+                      const key = `${section.title}::${idx}`;
+                      const expanded = openItemKey === key && !!item.a;
 
-              {isSectionOpen ? (
-                <View>
-                  {section.items.map((item, idx) => {
-                    const key = `${section.title}::${idx}`;
-                    const expanded = openItemKey === key && !!item.a;
+                      return (
+                        <View key={key} style={styles.cardWrap}>
+                          <TouchableOpacity
+                            style={styles.card}
+                            activeOpacity={0.9}
+                            onPress={() => toggleItem(section.title, idx)}
+                          >
+                            {/* soft highlight */}
+                            <LinearGradient
+                              colors={[
+                                'rgba(255,255,255,0.00)',
+                                'rgba(255,255,255,0.08)',
+                                'rgba(255,255,255,0.00)',
+                              ]}
+                              locations={[0, 0.5, 1]}
+                              start={{ x: 0, y: 0.5 }}
+                              end={{ x: 1, y: 0.5 }}
+                              style={StyleSheet.absoluteFillObject}
+                            />
 
-                    return (
-                      <View key={key} style={styles.cardWrap}>
-                        <TouchableOpacity
-                          style={styles.card}
-                          activeOpacity={0.9}
-                          onPress={() => toggleItem(section.title, idx)}
-                        >
-                          {/* soft highlight */}
-                          <LinearGradient
-                            colors={[
-                              'rgba(255,255,255,0.00)',
-                              'rgba(255,255,255,0.08)',
-                              'rgba(255,255,255,0.00)',
-                            ]}
-                            locations={[0, 0.5, 1]}
-                            start={{ x: 0, y: 0.5 }}
-                            end={{ x: 1, y: 0.5 }}
-                            style={StyleSheet.absoluteFillObject}
-                          />
+                            <View style={styles.cardTopRow}>
+                              <Text style={styles.cardQuestion}>{item.q}</Text>
+                              <Text style={styles.cardIcon}>
+                                {expanded ? '–' : '+'}
+                              </Text>
+                            </View>
 
-                          <View style={styles.cardTopRow}>
-                            <Text style={styles.cardQuestion}>{item.q}</Text>
-                            <Text style={styles.cardIcon}>
-                              {expanded ? '–' : '+'}
-                            </Text>
-                          </View>
+                            {expanded ? (
+                              <Text style={styles.cardAnswer}>{item.a}</Text>
+                            ) : null}
+                          </TouchableOpacity>
+                        </View>
+                      );
+                    })}
+                  </View>
+                ) : null}
+              </View>
+            );
+          })}
 
-                          {expanded ? (
-                            <Text style={styles.cardAnswer}>{item.a}</Text>
-                          ) : null}
-                        </TouchableOpacity>
-                      </View>
-                    );
-                  })}
-                </View>
-              ) : null}
-            </View>
-          );
-        })}
-
-        <View style={{ height: 24 }} />
-      </ScrollView>
+          <View style={{ height: 24 }} />
+        </ScrollView>
+      </SafeAreaView>
     </BackgroundWrapper>
   );
 }
 
 const styles = StyleSheet.create({
+  safe: {
+    flex: 1,
+    backgroundColor: 'transparent',
+    width: '100%',
+  },
   topRow: {
     paddingTop: 12,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  hamburgerBtn: {
-    width: 44,
-    height: 44,
     justifyContent: 'center',
-    alignItems: 'center',
   },
-  hamburger: {
-    fontSize: 34,
-    color: GOLD,
-    fontFamily: 'CormorantGaramond-SemiBold',
-  },
-  logoCenter: { flex: 1, alignItems: 'center' },
-
   content: {
     paddingHorizontal: 18,
-    paddingTop: 80,
+    paddingTop: 0,
     paddingBottom: 26,
   },
 
-  title: {
-    textAlign: 'center',
-    marginTop: 40,
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+    paddingHorizontal: 0,
+    marginTop: 30, // Consistent with AboutScreen
     marginBottom: 18,
+  },
+  backBtn: {
+    width: 30,
+    height: 30,
+    justifyContent: 'center',
+  },
+  backArrow: {
+    fontSize: 24,
+    color: GOLD,
+    fontWeight: '300',
+  },
+  title: {
     fontSize: 30,
     color: GOLD,
     fontFamily: 'CormorantGaramond-SemiBold',
     letterSpacing: 2,
+    textAlign: 'center',
   },
 
   section: {

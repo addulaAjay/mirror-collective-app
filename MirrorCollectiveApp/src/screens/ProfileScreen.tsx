@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import {
   Dimensions,
-  Image,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Svg, { Path } from 'react-native-svg';
 
@@ -29,129 +31,132 @@ const ProfileScreen: React.FC = () => {
 
   return (
     <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage}>
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.contentContainer}
-        showsVerticalScrollIndicator={false}
-      >
+      <SafeAreaView style={styles.safe}>
         <LogoHeader />
-        <View style={styles.sectionWrapper}>
-
-        {/* Title Section */}
-        <View style={styles.headerSection}>
-          <Text style={styles.title}>YOUR PROFILE</Text>
-          <Text style={styles.subtitle}>
-            Update your profile and notification {'\n'} preferences
-          </Text>
-        </View>
-
-        {/* Profile Image */}
-        <View style={styles.profileImageContainer}>
-          <View style={styles.profileImageWrapper}>
-            <View style={styles.profileImageCircle}>
-              {/* Default Avatar Icon */}
-              <Svg width="120" height="120" viewBox="0 0 60 50" fill="none">
-                <Path
-                  d="M30 30C37.18 30 43 24.18 43 17C43 9.82 37.18 4 30 4C22.82 4 17 9.82 17 17C17 24.18 22.82 30 30 30ZM30 37C21.33 37 4 41.34 4 50V56H56V50C56 41.34 38.67 37 30 37Z"
-                  fill="#A3B3CC"
-                />
-              </Svg>
-            </View>
-            {/* Plus Icon Badge */}
-            <TouchableOpacity style={styles.editBadge}>
-              <Svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <Path
-                  d="M10 4V16M4 10H16"
-                  stroke="#0B0F1C"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-              </Svg>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Form Section */}
-        <View style={styles.formSection}>
-          {/* Name Field */}
-          <View style={styles.fieldContainer}>
-            <Text style={styles.fieldLabel}>Name</Text>
-            <TextInputField
-              size="medium"
-              placeholder="Enter your name"
-              value={name}
-              onChangeText={setName}
-              autoCapitalize="words"
-              autoComplete="name"
-              placeholderAlign="left"
-              placeholderFontFamily="regular"
-              inputTextStyle="gold-regular"
-              placeholderStyle={styles.customPlaceholder}
-            />
-          </View>
-
-          {/* Email Field */}
-          <View style={styles.fieldContainer}>
-            <Text style={styles.fieldLabel}>Email Address</Text>
-            <TextInputField
-              size="medium"
-              placeholder="Enter your email"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoComplete="email"
-              placeholderAlign="left"
-              placeholderFontFamily="regular"
-              inputTextStyle="gold-regular"
-              placeholderStyle={styles.customPlaceholder}
-            />
-          </View>
-
-          {/* Phone Number Field */}
-          <View style={styles.fieldContainer}>
-            <Text style={styles.fieldLabel}>Phone Number</Text>
-            <TextInputField
-              size="medium"
-              placeholder="Enter your phone number"
-              value={phoneNumber}
-              onChangeText={setPhoneNumber}
-              keyboardType="phone-pad"
-              autoCapitalize="none"
-              placeholderAlign="left"
-              placeholderFontFamily="regular"
-              inputTextStyle="gold-regular"
-              placeholderStyle={styles.customPlaceholder}
-            />
-          </View>
-        </View>
-
-        {/* Save Button */}
-        <TouchableOpacity
-          style={styles.saveButtonWrapper}
-          onPress={handleSave}
-          activeOpacity={0.8}
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.contentContainer}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
         >
-          <LinearGradient
-            colors={[
-              'rgba(253, 253, 249, 0.04)',
-              'rgba(253, 253, 249, 0.01)',
-            ]}
-            start={{ x: 0.5, y: 0 }}
-            end={{ x: 0.5, y: 1 }}
-            style={styles.saveButton}
-          >
-            <Text style={styles.saveText}>SAVE</Text>
-          </LinearGradient>
-        </TouchableOpacity>
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <View style={styles.sectionWrapper}>
 
-        </View>
-      </ScrollView>
+            {/* Title Section */}
+            <View style={styles.headerSection}>
+              <Text style={styles.title}>YOUR PROFILE</Text>
+              <Text style={styles.subtitle}>
+                Update your profile and notification {'\n'} preferences
+              </Text>
+            </View>
+
+            {/* Profile Image */}
+            <View style={styles.profileImageContainer}>
+              <View style={styles.profileImageWrapper}>
+                <View style={styles.profileImageCircle}>
+                  {/* Default Avatar Icon */}
+                  <Svg width="120" height="120" viewBox="0 0 60 50" fill="none">
+                    <Path
+                      d="M30 30C37.18 30 43 24.18 43 17C43 9.82 37.18 4 30 4C22.82 4 17 9.82 17 17C17 24.18 22.82 30 30 30ZM30 37C21.33 37 4 41.34 4 50V56H56V50C56 41.34 38.67 37 30 37Z"
+                      fill="#A3B3CC"
+                    />
+                  </Svg>
+                </View>
+                {/* Plus Icon Badge */}
+                <TouchableOpacity style={styles.editBadge}>
+                  <Svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <Path
+                      d="M10 4V16M4 10H16"
+                      stroke="#0B0F1C"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                    />
+                  </Svg>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* Form Section */}
+            <View style={styles.formSection}>
+              {/* Name Field */}
+              <View style={styles.fieldContainer}>
+                <Text style={styles.fieldLabel}>Name</Text>
+                <TextInputField
+                  size="medium"
+                  placeholder="Enter your name"
+                  value={name}
+                  onChangeText={setName}
+                  autoCapitalize="words"
+                  autoComplete="name"
+                  placeholderAlign="left"
+                  placeholderFontFamily="regular"
+                  inputTextStyle="gold-regular"
+                  placeholderStyle={styles.customPlaceholder}
+                />
+              </View>
+
+              {/* Email Field */}
+              <View style={styles.fieldContainer}>
+                <Text style={styles.fieldLabel}>Email Address</Text>
+                <TextInputField
+                  size="medium"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChangeText={setEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoComplete="email"
+                  placeholderAlign="left"
+                  placeholderFontFamily="regular"
+                  inputTextStyle="gold-regular"
+                  placeholderStyle={styles.customPlaceholder}
+                />
+              </View>
+
+              {/* Phone Number Field */}
+              <View style={styles.fieldContainer}>
+                <Text style={styles.fieldLabel}>Phone Number</Text>
+                <TextInputField
+                  size="medium"
+                  placeholder="Enter your phone number"
+                  value={phoneNumber}
+                  onChangeText={setPhoneNumber}
+                  keyboardType="phone-pad"
+                  autoCapitalize="none"
+                  placeholderAlign="left"
+                  placeholderFontFamily="regular"
+                  inputTextStyle="gold-regular"
+                  placeholderStyle={styles.customPlaceholder}
+                />
+              </View>
+            </View>
+
+            {/* Save Button */}
+            <TouchableOpacity
+              style={styles.saveButtonWrapper}
+              onPress={handleSave}
+              activeOpacity={0.8}
+            >
+              <LinearGradient
+                colors={[
+                  'rgba(253, 253, 249, 0.04)',
+                  'rgba(253, 253, 249, 0.01)',
+                ]}
+                start={{ x: 0.5, y: 0 }}
+                end={{ x: 0.5, y: 1 }}
+                style={styles.saveButton}
+              >
+                <Text style={styles.saveText}>SAVE</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+
+            </View>
+          </TouchableWithoutFeedback>
+        </ScrollView>
+      </SafeAreaView>
     </BackgroundWrapper>
   );
 };
-
-export default ProfileScreen;
 
 const styles = StyleSheet.create({
   bg: {
@@ -161,22 +166,29 @@ const styles = StyleSheet.create({
   bgImage: {
     resizeMode: 'cover',
   },
+  safe: {
+    flex: 1,
+    backgroundColor: 'transparent',
+    width: '100%',
+  },
   scrollView: {
     flex: 1,
   },
   contentContainer: {
     paddingHorizontal: Math.max(20, screenWidth * 0.051),
-    paddingTop: Math.max(48, screenHeight * 0.056),
+    paddingTop: 0,
     paddingBottom: Math.max(100, screenHeight * 0.12),
     alignItems: 'center',
   },
   sectionWrapper: {
     gap: 24,
+    width: '100%',
+    alignItems: 'center',
   },
   headerSection: {
     alignItems: 'center',
-    gap:24,
-    marginTop: Math.max(80, screenHeight * 0.1),
+    gap: 24,
+    marginTop: 30, // Reduced from Math.max(80, screenHeight * 0.1)
   },
   title: {
     fontFamily: 'CormorantGaramond-Light',
@@ -280,3 +292,5 @@ const styles = StyleSheet.create({
     letterSpacing: 2,
   },
 });
+
+export default ProfileScreen;

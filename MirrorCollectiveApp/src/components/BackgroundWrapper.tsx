@@ -1,5 +1,5 @@
 import React from 'react';
-import { ImageBackground, StyleSheet, type StyleProp, type ViewStyle, type ImageStyle } from 'react-native';
+import { ImageBackground, StyleSheet, type StyleProp, type ViewStyle, type ImageStyle, TouchableWithoutFeedback, Keyboard, View } from 'react-native';
 
 interface BackgroundWrapperProps {
   children: React.ReactNode;
@@ -25,13 +25,20 @@ const BackgroundWrapper: React.FC<BackgroundWrapperProps> = ({
       imageStyle={imageStyle}
       resizeMode="cover"
     >
-      {children}
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        <View style={styles.inner}>
+          {children}
+        </View>
+      </TouchableWithoutFeedback>
     </ImageBackground>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+  },
+  inner: {
     flex: 1,
   },
 });

@@ -42,6 +42,10 @@ export const UserProvider = ({ children }: UserProviderProps) => {
       const profileResponse = await authApiService.getUserProfile();
       if (profileResponse.success && profileResponse.data?.user) {
         setUser(profileResponse.data.user);
+      } else {
+        // If we can't get the user profile, but think we're authenticated, 
+        // it might be a token issue. 
+        console.warn('Refresh user failed:', profileResponse.message);
       }
     } catch (error) {
       console.error('Failed to refresh user profile:', error);
@@ -51,12 +55,13 @@ export const UserProvider = ({ children }: UserProviderProps) => {
   // React to session changes
   useEffect(() => {
     if (sessionState.isAuthenticated) {
-      // If we authenticated but don't have user data, fetch it
+       // If we authenticated but don't have user data, fetch it
        // Optimization: fetch only if user is null
        if (!user) {
           refreshUser();
        } else {
           // Initialize push notification handlers once user is available
+          // Ensure we don't re-initialize unnecessarily if user object reference changes but ID is same
           PushNotificationService.initialize(user.id).catch((err: any) => {
             console.error('Failed to initialize push notification service:', err);
           });
@@ -65,7 +70,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
       // If not authenticated, clear user data
       setUser(null);
     }
-  }, [sessionState.isAuthenticated, user]);
+  }, [sessionState.isAuthenticated, user?.id]); // Depend on user.id instead of user object to avoid loops
 
   const contextValue: UserContextType = {
     user,

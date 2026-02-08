@@ -19,7 +19,7 @@ export interface EchoResponse {
   media_url?: string;
   content?: string;
   recipient?: {
-    id: string;
+    recipient_id: string;
     name: string;
     email: string;
   };
@@ -32,7 +32,7 @@ export interface UploadUrlResponse {
 }
 
 export interface Guardian {
-  id: string;
+  guardian_id: string;
   name: string;
   email: string;
   status: 'pending' | 'accepted' | 'declined';
@@ -40,10 +40,11 @@ export interface Guardian {
 }
 
 export interface Recipient {
-  id: string;
+  recipient_id: string;
   name: string;
   email: string;
   relationship?: string;
+  motif?: string;
   created_at: string;
 }
 
@@ -56,6 +57,7 @@ export interface CreateRecipientRequest {
   name: string;
   email: string;
   relationship?: string;
+  motif?: string;
 }
 
 export class EchoApiService extends BaseApiService {

@@ -4,7 +4,6 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   StatusBar,
   TouchableOpacity,
   Dimensions,
@@ -15,6 +14,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LinearGradient from 'react-native-linear-gradient';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -35,7 +35,7 @@ const BORDER_SOFT = 'rgba(253,253,249,0.08)';
 const SURFACE = 'rgba(7,9,14,0.36)';
 
 const EchoDetailScreen: React.FC<Props> = ({ navigation, route }) => {
-  const { echoId } = route.params; // Expect echoId to be passed
+  const { echoId } = route.params; 
   const [echo, setEcho] = useState<EchoResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -76,44 +76,42 @@ const EchoDetailScreen: React.FC<Props> = ({ navigation, route }) => {
   }
 
   if (!echo) {
-    return null; // Or some error state, but Alert should handle navigation back
+    return null; 
   }
 
   const title = echo.title || 'Untitled Echo';
-  // Use content for TEXT echoes, or a placeholder explanation for others
   const body = echo.echo_type === 'TEXT' 
     ? (echo.content || 'No content provided.')
     : `[${echo.echo_type} Content Placeholder]\n\nThis media type is not yet fully supported in this view.`;
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <StatusBar
-        barStyle="light-content"
-        translucent
-        backgroundColor="transparent"
-      />
+    <BackgroundWrapper style={styles.root}>
+      <SafeAreaView style={styles.safe}>
+        <StatusBar
+          barStyle="light-content"
+          translucent
+          backgroundColor="transparent"
+        />
 
-      <BackgroundWrapper style={styles.root}>
-
-        {/* Header */}
-        {/* Header */}
         <LogoHeader navigation={navigation} />
 
         {/* Back + Title */}
-        <View style={[styles.titleRow, { width: contentWidth }]}>
-          <TouchableOpacity
-            activeOpacity={0.85}
-            style={styles.backBtn}
-            onPress={() => navigation.goBack()}
-          >
-            <Text style={styles.backIcon}>‹</Text>
-          </TouchableOpacity>
+        <View style={styles.titleRowContainer}>
+          <View style={[styles.titleRow, { width: contentWidth }]}>
+            <TouchableOpacity
+              activeOpacity={0.85}
+              style={styles.backBtn}
+              onPress={() => navigation.goBack()}
+            >
+              <Text style={styles.backIcon}>‹</Text>
+            </TouchableOpacity>
 
-          <Text style={styles.screenTitle} numberOfLines={1}>
-            {title}
-          </Text>
+            <Text style={styles.screenTitle} numberOfLines={1}>
+              {title}
+            </Text>
 
-          <View style={styles.titleRightSpacer} />
+            <View style={styles.titleRightSpacer} />
+          </View>
         </View>
 
         {/* Text box */}
@@ -150,7 +148,7 @@ const EchoDetailScreen: React.FC<Props> = ({ navigation, route }) => {
           <ActionIconButton label="✎" onPress={() => {}} />
         </View>
 
-        {/* Folder modal sheet (the bottom panel hinted in your screenshot) */}
+        {/* Folder modal sheet */}
         <Modal
           visible={folderModalOpen}
           transparent
@@ -218,8 +216,8 @@ const EchoDetailScreen: React.FC<Props> = ({ navigation, route }) => {
             </Pressable>
           </Pressable>
         </Modal>
-      </BackgroundWrapper>
-    </SafeAreaView>
+      </SafeAreaView>
+    </BackgroundWrapper>
   );
 };
 
@@ -280,7 +278,7 @@ const ActionPrimaryButton = ({
 /* ---------- Styles ---------- */
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#05060A' },
+  safe: { flex: 1, backgroundColor: 'transparent', alignItems: 'center' },
   loadingContainer: {
     flex: 1,
     backgroundColor: '#05060A',
@@ -289,54 +287,14 @@ const styles = StyleSheet.create({
   },
   root: {
     flex: 1,
-    alignItems: 'center',
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight ?? 0 : 0,
   },
 
-  headerRow: {
-    marginTop: 10,
-    height: 56,
-    flexDirection: 'row',
+  titleRowContainer: {
+    width: '100%',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    marginTop: 20,
   },
-  iconBtn: {
-    width: 44,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  iconText: { color: OFFWHITE, fontSize: 24, opacity: 0.9 },
-
-  brandWrap: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  logoCircle: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    borderWidth: 1,
-    borderColor: 'rgba(215,192,138,0.55)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(215,192,138,0.10)',
-  },
-  logoMark: { color: GOLD, fontSize: 16 },
-  brandTextWrap: { alignItems: 'center' },
-  brandTop: {
-    color: 'rgba(215,192,138,0.85)',
-    fontSize: 10,
-    letterSpacing: 1,
-    marginBottom: 1,
-  },
-  brandMain: {
-    color: 'rgba(215,192,138,0.92)',
-    fontSize: 12,
-    letterSpacing: 2,
-    lineHeight: 14,
-  },
-  headerRightSpacer: { width: 44, height: 44 },
-
   titleRow: {
-    marginTop: 120,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',

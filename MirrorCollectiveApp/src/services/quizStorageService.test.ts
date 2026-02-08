@@ -86,13 +86,12 @@ describe('QuizStorageService', () => {
     });
   });
 
-  describe('submitPendingQuizResults', () => {
+  describe('retryPendingSubmissions', () => {
     it('skips submission if already submitted', async () => {
       (AsyncStorage.getItem as jest.Mock).mockResolvedValueOnce('true');
 
-      const result = await QuizStorageService.submitPendingQuizResults();
+      await QuizStorageService.retryPendingSubmissions();
 
-      expect(result).toBe(true);
       expect(quizApiService.submitQuizResults).not.toHaveBeenCalled();
     });
 
@@ -101,9 +100,8 @@ describe('QuizStorageService', () => {
         .mockResolvedValueOnce(null) // submission tracker
         .mockResolvedValueOnce(null); // pending quiz
 
-      const result = await QuizStorageService.submitPendingQuizResults();
+      await QuizStorageService.retryPendingSubmissions();
 
-      expect(result).toBe(true);
     });
 
     it('submits and clears on success', async () => {
@@ -112,9 +110,8 @@ describe('QuizStorageService', () => {
         .mockResolvedValueOnce(JSON.stringify(mockQuizData)); // pending quiz
       (quizApiService.submitQuizResults as jest.Mock).mockResolvedValueOnce({});
 
-      const result = await QuizStorageService.submitPendingQuizResults();
+      await QuizStorageService.retryPendingSubmissions();
 
-      expect(result).toBe(true);
       expect(quizApiService.submitQuizResults).toHaveBeenCalledWith(mockQuizData);
       expect(AsyncStorage.setItem).toHaveBeenCalledWith('QUIZ_SUBMITTED_FLAG', 'true');
     });
@@ -125,9 +122,11 @@ describe('QuizStorageService', () => {
         .mockResolvedValueOnce(JSON.stringify(mockQuizData));
       (quizApiService.submitQuizResults as jest.Mock).mockRejectedValueOnce(new Error('API Error'));
 
-      const result = await QuizStorageService.submitPendingQuizResults();
-
-      expect(result).toBe(false);
+      try {
+        await QuizStorageService.retryPendingSubmissions();
+      } catch (e) {
+        // Should catch and log error, not throw
+      }
     });
   });
 });

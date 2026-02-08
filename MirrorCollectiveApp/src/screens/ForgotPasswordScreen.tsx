@@ -10,8 +10,11 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
-  
+  TouchableWithoutFeedback,
+  Keyboard,
+  ScrollView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
@@ -80,123 +83,142 @@ const ForgotPasswordScreen = () => {
 
   if (emailSent) {
     return (
-      <KeyboardAvoidingView
-        style={styles.keyboardContainer}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
-        <BackgroundWrapper
-          style={styles.container}
-        >
+      <BackgroundWrapper style={styles.root}>
+        <SafeAreaView style={styles.safe}>
           <LogoHeader />
+          <KeyboardAvoidingView
+            style={styles.keyboardContainer}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          >
+          <ScrollView
+            style={{ width: '100%' }}
+            contentContainerStyle={styles.scrollContainer}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+              <View style={styles.contentContainer}>
+                <Text style={styles.title}>{t('auth.forgotPassword.title')}</Text>
+                <Text style={styles.subtitle}>
+                  {t('auth.forgotPassword.successMessage')}
+                  {'\n'}
+                  <Text style={styles.emailText}>{email}</Text>
+                </Text>
 
-          <View style={styles.contentContainer}>
-            <Text style={styles.title}>{t('auth.forgotPassword.title')}</Text>
-            <Text style={styles.subtitle}>
-              {t('auth.forgotPassword.successMessage')}
-              {'\n'}
-              <Text style={styles.emailText}>{email}</Text>
-            </Text>
+                <Text style={styles.instructions}>
+                  {t('auth.resetPassword.subtitle')}
+                </Text>
 
-            <Text style={styles.instructions}>
-              {t('auth.resetPassword.subtitle')}
-            </Text>
+                <TouchableOpacity
+                  style={styles.enterButton}
+                  testID="success-continue-button"
+                  onPress={() => navigation.navigate('ResetPassword', { email })}
+                  activeOpacity={0.8}
+                >
+                  <StarIcon width={24} height={24} />
+                  <Text style={styles.enterText}>{t('common.continue')}</Text>
+                  <StarIcon width={24} height={24} />
+                </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.enterButton}
-              testID="success-continue-button"
-              onPress={() => navigation.navigate('ResetPassword', { email })}
-              activeOpacity={0.8}
-            >
-              <StarIcon width={24} height={24} />
-              <Text style={styles.enterText}>{t('common.continue')}</Text>
-              <StarIcon width={24} height={24} />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={handleBackToLogin}
-              style={styles.backLink}
-              testID="success-back-to-login"
-            >
-              <Text style={styles.backLinkText}>{t('auth.forgotPassword.backToLogin')}</Text>
-            </TouchableOpacity>
-          </View>
-        </BackgroundWrapper>
-      </KeyboardAvoidingView>
+                <TouchableOpacity
+                  onPress={handleBackToLogin}
+                  style={styles.backLink}
+                  testID="success-back-to-login"
+                >
+                  <Text style={styles.backLinkText}>{t('auth.forgotPassword.backToLogin')}</Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableWithoutFeedback>
+          </ScrollView>
+        </KeyboardAvoidingView>
+        </SafeAreaView>
+      </BackgroundWrapper>
     );
   }
 
   return (
-    <KeyboardAvoidingView
-      style={styles.keyboardContainer}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <BackgroundWrapper
-        style={styles.container}
-      >
+    <BackgroundWrapper style={styles.root}>
+      <SafeAreaView style={styles.safe}>
         <LogoHeader />
+        <KeyboardAvoidingView
+          style={styles.keyboardContainer}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          <ScrollView
+            style={{ width: '100%' }}
+            contentContainerStyle={styles.scrollContainer}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+              <View style={styles.contentContainer}>
+                <Text style={styles.title}>{t('auth.forgotPassword.title')}</Text>
+                <Text style={styles.subtitle}>
+                  {t('auth.forgotPassword.subtitle')}
+                </Text>
 
-        <View style={styles.contentContainer}>
-          <Text style={styles.title}>{t('auth.forgotPassword.title')}</Text>
-          <Text style={styles.subtitle}>
-            {t('auth.forgotPassword.subtitle')}
-          </Text>
+                <View style={styles.formContainer}>
+                  <TextInputField
+                    testID="email-input"
+                    placeholder={t('auth.forgotPassword.emailPlaceholder')}
+                    value={email}
+                    onChangeText={setEmail}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    autoComplete="email"
+                    size="small"
+                  />
 
-          <View style={styles.formContainer}>
-            <TextInputField
-              testID="email-input"
-              placeholder={t('auth.forgotPassword.emailPlaceholder')}
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoComplete="email"
-              size="small"
-            />
+                  {state.error && <Text style={styles.errorText}>{state.error}</Text>}
 
-            {state.error && <Text style={styles.errorText}>{state.error}</Text>}
+                  <TouchableOpacity
+                    style={styles.enterButton}
+                    testID="forgot-password-button"
+                    onPress={handleForgotPassword}
+                    disabled={isLoading}
+                    activeOpacity={0.8}
+                  >
+                    <StarIcon width={24} height={24} />
+                    <Text style={styles.enterText}>
+                      {isLoading ? t('auth.forgotPassword.sendingButton') : t('auth.forgotPassword.sendButton')}
+                    </Text>
+                    <StarIcon width={24} height={24} />
+                  </TouchableOpacity>
+                </View>
 
-            <TouchableOpacity
-              style={styles.enterButton}
-              testID="forgot-password-button"
-              onPress={handleForgotPassword}
-              disabled={isLoading}
-              activeOpacity={0.8}
-            >
-              <StarIcon width={24} height={24} />
-              <Text style={styles.enterText}>
-                {isLoading ? t('auth.forgotPassword.sendingButton') : t('auth.forgotPassword.sendButton')}
-              </Text>
-              <StarIcon width={24} height={24} />
-            </TouchableOpacity>
-          </View>
-
-          <TouchableOpacity onPress={handleBackToLogin} style={styles.backLink} testID="back-to-login-button">
-            <Text style={styles.backLinkText}>
-              {t('auth.forgotPassword.backToLogin')}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </BackgroundWrapper>
-    </KeyboardAvoidingView>
+                <TouchableOpacity onPress={handleBackToLogin} style={styles.backLink} testID="back-to-login-button">
+                  <Text style={styles.backLinkText}>
+                    {t('auth.forgotPassword.backToLogin')}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableWithoutFeedback>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </BackgroundWrapper>
   );
 };
 
 const styles = StyleSheet.create({
-  keyboardContainer: {
+  root: {
     flex: 1,
   },
-  container: {
-    borderRadius: 15,
-    shadowColor: theme.shadows.container.color,
-    shadowOffset: theme.shadows.container.offset,
-    shadowOpacity: theme.shadows.container.opacity,
-    shadowRadius: theme.shadows.container.radius,
-    elevation: 10,
+  safe: {
+    flex: 1,
+  },
+  keyboardContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
   },
   contentContainer: {
-    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 40,

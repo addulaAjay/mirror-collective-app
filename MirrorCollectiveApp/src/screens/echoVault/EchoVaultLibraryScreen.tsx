@@ -11,7 +11,6 @@ import {
   Text,
   StyleSheet,
   StatusBar,
-  SafeAreaView,
   TouchableOpacity,
   ScrollView,
   useWindowDimensions,
@@ -19,6 +18,7 @@ import {
   Image,
   ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -42,6 +42,7 @@ export function EchoLibraryContent() {
   const [echoes, setEchoes] = useState<EchoResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'RECIPIENT' | 'CATEGORY'>('RECIPIENT');
 
   const cardMaxWidth = Math.min(width - SPACING.XL * 2, 440);
 
@@ -66,7 +67,7 @@ export function EchoLibraryContent() {
 
   useEffect(() => {
     fetchEchoes();
-  }, [fetchEchoes]);
+  }, []);
 
   const handleMenu = () => {
     (navigation as any)?.openDrawer?.();
@@ -96,44 +97,58 @@ export function EchoLibraryContent() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar
-        translucent
-        backgroundColor="transparent"
-        barStyle="light-content"
-      />
-
-      <BackgroundWrapper style={styles.background}>
-        <LogoHeader navigation={navigation} />
+    <BackgroundWrapper style={styles.background}>
+      <SafeAreaView style={styles.safeArea}>
+        <StatusBar
+          translucent
+          backgroundColor="transparent"
+          barStyle="light-content"
+        />
 
         <View style={styles.contentWrapper}>
-          <Text style={styles.title}>MY ECHO LIBRARY</Text>
+          <LogoHeader navigation={navigation} />
+
+          <View style={styles.topRow}>
+            <View style={styles.logoWrap}>
+              <Text style={styles.title}>ECHO LIBRARY</Text>
+            </View>
+          </View>
 
           <Text style={styles.subtitle}>
             Preserve echoes that hold meaning beyond{'\n'}the present moment.
           </Text>
 
-          <View style={styles.inboxRow}>
-            <View style={styles.inboxIconBox}>
-              <Image
-                source={require('../../assets/mail.png')}
-                style={styles.inboxIconImage}
-                resizeMode="contain"
-              />
-            </View>
-            <Text style={styles.inboxText}>Echo Inbox</Text>
-          </View>
-
           <LinearGradient
-            colors={['rgba(155, 170, 194, 0.01)', 'rgba(155, 170, 194, 0.18)']}
+            colors={['rgba(155, 170, 194, 0.05)', 'rgba(155, 170, 194, 0.22)']}
             start={{ x: 0.5, y: 0 }}
             end={{ x: 0.5, y: 1 }}
-            style={[styles.gradientWrapper, { maxWidth: cardMaxWidth }]}
+            style={styles.card}
           >
-            <View style={[styles.card, { maxWidth: cardMaxWidth }]}>
+            <View style={{ flex: 1 }}>
               <View style={styles.tableHeader}>
-                <Text style={styles.headerLeft}>RECIPIENT</Text>
-                <Text style={styles.headerRight}>CATEGORY</Text>
+                <TouchableOpacity 
+                  style={styles.headerTab}
+                  onPress={() => setActiveTab('RECIPIENT')}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[
+                    styles.headerText, 
+                    activeTab === 'RECIPIENT' ? styles.activeHeader : styles.inactiveHeader
+                  ]}>RECIPIENT</Text>
+                  {activeTab === 'RECIPIENT' && <View style={styles.activeIndicator} />}
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                  style={styles.headerTab}
+                  onPress={() => setActiveTab('CATEGORY')}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[
+                    styles.headerText, 
+                    activeTab === 'CATEGORY' ? styles.activeHeader : styles.inactiveHeader
+                  ]}>CATEGORY</Text>
+                  {activeTab === 'CATEGORY' && <View style={styles.activeIndicator} />}
+                </TouchableOpacity>
               </View>
 
               {loading ? (
@@ -180,7 +195,9 @@ export function EchoLibraryContent() {
 
                       <View style={styles.rowRight}>
                         <Text style={styles.recipientText}>
-                          {item.recipient?.name?.toUpperCase() || item.category}
+                          {activeTab === 'RECIPIENT' 
+                            ? (item.recipient?.name?.toUpperCase() || 'UNASSIGNED')
+                            : (item.category?.toUpperCase() || 'UNCATEGORIZED')}
                         </Text>
                         <View style={styles.smallInfoCircle}>
                           <Text style={styles.smallInfoText}>i</Text>
@@ -201,8 +218,8 @@ export function EchoLibraryContent() {
             <Text style={styles.createText}>CREATE AN ECHO</Text>
           </TouchableOpacity>
         </View>
-      </BackgroundWrapper>
-    </SafeAreaView>
+      </SafeAreaView>
+    </BackgroundWrapper>
   );
 }
 
@@ -213,13 +230,11 @@ export default function MirrorEchoVaultLibraryScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: COLORS.BACKGROUND.PRIMARY,
-    paddingTop: PLATFORM_SPECIFIC.STATUS_BAR_HEIGHT,
+    backgroundColor: 'transparent',
   },
 
   background: {
     flex: 1,
-    paddingHorizontal: SPACING.XL,
     justifyContent: 'flex-start',
   },
 
@@ -227,7 +242,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingTop: 6,
+    paddingHorizontal: SPACING.XL,
+    marginTop: 30, // Consistent with other title rows
   },
 
   iconButton: {
@@ -264,7 +280,8 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
     alignItems: 'center',
-    paddingTop: 120,
+    paddingTop: 0, // Header already has padding
+    paddingHorizontal: SPACING.XL,
     paddingBottom: Platform.OS === 'ios' ? 18 : 12,
   },
 
@@ -348,28 +365,43 @@ const styles = StyleSheet.create({
   tableHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: 6,
-    paddingBottom: 8,
+    paddingHorizontal: 0,
+    paddingBottom: 0,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(229,214,176,0.12)',
   },
 
-  headerLeft: {
+  headerTab: {
     flex: 1,
+    alignItems: 'center',
+    paddingVertical: 12,
+    position: 'relative',
+  },
+
+  headerText: {
     fontFamily: 'CormorantGaramond-Regular',
-    fontSize: 18,
+    fontSize: 16,
     letterSpacing: 1.2,
-    color: '#FFFFFF',
     textAlign: 'center',
   },
 
-  headerRight: {
-    flex: 1,
-    fontFamily: 'CormorantGaramond-Regular',
-    fontSize: 18,
-    letterSpacing: 1.2,
-    color: '#FFFFFF',
-    textAlign: 'center',
+  activeHeader: {
+    color: GOLD,
+    fontFamily: 'CormorantGaramond-Bold',
+  },
+
+  inactiveHeader: {
+    color: 'rgba(255,255,255,0.4)',
+  },
+
+  activeIndicator: {
+    position: 'absolute',
+    bottom: -1,
+    left: '20%',
+    right: '20%',
+    height: 2,
+    backgroundColor: GOLD,
+    borderRadius: 1,
   },
 
   listContent: {

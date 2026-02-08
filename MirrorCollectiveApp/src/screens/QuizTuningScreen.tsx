@@ -9,7 +9,9 @@ import {
   StyleSheet,
   Dimensions,
   Image,
+  StatusBar,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
@@ -41,8 +43,14 @@ const QuizTuningScreen = () => {
 
   return (
     <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage}>
-      <View style={styles.container}>
-        <LogoHeader />
+      <SafeAreaView style={styles.safe}>
+        <StatusBar
+          barStyle="light-content"
+          translucent
+          backgroundColor="transparent"
+        />
+          <LogoHeader />
+          <View style={styles.container}>
 
         <View style={styles.titleContainer}>
           <Text style={styles.title}>{t('quiz.quizTuning.title')}</Text>
@@ -62,7 +70,8 @@ const QuizTuningScreen = () => {
             {t('quiz.quizTuning.subMessage')}
           </Text>
         </View>
-      </View>
+        </View>
+      </SafeAreaView>
     </BackgroundWrapper>
   );
 };
@@ -71,12 +80,14 @@ export default QuizTuningScreen;
 const styles = StyleSheet.create({
   bg: {
     flex: 1,
-    backgroundColor: '#0B0F1C',
+  },
+  safe: {
+    flex: 1,
+    backgroundColor: 'transparent',
   },
   container: {
     flex: 1,
     paddingHorizontal: Math.max(40, screenWidth * 0.102),
-    paddingTop: Math.max(48, screenHeight * 0.056),
     paddingBottom: Math.max(30, screenHeight * 0.035),
     alignItems: 'center',
   },
@@ -85,7 +96,7 @@ const styles = StyleSheet.create({
   },
   titleContainer: {
     alignItems: 'center',
-    marginTop: Math.max(20, screenHeight * 0.08),
+    marginTop: 80,
   },
   title: {
     fontFamily: 'CormorantGaramond-Light',

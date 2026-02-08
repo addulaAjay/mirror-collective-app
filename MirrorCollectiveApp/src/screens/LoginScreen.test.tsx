@@ -22,6 +22,24 @@ describe('LoginScreen', () => {
   const mockNavigation = {
     navigate: jest.fn(),
     replace: jest.fn(),
+    goBack: jest.fn(),
+    canGoBack: jest.fn(),
+    setParams: jest.fn(),
+    dispatch: jest.fn(),
+    reset: jest.fn(),
+    getParent: jest.fn(),
+    getState: jest.fn(),
+    getId: jest.fn(),
+    isFocused: jest.fn(),
+    addListener: jest.fn(),
+    removeListener: jest.fn(),
+    setOptions: jest.fn(),
+  };
+
+  const mockRoute = {
+    key: 'Login',
+    name: 'Login',
+    params: undefined,
   };
 
   beforeEach(() => {
@@ -38,7 +56,7 @@ describe('LoginScreen', () => {
 
   it('renders correctly', () => {
     const { getByText, getByTestId } = render(
-      <LoginScreen navigation={mockNavigation as any} />
+      <LoginScreen navigation={mockNavigation as any} route={mockRoute as any} />
     );
 
     expect(getByTestId('email-input')).toBeTruthy();
@@ -47,7 +65,7 @@ describe('LoginScreen', () => {
   });
 
   it('navigates to SignUp when link is pressed', () => {
-    const { getByText } = render(<LoginScreen navigation={mockNavigation as any} />);
+    const { getByText } = render(<LoginScreen navigation={mockNavigation as any} route={mockRoute as any} />);
     const signUpLink = getByText('auth.login.signUpLink');
 
     fireEvent.press(signUpLink);
@@ -56,7 +74,7 @@ describe('LoginScreen', () => {
 
   it('calls signIn with correct credentials when Login is pressed', async () => {
     const { getByTestId, getByText } = render(
-      <LoginScreen navigation={mockNavigation as any} />
+      <LoginScreen navigation={mockNavigation as any} route={mockRoute as any} />
     );
 
     const emailInput = getByTestId('email-input');
@@ -77,7 +95,7 @@ describe('LoginScreen', () => {
     mockSignIn.mockRejectedValueOnce({ error: 'AuthenticationError' });
 
     const { getByTestId, getByText, findByText } = render(
-      <LoginScreen navigation={mockNavigation as any} />
+      <LoginScreen navigation={mockNavigation as any} route={mockRoute as any} />
     );
 
     const emailInput = getByTestId('email-input');

@@ -1,6 +1,7 @@
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useCallback } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
@@ -19,35 +20,37 @@ const AppVideoScreen: React.FC<Props> = ({ navigation }) => {
   }, [navigation]);
 
   return (
-    <BackgroundWrapper style={styles.container}>
-      <LogoHeader />
+    <BackgroundWrapper style={styles.bg}>
+      <SafeAreaView style={styles.safe}>
+        <LogoHeader />
 
-      <View style={styles.content}>
-        <TouchableOpacity
-          activeOpacity={0.85}
-          style={styles.videoStage}
-          onPress={handleVideoPress}
-          accessibilityRole="button"
-        >
-          <View style={styles.videoPlaceholder}>
-            <Text style={styles.videoTitle}>App explainer </Text>
-          </View>
-        </TouchableOpacity>
-      </View>
+        <View style={styles.content}>
+          <TouchableOpacity
+            activeOpacity={0.85}
+            style={styles.videoStage}
+            onPress={handleVideoPress}
+            accessibilityRole="button"
+          >
+            <View style={styles.videoPlaceholder}>
+              <Text style={styles.videoTitle}>App explainer </Text>
+            </View>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
     </BackgroundWrapper>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  bg: {
     flex: 1,
-    paddingTop: 40,
-    paddingHorizontal: 42,
-    paddingBottom: 40,
     backgroundColor: '#090E1A',
+  },
+  safe: {
+    flex: 1,
+    backgroundColor: 'transparent',
     alignItems: 'center',
-    justifyContent: 'flex-start',
-    gap: 24,
+    width: '100%',
   },
   content: {
     width: '100%',
@@ -55,6 +58,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     alignItems: 'center',
     justifyContent: 'flex-start',
+    paddingHorizontal: 42,
   },
   videoStage: {
     width: 345,

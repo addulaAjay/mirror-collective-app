@@ -13,6 +13,7 @@ import {
   type TextStyle,
   type ViewStyle,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
@@ -30,18 +31,9 @@ const DESIGN_WIDTH = 393;
 const DESIGN_HEIGHT = 852;
 
 const outerContainerPaddingHorizontal = Math.max(24, (24 * screenWidth) / DESIGN_WIDTH);
-const outerContainerPaddingTop = Math.max(48, (48 * screenHeight) / DESIGN_HEIGHT);
 const outerContainerPaddingBottom = Math.max(53, (53 * screenHeight) / DESIGN_HEIGHT);
 
-const availableHeight = Math.max(0, screenHeight - outerContainerPaddingTop - outerContainerPaddingBottom);
-
-// Reserve vertical space for the absolutely-positioned LogoHeader.
-// In Figma, the main content frame starts at y=164.
-const contentStartY = Math.max(164, (164 * screenHeight) / DESIGN_HEIGHT);
-const outerBoxMarginTop = Math.max(0, contentStartY - outerContainerPaddingTop);
-
 const outerBoxWidth = (345 * screenWidth) / DESIGN_WIDTH;
-const outerBoxHeight = Math.min((751 * screenHeight) / DESIGN_HEIGHT, Math.max(0, availableHeight - outerBoxMarginTop));
 
 // Figma uses a 19px vertical gap in this layout
 const figmaSectionGap = Math.max(19, (19 * screenHeight) / DESIGN_HEIGHT);
@@ -70,174 +62,176 @@ const EchoVaultStorageScreen = () => {
 
   return (
     <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage}>
-      <View style={styles.outerBoxContainer}>
-        <LogoHeader />
+      <SafeAreaView style={styles.safe}>
+        <View style={styles.outerBoxContainer}>
+          <LogoHeader />
 
-        <View style={styles.outerBox}>
-          <View style={styles.headerRow}>
-            <TouchableOpacity
-              accessibilityRole="button"
-              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-              onPress={() => {
-                if (navigation.canGoBack()) {
-                  navigation.goBack();
-                  return;
-                }
-                navigation.navigate('StartFreeTrial');
-              }}
-              style={styles.backButton}
-            >
-              <Image
-                source={require('../assets/back-arrow.png')}
-                style={styles.backArrow}
-                accessibilityIgnoresInvertColors
-              />
-            </TouchableOpacity>
+          <View style={styles.outerBox}>
+            <View style={styles.headerRow}>
+              <TouchableOpacity
+                accessibilityRole="button"
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                onPress={() => {
+                  if (navigation.canGoBack()) {
+                    navigation.goBack();
+                    return;
+                  }
+                  navigation.navigate('StartFreeTrial');
+                }}
+                style={styles.backButton}
+              >
+                <Image
+                  source={require('../assets/back-arrow.png')}
+                  style={styles.backArrow}
+                  accessibilityIgnoresInvertColors
+                />
+              </TouchableOpacity>
 
-            <View style={styles.titleContainer}>
-              <Text style={styles.optionalLabel}>Optional Add On</Text>
-              <Text style={styles.title}>Echo Vault Storage</Text>
+              <View style={styles.titleContainer}>
+                <Text style={styles.optionalLabel}>Optional Add On</Text>
+                <Text style={styles.title}>Echo Vault Storage</Text>
+              </View>
+
+              <View style={styles.headerRightSpacer} />
             </View>
 
-            <View style={styles.headerRightSpacer} />
-          </View>
+            <Text style={styles.subtitle}>
+              Save voice notes, videos, photos, {'\n'} reflections, letters, and life moments.
+            </Text>
 
-          <Text style={styles.subtitle}>
-            Save voice notes, videos, photos, {'\n'} reflections, letters, and life moments.
-          </Text>
+            <View style={styles.innerBox}>
+              <View style={styles.cardOuter}>
+                <View style={styles.cardWrapper}>
+                  <View style={styles.cardContent}>
+                    <Text style={styles.storageTitle}>+100 GB Storage</Text>
 
-          <View style={styles.innerBox}>
-            <View style={styles.cardOuter}>
-              <View style={styles.cardWrapper}>
-                <View style={styles.cardContent}>
-                  <Text style={styles.storageTitle}>+100 GB Storage</Text>
+                  <View style={styles.priceLine}>
+                    <Text style={styles.priceLineText}>
+                      <Text style={styles.priceAmount}>$4.99</Text>
+                      <Text style={styles.pricePerMonth}> /month </Text>
+                      <Text style={styles.priceOr}>or </Text>
+                      <Text style={styles.priceYearAmount}>$49</Text>
+                      <Text style={styles.priceYearSuffix}> /year</Text>
+                    </Text>
+                  </View>
 
-                <View style={styles.priceLine}>
-                  <Text style={styles.priceLineText}>
-                    <Text style={styles.priceAmount}>$4.99</Text>
-                    <Text style={styles.pricePerMonth}> /month </Text>
-                    <Text style={styles.priceOr}>or </Text>
-                    <Text style={styles.priceYearAmount}>$49</Text>
-                    <Text style={styles.priceYearSuffix}> /year</Text>
-                  </Text>
-                </View>
-
-                <View style={styles.segmentedRow}>
-                  <TouchableOpacity
-                    accessibilityRole="button"
-                    accessibilityState={{ selected: selectedOption === 'add' }}
-                    activeOpacity={0.85}
-                    onPress={() => {
-                      setSelectedOption('add');
-                    }}
-                    testID="echo-vault-add"
-                    style={styles.segmentedTouch}
-                  >
-                    <LinearGradient
-                      colors={
-                        selectedOption === 'add'
-                          ? ['#F2E2B1', '#CFA64F']
-                          : ['rgba(253, 253, 249, 0.03)', 'rgba(253, 253, 249, 0.20)']
-                      }
-                      start={{ x: 0.5, y: 0 }}
-                      end={{ x: 0.5, y: 1 }}
-                      style={[
-                        styles.segmentLeft,
-                        selectedOption === 'add' && styles.segmentLeftSelected,
-                      ]}
+                  <View style={styles.segmentedRow}>
+                    <TouchableOpacity
+                      accessibilityRole="button"
+                      accessibilityState={{ selected: selectedOption === 'add' }}
+                      activeOpacity={0.85}
+                      onPress={() => {
+                        setSelectedOption('add');
+                      }}
+                      testID="echo-vault-add"
+                      style={styles.segmentedTouch}
                     >
-                      <Text
+                      <LinearGradient
+                        colors={
+                          selectedOption === 'add'
+                            ? ['#F2E2B1', '#CFA64F']
+                            : ['rgba(253, 253, 249, 0.03)', 'rgba(253, 253, 249, 0.20)']
+                        }
+                        start={{ x: 0.5, y: 0 }}
+                        end={{ x: 0.5, y: 1 }}
                         style={[
-                          styles.segmentLeftText,
-                          selectedOption === 'add' && styles.segmentLeftTextSelected,
+                          styles.segmentLeft,
+                          selectedOption === 'add' && styles.segmentLeftSelected,
                         ]}
                       >
-                        ADD
-                      </Text>
+                        <Text
+                          style={[
+                            styles.segmentLeftText,
+                            selectedOption === 'add' && styles.segmentLeftTextSelected,
+                          ]}
+                        >
+                          ADD
+                        </Text>
+                      </LinearGradient>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      accessibilityRole="button"
+                      accessibilityState={{ selected: selectedOption === 'notNow' }}
+                      activeOpacity={0.85}
+                      onPress={() => {
+                        setSelectedOption('notNow');
+                      }}
+                      testID="echo-vault-not-now"
+                      style={styles.segmentedTouch}
+                    >
+                      <LinearGradient
+                        colors={
+                          selectedOption === 'notNow'
+                            ? ['#F2E2B1', '#CFA64F']
+                            : ['rgba(253, 253, 249, 0.04)', 'rgba(253, 253, 249, 0.01)']
+                        }
+                        start={{ x: 0.5, y: 0 }}
+                        end={{ x: 0.5, y: 1 }}
+                        style={[
+                          styles.segmentRight,
+                          selectedOption === 'notNow' && styles.segmentRightSelected,
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.segmentRightText,
+                            selectedOption === 'notNow' && styles.segmentRightTextSelected,
+                          ]}
+                        >
+                          Not now
+                        </Text>
+                      </LinearGradient>
+                    </TouchableOpacity>
+                  </View>
+
+                  <View style={styles.starDividerRow}>
+                    <LinearGradient
+                      colors={['#F2E2B1', '#CFA64F']}
+                      start={{ x: 0, y: 0.5 }}
+                      end={{ x: 1, y: 0.5 }}
+                      style={styles.starDividerLine}
+                    />
+                    <StarIcon width={18} height={18} color="#F2E2B1" />
+                    <LinearGradient
+                      colors={['#CFA64F', '#F2E2B1']}
+                      start={{ x: 0, y: 0.5 }}
+                      end={{ x: 1, y: 0.5 }}
+                      style={styles.starDividerLine}
+                    />
+                  </View>
+
+                  <TouchableOpacity
+                    accessibilityRole="button"
+                    activeOpacity={0.85}
+                    onPress={() => {
+                      // TODO: Continue to next step
+                    }}
+                    testID="echo-vault-continue"
+                    style={styles.continueButtonHitSlop}
+                  >
+                    <LinearGradient
+                      colors={['rgba(253, 253, 249, 0.03)', 'rgba(253, 253, 249, 0.20)']}
+                      start={{ x: 0.5, y: 0 }}
+                      end={{ x: 0.5, y: 1 }}
+                      style={styles.continueButton}
+                    >
+                      <Text style={styles.continueButtonText}>CONTINUE</Text>
                     </LinearGradient>
                   </TouchableOpacity>
 
-                  <TouchableOpacity
-                    accessibilityRole="button"
-                    accessibilityState={{ selected: selectedOption === 'notNow' }}
-                    activeOpacity={0.85}
-                    onPress={() => {
-                      setSelectedOption('notNow');
-                    }}
-                    testID="echo-vault-not-now"
-                    style={styles.segmentedTouch}
-                  >
-                    <LinearGradient
-                      colors={
-                        selectedOption === 'notNow'
-                          ? ['#F2E2B1', '#CFA64F']
-                          : ['rgba(253, 253, 249, 0.04)', 'rgba(253, 253, 249, 0.01)']
-                      }
-                      start={{ x: 0.5, y: 0 }}
-                      end={{ x: 0.5, y: 1 }}
-                      style={[
-                        styles.segmentRight,
-                        selectedOption === 'notNow' && styles.segmentRightSelected,
-                      ]}
-                    >
-                      <Text
-                        style={[
-                          styles.segmentRightText,
-                          selectedOption === 'notNow' && styles.segmentRightTextSelected,
-                        ]}
-                      >
-                        Not now
-                      </Text>
-                    </LinearGradient>
-                  </TouchableOpacity>
-                </View>
+                  <Text style={styles.helperText}>You can change this anytime.</Text>
 
-                <View style={styles.starDividerRow}>
-                  <LinearGradient
-                    colors={['#F2E2B1', '#CFA64F']}
-                    start={{ x: 0, y: 0.5 }}
-                    end={{ x: 1, y: 0.5 }}
-                    style={styles.starDividerLine}
-                  />
-                  <StarIcon width={18} height={18} color="#F2E2B1" />
-                  <LinearGradient
-                    colors={['#CFA64F', '#F2E2B1']}
-                    start={{ x: 0, y: 0.5 }}
-                    end={{ x: 1, y: 0.5 }}
-                    style={styles.starDividerLine}
-                  />
-                </View>
-
-                <TouchableOpacity
-                  accessibilityRole="button"
-                  activeOpacity={0.85}
-                  onPress={() => {
-                    // TODO: Continue to next step
-                  }}
-                  testID="echo-vault-continue"
-                  style={styles.continueButtonHitSlop}
-                >
-                  <LinearGradient
-                    colors={['rgba(253, 253, 249, 0.03)', 'rgba(253, 253, 249, 0.20)']}
-                    start={{ x: 0.5, y: 0 }}
-                    end={{ x: 0.5, y: 1 }}
-                    style={styles.continueButton}
-                  >
-                    <Text style={styles.continueButtonText}>CONTINUE</Text>
-                  </LinearGradient>
-                </TouchableOpacity>
-
-                <Text style={styles.helperText}>You can change this anytime.</Text>
-
-                  <Text style={styles.footerLinkText}>
-                    Terms • Privacy • Restore Purchase
-                  </Text>
+                    <Text style={styles.footerLinkText}>
+                      Terms • Privacy • Restore Purchase
+                    </Text>
+                  </View>
                 </View>
               </View>
             </View>
           </View>
         </View>
-      </View>
+      </SafeAreaView>
     </BackgroundWrapper>
   );
 };
@@ -247,6 +241,7 @@ export default EchoVaultStorageScreen;
 const styles = StyleSheet.create<{
   bg: ViewStyle;
   bgImage: ImageStyle;
+  safe: ViewStyle;
   outerBoxContainer: ViewStyle;
   outerBox: ViewStyle;
   headerRow: ViewStyle;
@@ -296,21 +291,25 @@ const styles = StyleSheet.create<{
     bgImage: {
       resizeMode: 'cover',
     },
-
+    safe: {
+      flex: 1,
+      backgroundColor: 'transparent',
+    },
     outerBoxContainer: {
       flex: 1,
       paddingHorizontal: outerContainerPaddingHorizontal,
-      paddingTop: outerContainerPaddingTop,
+      paddingTop: 20,
       paddingBottom: outerContainerPaddingBottom,
+      alignItems: 'center',
     },
 
     outerBox: {
       width: outerBoxWidth,
-      height: outerBoxHeight,
+      flex: 1,
       flexDirection: 'column',
       alignItems: 'center',
       gap: figmaSectionGap,
-      marginTop: outerBoxMarginTop,
+      marginTop: 20,
     },
 
     headerRow: {
@@ -393,16 +392,17 @@ const styles = StyleSheet.create<{
       gap: figmaSectionGap,
       alignSelf: 'stretch',
       justifyContent: 'flex-start',
+      flex: 1,
     },
 
     cardOuter: {
       alignSelf: 'stretch',
       paddingHorizontal: figmaCardOuterPaddingX,
+      flex: 1,
     },
 
     cardWrapper: {
-      flexGrow: 0,
-      flexShrink: 0,
+      flex: 1,
       width: '100%',
       paddingVertical: 12,
       paddingHorizontal: 16,
@@ -415,7 +415,6 @@ const styles = StyleSheet.create<{
       shadowOffset: { width: 0, height: 0 },
       shadowOpacity: 1,
       shadowRadius: 25,
-      boxShadow: '0 0 25px 0 rgba(163, 179, 204, 0.30)',
     },
     cardContent: {
       alignItems: 'center',
@@ -602,7 +601,6 @@ const styles = StyleSheet.create<{
       shadowOffset: { width: 0, height: 0 },
       shadowOpacity: 0.25,
       shadowRadius: 16,
-      boxShadow: '0 0 16px 0 rgba(242, 226, 177, 0.25)',
     },
     continueButtonText: {
       fontFamily: 'CormorantGaramond-Regular',
