@@ -12,8 +12,8 @@ import {
   Image,
   StatusBar,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
@@ -124,7 +124,7 @@ const ArchetypeScreen: React.FC<ArchetypeScreenProps> = ({ route }) => {
             ))}
         </View>
         <View style={styles.hintContainer}>
-          <Text style={styles.hintText}>Tap anywhere to continue</Text>
+          <Text style={styles.hintText}>Click anywhere to continue</Text>
         </View>
 
         {/* Continue Text */}
@@ -188,6 +188,7 @@ const styles = StyleSheet.create({
   descriptionContainer: {
     width: Math.min(screenWidth * 0.8, 313),
     alignItems: 'center',
+    marginTop: -60,
     marginBottom: Math.max(40, screenHeight * 0.047),
   },
   hintContainer: {
@@ -196,9 +197,9 @@ const styles = StyleSheet.create({
     marginBottom: Math.max(16, screenHeight * 0.02),
   },
   hintText: {
-    fontFamily: 'CormorantGaramond-Light',
-    fontStyle: 'normal',
-    fontSize: Math.min(screenWidth * 0.061, 24),
+    fontFamily: 'Inter',
+    fontStyle: 'italic',
+    fontSize: Math.min(screenWidth * 0.061, 16),
     fontWeight: '400',
     color: '#F2E2B1',
     textAlign: 'center',
@@ -206,7 +207,6 @@ const styles = StyleSheet.create({
   },
   description: {
     fontFamily: 'Inter',
-    fontStyle: 'italic',
     fontSize: Math.min(screenWidth * 0.051, 18),
     fontWeight: '300',
     lineHeight: Math.min(screenWidth * 0.064, 25),
@@ -215,6 +215,7 @@ const styles = StyleSheet.create({
   },
   questionText: {
     fontFamily: 'Inter',
+    fontStyle: 'italic',
     fontWeight: '400',
     fontSize: Math.min(screenWidth * 0.051, 18),
     color: '#FDFDF9',
@@ -223,7 +224,7 @@ const styles = StyleSheet.create({
   },
   continueText: {
     fontFamily: 'CormorantGaramond-Regular',
-    fontSize: Math.min(screenWidth * 0.061, 24),
+    fontSize: Math.min(screenWidth * 0.061, 16),
     fontWeight: '400',
     color: '#F2E2B1',
     textAlign: 'center',

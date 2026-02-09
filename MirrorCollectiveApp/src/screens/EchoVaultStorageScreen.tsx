@@ -13,8 +13,8 @@ import {
   type TextStyle,
   type ViewStyle,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
@@ -205,7 +205,7 @@ const EchoVaultStorageScreen = () => {
                     accessibilityRole="button"
                     activeOpacity={0.85}
                     onPress={() => {
-                      // TODO: Continue to next step
+                      navigation.navigate('Checkout');
                     }}
                     testID="echo-vault-continue"
                     style={styles.continueButtonHitSlop}

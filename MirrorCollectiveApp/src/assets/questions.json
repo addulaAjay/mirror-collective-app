@@ -14,28 +14,28 @@
       "id": "Seeker",
       "name": "Seeker",
       "title": "THE SEEKER",
-      "description": "This is your starting role — the way you naturally approach life right now. \n\nSeekers are driven by curiosity and meaning. You ask why, look beneath the surface, and feel called to grow, learn, and understand more.",
+      "description": "Motivated by understanding, you want clarity before you move. Asking thoughtful questions, looking for patterns, and trying to make sense of what’s really going on beneath the surface is integral part of your nature. \n\n Growth comes for you through insight, experimentation, and learning what actually works for you.",
       "imagePath": "seeker-archetype.png"
     },
     "guardian": {
       "id": "Guardian",
       "name": "Guardian",
       "title": "THE GUARDIAN",
-      "description": "Guardians are loyal, dependable, and organized, with a strong desire to help and support others.\n\nAre you ready to find your truth?",
+      "description": "True to your name, you are oriented toward responsibility, stability, and care — for people, systems, and outcomes. You naturally hold things together, set boundaries, and make sure what matters stays protected. \n\n Your growth edge is learning when support is shared — not carried alone.",
       "imagePath": "guardian-archetype.png"
     },
     "flamebearer": {
       "id": "Flamebearer",
       "name": "Flamebearer",
       "title": "THE FLAMEBEARER",
-      "description": "Flamebearers embody light, sparking transformation wherever you go — by being passionate, purposeful and courageous.\n\nWhich path will you take?",
+      "description": "You are driven by conviction and momentum — when something matters, you act. You bring energy, courage, and a push toward change, often motivating others just by moving first. \n\n Your growth comes from learning how to channel intensity into sustainable progress, not burnout.",
       "imagePath": "flamebearer-archetype.png"
     },
     "weaver": {
       "id": "Weaver",
       "name": "Weaver",
       "title": "THE WEAVER",
-      "description": "Weavers embody the ability to connect, create, and shape reality through patterns, weaving invisible threads into meaning.\n\nWhat story is woven into your destiny?",
+      "description": "You naturally see connections — between people, ideas, and patterns others miss. You integrate perspectives, translate complexity, and help things work together more smoothly. \n\n Growth for you comes from simplifying focus and choosing the one thread that matters right now.",
       "imagePath": "weaver-archetype.png"
     }
   },

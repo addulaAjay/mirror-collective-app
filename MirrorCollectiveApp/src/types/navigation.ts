@@ -80,6 +80,7 @@ export type RootStackParamList = {
   EchoDetailScreen: { echoId: string; title?: string; body?: string };
   EchoAudioPlaybackScreen: { echoId: string; title?: string; transcript?: string };
   EchoVideoPlaybackScreen: { echoId: string; title?: string };
+  Checkout: undefined;
 };
 
 import { NativeStackScreenProps } from '@react-navigation/native-stack';

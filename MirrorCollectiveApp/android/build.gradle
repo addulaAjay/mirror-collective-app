@@ -20,3 +20,13 @@ buildscript {
 }
 
 apply plugin: "com.facebook.react.rootproject"
+
+// Fix: Windows path length > 250 chars causes CMake/ninja infinite loop
+// for native modules with long node_modules paths.
+// Redirect .cxx build staging to a shorter directory (C:/tmp/rn-cxx/).
+allprojects {
+    plugins.withId("com.android.library") {
+        android.externalNativeBuild.cmake.buildStagingDirectory =
+            new File("C:/tmp/rn-cxx/${project.name}")
+    }
+}

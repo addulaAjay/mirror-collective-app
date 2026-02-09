@@ -13,8 +13,8 @@ import {
   type TextStyle,
   type ImageStyle,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
@@ -144,7 +144,7 @@ const StartFreeTrialScreen = () => {
                     accessibilityRole="button"
                     activeOpacity={0.85}
                     onPress={() => {
-                      // TODO: Hook up purchase flow
+                      navigation.navigate('EchoVaultStorage');
                     }}
                   >
                     <LinearGradient
