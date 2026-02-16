@@ -1,7 +1,4 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-import { API_CONFIG } from '@constants/config';
-import { tokenManager } from '@services/tokenManager';
 import type {
   AuthCredentials,
   SignUpData,
@@ -9,6 +6,9 @@ import type {
   ResetPasswordData,
   ApiResponse,
 } from '@types';
+
+import { API_CONFIG } from '@constants/config';
+import { tokenManager } from '@services/tokenManager';
 
 import { BaseApiService } from './base';
 import { ApiErrorHandler } from './errorHandler';

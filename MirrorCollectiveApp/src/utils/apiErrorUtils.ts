@@ -1,7 +1,7 @@
+import type { ApiResponse } from '@types';
 import type { TFunction } from 'i18next';
 
 import type { ApiErrorType } from '@services/api/errorHandler';
-import type { ApiResponse } from '@types';
 
 /**
  * Resolves a translated error message from an API response or error object.

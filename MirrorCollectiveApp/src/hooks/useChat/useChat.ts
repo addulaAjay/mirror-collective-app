@@ -1,10 +1,10 @@
+import type { Message } from '@types';
 import { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ScrollView } from 'react-native';
 
 import { chatApiService, sessionApiService } from '@services/api';
 import { SessionManager } from '@services/sessionManager';
-import type { Message } from '@types';
 import { getApiErrorMessage } from '@utils/apiErrorUtils';
 
 /**

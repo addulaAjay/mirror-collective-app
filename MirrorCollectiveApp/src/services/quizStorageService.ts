@@ -1,10 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import type { QuizSubmissionRequest } from '@types';
 import uuid from 'react-native-uuid';
 
-import type { QuizSubmissionRequest } from '@types';
-
 import { quizApiService } from './api';
-import { tokenManager } from './tokenManager';
 
 /**
  * Service to manage temporary quiz result storage before user registration

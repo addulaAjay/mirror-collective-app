@@ -1,4 +1,5 @@
 import type { ApiResponse } from '@types';
+
 import { BaseApiService } from './base';
 import { ApiErrorHandler } from './errorHandler';
 
@@ -158,9 +159,13 @@ export class EchoApiService extends BaseApiService {
           .then(blob => {
             xhr.send(blob);
           })
-          .catch(err => {
+          .catch(_err => {
             // Fallback: try direct URI upload (works on some RN versions)
-            xhr.send({ uri: fileUri, type: contentType, name: 'media' } as any);
+            try {
+              xhr.send({ uri: fileUri, type: contentType, name: 'media' } as any);
+            } catch (error) {
+              reject(new Error('Failed to upload media using fallback method'));
+            }
           });
       });
     } catch (error) {

@@ -3,11 +3,12 @@ import React, {
   useContext,
   useState,
   useEffect,
+  useCallback,
   ReactNode,
 } from 'react';
 
-import PushNotificationService from '@services/PushNotificationService';
 import { authApiService } from '@services/api';
+import PushNotificationService from '@services/PushNotificationService';
 
 import { useSession } from './SessionContext';
 
@@ -37,7 +38,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
   const { state: sessionState } = useSession();
   const [user, setUser] = useState<UserProfile | null>(null);
 
-  const refreshUser = async () => {
+  const refreshUser = useCallback(async () => {
     try {
       const profileResponse = await authApiService.getUserProfile();
       if (profileResponse.success && profileResponse.data?.user) {
@@ -50,7 +51,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
     } catch (error) {
       console.error('Failed to refresh user profile:', error);
     }
-  };
+  }, []);
 
   // React to session changes
   useEffect(() => {
@@ -68,9 +69,11 @@ export const UserProvider = ({ children }: UserProviderProps) => {
        }
     } else {
       // If not authenticated, clear user data
-      setUser(null);
+      if (user) {
+        setUser(null);
+      }
     }
-  }, [sessionState.isAuthenticated, user?.id]); // Depend on user.id instead of user object to avoid loops
+  }, [sessionState.isAuthenticated, user, refreshUser]);
 
   const contextValue: UserContextType = {
     user,
