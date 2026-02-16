@@ -1,6 +1,7 @@
+import type { ApiResponse, ApiError } from '@types';
+
 import { API_CONFIG } from '@constants/config';
 import { tokenManager } from '@services/tokenManager';
-import type { ApiResponse, ApiError } from '@types';
 
 import { ApiErrorHandler } from './errorHandler';
 
@@ -109,5 +110,21 @@ export class BaseApiService {
       message,
       status,
     };
+  }
+
+  protected async get<T = any>(endpoint: string, requiresAuth: boolean = true): Promise<ApiResponse<T>> {
+    return this.makeRequest<T>(endpoint, 'GET', undefined, requiresAuth);
+  }
+
+  protected async post<T = any>(endpoint: string, data?: any, requiresAuth: boolean = true): Promise<ApiResponse<T>> {
+    return this.makeRequest<T>(endpoint, 'POST', data, requiresAuth);
+  }
+
+  protected async put<T = any>(endpoint: string, data?: any, requiresAuth: boolean = true): Promise<ApiResponse<T>> {
+    return this.makeRequest<T>(endpoint, 'PUT', data, requiresAuth);
+  }
+
+  protected async delete<T = any>(endpoint: string, requiresAuth: boolean = true): Promise<ApiResponse<T>> {
+    return this.makeRequest<T>(endpoint, 'DELETE', undefined, requiresAuth);
   }
 }

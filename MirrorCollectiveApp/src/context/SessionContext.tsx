@@ -8,8 +8,8 @@ import React, {
   useCallback,
 } from 'react';
 
-import PushNotificationService from '@services/PushNotificationService';
 import { authApiService } from '@services/api';
+import PushNotificationService from '@services/PushNotificationService';
 
 // Types
 interface SessionState {

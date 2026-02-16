@@ -2649,6 +2649,12 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
+  - RNIap (12.16.4):
+    - RCT-Folly
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - ReactCommon/turbomodule/core
   - RNScreens (4.16.0):
     - boost
     - DoubleConversion
@@ -2902,6 +2908,7 @@ DEPENDENCIES:
   - "RNFBAppDistribution (from `../node_modules/@react-native-firebase/app-distribution`)"
   - "RNFBMessaging (from `../node_modules/@react-native-firebase/messaging`)"
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
+  - RNIap (from `../node_modules/react-native-iap`)
   - RNScreens (from `../node_modules/react-native-screens`)
   - RNSVG (from `../node_modules/react-native-svg`)
   - RNVectorIcons (from `../node_modules/react-native-vector-icons`)
@@ -3098,6 +3105,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-firebase/messaging"
   RNGestureHandler:
     :path: "../node_modules/react-native-gesture-handler"
+  RNIap:
+    :path: "../node_modules/react-native-iap"
   RNScreens:
     :path: "../node_modules/react-native-screens"
   RNSVG:
@@ -3208,6 +3217,7 @@ SPEC CHECKSUMS:
   RNFBAppDistribution: 96a2abef417b32446f74851b30fe6bbbd48446de
   RNFBMessaging: 6857871d9dff8f26b0c325fc7d97ba69cb77d213
   RNGestureHandler: a52292df4f8fc7daab354ad2c37be401d4c3bed8
+  RNIap: f14cb76671570a0144bbf0cb23541f0f3364f393
   RNScreens: 8132b09d1edf29ba411894b19bb05f25277b2c64
   RNSVG: 940dde1beb1ad95699c711596627a663977037be
   RNVectorIcons: 0567525e0a344458329daa09068cf9e8090ec791

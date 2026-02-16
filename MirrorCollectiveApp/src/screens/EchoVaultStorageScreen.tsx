@@ -1,6 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '@types';
 import React, { useState } from 'react';
 import {
   View,
@@ -13,12 +12,13 @@ import {
   type TextStyle,
   type ViewStyle,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
 import StarIcon from '@components/StarIcon';
+import { RootStackParamList } from '@/types';
 
 type NavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -205,7 +205,7 @@ const EchoVaultStorageScreen = () => {
                     accessibilityRole="button"
                     activeOpacity={0.85}
                     onPress={() => {
-                      // TODO: Continue to next step
+                      navigation.navigate('Checkout');
                     }}
                     testID="echo-vault-continue"
                     style={styles.continueButtonHitSlop}

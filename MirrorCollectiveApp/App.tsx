@@ -11,12 +11,14 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ChatErrorBoundary } from '@components/error';
 import { SessionProvider, useSession } from '@context/SessionContext';
 import { UserProvider } from '@context/UserContext';
+import { SubscriptionProvider } from '@context/SubscriptionContext';
 import useAppStateHandler from '@hooks/useAppStateHandler';
 // Import your screens
 import AboutScreen from '@screens/AboutScreen';
 import AppExplainerScreen from '@screens/AppExplainerScreen';
 import AppVideoScreen from '@screens/AppVideoScreen';
 import ArchetypeScreen from '@screens/ArchetypeScreen';
+import CheckoutScreen from '@screens/CheckoutScreen';
 import AddNewProfileScreen from '@screens/echoVault/AddNewProfileScreen';
 import ChooseGuardianScreen from '@screens/echoVault/ChooseGuardianScreen';
 import ChooseRecipientScreen from '@screens/echoVault/ChooseRecipientScreen';
@@ -34,6 +36,7 @@ import NewEchoVideoScreen from '@screens/echoVault/NewEchoVideoScreen';
 import EchoVaultStorageScreen from '@screens/EchoVaultStorageScreen';
 import EmailConfirmationScreen from '@screens/EmailConfirmationScreen';
 import EnterMirrorScreen from '@screens/EnterMirrorScreen';
+import FAQScreen from '@screens/FAQScreen';
 import ForgotPasswordScreen from '@screens/ForgotPasswordScreen';
 import LoginScreen from '@screens/LoginScreen';
 import MirrorAnimationScreen from '@screens/MirrorAnimationScreen';
@@ -53,7 +56,6 @@ import TalkToMirrorScreen from '@screens/TalkToMirrorScreen';
 import TermsAndConditionsScreen from '@screens/TermsAndConditionsScreen';
 import TheMirrorPledgeCommingsoonScreen from '@screens/TheMirrorPledgeCommingsoonScreen';
 import VerifyEmailScreen from '@screens/VerifyEmailScreen';
-import FAQScreen from '@screens/FAQScreen';
 import PushNotificationService from '@services/PushNotificationService';
 
 import ErrorBoundary from './src/components/ErrorBoundary';
@@ -125,6 +127,7 @@ const AuthNavigator = () => (
     <Stack.Screen name="MirrorEcho" component={MirrorEchoCommingsoonScreen} />
     <Stack.Screen name="TermsAndConditions" component={TermsAndConditionsScreen} />
     <Stack.Screen name="StartFreeTrial" component={StartFreeTrialScreen} />
+    <Stack.Screen name="Checkout" component={CheckoutScreen} />
     <Stack.Screen name="EchoVaultStorage" component={EchoVaultStorageScreen} />
     <Stack.Screen name="Splash" component={SplashScreen} />
     <Stack.Screen name="MirrorAnimation" component={MirrorAnimationScreen} />
@@ -180,6 +183,7 @@ const AuthenticatedNavigator = () => (
     <Stack.Screen name="EchoDetailScreen" component={EchoDetailScreen} />
     <Stack.Screen name="EchoAudioPlaybackScreen" component={EchoAudioPlaybackScreen} />
     <Stack.Screen name="EchoVideoPlaybackScreen" component={EchoVideoPlaybackScreen} />
+    <Stack.Screen name="Checkout" component={CheckoutScreen} />
   </Stack.Navigator>
 );
 
@@ -245,14 +249,16 @@ const App = () => {
       <ErrorBoundary>
         <SessionProvider>
           <UserProvider>
-            <React.Fragment>
-              <StatusBar
-                translucent
-                backgroundColor="transparent"
-                barStyle="light-content"
-              />
-              <AppNavigator />
-            </React.Fragment>
+            <SubscriptionProvider>
+              <React.Fragment>
+                <StatusBar
+                  translucent
+                  backgroundColor="transparent"
+                  barStyle="light-content"
+                />
+                <AppNavigator />
+              </React.Fragment>
+            </SubscriptionProvider>
           </UserProvider>
         </SessionProvider>
       </ErrorBoundary>
