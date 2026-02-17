@@ -1,6 +1,8 @@
+
 import { BaseApiService } from '../base';
-import { API_CONFIG } from '../../../constants/config';
-import { QuizRequest, QuizResponse } from '../../../types/quiz';
+
+import { API_CONFIG } from '@/constants';
+import { QuizRequest, QuizResponse } from '@/types/quiz';
 
 export class QuizApiService extends BaseApiService {
   async sendQuiz(request: QuizRequest): Promise<QuizResponse> {

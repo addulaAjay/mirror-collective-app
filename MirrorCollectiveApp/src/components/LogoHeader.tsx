@@ -1,3 +1,5 @@
+
+import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
 import {
   View,
@@ -11,14 +13,17 @@ import {
   type ViewStyle,
   type ImageStyle,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import HomeIcon from './HomeIcon';
+
+import { useSession } from '@context/SessionContext';
+import { useUser } from '@context/UserContext';
 
 import MirrorSideMenu from '../screens/NavigationMenuScreen';
-import { useUser } from '@context/UserContext';
-import { useSession } from '@context/SessionContext';
 
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+import HomeIcon from './HomeIcon';
+
+
+
+const { width: screenWidth } = Dimensions.get('window');
 
 type LogoHeaderProps = {
   containerStyle?: StyleProp<ViewStyle>;

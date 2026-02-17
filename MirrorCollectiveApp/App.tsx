@@ -11,6 +11,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ChatErrorBoundary } from '@components/error';
 import { SessionProvider, useSession } from '@context/SessionContext';
 import { UserProvider } from '@context/UserContext';
+import { SubscriptionProvider } from '@context/SubscriptionContext';
 import useAppStateHandler from '@hooks/useAppStateHandler';
 // Import your screens
 import AboutScreen from '@screens/AboutScreen';
@@ -248,14 +249,16 @@ const App = () => {
       <ErrorBoundary>
         <SessionProvider>
           <UserProvider>
-            <React.Fragment>
-              <StatusBar
-                translucent
-                backgroundColor="transparent"
-                barStyle="light-content"
-              />
-              <AppNavigator />
-            </React.Fragment>
+            <SubscriptionProvider>
+              <React.Fragment>
+                <StatusBar
+                  translucent
+                  backgroundColor="transparent"
+                  barStyle="light-content"
+                />
+                <AppNavigator />
+              </React.Fragment>
+            </SubscriptionProvider>
           </UserProvider>
         </SessionProvider>
       </ErrorBoundary>

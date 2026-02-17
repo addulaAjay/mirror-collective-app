@@ -1,7 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '@types';
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,8 @@ import {
   Dimensions,
   TouchableOpacity,
   Image,
+  Alert,
+  ActivityIndicator,
   type ViewStyle,
   type TextStyle,
   type ImageStyle,
@@ -19,6 +21,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
 import StarIcon from '@components/StarIcon';
+
+import { useSubscription } from '@/context/SubscriptionContext';
+import { useInAppPurchase } from '@/hooks/useInAppPurchase';
+import { subscriptionApiService } from '@/services/api/subscriptionApi';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'StartFreeTrial'>;
 
@@ -39,11 +45,66 @@ const innerBoxSidePadding = Math.max(0, (outerBoxWidth - cardWidth) / 2);
 
 const StartFreeTrialScreen = () => {
   const navigation = useNavigation<NavigationProp>();
+  const { hasUsedTrial, hasActiveSubscription, refreshSubscriptionStatus } = useSubscription();
+  const { purchaseSubscription, purchasing, PRODUCT_IDS } = useInAppPurchase();
+  const [loading, setLoading] = useState(false);
+  const [selectedPeriod] = useState<'monthly' | 'yearly'>('monthly');
 
   const cardGradient = useMemo(
     () => ['rgba(255, 255, 255, 0.05)', 'rgba(153, 153, 153, 0.05)'],
     [],
   );
+
+  // Determine button mode: trial or subscribe
+  const isTrialMode = !hasUsedTrial && !hasActiveSubscription;
+  const buttonText = isTrialMode ? 'START FREE TRIAL' : 'SUBSCRIBE NOW';
+
+  const handleButtonPress = async () => {
+    if (hasActiveSubscription) {
+      Alert.alert('Already Subscribed', 'You already have an active subscription.');
+      return;
+    }
+
+    if (isTrialMode) {
+      // Start trial (no payment)
+      try {
+        setLoading(true);
+        const response = await subscriptionApiService.startTrial();
+
+        if (response.success) {
+          await refreshSubscriptionStatus();
+          Alert.alert(
+            'Trial Started!',
+            '14 days of full access to Mirror Core. Enjoy!',
+            [
+              {
+                text: 'Continue',
+                onPress: () => navigation.navigate('EnterMirror' as never),
+              },
+            ],
+          );
+        } else {
+          throw new Error(response.message || 'Failed to start trial');
+        }
+      } catch (error: any) {
+        Alert.alert('Error', error.message || 'Failed to start trial');
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      // Purchase subscription
+      const productId = selectedPeriod === 'monthly'
+        ? PRODUCT_IDS.CORE_MONTHLY
+        : PRODUCT_IDS.CORE_YEARLY;
+
+      try {
+        await purchaseSubscription(productId);
+        await refreshSubscriptionStatus();
+      } catch (error: any) {
+        Alert.alert('Purchase Failed', error.message || 'Unable to complete purchase');
+      }
+    }
+  };
 
   return (
     <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage}>
@@ -143,9 +204,8 @@ const StartFreeTrialScreen = () => {
                   <TouchableOpacity
                     accessibilityRole="button"
                     activeOpacity={0.85}
-                    onPress={() => {
-                      navigation.navigate('EchoVaultStorage');
-                    }}
+                    onPress={handleButtonPress}
+                    disabled={loading || purchasing || hasActiveSubscription}
                   >
                     <LinearGradient
                       colors={['rgba(253, 253, 249, 0.03)', 'rgba(253, 253, 249, 0.20)']}
@@ -153,7 +213,11 @@ const StartFreeTrialScreen = () => {
                       end={{ x: 0.5, y: 1 }}
                       style={styles.ctaButton}
                     >
-                      <Text style={styles.ctaButtonText}>START FREE TRIAL</Text>
+                      {(loading || purchasing) ? (
+                        <ActivityIndicator color="#F2E2B1" />
+                      ) : (
+                        <Text style={styles.ctaButtonText}>{buttonText}</Text>
+                      )}
                     </LinearGradient>
                   </TouchableOpacity>
 

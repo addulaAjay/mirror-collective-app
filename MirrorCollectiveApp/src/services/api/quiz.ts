@@ -1,9 +1,10 @@
-import { API_CONFIG } from '@constants/config';
 import type {
   ApiResponse,
   QuizSubmissionRequest,
   QuizSubmissionResponse,
 } from '@types';
+
+import { API_CONFIG } from '@constants/config';
 
 import { BaseApiService } from './base';
 import { ApiErrorHandler } from './errorHandler';

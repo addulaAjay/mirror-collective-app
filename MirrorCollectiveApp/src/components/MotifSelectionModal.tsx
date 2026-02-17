@@ -1,3 +1,5 @@
+
+import { BlurView } from '@react-native-community/blur';
 import React from 'react';
 import {
   View,
@@ -8,8 +10,8 @@ import {
   FlatList,
   Platform,
 } from 'react-native';
-import { BlurView } from '@react-native-community/blur';
 import { SvgXml } from 'react-native-svg';
+
 import { CLOSE_ICON_XML, MOTIF_ICONS } from '../assets/motifs/MotifAssets';
 
 interface MotifSelectionModalProps {
@@ -18,7 +20,6 @@ interface MotifSelectionModalProps {
   onSelect: (motifId: string) => void;
 }
 
-const GOLD = '#D7C08A';
 const LIGHT_GOLD = '#f2e2b1';
 const BLUE_GREY = '#a3b3cc';
 
