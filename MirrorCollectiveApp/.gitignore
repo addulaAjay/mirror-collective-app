@@ -123,10 +123,6 @@ flipper-server-state.json
 # Hermes
 android/app/build/generated/assets/hermes/
 
-# Local configuration files
-ios/GoogleService-Info.plist
-android/app/google-services.json
-
 # Signing keys (NEVER commit these)
 *.p12
 *.mobileprovision
