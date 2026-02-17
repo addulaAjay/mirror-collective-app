@@ -10,8 +10,8 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { ChatErrorBoundary } from '@components/error';
 import { SessionProvider, useSession } from '@context/SessionContext';
-import { UserProvider } from '@context/UserContext';
 import { SubscriptionProvider } from '@context/SubscriptionContext';
+import { UserProvider } from '@context/UserContext';
 import useAppStateHandler from '@hooks/useAppStateHandler';
 // Import your screens
 import AboutScreen from '@screens/AboutScreen';
@@ -56,7 +56,6 @@ import TalkToMirrorScreen from '@screens/TalkToMirrorScreen';
 import TermsAndConditionsScreen from '@screens/TermsAndConditionsScreen';
 import TheMirrorPledgeCommingsoonScreen from '@screens/TheMirrorPledgeCommingsoonScreen';
 import VerifyEmailScreen from '@screens/VerifyEmailScreen';
-import PushNotificationService from '@services/PushNotificationService';
 
 import ErrorBoundary from './src/components/ErrorBoundary';
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -69,9 +68,12 @@ const MirrorChatWithErrorBoundary = () => (
 // Auth Navigator (Public + Onboarding)
 const AuthNavigator = () => (
   <Stack.Navigator
-    initialRouteName="Splash"
+    initialRouteName="NewEchoComposeScreen"
     screenOptions={{ headerShown: false }}
   >
+    <Stack.Screen name="TalkToMirror1" component={TalkToMirrorScreen} />
+
+    <Stack.Screen name="FAQScreen" component={FAQScreen} />
     <Stack.Screen
       name="ManageGuardianScreen"
       component={ManageGuardianScreen}
@@ -125,7 +127,10 @@ const AuthNavigator = () => (
       component={ReflectionRoomCommingsoonScreen}
     />
     <Stack.Screen name="MirrorEcho" component={MirrorEchoCommingsoonScreen} />
-    <Stack.Screen name="TermsAndConditions" component={TermsAndConditionsScreen} />
+    <Stack.Screen
+      name="TermsAndConditions"
+      component={TermsAndConditionsScreen}
+    />
     <Stack.Screen name="StartFreeTrial" component={StartFreeTrialScreen} />
     <Stack.Screen name="Checkout" component={CheckoutScreen} />
     <Stack.Screen name="EchoVaultStorage" component={EchoVaultStorageScreen} />
@@ -165,24 +170,60 @@ const AuthenticatedNavigator = () => (
     <Stack.Screen name="About" component={AboutScreen} />
     <Stack.Screen name="FAQ" component={FAQScreen} />
     {/* Menu Screens */}
-    <Stack.Screen name="MirrorCodeLibrary" component={MirrorCodeLibraryCommingsoonScreen} />
-    <Stack.Screen name="ReflectionRoom" component={ReflectionRoomCommingsoonScreen} />
-    <Stack.Screen name="TheMirrorPledge" component={TheMirrorPledgeCommingsoonScreen} />
+    <Stack.Screen
+      name="MirrorCodeLibrary"
+      component={MirrorCodeLibraryCommingsoonScreen}
+    />
+    <Stack.Screen
+      name="ReflectionRoom"
+      component={ReflectionRoomCommingsoonScreen}
+    />
+    <Stack.Screen
+      name="TheMirrorPledge"
+      component={TheMirrorPledgeCommingsoonScreen}
+    />
     {/* Echo Vault Screens */}
-    <Stack.Screen name="MirrorEchoVaultHome" component={MirrorEchoVaultHomeScreen} />
-    <Stack.Screen name="MirrorEchoVaultLibrary" component={MirrorEchoVaultLibraryScreen} />
+    <Stack.Screen
+      name="MirrorEchoVaultHome"
+      component={MirrorEchoVaultHomeScreen}
+    />
+    <Stack.Screen
+      name="MirrorEchoVaultLibrary"
+      component={MirrorEchoVaultLibraryScreen}
+    />
     <Stack.Screen name="NewEchoScreen" component={NewEchoScreen} />
-    <Stack.Screen name="NewEchoComposeScreen" component={NewEchoComposeScreen} />
+    <Stack.Screen
+      name="NewEchoComposeScreen"
+      component={NewEchoComposeScreen}
+    />
     <Stack.Screen name="NewEchoAudioScreen" component={NewEchoAudioScreen} />
     <Stack.Screen name="NewEchoVideoScreen" component={NewEchoVideoScreen} />
-    <Stack.Screen name="ManageGuardianScreen" component={ManageGuardianScreen} />
-    <Stack.Screen name="ManageRecipientScreen" component={ManageRecipientScreen} />
-    <Stack.Screen name="ChooseGuardianScreen" component={ChooseGuardianScreen} />
-    <Stack.Screen name="ChooseRecipientScreen" component={ChooseRecipientScreen} />
+    <Stack.Screen
+      name="ManageGuardianScreen"
+      component={ManageGuardianScreen}
+    />
+    <Stack.Screen
+      name="ManageRecipientScreen"
+      component={ManageRecipientScreen}
+    />
+    <Stack.Screen
+      name="ChooseGuardianScreen"
+      component={ChooseGuardianScreen}
+    />
+    <Stack.Screen
+      name="ChooseRecipientScreen"
+      component={ChooseRecipientScreen}
+    />
     <Stack.Screen name="AddNewProfileScreen" component={AddNewProfileScreen} />
     <Stack.Screen name="EchoDetailScreen" component={EchoDetailScreen} />
-    <Stack.Screen name="EchoAudioPlaybackScreen" component={EchoAudioPlaybackScreen} />
-    <Stack.Screen name="EchoVideoPlaybackScreen" component={EchoVideoPlaybackScreen} />
+    <Stack.Screen
+      name="EchoAudioPlaybackScreen"
+      component={EchoAudioPlaybackScreen}
+    />
+    <Stack.Screen
+      name="EchoVideoPlaybackScreen"
+      component={EchoVideoPlaybackScreen}
+    />
     <Stack.Screen name="Checkout" component={CheckoutScreen} />
   </Stack.Navigator>
 );
@@ -241,7 +282,7 @@ const App = () => {
     // This does not show a system permission prompt; it only
     // decides what happens when a push arrives while the app
     // is open.
-    PushNotificationService.initializeForegroundHandler();
+    // PushNotificationService.initializeForegroundHandler();
   }, []);
 
   return (
