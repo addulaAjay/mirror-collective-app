@@ -35,5 +35,12 @@ target 'MirrorCollectiveApp' do
       config[:reactNativePath],
       :mac_catalyst_enabled => false
     )
+
+    # Fix non-modular include error for Firebase pods with use_frameworks! :linkage => :static
+    installer.pods_project.targets.each do |target|
+      target.build_configurations.each do |config|
+        config.build_settings['CLANG_WARN_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'NO'
+      end
+    end
   end
 end
