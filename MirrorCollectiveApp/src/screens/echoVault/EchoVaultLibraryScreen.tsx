@@ -72,7 +72,8 @@ export function EchoLibraryContent() {
   }, []);
 
   useEffect(() => {
-    fetchEchoes();
+    setEchoes(MOCK_ECHOS);
+    // fetchEchoes();
   }, []);
 
   const handleMenu = () => {
@@ -84,6 +85,7 @@ export function EchoLibraryContent() {
   };
 
   const handleOpenItem = (item: EchoResponse) => {
+
     if (item.echo_type === 'AUDIO') {
       navigation.navigate('EchoAudioPlaybackScreen', { echoId: item.echo_id, title: item.title });
     } else if (item.echo_type === 'VIDEO') {
@@ -150,26 +152,38 @@ export function EchoLibraryContent() {
 
             <View style={{ flex: 1, width: '100%' }}>
               <View style={styles.tableHeader}>
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.headerTab}
                   onPress={() => setActiveTab('RECIPIENT')}
                   activeOpacity={0.7}
                 >
-                  <Text style={[
-                    styles.headerText, 
-                    activeTab === 'RECIPIENT' ? styles.activeHeader : styles.inactiveHeader
-                  ]}>RECIPIENT</Text>
+                  <Text
+                    style={[
+                      styles.headerText,
+                      activeTab === 'RECIPIENT'
+                        ? styles.activeHeader
+                        : styles.inactiveHeader,
+                    ]}
+                  >
+                    RECIPIENT
+                  </Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.headerTab}
                   onPress={() => setActiveTab('CATEGORY')}
                   activeOpacity={0.7}
                 >
-                  <Text style={[
-                    styles.headerText, 
-                    activeTab === 'CATEGORY' ? styles.activeHeader : styles.inactiveHeader
-                  ]}>CATEGORY</Text>
+                  <Text
+                    style={[
+                      styles.headerText,
+                      activeTab === 'CATEGORY'
+                        ? styles.activeHeader
+                        : styles.inactiveHeader,
+                    ]}
+                  >
+                    CATEGORY
+                  </Text>
                 </TouchableOpacity>
               </View>
 
@@ -180,7 +194,10 @@ export function EchoLibraryContent() {
               ) : error ? (
                 <View style={styles.errorContainer}>
                   <Text style={styles.errorText}>{error}</Text>
-                  <TouchableOpacity onPress={fetchEchoes} style={styles.retryBtn}>
+                  <TouchableOpacity
+                    onPress={fetchEchoes}
+                    style={styles.retryBtn}
+                  >
                     <Text style={styles.retryText}>Retry</Text>
                   </TouchableOpacity>
                 </View>
@@ -204,45 +221,56 @@ export function EchoLibraryContent() {
                       style={styles.row}
                     >
                       {/* Recipient / Category Column */}
+
                       <View style={styles.rowLeft}>
                         {/* Avatar/Icon Group */}
-                        <View style={styles.avatarGroup}>
-                           <View style={styles.avatarContainer}>
-                              {item.recipient?.motif && getMotifIcon(item.recipient.motif) ? (
+                        {activeTab == 'RECIPIENT' && (
+                          <View style={styles.avatarGroup}>
+                            <View style={styles.avatarContainer}>
+                              {item.recipient?.motif &&
+                              getMotifIcon(item.recipient.motif) ? (
                                 <View style={{ width: 24, height: 24 }}>
-                                  <SvgXml 
-                                    xml={getMotifIcon(item.recipient.motif)?.xml || ''} 
-                                    width="100%" 
-                                    height="100%" 
+                                  <SvgXml
+                                    xml={
+                                      getMotifIcon(item.recipient.motif)?.xml ||
+                                      ''
+                                    }
+                                    width="100%"
+                                    height="100%"
                                   />
                                 </View>
                               ) : item.recipient?.motif ? (
-                                <Text style={{ fontSize: 18 }}>{item.recipient.motif}</Text>
+                                <Text style={{ fontSize: 18 }}>
+                                  {item.recipient.motif}
+                                </Text>
                               ) : (
-                                <Image 
-                                  source={require('@assets/Group.png')} 
-                                  style={styles.avatarImage} 
+                                <Image
+                                  source={require('@assets/Group.png')}
+                                  style={styles.avatarImage}
                                 />
                               )}
-                           </View>
-                        </View>
-                        
+                            </View>
+                          </View>
+                        )}
+
                         <View style={styles.rowTextWrap}>
-                          <Text style={styles.rowTitle} numberOfLines={1}>{item.title}</Text>
+                          <Text style={styles.rowTitle}>{item.title}</Text>
                           <Text style={styles.rowSub}>
-                             {item.scheduled_at ? `Unlocks ${formatDate(item.scheduled_at)}` : `Saved ${formatDate(item.created_at)}`}
+                            {item.scheduled_at
+                              ? `Unlocks ${formatDate(item.scheduled_at)}`
+                              : `Saved ${formatDate(item.created_at)}`}
                           </Text>
                         </View>
                       </View>
 
                       {/* Right Side: Recipient/Category Name */}
                       <View style={styles.rowRight}>
-                         <Text style={styles.recipientText}>
-                          {activeTab === 'RECIPIENT' 
-                            ? (item.recipient?.name?.toUpperCase() || 'UNASSIGNED')
-                            : (item.category?.toUpperCase() || 'UNCATEGORIZED')}
+                        <Text style={styles.recipientText}>
+                          {activeTab === 'RECIPIENT'
+                            ? item.recipient?.name?.toUpperCase() ||
+                              'UNASSIGNED'
+                            : item.category?.toUpperCase() || 'UNCATEGORIZED'}
                         </Text>
-                         <Text style={styles.arrowIcon}>{'>'}</Text>
                       </View>
                     </TouchableOpacity>
                   ))}
