@@ -15,7 +15,7 @@ import {
   PermissionsAndroid,
   Linking,
 } from 'react-native';
-import DocumentPicker from 'react-native-document-picker';
+// import DocumentPicker from 'react-native-document-picker';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
@@ -312,16 +312,16 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
   const executePickAudio = async () => {
     try {
       setIsPicking(true);
-      const res = await DocumentPicker.pickSingle({
-        type: [DocumentPicker.types.audio],
-      });
-      if (res) {
-        setMediaUri(res.uri);
-        setMediaFile({ name: res.name || 'audio.m4a', type: res.type || 'audio/m4a' });
-        setRecordingDuration(0); // Reset duration if file picked
-      }
+      // const res = await DocumentPicker.pickSingle({
+      //   type: [DocumentPicker.types.audio],
+      // });
+      // if (res) {
+      //   setMediaUri(res.uri);
+      //   setMediaFile({ name: res.name || 'audio.m4a', type: res.type || 'audio/m4a' });
+      //   setRecordingDuration(0); // Reset duration if file picked
+      // }
     } catch (err) {
-      if (!DocumentPicker.isCancel(err)) console.error(err);
+      // if (!DocumentPicker.isCancel(err)) console.error(err);
     } finally {
       setIsPicking(false);
     }
@@ -364,17 +364,17 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
   const executePickText = async () => {
     try {
       setIsPicking(true);
-      const res = await DocumentPicker.pickSingle({
-        type: [DocumentPicker.types.plainText, DocumentPicker.types.allFiles],
-      });
-      if (res && res.uri) {
-        setMediaFile({ name: res.name || 'document.txt', type: res.type || 'text/plain' });
-        const response = await fetch(res.uri);
-        const text = await response.text();
-        setMessage(text);
-      }
+      // const res = await DocumentPicker.pickSingle({
+      //   type: [DocumentPicker.types.plainText, DocumentPicker.types.allFiles],
+      // });
+      // if (res && res.uri) {
+      //   setMediaFile({ name: res.name || 'document.txt', type: res.type || 'text/plain' });
+      //   const response = await fetch(res.uri);
+      //   const text = await response.text();
+      //   setMessage(text);
+      // }
     } catch (err) {
-      if (!DocumentPicker.isCancel(err)) console.error(err);
+      // if (!DocumentPicker.isCancel(err)) console.error(err);
     } finally {
       setIsPicking(false);
     }

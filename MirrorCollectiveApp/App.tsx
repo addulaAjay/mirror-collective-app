@@ -69,7 +69,7 @@ const MirrorChatWithErrorBoundary = () => (
 // Auth Navigator (Public + Onboarding)
 const AuthNavigator = () => (
   <Stack.Navigator
-    initialRouteName="Splash"
+    initialRouteName="MirrorEchoVaultLibrary"
     screenOptions={{ headerShown: false }}
   >
     <Stack.Screen
@@ -125,7 +125,10 @@ const AuthNavigator = () => (
       component={ReflectionRoomCommingsoonScreen}
     />
     <Stack.Screen name="MirrorEcho" component={MirrorEchoCommingsoonScreen} />
-    <Stack.Screen name="TermsAndConditions" component={TermsAndConditionsScreen} />
+    <Stack.Screen
+      name="TermsAndConditions"
+      component={TermsAndConditionsScreen}
+    />
     <Stack.Screen name="StartFreeTrial" component={StartFreeTrialScreen} />
     <Stack.Screen name="Checkout" component={CheckoutScreen} />
     <Stack.Screen name="EchoVaultStorage" component={EchoVaultStorageScreen} />
