@@ -1,4 +1,6 @@
 // NewEchoAudioScreen.tsx
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList } from '@types';
 import React, { useMemo, useState } from 'react';
 import {
   View,
@@ -16,16 +18,15 @@ import {
   Image,
 } from 'react-native';
 // import DocumentPicker from 'react-native-document-picker';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import LinearGradient from 'react-native-linear-gradient';
-import BackgroundWrapper from '@components/BackgroundWrapper';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '@types';
-import { Camera } from 'react-native-vision-camera';
 import AudioRecorderPlayer from 'react-native-audio-recorder-player';
-import { echoApiService } from '@services/api';
+import LinearGradient from 'react-native-linear-gradient';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Camera } from 'react-native-vision-camera';
+
+import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
 import StarIcon from '@components/StarIcon';
+import { echoApiService } from '@services/api';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'NewEchoAudioScreen'>;
 

@@ -524,7 +524,7 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
 
               <View style={styles.centerIconWrap}>
                 <TouchableOpacity onPress={toggleVideoRecording}>
-                    <CircleIcon label={isRecording ? "⏹" : undefined} icon={isRecording ? undefined : require('@assets/videocam.png')} />
+                    <CircleIcon label={isRecording ? "⏹" : undefined} icon={isRecording ? undefined : require('@assets/videocam_2.png')} />
                 </TouchableOpacity>
               </View>
 

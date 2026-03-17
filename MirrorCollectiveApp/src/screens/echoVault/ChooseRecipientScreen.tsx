@@ -1,3 +1,5 @@
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList } from '@types';
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
@@ -11,14 +13,14 @@ import {
   FlatList,
   ActivityIndicator,
   Modal,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
 import BackgroundWrapper from '@components/BackgroundWrapper';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '@types';
-import { echoApiService, Recipient } from '@services/api/echo';
 import LogoHeader from '@components/LogoHeader';
 import StarIcon from '@components/StarIcon';
+import { echoApiService, Recipient } from '@services/api/echo';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ChooseRecipientScreen'>;
 
@@ -147,7 +149,7 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
 
           <View style={styles.inputShell}>
             <Text style={styles.placeholder}>When do you want to open it?</Text>
-            <Text style={styles.calendar}>📅</Text>
+            <Image source={require('@assets/calendar_month.png')} style={styles.calendar} />
           </View>
 
           {/* Unlock on death */}
@@ -362,7 +364,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   chevron: { color: OFFWHITE, fontSize: 16 },
-  calendar: { fontSize: 16 },
+  calendar: { width: 20, height: 20},
 
   legacyRow: {
     flexDirection: 'row',
