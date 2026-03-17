@@ -244,17 +244,17 @@ const NewEchoScreen: React.FC<Props> = ({ navigation }) => {
               {/* Action buttons row - Updated Icons */}
               <View style={styles.actionRow}>
                 <ActionSquare
-                  emoji="T"
+                  icon={require('@assets/T_Icon.png')}
                   selected={selectedMode === 'text'}
                   onPress={() => setSelectedMode('text')}
                 />
                 <ActionSquare
-                  emoji="🎤"
+                  icon={require('@assets/mic.png')}
                   selected={selectedMode === 'audio'}
                   onPress={() => setSelectedMode('audio')}
                 />
                 <ActionSquare
-                  emoji="📹"
+                  icon={require('@assets/videocam.png')}
                   selected={selectedMode === 'video'}
                   onPress={() => setSelectedMode('video')}
                 />
@@ -311,10 +311,12 @@ const NewEchoScreen: React.FC<Props> = ({ navigation }) => {
 
 const ActionSquare = ({
   emoji,
+  icon,
   onPress,
   selected,
 }: {
-  emoji: string;
+  emoji?: string;
+  icon?: any;
   onPress: () => void;
   selected?: boolean;
 }) => {
@@ -329,7 +331,15 @@ const ActionSquare = ({
             selected && { borderColor: GOLD, backgroundColor: 'rgba(242, 226, 177, 0.1)' } 
         ]}
       >
+        {icon ? (
+          <Image
+            source={icon}
+            style={{ width: 30, height: 30, tintColor: selected ? GOLD : 'rgba(242, 226, 177, 0.92)' }}
+            resizeMode="contain"
+          />
+        ) : (
           <Text style={{ fontSize: 30, color: selected ? GOLD : 'rgba(242, 226, 177, 0.92)' }}>{emoji}</Text>
+        )}
       </LinearGradient>
     </TouchableOpacity>
   );
