@@ -1,3 +1,5 @@
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList } from '@types';
 import React, { useState, useMemo } from 'react';
 import {
   View,
@@ -14,19 +16,19 @@ import {
   ActivityIndicator,
   PermissionsAndroid,
   Linking,
+  Image,
 } from 'react-native';
 // import DocumentPicker from 'react-native-document-picker';
-import { launchImageLibrary } from 'react-native-image-picker';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import LinearGradient from 'react-native-linear-gradient';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import AudioRecorderPlayer from 'react-native-audio-recorder-player';
+import { launchImageLibrary } from 'react-native-image-picker';
+import LinearGradient from 'react-native-linear-gradient';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Camera, useCameraDevice, useCameraPermission, useMicrophonePermission } from 'react-native-vision-camera';
-import { echoApiService } from '@services/api';
-import { RootStackParamList } from '@types';
-import LogoHeader from '@components/LogoHeader';
+
 import BackgroundWrapper from '@components/BackgroundWrapper';
+import LogoHeader from '@components/LogoHeader';
 import StarIcon from '@components/StarIcon';
+import { echoApiService } from '@services/api';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'NewEchoComposeScreen'>;
 
@@ -466,7 +468,7 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
 
               <View style={styles.centerIconWrap}>
                  <TouchableOpacity onPress={toggleAudioRecording}>
-                  <CircleIcon label={isRecording ? "⏹" : "🎤"} />
+                  <CircleIcon label={isRecording ? "⏹" : undefined} icon={isRecording ? undefined : require('@assets/mic.png')} />
                 </TouchableOpacity>
               </View>
 
@@ -522,7 +524,7 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
 
               <View style={styles.centerIconWrap}>
                 <TouchableOpacity onPress={toggleVideoRecording}>
-                    <CircleIcon label={isRecording ? "⏹" : "📹"} />
+                    <CircleIcon label={isRecording ? "⏹" : undefined} icon={isRecording ? undefined : require('@assets/videocam.png')} />
                 </TouchableOpacity>
               </View>
 
@@ -604,11 +606,15 @@ const SmallPillButton = ({
   );
 };
 
-const CircleIcon = ({ label }: { label: string }) => {
+const CircleIcon = ({ label, icon }: { label?: string; icon?: any }) => {
   return (
     <View style={styles.circleOuter}>
       <View style={styles.circleInner}>
-        <Text style={styles.circleIcon}>{label}</Text>
+        {icon ? (
+          <Image source={icon} style={{ width: 24, height: 24, tintColor: 'rgba(215,192,138,0.92)' }} resizeMode="contain" />
+        ) : (
+          <Text style={styles.circleIcon}>{label}</Text>
+        )}
       </View>
     </View>
   );

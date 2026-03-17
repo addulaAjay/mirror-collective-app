@@ -13,6 +13,7 @@ import {
   Linking,
   PermissionsAndroid,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 // import DocumentPicker from 'react-native-document-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -290,7 +291,10 @@ const NewEchoAudioScreen: React.FC<Props> = ({ navigation, route }) => {
               >
                 <View style={styles.micOuter}>
                   <View style={styles.micInner}>
-                    <Text style={styles.micIcon}>🎙️</Text>
+                    {isRecording
+                      ? <Text style={styles.micIcon}>⏹</Text>
+                      : <Image source={require('@assets/mic.png')} style={{ width: 26, height: 26, tintColor: 'rgba(215,192,138,0.92)' }} resizeMode="contain" />
+                    }
                   </View>
                 </View>
               </View>
