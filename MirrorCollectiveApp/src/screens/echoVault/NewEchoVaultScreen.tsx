@@ -1,4 +1,6 @@
 // NewEchoVaultScreen.tsx
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList } from '@types';
 import React, { useMemo, useState } from 'react';
 import {
   View,
@@ -15,11 +17,10 @@ import {
   ScrollView,
   KeyboardAvoidingView,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import BackgroundWrapper from '@components/BackgroundWrapper';
 import LinearGradient from 'react-native-linear-gradient';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '@types';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
 import StarIcon from '@components/StarIcon';
 
@@ -417,12 +418,12 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
-    height: 160,
-    marginTop: 50,
+    height: 200,
+    marginTop: 16,
+    marginBottom: 16,
   },
   illustrationImage: {
-    height: 500,
-    paddingVertical: 20,
+    height: 200,
   },
 
   /* Dropdown */
