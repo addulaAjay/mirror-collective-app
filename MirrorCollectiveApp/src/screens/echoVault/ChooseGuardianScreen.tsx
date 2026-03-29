@@ -1,3 +1,5 @@
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList } from '@types';
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
@@ -13,11 +15,10 @@ import {
   Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
 import BackgroundWrapper from '@components/BackgroundWrapper';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '@types';
-import { echoApiService, Guardian } from '@services/api/echo';
 import LogoHeader from '@components/LogoHeader';
+import { echoApiService, Guardian } from '@services/api/echo';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ChooseGuardianScreen'>;
 
@@ -29,7 +30,8 @@ const SUBTEXT = 'rgba(253,253,249,0.65)';
 const BORDER = 'rgba(253,253,249,0.18)';
 const SURFACE = 'rgba(7,9,14,0.35)';
 
-const ChooseGuardianScreen: React.FC<Props> = ({ navigation }) => {
+const ChooseGuardianScreen: React.FC<Props> = ({ navigation, route }) => {
+  const { title, category, mode, recipientId, recipientName, lockDate, unlockOnDeath } = route.params || {};
   const [guardians, setGuardians] = useState<Guardian[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedGuardian, setSelectedGuardian] = useState<Guardian | null>(null);
@@ -71,6 +73,22 @@ const ChooseGuardianScreen: React.FC<Props> = ({ navigation }) => {
   const handleSelectGuardian = (guardian: Guardian) => {
     setSelectedGuardian(guardian);
     setShowDropdown(false);
+  };
+
+  const handleContinue = () => {
+    if (selectedGuardian) {
+      navigation.navigate('NewEchoComposeScreen', {
+        mode,
+        title,
+        category,
+        recipientId,
+        recipientName,
+        guardianId: selectedGuardian.guardian_id,
+        guardianName: selectedGuardian.name,
+        lockDate,
+        unlockOnDeath,
+      });
+    }
   };
 
   return (
@@ -169,6 +187,22 @@ const ChooseGuardianScreen: React.FC<Props> = ({ navigation }) => {
               style={styles.textAreaInput}
             />
           </View>
+        </View>
+
+        {/* Continue Button */}
+        <View style={[styles.buttonContainer, { width: contentWidth }]}>
+          <TouchableOpacity
+            style={[
+              styles.continueButton,
+              !selectedGuardian && styles.continueButtonDisabled,
+            ]}
+            onPress={handleContinue}
+            disabled={!selectedGuardian}
+          >
+            <Text style={styles.starLeft}>✦</Text>
+            <Text style={styles.continueButtonText}>CONTINUE</Text>
+            <Text style={styles.starRight}>✦</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Dropdown Modal */}
@@ -416,5 +450,45 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
     paddingVertical: 20,
+  },
+
+  /* Continue Button */
+  buttonContainer: {
+    marginTop: 24,
+    marginBottom: 20,
+    alignSelf: 'center',
+  },
+  continueButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 32,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: GOLD,
+    backgroundColor: 'rgba(215, 192, 138, 0.1)',
+    gap: 12,
+  },
+  continueButtonDisabled: {
+    opacity: 0.5,
+    borderColor: SUBTEXT,
+  },
+  continueButtonText: {
+    color: GOLD,
+    fontSize: 20,
+    letterSpacing: 2,
+    fontFamily: Platform.select({
+      ios: 'CormorantGaramond-Medium',
+      android: 'serif',
+    }),
+  },
+  starLeft: {
+    color: GOLD,
+    fontSize: 16,
+  },
+  starRight: {
+    color: GOLD,
+    fontSize: 16,
   },
 });

@@ -10,8 +10,8 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { ChatErrorBoundary } from '@components/error';
 import { SessionProvider, useSession } from '@context/SessionContext';
-import { UserProvider } from '@context/UserContext';
 import { SubscriptionProvider } from '@context/SubscriptionContext';
+import { UserProvider } from '@context/UserContext';
 import useAppStateHandler from '@hooks/useAppStateHandler';
 // Import your screens
 import AboutScreen from '@screens/AboutScreen';
@@ -69,7 +69,7 @@ const MirrorChatWithErrorBoundary = () => (
 // Auth Navigator (Public + Onboarding)
 const AuthNavigator = () => (
   <Stack.Navigator
-    initialRouteName="MirrorEchoVaultLibrary"
+    initialRouteName="Splash"
     screenOptions={{ headerShown: false }}
   >
     <Stack.Screen

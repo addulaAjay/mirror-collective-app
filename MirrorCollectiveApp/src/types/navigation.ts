@@ -55,6 +55,10 @@ export type RootStackParamList = {
     hasRecipient?: boolean;
     recipientId?: string;
     recipient?: any;
+    guardianId?: string;
+    guardianName?: string;
+    lockDate?: string;
+    unlockOnDeath?: boolean;
   };
   NewEchoAudioScreen: {
     recipientId?: string;
@@ -70,7 +74,15 @@ export type RootStackParamList = {
   };
   ManageGuardianScreen: undefined;
   ManageRecipientScreen: undefined;
-  ChooseGuardianScreen: undefined;
+  ChooseGuardianScreen: {
+    title: string;
+    category: string;
+    mode: 'text' | 'audio' | 'video';
+    recipientId: string;
+    recipientName: string;
+    lockDate?: string;
+    unlockOnDeath?: boolean;
+  };
   ChooseRecipientScreen: {
     title: string;
     category: string;

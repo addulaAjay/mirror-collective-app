@@ -18,8 +18,8 @@ import {
   Linking,
   Image,
 } from 'react-native';
-// import DocumentPicker from 'react-native-document-picker';
 import AudioRecorderPlayer from 'react-native-audio-recorder-player';
+import DocumentPicker from 'react-native-document-picker';
 import { launchImageLibrary } from 'react-native-image-picker';
 import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -41,7 +41,7 @@ const SURFACE_BORDER_2 = 'rgba(253, 253, 249, 0.08)';
 
 const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
   const mode = route.params?.mode ?? 'text';
-  const { recipientName, title, category, hasRecipient, recipientId } = route.params || {};
+  const { recipientName, title, category, hasRecipient, recipientId, guardianId, lockDate, unlockOnDeath } = route.params || {};
 
   const [message, setMessage] = useState('');
   const [showUploadSheet, setShowUploadSheet] = useState(false);
@@ -241,6 +241,9 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
          category: category || 'General',
          echo_type: mode === 'text' ? 'TEXT' : mode === 'audio' ? 'AUDIO' : 'VIDEO',
          recipient_id: recipientId,
+         ...(guardianId && { guardian_id: guardianId }),
+         ...(lockDate && { release_date: lockDate }),
+         ...(unlockOnDeath !== undefined && { unlock_on_death: unlockOnDeath }),
          content: mode === 'text' ? message : undefined,
        });
 
@@ -269,7 +272,7 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
         }
 
        Alert.alert('Success', 'Echo saved to vault!', [
-         { text: 'OK', onPress: () => navigation.navigate('MirrorEchoVaultHome' as any) }
+         { text: 'OK', onPress: () => navigation.navigate('MirrorEchoVaultLibrary' as any) }
        ]);
 
     } catch (error) {
@@ -314,16 +317,19 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
   const executePickAudio = async () => {
     try {
       setIsPicking(true);
-      // const res = await DocumentPicker.pickSingle({
-      //   type: [DocumentPicker.types.audio],
-      // });
-      // if (res) {
-      //   setMediaUri(res.uri);
-      //   setMediaFile({ name: res.name || 'audio.m4a', type: res.type || 'audio/m4a' });
-      //   setRecordingDuration(0); // Reset duration if file picked
-      // }
+      const res = await DocumentPicker.pickSingle({
+         type: [DocumentPicker.types.audio],
+      });
+      if (res) {
+        setMediaUri(res.uri);
+        setMediaFile({ name: res.name || 'audio.m4a', type: res.type || 'audio/m4a' });
+        setRecordingDuration(0); // Reset duration if file picked
+      }
     } catch (err) {
-      // if (!DocumentPicker.isCancel(err)) console.error(err);
+      if (!DocumentPicker.isCancel(err)) {
+        console.error('Picker error:', err);
+        Alert.alert('Error', 'Failed to pick audio file');
+      }
     } finally {
       setIsPicking(false);
     }
@@ -366,17 +372,20 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
   const executePickText = async () => {
     try {
       setIsPicking(true);
-      // const res = await DocumentPicker.pickSingle({
-      //   type: [DocumentPicker.types.plainText, DocumentPicker.types.allFiles],
-      // });
-      // if (res && res.uri) {
-      //   setMediaFile({ name: res.name || 'document.txt', type: res.type || 'text/plain' });
-      //   const response = await fetch(res.uri);
-      //   const text = await response.text();
-      //   setMessage(text);
-      // }
+      const res = await DocumentPicker.pickSingle({
+         type: [DocumentPicker.types.plainText, DocumentPicker.types.allFiles],
+       });
+      if (res && res.uri) {
+         setMediaFile({ name: res.name || 'document.txt', type: res.type || 'text/plain' });
+         const response = await fetch(res.uri);
+         const text = await response.text();
+         setMessage(text);
+     }
     } catch (err) {
-      // if (!DocumentPicker.isCancel(err)) console.error(err);
+      if (!DocumentPicker.isCancel(err)) {
+        console.error('Picker error:', err);
+        Alert.alert('Error', 'Failed to pick text file');
+      }
     } finally {
       setIsPicking(false);
     }

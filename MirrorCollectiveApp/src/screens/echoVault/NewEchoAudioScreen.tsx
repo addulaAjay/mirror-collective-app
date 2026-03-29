@@ -17,8 +17,8 @@ import {
   ActivityIndicator,
   Image,
 } from 'react-native';
-// import DocumentPicker from 'react-native-document-picker';
 import AudioRecorderPlayer from 'react-native-audio-recorder-player';
+import DocumentPicker from 'react-native-document-picker';
 import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Camera } from 'react-native-vision-camera';
@@ -161,13 +161,9 @@ const NewEchoAudioScreen: React.FC<Props> = ({ navigation, route }) => {
         await stopAudioRecording();
       }
       setIsUploading(true);
-      const res = {
-        uri: '',
-        name: '',
-        type: '',
-      }; // await DocumentPicker.pickSingle({
-      //   type: [DocumentPicker.types.audio],
-      // });
+      const res = await DocumentPicker.pickSingle({
+         type: [DocumentPicker.types.audio],
+      });
       if (res) {
         setPickedFile({
           uri: res.uri,
@@ -177,10 +173,10 @@ const NewEchoAudioScreen: React.FC<Props> = ({ navigation, route }) => {
         setRecordingDuration(0);
       }
     } catch (err) {
-      // if (!DocumentPicker.isCancel(err)) {
-      //   console.error('Picker error:', err);
-      //   Alert.alert('Error', 'Failed to pick audio file');
-      // }
+      if (!DocumentPicker.isCancel(err)) {
+        console.error('Picker error:', err);
+        Alert.alert('Error', 'Failed to pick audio file');
+      }
     } finally {
       setIsUploading(false);
     }

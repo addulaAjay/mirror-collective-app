@@ -15,6 +15,7 @@ import {
   Modal,
   Image,
 } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
@@ -40,6 +41,9 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
   const [legacy, setLegacy] = useState<'yes' | 'no' | null>(null);
   const [unlockOnDeath, setUnlockOnDeath] = useState(false);
   const [notes, setNotes] = useState('');
+  const [showGuardianPrompt, setShowGuardianPrompt] = useState(false);
+  const [lockDate, setLockDate] = useState<Date | null>(null);
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   const contentWidth = Math.min(width * 0.88, 360);
 
@@ -68,17 +72,64 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
 
   const handleNext = () => {
     if (selectedRecipient) {
-      // Navigate to next screen with recipient data
-      navigation.navigate('NewEchoComposeScreen', {
-        mode,
-        title,
-        category,
-        hasRecipient: true,
-        recipient: selectedRecipient,
-        recipientId: selectedRecipient.recipient_id,
-        recipientName: selectedRecipient.name,
-      });
+      // Show guardian prompt modal
+      setShowGuardianPrompt(true);
     }
+  };
+
+  const handleGuardianPromptYes = () => {
+    setShowGuardianPrompt(false);
+    // Navigate to ChooseGuardianScreen
+    navigation.navigate('ChooseGuardianScreen', {
+      mode,
+      title,
+      category,
+      recipientId: selectedRecipient?.recipient_id,
+      recipientName: selectedRecipient?.name,
+      lockDate: lockDate?.toISOString(),
+      unlockOnDeath,
+    });
+  };
+
+  const handleGuardianPromptNo = () => {
+    setShowGuardianPrompt(false);
+    // Navigate directly to compose
+    navigation.navigate('NewEchoComposeScreen', {
+      mode,
+      title,
+      category,
+      hasRecipient: true,
+      recipient: selectedRecipient,
+      recipientId: selectedRecipient?.recipient_id,
+      recipientName: selectedRecipient?.name,
+      unlockOnDeath,
+      lockDate: lockDate?.toISOString(),
+      // No guardianId
+    });
+  };
+
+  const handleDateChange = (event: any, selectedDate?: Date) => {
+    // Close picker on both platforms when date is selected or dismissed
+    if (Platform.OS === 'android') {
+      setShowDatePicker(false);
+    }
+    
+    if (event.type === 'dismissed' || event.type === 'set') {
+      setShowDatePicker(false);
+    }
+    
+    if (selectedDate) {
+      setLockDate(selectedDate);
+    }
+  };
+
+  const formatDate = (date: Date | null) => {
+    if (!date) return null;
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
   };
 
   return (
@@ -147,10 +198,27 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
             Lock Date <Text style={styles.subtle}>(only if required)</Text>
           </Text>
 
-          <View style={styles.inputShell}>
-            <Text style={styles.placeholder}>When do you want to open it?</Text>
+          <TouchableOpacity
+            style={styles.inputShell}
+            onPress={() => setShowDatePicker(true)}
+          >
+            <Text style={lockDate ? styles.selectedText : styles.placeholder}>
+              {lockDate ? formatDate(lockDate) : 'When do you want to open it?'}
+            </Text>
             <Image source={require('@assets/calendar_month.png')} style={styles.calendar} />
-          </View>
+          </TouchableOpacity>
+
+          {showDatePicker && (
+            <DateTimePicker
+              value={lockDate || new Date()}
+              mode="date"
+              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+              onChange={handleDateChange}
+              minimumDate={new Date()}
+              textColor={GOLD}
+              themeVariant="dark"
+            />
+          )}
 
           {/* Unlock on death */}
           <TouchableOpacity
@@ -236,6 +304,40 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
               </TouchableOpacity>
             </View>
           </TouchableOpacity>
+        </Modal>
+
+        {/* Guardian Prompt Modal */}
+        <Modal
+          visible={showGuardianPrompt}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowGuardianPrompt(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.guardianPromptCard}>
+              <Text style={styles.guardianPromptTitle}>Assign a Guardian?</Text>
+              <Text style={styles.guardianPromptText}>
+                A Guardian can manage the release of this Echo on your behalf.
+                Would you like to assign one?
+              </Text>
+              
+              <View style={styles.guardianPromptButtons}>
+                <TouchableOpacity
+                  style={[styles.guardianPromptButton, styles.guardianPromptButtonYes]}
+                  onPress={handleGuardianPromptYes}
+                >
+                  <Text style={styles.guardianPromptButtonText}>Yes</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity
+                  style={[styles.guardianPromptButton, styles.guardianPromptButtonNo]}
+                  onPress={handleGuardianPromptNo}
+                >
+                  <Text style={styles.guardianPromptButtonText}>No</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
         </Modal>
       </SafeAreaView>
     </BackgroundWrapper>
@@ -505,6 +607,68 @@ const styles = StyleSheet.create({
     fontFamily: Platform.select({
        ios: 'CormorantGaramond-SemiBold',
        android: 'serif',
+    }),
+  },
+
+  /* Guardian Prompt Modal */
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  guardianPromptCard: {
+    width: '85%',
+    maxWidth: 400,
+    backgroundColor: '#1A1F2E',
+    borderRadius: 16,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: GOLD,
+  },
+  guardianPromptTitle: {
+    color: GOLD,
+    fontSize: 24,
+    marginBottom: 16,
+    textAlign: 'center',
+    fontFamily: Platform.select({
+      ios: 'CormorantGaramond-Medium',
+      android: 'serif',
+    }),
+  },
+  guardianPromptText: {
+    color: OFFWHITE,
+    fontSize: 16,
+    marginBottom: 24,
+    textAlign: 'center',
+    lineHeight: 24,
+  },
+  guardianPromptButtons: {
+    flexDirection: 'row',
+    gap: 12,
+    justifyContent: 'center',
+  },
+  guardianPromptButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: GOLD,
+  },
+  guardianPromptButtonYes: {
+    backgroundColor: GOLD,
+  },
+  guardianPromptButtonNo: {
+    backgroundColor: 'transparent',
+  },
+  guardianPromptButtonText: {
+    fontSize: 18,
+    color: '#1A1F2E',
+    fontFamily: Platform.select({
+      ios: 'CormorantGaramond-Medium',
+      android: 'serif',
     }),
   },
 });

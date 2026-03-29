@@ -5,6 +5,9 @@ import {
   SCREEN_DIMENSIONS,
   PLATFORM_SPECIFIC,
 } from '@constants';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { RootStackParamList } from '@types';
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
@@ -18,17 +21,14 @@ import {
   Image,
   ActivityIndicator,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '@types';
-import { echoApiService, EchoResponse } from '@services/api/echo';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
-import { MOTIF_ICONS, getMotifIcon } from '@assets/motifs/MotifAssets';
 
+import { MOTIF_ICONS, getMotifIcon } from '@assets/motifs/MotifAssets';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
+import { echoApiService, EchoResponse } from '@services/api/echo';
 
 type EchoLibraryNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -48,6 +48,7 @@ export function EchoLibraryContent() {
   const [echoes, setEchoes] = useState<EchoResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'LIBRARY' | 'INBOX'>('LIBRARY');
   const [activeTab, setActiveTab] = useState<'RECIPIENT' | 'CATEGORY'>('RECIPIENT');
 
   const cardMaxWidth = Math.min(width - SPACING.XL * 2, 440);
@@ -56,7 +57,9 @@ export function EchoLibraryContent() {
     try {
       setLoading(true);
       setError(null);
-      const response = await echoApiService.getEchoes();
+      const response = viewMode === 'INBOX'
+        ? await echoApiService.getInboxEchoes()
+        : await echoApiService.getEchoes();
       if (response.success && response.data) {
         setEchoes(response.data);
       } else {
@@ -69,12 +72,11 @@ export function EchoLibraryContent() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [viewMode]);
 
   useEffect(() => {
-    setEchoes(MOCK_ECHOS);
-    // fetchEchoes();
-  }, []);
+    fetchEchoes();
+  }, [fetchEchoes]);
 
   const handleMenu = () => {
     (navigation as any)?.openDrawer?.();
@@ -138,16 +140,50 @@ export function EchoLibraryContent() {
             end={{ x: 0.5, y: 1 }}
             style={styles.card}
           >
-            {/* Echo Inbox Header */}
-            <View style={styles.inboxHeader}>
-              <View style={styles.inboxIconContainer}>
-                <Image
-                  source={require('@assets/mail.png')}
-                  style={{ width: 24, height: 24, tintColor: GOLD }}
-                  resizeMode="contain"
-                />
-              </View>
-              <Text style={styles.inboxTitle}>Echo Inbox</Text>
+            {/* View Mode Toggle */}
+            <View style={styles.viewModeToggle}>
+              <TouchableOpacity
+                style={[
+                  styles.toggleButton,
+                  viewMode === 'LIBRARY' && styles.toggleButtonActive,
+                ]}
+                onPress={() => setViewMode('LIBRARY')}
+                activeOpacity={0.7}
+              >
+                <Text
+                  style={[
+                    styles.toggleText,
+                    viewMode === 'LIBRARY' && styles.toggleTextActive,
+                  ]}
+                >
+                  MY ECHOES
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.toggleButton,
+                  viewMode === 'INBOX' && styles.toggleButtonActive,
+                ]}
+                onPress={() => setViewMode('INBOX')}
+                activeOpacity={0.7}
+              >
+                <View style={styles.inboxToggleContent}>
+                  <Image
+                    source={require('@assets/mail.png')}
+                    style={{ width: 20, height: 20, tintColor: viewMode === 'INBOX' ? GOLD : '#A3B3CC' }}
+                    resizeMode="contain"
+                  />
+                  <Text
+                    style={[
+                      styles.toggleText,
+                      viewMode === 'INBOX' && styles.toggleTextActive,
+                    ]}
+                  >
+                    INBOX
+                  </Text>
+                </View>
+              </TouchableOpacity>
             </View>
 
             <View style={{ flex: 1, width: '100%' }}>
@@ -350,7 +386,47 @@ const styles = StyleSheet.create({
   listContent: {
       paddingBottom: 20,
   },
-  // INBOX HEADER
+  
+  // VIEW MODE TOGGLE
+  viewModeToggle: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#A3B3CC',
+    gap: 12,
+  },
+  toggleButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+    borderWidth: 0.5,
+    borderColor: '#A3B3CC',
+    minWidth: 120,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  toggleButtonActive: {
+    borderColor: GOLD,
+    backgroundColor: 'rgba(242, 226, 177, 0.1)',
+  },
+  toggleText: {
+    fontFamily: 'CormorantGaramond-Regular',
+    fontSize: 18,
+    color: '#A3B3CC',
+  },
+  toggleTextActive: {
+    color: GOLD,
+  },
+  inboxToggleContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+
+  // INBOX HEADER (OLD - NOW REPLACED BY TOGGLE)
   inboxHeader: {
     flexDirection: 'row',
     alignItems: 'center',
