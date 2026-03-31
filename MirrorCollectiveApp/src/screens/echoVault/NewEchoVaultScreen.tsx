@@ -535,8 +535,9 @@ const styles = StyleSheet.create({
     width: '100%',
     flexDirection: 'row',
     justifyContent: 'space-between', // gap 32px in Figma, assume justify-between handles for small screens, or gap.
-    gap: 16,
-    marginBottom: 32,
+    gap: 24,
+    marginBottom: 0,
+    paddingHorizontal: 48,
   },
   actionShell: {
     flex: 1, // Distribute evenly
@@ -571,8 +572,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    minHeight: 48,
     borderRadius: 12,
     borderWidth: 0.5,
     borderColor: '#A3B3CC',
@@ -586,6 +586,7 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 8,
     textTransform: 'uppercase',
+    padding: 10,
   },
 
   /* Modal */
