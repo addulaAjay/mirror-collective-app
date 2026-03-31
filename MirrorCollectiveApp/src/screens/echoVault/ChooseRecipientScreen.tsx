@@ -247,7 +247,9 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
           >
             <View
               style={[styles.checkbox, unlockOnDeath && styles.checkboxActive]}
-            />
+            >
+              {unlockOnDeath && <Text style={styles.checkMark}>✓</Text>}
+            </View>
             <Text style={styles.checkboxLabel}>Unlock upon death</Text>
           </TouchableOpacity>
 
@@ -383,7 +385,9 @@ const CheckOption = ({
   onPress: () => void;
 }) => (
   <TouchableOpacity style={styles.checkOption} onPress={onPress}>
-    <View style={[styles.checkbox, active && styles.checkboxActive]} />
+    <View style={[styles.checkbox, active && styles.checkboxActive]}>
+      {active && <Text style={styles.checkMark}>✓</Text>}
+    </View>
     <Text style={styles.checkLabel}>{label}</Text>
   </TouchableOpacity>
 );
@@ -571,13 +575,21 @@ const styles = StyleSheet.create({
   checkbox: {
     width: 16,
     height: 16,
-    borderRadius: 0, // Making it a square for now, or match Figma's Component 7
+    borderRadius: 0,
     borderWidth: 1,
     borderColor: GOLD,
     backgroundColor: 'transparent',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   checkboxActive: {
     backgroundColor: 'rgba(215,192,138,0.7)',
+  },
+  checkMark: {
+    color: '#1A1F2E',
+    fontSize: 10,
+    fontWeight: 'bold',
+    lineHeight: 13,
   },
   checkLabel: {
     color: GOLD,

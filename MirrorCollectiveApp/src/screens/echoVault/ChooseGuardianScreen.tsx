@@ -15,6 +15,7 @@ import {
   ActivityIndicator,
   Modal,
   ScrollView,
+  KeyboardAvoidingView,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -105,35 +106,37 @@ const ChooseGuardianScreen: React.FC<Props> = ({ navigation, route }) => {
           backgroundColor="transparent"
         />
 
-        <LogoHeader navigation={navigation} />
-
-        {/* Title */}
-        <View style={styles.titleRowContainer}>
-          <View style={[styles.titleRow, { width: contentWidth }]}>
-            <TouchableOpacity onPress={() => navigation.goBack()}>
-              <Image source={require('@assets/back-arrow.png')} style={styles.backArrowImg} resizeMode="contain" />
-            </TouchableOpacity>
-
-            <Text style={styles.title}>CHOOSE YOUR{'\n'}GUARDIAN</Text>
-
-            <View style={{ width: 24 }} />
-          </View>
-        </View>
-
-        {/* Description */}
-        <Text style={[styles.description, { width: contentWidth }]}>
-          Designate a person(s) to receive your memories. Nothing is shared
-          until your chosen triggers occur.
-        </Text>
-
-        {/* Content */}
-        <ScrollView
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={{ flex: 1, width: '100%' }}
-          contentContainerStyle={{ alignItems: 'center', paddingBottom: 40 }}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
         >
-          <View style={[styles.content, { width: contentWidth }]}>
+          <ScrollView
+            style={{ flex: 1 }}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            <LogoHeader navigation={navigation} />
+
+            {/* Title */}
+            <View style={[styles.titleRow, { width: contentWidth, alignSelf: 'center' }]}>
+              <TouchableOpacity onPress={() => navigation.goBack()}>
+                <Image source={require('@assets/back-arrow.png')} style={styles.backArrowImg} resizeMode="contain" />
+              </TouchableOpacity>
+
+              <Text style={styles.title}>CHOOSE YOUR{'\n'}GUARDIAN</Text>
+
+              <View style={{ width: 24 }} />
+            </View>
+
+            {/* Description */}
+            <Text style={[styles.description, { width: contentWidth, alignSelf: 'center' }]}>
+              Designate a person(s) to receive your memories. Nothing is shared
+              until your chosen triggers occur.
+            </Text>
+
+            {/* Content */}
+            <View style={[styles.content, { width: contentWidth, alignSelf: 'center' }]}>
           {/* Guardian dropdown */}
           <Text style={styles.label}>Guardian</Text>
           <TouchableOpacity
@@ -214,36 +217,41 @@ const ChooseGuardianScreen: React.FC<Props> = ({ navigation, route }) => {
 
           {/* Authorization Checkboxes */}
           <TouchableOpacity style={styles.authRow} onPress={() => setAuthRelease(!authRelease)}>
-            <View style={[styles.checkbox, authRelease && styles.checkboxActive]} />
+            <View style={[styles.checkbox, authRelease && styles.checkboxActive]}>
+              {authRelease && <Text style={styles.checkMark}>✓</Text>}
+            </View>
             <Text style={styles.authText}>
               I authorize Mirror to release my selected Echoes to my Guardian(s) upon verification of the chosen trigger.
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.authRow} onPress={() => setAuthCustodian(!authCustodian)}>
-            <View style={[styles.checkbox, authCustodian && styles.checkboxActive]} />
+            <View style={[styles.checkbox, authCustodian && styles.checkboxActive]}>
+              {authCustodian && <Text style={styles.checkMark}>✓</Text>}
+            </View>
             <Text style={styles.authText}>
               I understand Mirror is a custodian only and may decline release if verification is incomplete.
             </Text>
           </TouchableOpacity>
           </View>
 
-          {/* Next Button */}
-          <TouchableOpacity
-            style={[styles.nextAction, !selectedGuardian && styles.disabled]}
-            onPress={handleContinue}
-            disabled={!selectedGuardian}
-          >
-            <LinearGradient
-              colors={['rgba(253,253,249,0.04)', 'rgba(253,253,249,0.01)']}
-              start={{ x: 0.5, y: 0 }}
-              end={{ x: 0.5, y: 1 }}
-              style={styles.nextGradient}
+            {/* Next Button */}
+            <TouchableOpacity
+              style={[styles.nextAction, !selectedGuardian && styles.disabled]}
+              onPress={handleContinue}
+              disabled={!selectedGuardian}
             >
-              <Text style={styles.nextText}>NEXT</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-        </ScrollView>
+              <LinearGradient
+                colors={['rgba(253,253,249,0.04)', 'rgba(253,253,249,0.01)']}
+                start={{ x: 0.5, y: 0 }}
+                end={{ x: 0.5, y: 1 }}
+                style={styles.nextGradient}
+              >
+                <Text style={styles.nextText}>NEXT</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </ScrollView>
+        </KeyboardAvoidingView>
 
         {/* Dropdown Modal */}
         <Modal
@@ -316,7 +324,9 @@ const CheckRow = ({
   onPress: () => void;
 }) => (
   <TouchableOpacity style={styles.checkRow} onPress={onPress}>
-    <View style={[styles.checkbox, checked && styles.checkboxActive]} />
+    <View style={[styles.checkbox, checked && styles.checkboxActive]}>
+      {checked && <Text style={styles.checkMark}>✓</Text>}
+    </View>
     <Text style={styles.checkLabel}>{label}</Text>
   </TouchableOpacity>
 );
@@ -324,18 +334,19 @@ const CheckRow = ({
 /* ---------------- STYLES ---------------- */
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: 'transparent', alignItems: 'center' },
+  safe: { flex: 1, backgroundColor: 'transparent' },
   root: {
     flex: 1,
   },
+  scrollContent: {
+    alignItems: 'center',
+    paddingHorizontal: 0,
+    paddingBottom: 40,
+  },
 
   /* Title */
-  titleRowContainer: {
-    width: '100%',
-    alignItems: 'center',
-    marginTop: 20,
-  },
   titleRow: {
+    marginTop: 20,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -458,9 +469,17 @@ const styles = StyleSheet.create({
     borderRadius: 3,
     borderWidth: 1,
     borderColor: OFFWHITE,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   checkboxActive: {
     backgroundColor: 'rgba(215,192,138,0.7)',
+  },
+  checkMark: {
+    color: '#1A1F2E',
+    fontSize: 11,
+    fontWeight: 'bold',
+    lineHeight: 14,
   },
   checkLabel: {
     color: OFFWHITE,

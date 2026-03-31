@@ -320,18 +320,19 @@ const styles = StyleSheet.create({
     borderColor: BLUE_GREY,
     backgroundColor: 'rgba(253,253,249,0.04)',
     paddingHorizontal: 16,
-    paddingVertical: Platform.OS === 'ios' ? 12 : 8,
-    minHeight: 40,
-    maxHeight: 80,
+    height: 48,
+    justifyContent: 'center',
   },
   input: {
     color: BLUE_GREY,
-    fontSize: 20,
+    fontSize: 16,
     fontFamily: Platform.select({
       ios: 'CormorantGaramond-Italic',
       android: 'serif',
     }),
     fontStyle: 'italic',
+    paddingVertical: 0,
+    includeFontPadding: false,
   },
 
   /* Add button */

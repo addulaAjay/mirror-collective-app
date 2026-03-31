@@ -134,58 +134,22 @@ export function EchoLibraryContent() {
             </View>
           </View>
 
+          {/* Echo Inbox */}
+          <View style={styles.echoInboxRow}>
+            <Image
+              source={require('@assets/mail.png')}
+              style={styles.echoInboxIcon}
+              resizeMode="contain"
+            />
+            <Text style={styles.echoInboxText}>Echo Inbox</Text>
+          </View>
+
           <LinearGradient
             colors={['rgba(253, 253, 249, 0.04)', 'rgba(253, 253, 249, 0.01)']}
             start={{ x: 0.5, y: 0 }}
             end={{ x: 0.5, y: 1 }}
             style={styles.card}
           >
-            {/* View Mode Toggle */}
-            <View style={styles.viewModeToggle}>
-              <TouchableOpacity
-                style={[
-                  styles.toggleButton,
-                  viewMode === 'LIBRARY' && styles.toggleButtonActive,
-                ]}
-                onPress={() => setViewMode('LIBRARY')}
-                activeOpacity={0.7}
-              >
-                <Text
-                  style={[
-                    styles.toggleText,
-                    viewMode === 'LIBRARY' && styles.toggleTextActive,
-                  ]}
-                >
-                  MY ECHOES
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[
-                  styles.toggleButton,
-                  viewMode === 'INBOX' && styles.toggleButtonActive,
-                ]}
-                onPress={() => setViewMode('INBOX')}
-                activeOpacity={0.7}
-              >
-                <View style={styles.inboxToggleContent}>
-                  <Image
-                    source={require('@assets/mail.png')}
-                    style={{ width: 20, height: 20, tintColor: viewMode === 'INBOX' ? GOLD : '#A3B3CC' }}
-                    resizeMode="contain"
-                  />
-                  <Text
-                    style={[
-                      styles.toggleText,
-                      viewMode === 'INBOX' && styles.toggleTextActive,
-                    ]}
-                  >
-                    INBOX
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            </View>
-
             <View style={{ flex: 1, width: '100%' }}>
               <View style={styles.tableHeader}>
                 <TouchableOpacity
@@ -319,17 +283,31 @@ export function EchoLibraryContent() {
             <TouchableOpacity
               onPress={handleCreateEcho}
               activeOpacity={0.9}
-              style={styles.createButton}
+              style={styles.buttonTouch}
             >
-              <Text style={styles.buttonText}>CREATE AN ECHO</Text>
+              <LinearGradient
+                colors={['rgba(253, 253, 249, 0.04)', 'rgba(253, 253, 249, 0.01)']}
+                start={{ x: 0.5, y: 0 }}
+                end={{ x: 0.5, y: 1 }}
+                style={styles.buttonGradient}
+              >
+                <Text style={styles.buttonText}>CREATE AN ECHO</Text>
+              </LinearGradient>
             </TouchableOpacity>
 
             <TouchableOpacity
               onPress={handleManageRecipients}
               activeOpacity={0.9}
-              style={styles.secondaryButton}
+              style={styles.buttonTouch}
             >
-              <Text style={styles.buttonText}>MANAGE RECIPIENTS</Text>
+              <LinearGradient
+                colors={['rgba(253, 253, 249, 0.04)', 'rgba(253, 253, 249, 0.01)']}
+                start={{ x: 0.5, y: 0 }}
+                end={{ x: 0.5, y: 1 }}
+                style={styles.buttonGradient}
+              >
+                <Text style={styles.buttonText}>MANAGE RECIPIENTS</Text>
+              </LinearGradient>
             </TouchableOpacity>
           </View>
         </View>
@@ -451,6 +429,37 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
+  // ECHO INBOX HEADING
+  echoInboxRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginBottom: 16,
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    alignSelf: 'center',
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#F2E2B1',
+  },
+  echoInboxIcon: {
+    width: 24,
+    height: 24,
+    tintColor: GOLD,
+  },
+  echoInboxText: {
+    fontFamily: Platform.select({
+      ios: 'CormorantGaramond-Regular',
+      android: 'serif',
+    }),
+    fontSize: 28,
+    fontWeight: '400',
+    color: '#F2E2B1',
+    textAlign: 'center',
+    lineHeight: 36.4,
+
+  },
+
   // CARD / LIST
   card: {
     width: '100%',
@@ -477,9 +486,7 @@ const styles = StyleSheet.create({
     // borderBottomWidth: 1, // Removed border
   },
   headerTab: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#A3B3CC', // Default subtle border
-    paddingBottom: 2,
+    paddingBottom: 4,
   },
   headerText: {
     fontFamily: 'CormorantGaramond-Regular',
@@ -487,16 +494,13 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   activeHeader: {
-    color: '#FDFDF9', // Figma says text-paragraph-2 #FDFDF9 for Recipient?
-    // Wait, Figma: RECIPIENT text color #FDFDF9, Category #A3B3CC
+    color: '#FDFDF9',
+    borderBottomWidth: 1.5,
+    borderBottomColor: '#FDFDF9',
+    paddingBottom: 2,
   },
   inactiveHeader: {
-    color: '#A3B3CC', // text-inverse-paragraph-2
-    borderBottomWidth: 0, // Inactive doesn't have border in Figma snippet? 
-    // Actually Figma snippet shows: border-b for RECIPIENT.
-  },
-  activeIndicator: {
-      // Replaced by borderBottom on tab
+    color: '#A3B3CC',
   },
 
   // LIST ROWS
@@ -568,28 +572,23 @@ const styles = StyleSheet.create({
       gap: 12,
       marginBottom: 20,
   },
-  createButton: {
-    width: '100%',
-    height: 52,
+  buttonTouch: {
+    alignSelf: 'center',
+    width: 280,
     borderRadius: 12,
     borderWidth: 0.5,
     borderColor: '#A3B3CC',
-    // backgroundColor: gradient handled in render? 
-    // Figma uses gradient background for button.
-    backgroundColor: 'rgba(253, 253, 249, 0.04)', // Approximate
+    overflow: 'hidden',
+  },
+  buttonGradient: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 8,
   },
-  secondaryButton: {
-    width: '100%',
-    height: 52,
-    borderRadius: 12,
-    borderWidth: 0.5,
-    borderColor: '#A3B3CC',
-    backgroundColor: 'rgba(253, 253, 249, 0.04)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  createButton: {},
+  secondaryButton: {},
   buttonText: {
     fontFamily: 'CormorantGaramond-Regular',
     fontSize: 24,
