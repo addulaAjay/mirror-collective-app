@@ -10,7 +10,12 @@ type ArchetypeRouteParams = {
 
 export type RootStackParamList = {
   Splash: undefined;
-  TermsAndConditions: undefined;
+  TermsAndConditions: {
+    fullName: string;
+    email: string;
+    password: string;
+    phoneNumber?: string;
+  };
   StartFreeTrial: undefined;
   EchoVaultStorage: undefined;
   MirrorEcho: undefined;
@@ -29,7 +34,7 @@ export type RootStackParamList = {
   Login: undefined;
   MirrorChat: undefined;
   SignUp: undefined;
-  VerifyEmail: { email?: string; fullName?: string } | undefined;
+  VerifyEmail: { email?: string; fullName?: string; password?: string; termsAcceptedAt?: string } | undefined;
   ForgotPassword: undefined;
   ResetPassword: { email: string };
   QuizWelcome: undefined;

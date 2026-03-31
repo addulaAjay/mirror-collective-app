@@ -187,6 +187,8 @@ const AuthenticatedNavigator = () => (
     <Stack.Screen name="EchoAudioPlaybackScreen" component={EchoAudioPlaybackScreen} />
     <Stack.Screen name="EchoVideoPlaybackScreen" component={EchoVideoPlaybackScreen} />
     <Stack.Screen name="Checkout" component={CheckoutScreen} />
+    <Stack.Screen name="StartFreeTrial" component={StartFreeTrialScreen} />
+    <Stack.Screen name="EchoVaultStorage" component={EchoVaultStorageScreen} />
   </Stack.Navigator>
 );
 

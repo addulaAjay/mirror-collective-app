@@ -31,9 +31,10 @@ export class BaseApiService {
 
       if (requiresAuth) {
         const token = await tokenManager.getValidToken();
-        if (token) {
-          headers.Authorization = `Bearer ${token}`;
+        if (!token) {
+          throw this.createApiError('Session expired. Please log in again.', 401);
         }
+        headers.Authorization = `Bearer ${token}`;
       }
 
       const config: RequestInit = {

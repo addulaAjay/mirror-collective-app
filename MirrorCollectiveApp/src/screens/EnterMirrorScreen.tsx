@@ -21,7 +21,7 @@ type Props = {
 
 const EnterMirrorScreen: React.FC<Props> = ({ navigation }) => {
   const handleEnter = () => {
-    navigation.navigate('TalkToMirror');
+    navigation.navigate('AppVideo');
   };
 
   return (

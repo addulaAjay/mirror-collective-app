@@ -1,8 +1,10 @@
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '@types';
 import React, { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
+    Alert,
     View,
     Text,
     StyleSheet,
@@ -19,8 +21,11 @@ import LinearGradient from 'react-native-linear-gradient';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
+import { useSession } from '@context/SessionContext';
+import { getApiErrorMessage } from '@utils/apiErrorUtils';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'TermsAndConditions'>;
+type ScreenRouteProp = RouteProp<RootStackParamList, 'TermsAndConditions'>;
 
 // Use window (usable viewport) instead of screen (includes status/nav bars)
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
@@ -49,7 +54,12 @@ const innerBoxSidePadding = Math.max(0, (outerBoxWidth - cardWidth) / 2);
 
 const TermsAndConditionsScreen = () => {
     const navigation = useNavigation<NavigationProp>();
+    const route = useRoute<ScreenRouteProp>();
+    const { fullName, email, password, phoneNumber } = route.params;
+    const { signUp } = useSession();
+    const { t } = useTranslation();
     const [agreed, setAgreed] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
     const cardGradient = useMemo(
         () => ['rgba(255, 255, 255, 0.05)', 'rgba(153, 153, 153, 0.05)'],
@@ -174,24 +184,33 @@ const TermsAndConditionsScreen = () => {
 
                             <TouchableOpacity
                                 accessibilityRole="button"
-                                disabled={!agreed}
-                                onPress={() => {
-                                    if (!agreed) {
-                                        return;
+                                disabled={!agreed || isLoading}
+                                onPress={async () => {
+                                    if (!agreed || isLoading) return;
+                                    setIsLoading(true);
+                                    try {
+                                        const termsAcceptedAt = new Date().toISOString();
+                                        await signUp(fullName, email, password, phoneNumber, termsAcceptedAt);
+                                        Alert.alert(
+                                            t('auth.signup.alerts.welcomeTitle'),
+                                            t('auth.signup.alerts.welcomeMessage'),
+                                            [{
+                                                text: t('auth.validation.continue'),
+                                                onPress: () => navigation.navigate('VerifyEmail', { email, fullName, password, termsAcceptedAt }),
+                                            }],
+                                        );
+                                    } catch (error: unknown) {
+                                        Alert.alert(t('auth.signup.alerts.failedTitle'), getApiErrorMessage(error, t));
+                                    } finally {
+                                        setIsLoading(false);
                                     }
-                                    navigation.navigate('VerifyEmail');
                                 }}
-                                activeOpacity={0.85}
-                                style={!agreed ? styles.continueButtonDisabled : undefined}
+                                activeOpacity={0.8}
+                                style={[styles.continueButton, (!agreed || isLoading) && styles.continueButtonDisabled]}
                             >
-                                <LinearGradient
-                                    colors={['rgba(253, 253, 249, 0.03)', 'rgba(253, 253, 249, 0.20)']}
-                                    start={{ x: 0.5, y: 0 }}
-                                    end={{ x: 0.5, y: 1 }}
-                                    style={styles.continueButton}
-                                >
-                                    <Text style={styles.continueButtonText}>CONTINUE</Text>
-                                </LinearGradient>
+                                <Text style={styles.continueButtonText}>
+                                    {isLoading ? 'CREATING...' : 'CONTINUE'}
+                                </Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -391,25 +410,28 @@ const styles = StyleSheet.create<{
         color: '#F2E2B1',
     },
     continueButton: {
-        flexDirection: 'row',
+        width: 313,
+        height: 44,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: 'rgba(229, 214, 176, 0.4)',
+        backgroundColor: 'rgba(58, 74, 92, 0.3)',
         justifyContent: 'center',
         alignItems: 'center',
-        gap: 8,
-        borderRadius: 12,
-        borderWidth: 0.5,
-        borderColor: '#A3B3CC',
-        paddingVertical: 12,
-        paddingHorizontal: 16,
-        marginTop: 10,
+        alignSelf: 'center',
     },
     continueButtonDisabled: {
         opacity: 0.5,
     },
     continueButtonText: {
-        fontFamily: 'CormorantGaramond-Regular',
-        fontSize: 18,
-        lineHeight: 22,
-        color: '#E5D6B0',
         textAlign: 'center',
+        fontFamily: 'CormorantGaramond-Light',
+        color: '#E5D6B0',
+        fontSize: 20,
+        fontWeight: '600',
+        lineHeight: 28,
+        textShadowColor: 'rgba(229, 214, 176, 0.5)',
+        textShadowOffset: { width: 0, height: 0 },
+        textShadowRadius: 8,
     },
 });

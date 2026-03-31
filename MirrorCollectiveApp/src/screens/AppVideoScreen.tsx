@@ -19,6 +19,10 @@ const AppVideoScreen: React.FC<Props> = ({ navigation }) => {
     });
   }, [navigation]);
 
+  const handleNext = useCallback(() => {
+    navigation.navigate('MirrorChat');
+  }, [navigation]);
+
   return (
     <BackgroundWrapper style={styles.bg}>
       <SafeAreaView style={styles.safe}>
@@ -34,6 +38,15 @@ const AppVideoScreen: React.FC<Props> = ({ navigation }) => {
             <View style={styles.videoPlaceholder}>
               <Text style={styles.videoTitle}>App explainer </Text>
             </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={handleNext}
+            style={styles.nextButton}
+            accessibilityRole="button"
+          >
+            <Text style={styles.nextText}>NEXT</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -85,6 +98,29 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: '#000000',
     textAlign: 'center',
+  },
+  nextButton: {
+    width: 313,
+    height: 44,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(229, 214, 176, 0.4)',
+    backgroundColor: 'rgba(58, 74, 92, 0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    alignSelf: 'center',
+    marginTop: 24,
+  },
+  nextText: {
+    textAlign: 'center',
+    fontFamily: 'CormorantGaramond-Light',
+    color: '#E5D6B0',
+    fontSize: 20,
+    fontWeight: '600',
+    lineHeight: 28,
+    textShadowColor: 'rgba(229, 214, 176, 0.5)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 8,
   },
 });
 
