@@ -544,11 +544,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     // Shadow from Figma
-    shadowColor: '#F2E2B1',
-    shadowOffset: { width: 2, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 32,
-    elevation: 5,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#F2E2B1',
+        shadowOffset: { width: 2, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 32,
+        elevation: 5,
+      },
+      android: {
+        boxShadow: '2px 2px 32px 0px rgba(242, 226, 177, 0.20)',
+      },
+    }),
   },
 
   /* Next Button */

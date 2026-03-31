@@ -330,11 +330,18 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(253,253,249,0.08)',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.35,
-    shadowRadius: 14,
-    elevation: 6,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.35,
+        shadowRadius: 14,
+        elevation: 6,
+      },
+      android: {
+        boxShadow: '2px 2px 32px 0px rgba(242, 226, 177, 0.20)',
+      },
+    }),
   },
 
   secondaryButton: {
