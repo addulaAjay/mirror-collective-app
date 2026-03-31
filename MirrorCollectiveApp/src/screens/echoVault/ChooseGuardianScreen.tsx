@@ -14,6 +14,7 @@ import {
   FlatList,
   ActivityIndicator,
   Modal,
+  ScrollView,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -41,6 +42,8 @@ const ChooseGuardianScreen: React.FC<Props> = ({ navigation, route }) => {
   const [notes, setNotes] = useState('');
   const [scope, setScope] = useState<string[]>([]);
   const [triggers, setTriggers] = useState<string[]>([]);
+  const [authRelease, setAuthRelease] = useState(false);
+  const [authCustodian, setAuthCustodian] = useState(false);
 
   const contentWidth = Math.min(width * 0.88, 360);
 
@@ -124,7 +127,13 @@ const ChooseGuardianScreen: React.FC<Props> = ({ navigation, route }) => {
         </Text>
 
         {/* Content */}
-        <View style={[styles.content, { width: contentWidth }]}>
+        <ScrollView
+          style={{ flex: 1, width: '100%' }}
+          contentContainerStyle={{ alignItems: 'center', paddingBottom: 40 }}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={[styles.content, { width: contentWidth }]}>
           {/* Guardian dropdown */}
           <Text style={styles.label}>Guardian</Text>
           <TouchableOpacity
@@ -202,23 +211,39 @@ const ChooseGuardianScreen: React.FC<Props> = ({ navigation, route }) => {
               style={styles.textAreaInput}
             />
           </View>
-        </View>
 
-        {/* Continue Button */}
-        <View style={[styles.buttonContainer, { width: contentWidth }]}>
+          {/* Authorization Checkboxes */}
+          <TouchableOpacity style={styles.authRow} onPress={() => setAuthRelease(!authRelease)}>
+            <View style={[styles.checkbox, authRelease && styles.checkboxActive]} />
+            <Text style={styles.authText}>
+              I authorize Mirror to release my selected Echoes to my Guardian(s) upon verification of the chosen trigger.
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.authRow} onPress={() => setAuthCustodian(!authCustodian)}>
+            <View style={[styles.checkbox, authCustodian && styles.checkboxActive]} />
+            <Text style={styles.authText}>
+              I understand Mirror is a custodian only and may decline release if verification is incomplete.
+            </Text>
+          </TouchableOpacity>
+          </View>
+
+          {/* Next Button */}
           <TouchableOpacity
-            style={[
-              styles.continueButton,
-              !selectedGuardian && styles.continueButtonDisabled,
-            ]}
+            style={[styles.nextAction, !selectedGuardian && styles.disabled]}
             onPress={handleContinue}
             disabled={!selectedGuardian}
           >
-            <Text style={styles.starLeft}>✦</Text>
-            <Text style={styles.continueButtonText}>CONTINUE</Text>
-            <Text style={styles.starRight}>✦</Text>
+            <LinearGradient
+              colors={['rgba(253,253,249,0.04)', 'rgba(253,253,249,0.01)']}
+              start={{ x: 0.5, y: 0 }}
+              end={{ x: 0.5, y: 1 }}
+              style={styles.nextGradient}
+            >
+              <Text style={styles.nextText}>NEXT</Text>
+            </LinearGradient>
           </TouchableOpacity>
-        </View>
+        </ScrollView>
 
         {/* Dropdown Modal */}
         <Modal
@@ -432,7 +457,7 @@ const styles = StyleSheet.create({
     height: 18,
     borderRadius: 3,
     borderWidth: 1,
-    borderColor: GOLD,
+    borderColor: OFFWHITE,
   },
   checkboxActive: {
     backgroundColor: 'rgba(215,192,138,0.7)',
@@ -452,6 +477,20 @@ const styles = StyleSheet.create({
     color: OFFWHITE,
     fontSize: 15,
     textAlignVertical: 'top',
+  },
+
+  authRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+    marginBottom: 16,
+    paddingHorizontal: 4,
+  },
+  authText: {
+    flex: 1,
+    color: OFFWHITE,
+    fontSize: 14,
+    lineHeight: 20,
   },
 
   /* Modal */
@@ -496,43 +535,37 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
   },
 
-  /* Continue Button */
-  buttonContainer: {
-    marginTop: 24,
-    marginBottom: 20,
-    alignSelf: 'center',
-  },
-  continueButton: {
+  /* Next */
+  nextAction: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 16,
     justifyContent: 'center',
-    paddingVertical: 14,
+    marginTop: 40,
+    marginBottom: 40,
+  },
+  nextGradient: {
     paddingHorizontal: 32,
+    paddingVertical: 12,
     borderRadius: 12,
-    borderWidth: 1,
+    borderWidth: 0.5,
     borderColor: GOLD,
-    backgroundColor: 'rgba(215, 192, 138, 0.1)',
-    gap: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  continueButtonDisabled: {
-    opacity: 0.5,
-    borderColor: SUBTEXT,
-  },
-  continueButtonText: {
+  nextText: {
     color: GOLD,
-    fontSize: 20,
-    letterSpacing: 2,
+    fontSize: 24,
     fontFamily: Platform.select({
-      ios: 'CormorantGaramond-Medium',
+      ios: 'CormorantGaramond-Regular',
       android: 'serif',
     }),
+    textShadowColor: 'rgba(229, 214, 176, 0.5)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 9,
+    letterSpacing: 2,
   },
-  starLeft: {
-    color: GOLD,
-    fontSize: 16,
-  },
-  starRight: {
-    color: GOLD,
-    fontSize: 16,
+  disabled: {
+    opacity: 0.5,
   },
 });

@@ -107,7 +107,7 @@ const ManageGuardianScreen: React.FC<Props> = ({ navigation }) => {
         style={styles.deleteBtn}
         onPress={() => handleRemoveGuardian(item.guardian_id)}
       >
-        <Text style={styles.deleteIcon}>🗑</Text>
+        <Image source={require('@assets/delete.png')} style={styles.deleteIcon} resizeMode="contain" />
       </TouchableOpacity>
     </View>
   );
@@ -286,8 +286,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   deleteIcon: {
-    fontSize: 14,
-    color: OFFWHITE,
+    width: 16,
+    height: 16,
+    tintColor: OFFWHITE,
   },
 
   /* Add button */
