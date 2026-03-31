@@ -16,6 +16,7 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
 
@@ -35,14 +36,17 @@ const OFFWHITE = '#fdfdf9';
 const BLUE_GREY = '#a3b3cc';
 const SUBTEXT = 'rgba(253,253,249,0.75)';
 
-const AddNewProfileScreen: React.FC<Props> = ({ navigation }) => {
+const AddNewProfileScreen: React.FC<Props> = ({ navigation, route }) => {
+  const mode = route.params?.mode ?? 'recipient';
+  const isGuardian = mode === 'guardian';
+
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [motif, setMotif] = useState('');
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
 
-  const handleAddRecipient = async () => {
+  const handleAddProfile = async () => {
     if (!name.trim() || !email.trim()) {
       Alert.alert('Error', 'Please enter a name and email address');
       return;
@@ -50,20 +54,18 @@ const AddNewProfileScreen: React.FC<Props> = ({ navigation }) => {
 
     try {
       setLoading(true);
-      const response = await echoApiService.addRecipient({ 
-        name, 
-        email, 
-        motif: motif.trim() || undefined 
-      });
+      const response = isGuardian
+        ? await echoApiService.addGuardian({ name, email })
+        : await echoApiService.addRecipient({ name, email, motif: motif.trim() || undefined });
       if (response.success) {
-        Alert.alert('Success', 'Recipient added successfully', [
+        Alert.alert('Success', `${isGuardian ? 'Guardian' : 'Recipient'} added successfully`, [
           { text: 'OK', onPress: () => navigation.goBack() }
         ]);
       } else {
-        Alert.alert('Error', response.error || 'Failed to add recipient');
+        Alert.alert('Error', response.error || `Failed to add ${isGuardian ? 'guardian' : 'recipient'}`);
       }
     } catch (error) {
-      console.error('Add recipient error:', error);
+      console.error('Add profile error:', error);
       Alert.alert('Error', 'An unexpected error occurred');
     } finally {
       setLoading(false);
@@ -106,34 +108,39 @@ const AddNewProfileScreen: React.FC<Props> = ({ navigation }) => {
                 <Image source={require('@assets/back-arrow.png')} style={styles.backArrowImg} resizeMode="contain" />
               </TouchableOpacity>
 
-              <Text style={styles.title}>ADD PROFILE</Text>
+              <Text style={styles.title}>{isGuardian ? 'ADD GUARDIAN' : 'ADD PROFILE'}</Text>
 
               <View style={{ width: 24 }} />
             </View>
 
             {/* Description */}
             <Text style={[styles.description, { width: contentWidth }]}>
-              Your recipients/guardians will have access to echoes you share with
-              them.
+              {isGuardian
+                ? 'Your guardians can verify your identity and unlock legacy echoes.'
+                : 'Your recipients will have access to echoes you share with them.'}
             </Text>
 
             {/* Add Icon Circle */}
             <View style={styles.iconWrap}>
-              <TouchableOpacity 
-                style={styles.iconOuter}
+              <TouchableOpacity
                 onPress={() => setModalVisible(true)}
               >
-                <View style={styles.iconInner}>
+                <LinearGradient
+                  colors={['rgba(229, 214, 176, 0.05)', 'rgba(197, 157, 95, 0.05)']}
+                  start={{x: 1, y: 0.5}}
+                  end={{x: 0, y: 0.5}}
+                  style={styles.iconOuter}
+                >
+                  <View style={styles.iconInner}>
                   {selectedIcon ? (
-                    <View style={{ width: 80, height: 80 }}>
-                      <SvgXml xml={selectedIcon.xml} width="100%" height="100%" />
-                    </View>
+                    <SvgXml xml={selectedIcon.xml} width={80} height={80} />
                   ) : motif ? (
                     <Text style={[styles.iconLabel, { fontSize: 48 }]}>{motif}</Text>
                   ) : (
                     <Text style={styles.iconLabel}>Add Icon</Text>
                   )}
-                </View>
+                  </View>
+                </LinearGradient>
               </TouchableOpacity>
             </View>
 
@@ -144,7 +151,7 @@ const AddNewProfileScreen: React.FC<Props> = ({ navigation }) => {
                 <TextInput
                   value={name}
                   onChangeText={setName}
-                  placeholder="Enter name of recipient/guardian"
+                  placeholder={isGuardian ? 'Enter name of guardian' : 'Enter name of recipient'}
                   placeholderTextColor={BLUE_GREY}
                   style={styles.input}
                 />
@@ -155,7 +162,7 @@ const AddNewProfileScreen: React.FC<Props> = ({ navigation }) => {
                 <TextInput
                   value={email}
                   onChangeText={setEmail}
-                  placeholder="Enter recipient/guardian email address"
+                  placeholder={isGuardian ? 'Enter guardian email address' : 'Enter recipient email address'}
                   placeholderTextColor={BLUE_GREY}
                   style={styles.input}
                   keyboardType="email-address"
@@ -169,7 +176,7 @@ const AddNewProfileScreen: React.FC<Props> = ({ navigation }) => {
             {/* Add Button */}
             <TouchableOpacity 
               style={styles.addWrap}
-              onPress={handleAddRecipient}
+              onPress={handleAddProfile}
               disabled={loading}
             >
               <View style={styles.addButton}>
@@ -261,10 +268,21 @@ const styles = StyleSheet.create({
     width: 186,
     height: 186,
     borderRadius: 93,
-    borderWidth: 0, // Removed border as per design image it looks like a gradient or masked image, simplifying for now or keeping minimal
+    borderWidth: 0.5,
+    borderColor: '#E5D6B0',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(215,192,138,0.1)', // Placeholder for the ellipse image
+    ...Platform.select({
+      ios: {
+        shadowColor: 'rgba(229, 214, 176, 1)',
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.3,
+        shadowRadius: 25,
+      },
+      android: {
+        boxShadow: '0 0 25px rgba(229, 214, 176, 0.30)',
+      },
+    }),
   },
   iconInner: {
     width: 160,

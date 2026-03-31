@@ -15,6 +15,7 @@ import {
   ActivityIndicator,
   Modal,
 } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
@@ -127,13 +128,26 @@ const ChooseGuardianScreen: React.FC<Props> = ({ navigation, route }) => {
           {/* Guardian dropdown */}
           <Text style={styles.label}>Guardian</Text>
           <TouchableOpacity
-            style={styles.inputShell}
+            activeOpacity={0.9}
             onPress={() => setShowDropdown(true)}
+            style={{ width: '100%' }}
           >
-            <Text style={selectedGuardian ? styles.selectedText : styles.placeholder}>
-              {selectedGuardian ? selectedGuardian.name : 'Choose from list'}
-            </Text>
-            <Text style={styles.chevron}>▾</Text>
+            <LinearGradient
+              colors={['rgba(253,253,249,0.04)', 'rgba(253,253,249,0.01)']}
+              start={{ x: 0.5, y: 0 }}
+              end={{ x: 0.5, y: 1 }}
+              style={styles.dropdownShell}
+            >
+              <View style={styles.dropdownContent}>
+                <View style={styles.dropdownLeft} />
+                <Text style={selectedGuardian ? styles.dropdownValueText : styles.dropdownPlaceholderText}>
+                  {selectedGuardian ? selectedGuardian.name : 'Choose from list'}
+                </Text>
+                <View style={styles.dropdownRight}>
+                  <Image source={require('@assets/down-arrow.png')} style={{ width: 16, height: 16, tintColor: OFFWHITE }} resizeMode="contain" />
+                </View>
+              </View>
+            </LinearGradient>
           </TouchableOpacity>
 
           {/* Scope of Access */}
@@ -353,6 +367,34 @@ const styles = StyleSheet.create({
   placeholder: { color: 'rgba(253,253,249,0.55)', fontSize: 15 },
   selectedText: { color: OFFWHITE, fontSize: 15 },
   chevron: { color: OFFWHITE, fontSize: 16 },
+  dropdownShell: {
+    width: '100%',
+    borderRadius: 12,
+    borderWidth: 0.25,
+    borderColor: '#60739F',
+    marginBottom: 16,
+    height: 48,
+    justifyContent: 'center',
+  },
+  dropdownContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+  },
+  dropdownLeft: { width: 24 },
+  dropdownRight: { width: 24, alignItems: 'flex-end' as const },
+  dropdownValueText: {
+    flex: 1,
+    color: OFFWHITE,
+    fontSize: 15,
+    textAlign: 'center',
+  },
+  dropdownPlaceholderText: {
+    flex: 1,
+    color: 'rgba(253,253,249,0.55)',
+    fontSize: 15,
+    textAlign: 'center',
+  },
 
   /* Cards */
   card: {

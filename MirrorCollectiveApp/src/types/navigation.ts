@@ -93,7 +93,7 @@ export type RootStackParamList = {
     category: string;
     mode: 'text' | 'audio' | 'video';
   };
-  AddNewProfileScreen: undefined;
+  AddNewProfileScreen: { mode?: 'recipient' | 'guardian' } | undefined;
   EchoDetailScreen: { echoId: string; title?: string; body?: string };
   EchoAudioPlaybackScreen: { echoId: string; title?: string; transcript?: string };
   EchoVideoPlaybackScreen: { echoId: string; title?: string };

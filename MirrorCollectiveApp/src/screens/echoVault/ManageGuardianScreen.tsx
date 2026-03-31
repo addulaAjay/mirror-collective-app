@@ -85,7 +85,7 @@ const ManageGuardianScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   const handleAddGuardian = () => {
-    navigation.navigate('AddNewProfileScreen');
+    navigation.navigate('AddNewProfileScreen', { mode: 'guardian' });
   };
 
   const renderGuardianRow = ({ item }: { item: Guardian }) => (

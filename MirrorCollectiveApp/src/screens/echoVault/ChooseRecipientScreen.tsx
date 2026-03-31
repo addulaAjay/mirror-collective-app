@@ -16,6 +16,7 @@ import {
   Modal,
   Image,
 } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
@@ -161,37 +162,56 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
           {/* Recipient dropdown */}
           <Text style={styles.label}>Recipient</Text>
           <TouchableOpacity
-            style={styles.inputShell}
+            activeOpacity={0.9}
             onPress={() => setShowDropdown(true)}
+            style={{ width: '100%' }}
           >
-            <Text style={selectedRecipient ? styles.selectedText : styles.placeholder}>
-              {selectedRecipient ? selectedRecipient.name : 'Choose from list'}
-            </Text>
-            <Text style={styles.chevron}>▾</Text>
+            <LinearGradient
+              colors={['rgba(253,253,249,0.04)', 'rgba(253,253,249,0.01)']}
+              start={{ x: 0.5, y: 0 }}
+              end={{ x: 0.5, y: 1 }}
+              style={styles.dropdownShell}
+            >
+              <View style={styles.dropdownContent}>
+                <View style={styles.dropdownLeft} />
+                <Text style={selectedRecipient ? styles.dropdownValueText : styles.dropdownPlaceholderText}>
+                  {selectedRecipient ? selectedRecipient.name : 'Choose from list'}
+                </Text>
+                <View style={styles.dropdownRight}>
+                  <Image source={require('@assets/down-arrow.png')} style={{ width: 16, height: 16, tintColor: OFFWHITE }} resizeMode="contain" />
+                </View>
+              </View>
+            </LinearGradient>
           </TouchableOpacity>
 
           {/* Legacy */}
-          <View style={styles.legacyRow}>
-            <Text style={styles.label}>Legacy</Text>
-            <TouchableOpacity hitSlop={10}>
-              <Text style={styles.infoIcon}>ⓘ</Text>
-            </TouchableOpacity>
-          </View>
+          <LinearGradient
+            colors={['rgba(253, 253, 249, 0.04)', 'rgba(253, 253, 249, 0.01)']}
+            start={{ x: 0.5, y: 0 }}
+            end={{ x: 0.5, y: 1 }}
+            style={styles.legacyCard}
+          >
+            <View style={styles.legacyRow}>
+              <Text style={styles.label}>Legacy</Text>
+              <TouchableOpacity hitSlop={10}>
+                <Text style={styles.infoIcon}>ⓘ</Text>
+              </TouchableOpacity>
+            </View>
 
-          <Text style={styles.subLabel}>Is this a legacy echo?</Text>
-
-          <View style={styles.row}>
-            <CheckOption
-              label="YES"
-              active={legacy === 'yes'}
-              onPress={() => setLegacy('yes')}
-            />
-            <CheckOption
-              label="NO"
-              active={legacy === 'no'}
-              onPress={() => setLegacy('no')}
-            />
-          </View>
+            <View style={styles.legacyCheckRow}>
+              <Text style={[styles.subLabel, { flex: 1, marginBottom: 0 }]}>Is this a legacy echo?</Text>
+              <CheckOption
+                label="YES"
+                active={legacy === 'yes'}
+                onPress={() => setLegacy('yes')}
+              />
+              <CheckOption
+                label="NO"
+                active={legacy === 'no'}
+                onPress={() => setLegacy('no')}
+              />
+            </View>
+          </LinearGradient>
 
           {/* Lock date */}
           <Text style={[styles.label, { marginTop: 18 }]}>
@@ -241,7 +261,7 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
               value={notes}
               onChangeText={setNotes}
               placeholder="Write notes here"
-              placeholderTextColor="rgba(253,253,249,0.45)"
+              placeholderTextColor="#60739F"
               multiline
               style={styles.textAreaInput}
             />
@@ -254,9 +274,14 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
           onPress={handleNext}
           disabled={!selectedRecipient}
         >
-          <StarIcon width={24} height={24} color={GOLD} />
-          <Text style={styles.nextActionText}>NEXT</Text>
-          <StarIcon width={24} height={24} color={GOLD} />
+          <LinearGradient
+            colors={['rgba(253,253,249,0.04)', 'rgba(253,253,249,0.01)']}
+            start={{ x: 0.5, y: 0 }}
+            end={{ x: 0.5, y: 1 }}
+            style={styles.nextGradient}
+          >
+            <Text style={styles.nextText}>NEXT</Text>
+          </LinearGradient>
         </TouchableOpacity>
 
         {/* Dropdown Modal */}
@@ -333,7 +358,7 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
                   style={[styles.guardianPromptButton, styles.guardianPromptButtonNo]}
                   onPress={handleGuardianPromptNo}
                 >
-                  <Text style={styles.guardianPromptButtonText}>No</Text>
+                  <Text style={[styles.guardianPromptButtonText, styles.guardianPromptButtonTextNo]}>No</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -459,7 +484,7 @@ const styles = StyleSheet.create({
     minHeight: 48,
   },
   placeholder: {
-    color: 'rgba(253,253,249,0.55)',
+    color: '#60739F',
     fontSize: 15,
   },
   selectedText: {
@@ -468,13 +493,62 @@ const styles = StyleSheet.create({
   },
   chevron: { color: OFFWHITE, fontSize: 16 },
   calendar: { width: 20, height: 20},
+  dropdownShell: {
+    width: '100%',
+    borderRadius: 12,
+    borderWidth: 0.25,
+    borderColor: '#60739F',
+    marginBottom: 12,
+    height: 48,
+    justifyContent: 'center',
+  },
+  dropdownContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+  },
+  dropdownLeft: { width: 24 },
+  dropdownRight: { width: 24, alignItems: 'flex-end' as const },
+  dropdownValueText: {
+    flex: 1,
+    color: OFFWHITE,
+    fontSize: 15,
+    textAlign: 'center',
+  },
+  dropdownPlaceholderText: {
+    flex: 1,
+    color: 'rgba(253,253,249,0.55)',
+    fontSize: 15,
+    textAlign: 'center',
+  },
 
+  legacyCard: {
+    width: '100%',
+    paddingTop: 8,
+    paddingHorizontal: 8,
+    paddingBottom: 4,
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'flex-start',
+    gap: 8,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
+    marginBottom: 12,
+  },
   legacyRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginTop: 18,
-    marginBottom: 6,
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  legacyCheckRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    width: '100%',
+    justifyContent: 'space-between',
   },
   infoIcon: { 
     color: GOLD, 
@@ -538,6 +612,27 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: 40,
     marginBottom: 40,
+  },
+  nextGradient: {
+    paddingHorizontal: 32,
+    paddingVertical: 12,
+    borderRadius: 12,
+    borderWidth: 0.5,
+    borderColor: GOLD,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  nextText: {
+    color: GOLD,
+    fontSize: 24,
+    fontFamily: Platform.select({
+      ios: 'CormorantGaramond-Regular',
+      android: 'serif',
+    }),
+    textShadowColor: 'rgba(229, 214, 176, 0.5)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 9,
+    letterSpacing: 2,
   },
   nextActionText: {
     color: GOLD,
@@ -671,5 +766,8 @@ const styles = StyleSheet.create({
       ios: 'CormorantGaramond-Medium',
       android: 'serif',
     }),
+  },
+  guardianPromptButtonTextNo: {
+    color: GOLD,
   },
 });
