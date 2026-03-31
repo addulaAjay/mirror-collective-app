@@ -262,20 +262,21 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   signupContainer: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     alignItems: 'center',
     gap: 8,
     marginTop: 40,
   },
   signupText: {
-    ...theme.typography.styles.bodySmall,
+    ...theme.typography.styles.bodyItalic,
     color: '#FDFDF9',
     opacity: 0.6,
+    textAlign: 'center',
   },
   signupLink: {
-    ...theme.typography.styles.bodySmall,
+    ...theme.typography.styles.linkLarge,
     color: theme.colors.text.accent,
-    fontWeight: '600',
+    textAlign: 'center',
   },
 });
 

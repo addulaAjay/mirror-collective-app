@@ -274,6 +274,8 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
                       showPasswordToggle={true}
                       isPasswordVisible={showPassword}
                       onTogglePassword={() => setShowPassword(!showPassword)}
+                      autoComplete="new-password"
+                      textContentType="newPassword"
                       placeholderAlign="left"
                       placeholderFontFamily="regular"
                       inputTextStyle="gold-regular"
@@ -304,12 +306,14 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
                       secureTextEntry={!showConfirmPassword}
                       showPasswordToggle={true}
                       isPasswordVisible={showConfirmPassword}
-                      placeholderAlign="left"
-                      placeholderFontFamily="regular"
-                      inputTextStyle="gold-regular"
                       onTogglePassword={() =>
                         setShowConfirmPassword(!showConfirmPassword)
                       }
+                      autoComplete="new-password"
+                      textContentType="newPassword"
+                      placeholderAlign="left"
+                      placeholderFontFamily="regular"
+                      inputTextStyle="gold-regular"
                       testID="confirm-password-input"
                     />
                     {errors.confirmPassword ? (

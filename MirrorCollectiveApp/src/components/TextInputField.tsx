@@ -17,7 +17,8 @@ interface Props {
   onChangeText?: (text: string) => void;
   keyboardType?: 'default' | 'email-address' | 'numeric' | 'phone-pad';
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
-  autoComplete?: 'email' | 'password' | 'name' | 'off';
+  autoComplete?: 'email' | 'password' | 'new-password' | 'name' | 'off';
+  textContentType?: 'none' | 'emailAddress' | 'password' | 'newPassword' | 'name' | 'givenName' | 'familyName' | 'telephoneNumber' | 'username';
   showPasswordToggle?: boolean;
   isPasswordVisible?: boolean;
   onTogglePassword?: () => void;
@@ -43,6 +44,7 @@ const TextInputField = ({
   size,
   inputTextStyle,
   placeholderStyle,
+  textContentType,
   testID,
 }: Props & { testID?: string }) => {
   const [isFocused, setIsFocused] = useState(false);
@@ -81,6 +83,7 @@ const TextInputField = ({
         keyboardType={keyboardType}
         autoCapitalize={autoCapitalize}
         autoComplete={autoComplete}
+        textContentType={textContentType}
         style={[
           styles.input,
           size === 'normal'
