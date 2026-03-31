@@ -167,9 +167,9 @@ const EchoVideoPlaybackScreen: React.FC<Props> = ({ navigation, route }) => {
 
         {/* Bottom actions */}
         <View style={[styles.actionsRow, { width: contentWidth }]}>
-          <ActionIconButton label="⬇" />
+          <ActionIconButton icon={require('@assets/download.png')} />
           <ActionPrimaryButton label="VAULT" />
-          <ActionIconButton label="✎" />
+          <ActionIconButton icon={require('@assets/edit-icon.png')} />
         </View>
       </SafeAreaView>
     </BackgroundWrapper>
@@ -180,32 +180,28 @@ export default EchoVideoPlaybackScreen;
 
 /* ---------- Action Buttons ---------- */
 
-const ActionIconButton = ({ label }: { label: string }) => (
-  <TouchableOpacity activeOpacity={0.9} style={{ width: 64 }}>
+const ActionIconButton = ({ icon }: { icon: ReturnType<typeof require> }) => (
+  <TouchableOpacity activeOpacity={0.9}>
     <LinearGradient
-      colors={['rgba(253,253,249,0.10)', 'rgba(253,253,249,0.03)']}
+      colors={['rgba(253,253,249,0.04)', 'rgba(253,253,249,0.01)']}
       start={{ x: 0.5, y: 0 }}
       end={{ x: 0.5, y: 1 }}
       style={styles.iconBtnShell}
     >
-      <View style={styles.iconBtnInner}>
-        <Text style={styles.iconBtnLabel}>{label}</Text>
-      </View>
+      <Image source={icon} style={styles.iconBtnImg} resizeMode="contain" />
     </LinearGradient>
   </TouchableOpacity>
 );
 
 const ActionPrimaryButton = ({ label }: { label: string }) => (
-  <TouchableOpacity activeOpacity={0.9} style={{ flex: 1 }}>
+  <TouchableOpacity activeOpacity={0.9}>
     <LinearGradient
-      colors={['rgba(253,253,249,0.10)', 'rgba(253,253,249,0.03)']}
+      colors={['rgba(253,253,249,0.04)', 'rgba(253,253,249,0.01)']}
       start={{ x: 0.5, y: 0 }}
       end={{ x: 0.5, y: 1 }}
       style={styles.primaryBtnShell}
     >
-      <View style={styles.primaryBtnInner}>
-        <Text style={styles.primaryBtnText}>{label}</Text>
-      </View>
+      <Text style={styles.primaryBtnText}>{label}</Text>
     </LinearGradient>
   </TouchableOpacity>
 );
@@ -321,41 +317,26 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     paddingBottom: 18,
   },
   iconBtnShell: {
-    width: 64,
-    height: 52,
-    borderRadius: 14,
-    padding: 1,
-    borderWidth: 1,
-    borderColor: 'rgba(215,192,138,0.22)',
-  },
-  iconBtnInner: {
-    flex: 1,
-    borderRadius: 13,
-    borderWidth: 1,
-    borderColor: BORDER_SOFT,
-    backgroundColor: 'rgba(7,9,14,0.28)',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 0.5,
+    borderColor: '#A3B3CC',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  iconBtnLabel: { color: GOLD, fontSize: 20 },
+  iconBtnImg: { width: 22, height: 22, tintColor: GOLD },
 
   primaryBtnShell: {
-    height: 52,
-    borderRadius: 14,
-    padding: 1,
-    borderWidth: 1,
-    borderColor: 'rgba(215,192,138,0.28)',
-  },
-  primaryBtnInner: {
-    flex: 1,
-    borderRadius: 13,
-    borderWidth: 1,
-    borderColor: BORDER_SOFT,
-    backgroundColor: 'rgba(7,9,14,0.28)',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 0.5,
+    borderColor: '#A3B3CC',
     alignItems: 'center',
     justifyContent: 'center',
   },

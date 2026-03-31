@@ -480,7 +480,7 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
 
               <View style={styles.centerIconWrap}>
                  <TouchableOpacity onPress={toggleAudioRecording}>
-                  <CircleIcon label={isRecording ? "â¹" : undefined} icon={isRecording ? undefined : require('@assets/mic2.png')} />
+                  <CircleIcon icon={isRecording ? require('@assets/pause_circle.png') : require('@assets/mic2.png')} fullSize={isRecording} />
                 </TouchableOpacity>
               </View>
 
@@ -543,7 +543,7 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
                     activeOpacity={0.8}
                     onPress={toggleVideoRecording}
                   >
-                    <CircleIcon label={isRecording ? "⏹" : undefined} icon={isRecording ? undefined : require('@assets/videocam_2.png')} />
+                    <CircleIcon icon={isRecording ? require('@assets/pause_circle.png') : require('@assets/videocam_2.png')} fullSize={isRecording} />
                   </TouchableOpacity>
                 </View>
               </LinearGradient>
@@ -633,12 +633,19 @@ const SmallPillButton = ({
   );
 };
 
-const CircleIcon = ({ label, icon }: { label?: string; icon?: any }) => {
+const CircleIcon = ({ label, icon, fullSize }: { label?: string; icon?: any; fullSize?: boolean }) => {
   return (
     <View style={styles.circleGlow}>
-      <View style={styles.circleOuter}>
+      <View style={[styles.circleOuter, fullSize && { overflow: 'hidden', padding: 0 }]}>
         {icon ? (
-          <Image source={icon} style={{ width: 24, height: 24, tintColor: 'rgba(215,192,138,0.92)' }} resizeMode="contain" />
+          <Image
+            source={icon}
+            style={fullSize
+              ? { width: 72, height: 72, borderRadius: 36 }
+              : { width: 24, height: 24, tintColor: 'rgba(215,192,138,0.92)' }
+            }
+            resizeMode="cover"
+          />
         ) : (
           <Text style={styles.circleIcon}>{label}</Text>
         )}

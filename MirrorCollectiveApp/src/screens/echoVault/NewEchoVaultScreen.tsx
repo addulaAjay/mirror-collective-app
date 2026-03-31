@@ -196,7 +196,7 @@ const NewEchoScreen: React.FC<Props> = ({ navigation }) => {
                       ]}
                     >
                       {recipientChoice === 'yes' && (
-                        <View style={styles.radioInner} />
+                        <Text style={styles.checkMark}>✓</Text>
                       )}
                     </View>
                     <Text
@@ -222,7 +222,7 @@ const NewEchoScreen: React.FC<Props> = ({ navigation }) => {
                       ]}
                     >
                       {recipientChoice === 'no' && (
-                        <View style={styles.radioInner} />
+                        <Text style={styles.checkMark}>✓</Text>
                       )}
                     </View>
                     <Text
@@ -500,28 +500,31 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   radioOuter: {
-    width: 20,
-    height: 20,
-    borderRadius: 4,
-    borderWidth: 1.5,
-    borderColor: '#F2E2B1',
+    width: 16,
+    height: 16,
+    borderRadius: 0,
+    borderWidth: 1,
+    borderColor: GOLD,
+    backgroundColor: 'transparent',
     alignItems: 'center',
     justifyContent: 'center',
   },
   radioOuterSelected: {
-    borderColor: '#F2E2B1',
+    backgroundColor: 'rgba(215,192,138,0.7)',
   },
-  radioInner: {
-    width: 10,
-    height: 10,
-    borderRadius: 2,
-    backgroundColor: '#F2E2B1',
+  checkMark: {
+    color: '#1A1F2E',
+    fontSize: 10,
+    fontWeight: 'bold',
+    lineHeight: 13,
   },
   recipientBtnText: {
-    color: '#F2E2B1',
-    fontSize: 16,
-    fontFamily: 'Inter',
-    fontWeight: '500',
+    color: GOLD,
+    fontSize: 14,
+    fontFamily: Platform.select({
+      ios: 'Inter-Regular',
+      android: 'sans-serif',
+    }),
   },
   recipientBtnTextSelected: {
     fontWeight: '700',

@@ -156,7 +156,7 @@ const ManageRecipientScreen: React.FC<Props> = ({ navigation }) => {
 
         {/* Description */}
         <Text style={[styles.description, { width: contentWidth }]}>
-          Create and manage the people you want to leave echoes for.
+          Choose who can access echoes you share.
         </Text>
 
         {/* List */}

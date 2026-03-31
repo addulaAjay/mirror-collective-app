@@ -14,6 +14,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
@@ -166,9 +167,14 @@ const ManageGuardianScreen: React.FC<Props> = ({ navigation }) => {
 
         {/* Add Guardian */}
         <TouchableOpacity style={styles.addWrap} onPress={handleAddGuardian}>
-          <View style={styles.addButton}>
+          <LinearGradient
+            colors={['rgba(253,253,249,0.04)', 'rgba(253,253,249,0.01)']}
+            start={{ x: 0.5, y: 0 }}
+            end={{ x: 0.5, y: 1 }}
+            style={styles.addButton}
+          >
             <Text style={styles.addText}>ADD GUARDIAN</Text>
-          </View>
+          </LinearGradient>
         </TouchableOpacity>
       </SafeAreaView>
     </BackgroundWrapper>
@@ -296,12 +302,15 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   addButton: {
-    paddingHorizontal: 36,
     paddingVertical: 12,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(215,192,138,0.45)',
-    backgroundColor: 'rgba(7,9,14,0.4)',
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 0.5,
+    borderColor: '#A3B3CC',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
   },
   addText: {
     color: GOLD,
