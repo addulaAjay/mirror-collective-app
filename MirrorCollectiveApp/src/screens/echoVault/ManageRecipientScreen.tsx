@@ -1,3 +1,6 @@
+import { useFocusEffect } from '@react-navigation/native';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList } from '@types';
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
@@ -5,21 +8,20 @@ import {
   StyleSheet,
   StatusBar,
   TouchableOpacity,
+  Image,
   Dimensions,
   Platform,
   FlatList,
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { SvgXml } from 'react-native-svg';
-import { MOTIF_ICONS, getMotifIcon } from '@assets/motifs/MotifAssets';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { SvgXml } from 'react-native-svg';
+
+import { MOTIF_ICONS, getMotifIcon } from '@assets/motifs/MotifAssets';
 import BackgroundWrapper from '@components/BackgroundWrapper';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '@types';
-import { echoApiService, Recipient } from '@services/api/echo';
 import LogoHeader from '@components/LogoHeader';
-import { useFocusEffect } from '@react-navigation/native';
+import { echoApiService, Recipient } from '@services/api/echo';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ManageRecipientScreen'>;
 
@@ -142,7 +144,7 @@ const ManageRecipientScreen: React.FC<Props> = ({ navigation }) => {
         <View style={styles.titleRowContainer}>
           <View style={[styles.titleRow, { width: contentWidth }]}>
             <TouchableOpacity onPress={() => navigation.goBack()}>
-              <Text style={styles.backArrow}>←</Text>
+              <Image source={require('@assets/back-arrow.png')} style={styles.backArrowImg} resizeMode="contain" />
             </TouchableOpacity>
 
             <Text style={styles.title}>MANAGE{'\n'}RECIPIENTS</Text>
@@ -218,6 +220,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   backArrow: { fontSize: 22, color: GOLD },
+  backArrowImg: { width: 20, height: 20, tintColor: GOLD },
   title: {
     fontSize: 28,
     color: GOLD,

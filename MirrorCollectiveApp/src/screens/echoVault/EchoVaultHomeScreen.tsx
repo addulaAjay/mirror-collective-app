@@ -31,11 +31,9 @@ type MirrorEchoNavigationProp = NativeStackNavigationProp<
 >;
 
 const COPY =
-  'Preserve your legacy in the Echo Vault —\n' +
-  'a secure space to create and save your most\n' +
-  'meaningful memories, reflections, and\n' +
-  'moments that matter. A living record, kept\n' +
-  'for yourself or gifted to someone you love';
+  'Become the architect of your own story.\n' +
+  'Save what you’ve learned, loved, and lived \n' +
+  '— in a private vault that’s yours.';
 
 export function MirrorEchoContent() {
   const navigation = useNavigation<MirrorEchoNavigationProp>();
@@ -311,7 +309,7 @@ const styles = StyleSheet.create({
   },
 
   copyText: {
-    fontFamily: 'CormorantGaramond-Light',
+    fontFamily: 'Inter-Light',
     fontWeight: '300',
     color: '#FDFDF9',
     textAlign: 'center',
@@ -350,10 +348,16 @@ const styles = StyleSheet.create({
 
   ctaText: {
     fontFamily: 'CormorantGaramond-Regular',
-    fontSize: 20,
+    fontSize: 24,
+    fontStyle: 'normal',
     fontWeight: '400',
-    color: 'rgba(242,226,177,0.95)',
-    letterSpacing: 1.6,
+    color: '#F2E2B1',
+    textAlign: 'center',
+    lineHeight: 31.2,
+    textShadowColor: 'rgba(229, 214, 176, 0.50)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 9,
+    includeFontPadding: false,
   },
 
   /* Info Modal */

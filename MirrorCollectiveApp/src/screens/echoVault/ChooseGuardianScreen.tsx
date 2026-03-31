@@ -7,6 +7,7 @@ import {
   StyleSheet,
   StatusBar,
   TouchableOpacity,
+  Image,
   TextInput,
   Dimensions,
   Platform,
@@ -106,7 +107,7 @@ const ChooseGuardianScreen: React.FC<Props> = ({ navigation, route }) => {
         <View style={styles.titleRowContainer}>
           <View style={[styles.titleRow, { width: contentWidth }]}>
             <TouchableOpacity onPress={() => navigation.goBack()}>
-              <Text style={styles.backArrow}>←</Text>
+              <Image source={require('@assets/back-arrow.png')} style={styles.backArrowImg} resizeMode="contain" />
             </TouchableOpacity>
 
             <Text style={styles.title}>CHOOSE YOUR{'\n'}GUARDIAN</Text>
@@ -301,6 +302,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   backArrow: { fontSize: 22, color: GOLD },
+  backArrowImg: { width: 20, height: 20, tintColor: GOLD },
   title: {
     textAlign: 'center',
     color: GOLD,

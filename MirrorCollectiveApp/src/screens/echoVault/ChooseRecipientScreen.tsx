@@ -1,3 +1,4 @@
+import DateTimePicker from '@react-native-community/datetimepicker';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '@types';
 import React, { useState, useEffect, useCallback } from 'react';
@@ -15,7 +16,6 @@ import {
   Modal,
   Image,
 } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
@@ -148,7 +148,7 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
         {/* Title */}
         <View style={[styles.titleRow, { width: contentWidth }]}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Text style={styles.backArrow}>←</Text>
+            <Image source={require('@assets/back-arrow.png')} style={styles.backArrowImg} resizeMode="contain" />
           </TouchableOpacity>
 
           <Text style={styles.title}>CHOOSE YOUR{'\n'}RECIPIENT</Text>
@@ -398,6 +398,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   backArrow: { fontSize: 22, color: GOLD },
+  backArrowImg: { width: 20, height: 20, tintColor: GOLD },
   title: {
     textAlign: 'center',
     color: GOLD,

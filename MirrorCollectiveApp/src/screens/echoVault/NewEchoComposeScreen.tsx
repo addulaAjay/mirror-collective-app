@@ -410,7 +410,7 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
             style={styles.backBtn}
             onPress={() => navigation.goBack()}
           >
-            <Text style={styles.backIcon}>‹</Text>
+            <Image source={require('@assets/back-arrow.png')} style={styles.backArrowImg} resizeMode="contain" />
           </TouchableOpacity>
 
           <Text style={styles.screenTitle}>{titleText}</Text>
@@ -712,6 +712,11 @@ const styles = StyleSheet.create({
     color: 'rgba(215,192,138,0.9)',
     fontSize: 30,
     marginLeft: 2,
+  },
+  backArrowImg: {
+    width: 20,
+    height: 20,
+    tintColor: 'rgba(215,192,138,0.9)',
   },
   screenTitle: {
     color: 'rgba(215,192,138,0.92)',

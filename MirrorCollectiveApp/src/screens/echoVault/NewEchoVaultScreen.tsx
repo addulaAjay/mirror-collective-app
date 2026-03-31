@@ -97,7 +97,7 @@ const NewEchoScreen: React.FC<Props> = ({ navigation }) => {
             style={styles.backBtn}
             onPress={() => navigation.goBack()}
           >
-            <Text style={{ color: GOLD, fontSize: 30 }}>‹</Text>
+            <Image source={require('@assets/back-arrow.png')} style={{ width: 20, height: 20, tintColor: GOLD }} resizeMode="contain" />
           </TouchableOpacity>
 
           <Text style={styles.screenTitle}>NEW ECHO</Text>

@@ -1,4 +1,6 @@
 // EchoAudioPlaybackScreen.tsx
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList } from '@types';
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import {
   View,
@@ -6,20 +8,20 @@ import {
   StyleSheet,
   StatusBar,
   TouchableOpacity,
+  Image,
   Dimensions,
   Platform,
   ScrollView,
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import BackgroundWrapper from '@components/BackgroundWrapper';
-import LinearGradient from 'react-native-linear-gradient';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import AudioRecorderPlayer from 'react-native-audio-recorder-player';
-import { RootStackParamList } from '@types';
-import { echoApiService, EchoResponse } from '@services/api/echo';
+import LinearGradient from 'react-native-linear-gradient';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
+import { echoApiService, EchoResponse } from '@services/api/echo';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'EchoAudioPlaybackScreen'>;
 
@@ -164,7 +166,7 @@ const EchoAudioPlaybackScreen: React.FC<Props> = ({ navigation, route }) => {
             style={styles.backBtn}
             onPress={() => navigation.goBack()}
           >
-            <Text style={styles.backIcon}>‹</Text>
+            <Image source={require('@assets/back-arrow.png')} style={styles.backArrowImg} resizeMode="contain" />
           </TouchableOpacity>
 
           <Text style={styles.screenTitle} numberOfLines={1}>
@@ -373,6 +375,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   backIcon: { color: 'rgba(215,192,138,0.9)', fontSize: 30, marginLeft: 2 },
+  backArrowImg: { width: 20, height: 20, tintColor: 'rgba(215,192,138,0.9)' },
   screenTitle: {
     color: 'rgba(215,192,138,0.92)',
     fontSize: 28,

@@ -1,3 +1,5 @@
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList } from '@types';
 import React, { useState } from 'react';
 import {
   View,
@@ -5,19 +7,19 @@ import {
   StyleSheet,
   StatusBar,
   TouchableOpacity,
+  Image,
   Dimensions,
   Platform,
   Alert,
   Linking,
   ActivityIndicator,
 } from 'react-native';
-import { Camera } from 'react-native-vision-camera';
 import { launchImageLibrary } from 'react-native-image-picker';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Camera } from 'react-native-vision-camera';
+
 import BackgroundWrapper from '@components/BackgroundWrapper';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '@types';
 import LogoHeader from '@components/LogoHeader';
 import StarIcon from '@components/StarIcon';
 import { echoApiService } from '@services/api';
@@ -183,7 +185,7 @@ const NewEchoVideoScreen: React.FC<Props> = ({ navigation, route }) => {
             onPress={() => navigation.goBack()}
             style={styles.backBtn}
           >
-            <Text style={styles.backIcon}>‹</Text>
+            <Image source={require('@assets/back-arrow.png')} style={styles.backArrowImg} resizeMode="contain" />
           </TouchableOpacity>
  
           <Text style={styles.title}>For Alia</Text>
@@ -327,6 +329,11 @@ const styles = StyleSheet.create({
   backIcon: {
     color: GOLD,
     fontSize: 30,
+  },
+  backArrowImg: {
+    width: 20,
+    height: 20,
+    tintColor: GOLD,
   },
  
   /* Video box */

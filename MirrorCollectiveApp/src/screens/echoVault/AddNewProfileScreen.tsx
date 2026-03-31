@@ -1,3 +1,5 @@
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList } from '@types';
 import React, { useState } from 'react';
 import {
   View,
@@ -5,6 +7,7 @@ import {
   StyleSheet,
   StatusBar,
   TouchableOpacity,
+  Image,
   TextInput,
   Dimensions,
   Platform,
@@ -14,13 +17,12 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import BackgroundWrapper from '@components/BackgroundWrapper';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '@types';
-import LogoHeader from '@components/LogoHeader';
 import { SvgXml } from 'react-native-svg';
-import MotifSelectionModal from '@components/MotifSelectionModal';
+
 import { MOTIF_ICONS } from '@assets/motifs/MotifAssets';
+import BackgroundWrapper from '@components/BackgroundWrapper';
+import LogoHeader from '@components/LogoHeader';
+import MotifSelectionModal from '@components/MotifSelectionModal';
 import { echoApiService } from '@services/api/echo';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AddNewProfileScreen'>;
@@ -101,7 +103,7 @@ const AddNewProfileScreen: React.FC<Props> = ({ navigation }) => {
             {/* Title */}
             <View style={[styles.titleRow, { width: contentWidth }]}>
               <TouchableOpacity onPress={() => navigation.goBack()}>
-                <Text style={styles.backArrow}>←</Text>
+                <Image source={require('@assets/back-arrow.png')} style={styles.backArrowImg} resizeMode="contain" />
               </TouchableOpacity>
 
               <Text style={styles.title}>ADD PROFILE</Text>
@@ -216,6 +218,11 @@ const styles = StyleSheet.create({
   backArrow: {
     fontSize: 22,
     color: LIGHT_GOLD,
+  },
+  backArrowImg: {
+    width: 20,
+    height: 20,
+    tintColor: LIGHT_GOLD,
   },
   title: {
     fontSize: 28,

@@ -1,3 +1,5 @@
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList } from '@types';
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import {
   View,
@@ -5,19 +7,20 @@ import {
   StyleSheet,
   StatusBar,
   TouchableOpacity,
+  Image,
   Dimensions,
   Platform,
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
-import BackgroundWrapper from '@components/BackgroundWrapper';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Video, { VideoRef } from 'react-native-video';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '@types';
-import { echoApiService, EchoResponse } from '../../services/api/echo';
+
+import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
+
+import { echoApiService, EchoResponse } from '../../services/api/echo';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'EchoVideoPlaybackScreen'>;
 
@@ -91,7 +94,7 @@ const EchoVideoPlaybackScreen: React.FC<Props> = ({ navigation, route }) => {
             style={styles.backBtn}
             onPress={() => navigation.goBack()}
           >
-            <Text style={styles.backIcon}>‹</Text>
+            <Image source={require('@assets/back-arrow.png')} style={styles.backArrowImg} resizeMode="contain" />
           </TouchableOpacity>
 
           <Text style={styles.screenTitle} numberOfLines={1}>
@@ -252,6 +255,7 @@ const styles = StyleSheet.create({
   },
   backBtn: { width: 44, height: 44, justifyContent: 'center' },
   backIcon: { color: GOLD, fontSize: 30 },
+  backArrowImg: { width: 20, height: 20, tintColor: GOLD },
   screenTitle: {
     color: GOLD,
     fontSize: 28,
