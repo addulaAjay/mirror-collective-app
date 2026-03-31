@@ -155,7 +155,7 @@ const NewEchoScreen: React.FC<Props> = ({ navigation }) => {
                   style={styles.dropdownShell}
                 >
                   <View style={styles.dropdownContent}>
-                    {/* Icon + Text Group */}
+                    <View style={styles.dropdownLeft} />
 
                     <Text
                       style={[
@@ -167,14 +167,11 @@ const NewEchoScreen: React.FC<Props> = ({ navigation }) => {
                     </Text>
 
                     <View style={styles.dropdownRight}>
-                      <Text
-                        style={{
-                          color: OFFWHITE,
-                          fontSize: 32,
-                        }}
-                      >
-                        ▾
-                      </Text>
+                      <Image
+                        source={require('@assets/down-arrow.png')}
+                        style={{ width: 16, height: 16, tintColor: OFFWHITE }}
+                        resizeMode="contain"
+                      />
                     </View>
                   </View>
                 </LinearGradient>
@@ -266,9 +263,14 @@ const NewEchoScreen: React.FC<Props> = ({ navigation }) => {
                 onPress={onNext}
                 style={styles.nextWrap}
               >
-                <StarIcon width={24} height={24} />
-                <Text style={styles.nextText}>NEXT</Text>
-                <StarIcon width={24} height={24} />
+                <LinearGradient
+                  colors={['rgba(253,253,249,0.04)', 'rgba(253,253,249,0.01)']}
+                  start={{ x: 0.5, y: 0 }}
+                  end={{ x: 0.5, y: 1 }}
+                  style={styles.nextGradient}
+                >
+                  <Text style={styles.nextText}>NEXT</Text>
+                </LinearGradient>
               </TouchableOpacity>
             </View>
           </ScrollView>
@@ -403,13 +405,14 @@ const styles = StyleSheet.create({
   /* Title Input */
   inputShell: {
     width: '100%',
+    height: 48,
     borderRadius: 12,
     borderWidth: 0.5,
     borderColor: '#A3B3CC', // var(--border/subtle)
     marginBottom: 24,
+    justifyContent: 'center',
   },
   inputContainer: {
-    paddingVertical: 12,
     paddingHorizontal: 16,
     alignItems: 'center',
     justifyContent: 'center',
@@ -454,19 +457,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   dropdownText: {
+    flex: 1,
     color: '#FDFDF9',
     fontSize: 16,
     fontFamily: 'Inter',
     fontStyle: 'italic',
-    alignSelf: 'center',
+    textAlign: 'center',
   },
   dropdownLeft: {
     width: 24,
-    alignItems: 'center',
   },
   dropdownRight: {
     width: 24,
-    alignItems: 'center',
+    alignItems: 'flex-end',
   },
 
   /* Recipient Block - Horizontal Layout */
@@ -499,7 +502,7 @@ const styles = StyleSheet.create({
   radioOuter: {
     width: 20,
     height: 20,
-    borderRadius: 10,
+    borderRadius: 4,
     borderWidth: 1.5,
     borderColor: '#F2E2B1',
     alignItems: 'center',
@@ -511,7 +514,7 @@ const styles = StyleSheet.create({
   radioInner: {
     width: 10,
     height: 10,
-    borderRadius: 5,
+    borderRadius: 2,
     backgroundColor: '#F2E2B1',
   },
   recipientBtnText: {
@@ -548,15 +551,21 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
 
-  /* Next Button - Updated to Star Flanked Style */
+  /* Next Button */
   nextWrap: {
+    alignSelf: 'center',
+    marginTop: 20,
+  },
+  nextGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 16,
-    marginTop: 20, // Reduced from 40 for better visibility
-    width: '100%',
-    paddingVertical: 10,
+    gap: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 0.5,
+    borderColor: '#A3B3CC',
   },
   nextText: {
     fontFamily: 'CormorantGaramond-Medium',
