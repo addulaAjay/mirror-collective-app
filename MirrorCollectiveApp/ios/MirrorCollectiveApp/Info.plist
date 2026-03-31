@@ -24,6 +24,8 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
@@ -34,7 +36,7 @@
 	<key>NSCameraUsageDescription</key>
 	<string>Mirror Collective needs access to your camera to record video echoes.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string></string>
+	<string>This app does not use your location. This entry is required by a third-party library.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Mirror Collective needs access to your microphone to record audio echoes.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
