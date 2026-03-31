@@ -362,9 +362,9 @@ const styles = StyleSheet.create({
     marginTop: 0,
   },
   listContent: {
-      paddingBottom: 20,
+    paddingBottom: 20,
   },
-  
+
   // VIEW MODE TOGGLE
   viewModeToggle: {
     flexDirection: 'row',
@@ -416,11 +416,11 @@ const styles = StyleSheet.create({
     marginBottom: 0,
   },
   inboxIconContainer: {
-     width: 24,
-     height: 24,
-     marginRight: 8,
-     justifyContent: 'center',
-     alignItems: 'center',
+    width: 24,
+    height: 24,
+    marginRight: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   inboxTitle: {
     fontFamily: 'CormorantGaramond-Regular',
@@ -457,7 +457,6 @@ const styles = StyleSheet.create({
     color: '#F2E2B1',
     textAlign: 'center',
     lineHeight: 36.4,
-
   },
 
   // CARD / LIST
@@ -514,63 +513,63 @@ const styles = StyleSheet.create({
     borderBottomColor: '#D9A766', // border-brand-active
   },
   rowLeft: {
-     flexDirection: 'row',
-     alignItems: 'center',
-     gap: 12,
-     flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
   },
   avatarGroup: {
-     // Container for avatar
+    // Container for avatar
   },
   avatarContainer: {
-     width: 40,
-     height: 40,
-     borderRadius: 20,
-     backgroundColor: 'rgba(197, 158, 95, 0.05)',
-     borderWidth: 0.5,
-     borderColor: '#F2E2B1',
-     justifyContent: 'center',
-     alignItems: 'center',
-     // Shadow...
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(197, 158, 95, 0.05)',
+    borderWidth: 0.5,
+    borderColor: '#F2E2B1',
+    justifyContent: 'center',
+    alignItems: 'center',
+    // Shadow...
   },
   avatarImage: {
-     width: 20,
-     height: 20,
-     // tintColor: GOLD,
+    width: 20,
+    height: 20,
+    // tintColor: GOLD,
   },
   rowTextWrap: {
-     marginLeft: 0,
-     flex: 1,
+    marginLeft: 0,
+    flex: 1,
   },
   rowTitle: {
-     fontFamily: 'CormorantGaramond-Regular',
-     fontSize: 20,
-     color: '#FFFFFF',
-     lineHeight: 26,
+    fontFamily: 'CormorantGaramond-Regular',
+    fontSize: 20,
+    color: '#FFFFFF',
+    lineHeight: 26,
   },
   rowSub: {
-     fontFamily: 'Inter-LightItalic', // Assuming font
-     fontSize: 14,
-     color: '#FFFFFF', // Italic text color
-     opacity: 0.8,
+    fontFamily: 'Inter-LightItalic', // Assuming font
+    fontSize: 14,
+    color: '#FFFFFF', // Italic text color
+    opacity: 0.8,
   },
   recipientText: {
-     fontFamily: 'Inter-Light',
-     fontSize: 16,
-     color: GOLD,
-     marginRight: 8,
+    fontFamily: 'Inter-Light',
+    fontSize: 16,
+    color: GOLD,
+    marginRight: 8,
   },
   arrowIcon: {
-      color: GOLD,
-      fontSize: 14,
-      fontFamily: 'Inter-Regular', 
+    color: GOLD,
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
   },
-  
+
   // BUTTONS
   buttonContainer: {
-      width: '100%',
-      gap: 12,
-      marginBottom: 20,
+    width: '100%',
+    gap: 12,
+    marginBottom: 20,
   },
   buttonTouch: {
     alignSelf: 'center',
@@ -581,11 +580,10 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   buttonGradient: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
+    minHeight: 48,
   },
   createButton: {},
   secondaryButton: {},
