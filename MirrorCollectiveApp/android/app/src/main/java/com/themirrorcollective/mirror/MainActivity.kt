@@ -1,4 +1,4 @@
-package com.mirrorcollectiveapp
+package com.themirrorcollective.mirror
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate

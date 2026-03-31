@@ -19,20 +19,20 @@ import {subscriptionApiService} from '@/services/api/subscriptionApi';
 // Product IDs
 const PRODUCT_IDS = {
   CORE_MONTHLY: Platform.select({
-    ios: 'com.mirrorcollective.core.monthly',
-    android: 'com.mirrorcollective.core.monthly',
+    ios: 'com.themirrorcollective.mirror.core.monthly',
+    android: 'com.themirrorcollective.mirror.core.monthly',
   })!,
   CORE_YEARLY: Platform.select({
-    ios: 'com.mirrorcollective.core.yearly',
-    android: 'com.mirrorcollective.core.yearly',
+    ios: 'com.themirrorcollective.mirror.core.yearly',
+    android: 'com.themirrorcollective.mirror.core.yearly',
   })!,
   STORAGE_MONTHLY: Platform.select({
-    ios: 'com.mirrorcollective.storage.monthly',
-    android: 'com.mirrorcollective.storage.monthly',
+    ios: 'com.themirrorcollective.mirror.storage.monthly',
+    android: 'com.themirrorcollective.mirror.storage.monthly',
   })!,
   STORAGE_YEARLY: Platform.select({
-    ios: 'com.mirrorcollective.storage.yearly',
-    android: 'com.mirrorcollective.storage.yearly',
+    ios: 'com.themirrorcollective.mirror.storage.yearly',
+    android: 'com.themirrorcollective.mirror.storage.yearly',
   })!,
 };
 

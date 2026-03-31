@@ -23,9 +23,9 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace "com.mirrorcollectiveapp"
+    namespace "com.themirrorcollective.mirror"
     defaultConfig {
-        applicationId "com.mirrorcollectiveapp"
+        applicationId "com.themirrorcollective.mirror"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

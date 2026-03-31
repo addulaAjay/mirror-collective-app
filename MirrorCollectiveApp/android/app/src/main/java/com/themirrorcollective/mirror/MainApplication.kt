@@ -1,4 +1,4 @@
-package com.mirrorcollectiveapp
+package com.themirrorcollective.mirror
 
 import android.app.Application
 import com.facebook.react.PackageList
