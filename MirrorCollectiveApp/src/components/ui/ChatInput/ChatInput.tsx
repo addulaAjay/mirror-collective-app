@@ -106,11 +106,11 @@ const styles = StyleSheet.create({
     ...SHADOWS.MEDIUM,
     // borderWidth: 0.25,
     borderColor: COLORS.BORDER.PRIMARY,
-    height: 65,
+    height: 40,
   },
 
   iconButton: {
-    padding: SPACING.XS,
+    paddingLeft: 10,
   },
   iconImage: {
     width: 28,
@@ -122,6 +122,7 @@ const styles = StyleSheet.create({
     ...theme.typography.styles.body,
     color: COLORS.TEXT.SECONDARY,
     fontSize: 20,
+    height: 40,
   },
 
   input: {
@@ -134,10 +135,11 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     fontWeight: '400',
     maxHeight: 100,
+    paddingBottom: 10,
   },
 
   sendButton: {
-    padding: SPACING.XS,
+    paddingRight: 20,
   },
 
   sendText: {

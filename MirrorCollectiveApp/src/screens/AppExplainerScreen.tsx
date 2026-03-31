@@ -6,11 +6,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import LogoHeader from '@components/LogoHeader';
 import { useAuthGuard } from '@hooks/useAuthGuard';
-import { theme } from '@theme';
 import type { RootStackParamList } from '@types';
 import BackgroundWrapper from '@components/BackgroundWrapper';
+import GradientButton from '@/components/GradientButton';
+import { BORDER_RADIUS } from '@/constants/dimensions';
+import { COLORS } from '@/constants/colors';
 
-const { width, height } = Dimensions.get('screen');
+const { width, height } = Dimensions.get('window');
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'AppExplanation'>;
@@ -20,22 +22,24 @@ const AppExplainerScreen: React.FC<Props> = ({ navigation }) => {
   const { t } = useTranslation();
   const { isAuthenticated, hasValidToken, isLoading } = useAuthGuard();
 
+  const handleNext = () => {
+    if (isAuthenticated && hasValidToken) {
+      navigation.replace('EnterMirror');
+    } else {
+      navigation.replace('Login');
+    }
+  };
+
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (isLoading) {
-        // If still checking auth state, wait a bit longer
-        return;
-      }
+      if (isLoading) return;
 
-      // Check authentication state and route accordingly
       if (isAuthenticated && hasValidToken) {
-        // User is authenticated, go to main app
         navigation.replace('EnterMirror');
       } else {
-        // User needs to login or sign up
         navigation.replace('Login');
       }
-    }, 5000); // Show explainer for 5 seconds
+    }, 5000);
 
     return () => clearTimeout(timer);
   }, [navigation, isAuthenticated, hasValidToken, isLoading]);
@@ -45,9 +49,27 @@ const AppExplainerScreen: React.FC<Props> = ({ navigation }) => {
       <SafeAreaView style={styles.safe}>
         <LogoHeader />
 
-        {/* Video Section */}
-        <View style={styles.videoFrame}>
-          <Text style={styles.videoText}>{t('auth.appExplainer.videoPlaceholder')}</Text>
+        <View style={styles.content}>
+          <View style={styles.videoFrame}>
+            <Text style={styles.videoText}>
+              {t('auth.appExplainer.videoPlaceholder', 'App explainer\nvideo')}
+            </Text>
+          </View>
+
+          <View style={styles.nextWrap}>
+            <GradientButton
+              title="NEXT"
+              onPress={handleNext}
+              style={styles.glassButtonWrapper}
+              containerStyle={styles.glassButtonContainer}
+              contentStyle={styles.glassButtonContent}
+              textStyle={styles.glassButtonText}
+              gradientColors={[
+                'rgba(253, 253, 249, 0.08)',
+                'rgba(253, 253, 249, 0.02)',
+              ]}
+            />
+          </View>
         </View>
       </SafeAreaView>
     </BackgroundWrapper>
@@ -58,29 +80,77 @@ const styles = StyleSheet.create({
   bg: {
     flex: 1,
   },
+
   safe: {
     flex: 1,
-    backgroundColor: 'transparent',
-    alignItems: 'center',
     width: '100%',
+    alignItems: 'center',
+    backgroundColor: 'transparent',
   },
+
+  content: {
+    flex: 1,
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: 24,
+    paddingBottom: 28,
+  },
+
   videoFrame: {
-    width: 309,
-    height: 500,
-    backgroundColor: 'rgba(255, 255, 255, 0.40)',
+    width: width * 0.88,
+    height: height * 0.58,
+    maxHeight: 560,
+    minHeight: 420,
+    backgroundColor: 'rgba(183, 184, 191, 0.72)',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 10,
-    borderRadius: 12,
-    paddingVertical: 236,
-    paddingHorizontal: 70,
-    marginTop: 40,
+    marginTop: 20,
   },
+
   videoText: {
-    ...theme.typography.styles.title,
-    color: '#000000',
+    fontFamily: 'CormorantGaramond-Italic',
+    fontSize: 26,
+    lineHeight: 34,
+    color: '#111111',
     textAlign: 'center',
-    width: 169,
+  },
+
+  nextWrap: {
+    width: '100%',
+    alignItems: 'center',
+    marginTop: 20,
+  },
+
+  glassButtonWrapper: {
+    backgroundColor: 'transparent',
+    borderRadius: BORDER_RADIUS.MD,
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
+  },
+
+  glassButtonContainer: {
+    borderWidth: 0.8,
+    borderColor: 'rgba(255, 255, 255, 0.35)',
+    borderRadius: 18,
+    overflow: 'hidden',
+  },
+
+  glassButtonContent: {
+    paddingVertical: 14,
+    paddingHorizontal: 30,
+    minWidth: 120,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  glassButtonText: {
+    color: COLORS.PRIMARY.GOLD,
+    fontFamily: 'CormorantGaramond-Regular',
+    fontSize: 22,
+    lineHeight: 28,
+    textTransform: 'uppercase',
   },
 });
 

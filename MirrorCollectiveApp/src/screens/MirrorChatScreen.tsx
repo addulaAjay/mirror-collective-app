@@ -149,7 +149,6 @@ const styles = StyleSheet.create({
   chatWrapper: {
     flex: 1,
     width: '100%',
-    paddingTop: 20,
     paddingHorizontal: SPACING.XL,
   },
 
@@ -164,12 +163,15 @@ const styles = StyleSheet.create({
 
   headerText: {
     fontFamily: 'CormorantGaramond-Italic',
-    fontSize: 20,
-    fontWeight: '400',
+    fontSize: 22,
+    fontWeight: 'thin',
     lineHeight: 28,
     color: COLORS.TEXT.SYSTEM_MESSAGE,
     paddingTop: 24,
     textAlign: 'center',
+    textShadowColor: 'rgba(230, 211, 163, 0.8)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 9,
   },
 
   chatContainer: {
@@ -178,9 +180,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: SCREEN_DIMENSIONS.HEIGHT * 0.72,
     borderRadius: SPACING.LG,
-    paddingHorizontal: SPACING.XL,
-    paddingTop: SPACING.XL,
-    marginTop: SPACING.XL,
+    paddingHorizontal: SPACING.MD,
     // marginBottom: SPACING.SM,
     alignSelf: 'center',
     justifyContent: 'space-between',
