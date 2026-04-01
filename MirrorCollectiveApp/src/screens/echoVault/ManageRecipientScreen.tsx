@@ -333,18 +333,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   addButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    // paddingVertical: 12,
+    // paddingHorizontal: 4,
     borderRadius: 12,
     borderWidth: 0.5,
     borderColor: '#A3B3CC',
     alignItems: 'center',
     justifyContent: 'center',
+    minHeight: 44,
   },
   addText: {
     color: '#E5D6B0',
     fontSize: 24,
     letterSpacing: 2,
+    padding: 14,
     fontFamily: Platform.select({
       ios: 'CormorantGaramond-Medium',
       android: 'serif',
@@ -356,10 +358,10 @@ const styles = StyleSheet.create({
   guardianCard: {
     width: '100%',
     borderRadius: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(215,192,138,0.25)',
-    paddingVertical: 16,
-    paddingHorizontal: 0,
+    // borderWidth: 1,
+    // borderColor: 'rgba(215,192,138,0.25)',
+    // paddingVertical: 16,
+    // paddingHorizontal: 0,
     alignItems: 'center',
     gap: 12,
     ...Platform.select({
@@ -382,6 +384,7 @@ const styles = StyleSheet.create({
       android: 'serif',
     }),
     marginBottom: 6,
+    paddingTop: 10,
   },
   guardianCardDesc: {
     color: SUBTEXT,
@@ -391,10 +394,12 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   guardianWrap: {
-    paddingVertical: 8,
-    paddingHorizontal: 20,
+    // paddingVertical: 8,
+    // paddingHorizontal: 20,
+    marginBottom: 10,
     borderRadius: 13,
     borderWidth: 0.25,
+    minHeight: 44,
     borderColor: '#9BAAC2',
     alignItems: 'center',
     justifyContent: 'center',
@@ -414,6 +419,7 @@ const styles = StyleSheet.create({
     color: '#E5D6B0',
     fontSize: 20,
     letterSpacing: 1.5,
+    paddingHorizontal: 10,
     fontFamily: Platform.select({
       ios: 'CormorantGaramond-Regular',
       android: 'serif',
