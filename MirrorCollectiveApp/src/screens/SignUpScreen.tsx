@@ -68,7 +68,12 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
 
   const handlePhoneChange = (text: string) => {
     clearError('phoneNumber');
-    const digits = text.replace(/\D/g, '').slice(0, 10);
+    let digits = text.replace(/\D/g, '');
+    // Strip the leading '1' from the '+1' country code prefix in the displayed value
+    if (digits.startsWith('1')) {
+      digits = digits.slice(1);
+    }
+    digits = digits.slice(0, 10);
     setPhoneNumber(digits.length === 0 ? '+1' : `+1${digits}`);
   };
 

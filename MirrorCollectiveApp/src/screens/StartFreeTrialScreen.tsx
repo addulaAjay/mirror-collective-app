@@ -77,7 +77,6 @@ const StartFreeTrialScreen = () => {
         if (response.success) {
           await refreshSubscriptionStatus();
           setAuthenticated();
-          navigation.navigate('EnterMirror');
         } else {
           throw new Error(response.message || 'Failed to start trial');
         }
