@@ -464,8 +464,8 @@ const styles = StyleSheet.create({
       android: 'sans-serif',
     }),
   },
-  subtle: { 
-    color: GOLD, 
+  subtle: {
+    color: GOLD,
     fontSize: 14,
     fontFamily: Platform.select({
       ios: 'Inter-Light',
@@ -496,7 +496,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   chevron: { color: OFFWHITE, fontSize: 16 },
-  calendar: { width: 20, height: 20},
+  calendar: { width: 20, height: 20 },
   dropdownShell: {
     width: '100%',
     borderRadius: 12,
@@ -528,9 +528,8 @@ const styles = StyleSheet.create({
 
   legacyCard: {
     width: '100%',
-    paddingTop: 8,
-    paddingHorizontal: 8,
-    paddingBottom: 4,
+    paddingVertical: 4,
+    paddingHorizontal: 4,
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'flex-start',
@@ -540,22 +539,23 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 0,
     borderBottomRightRadius: 0,
     marginBottom: 12,
+    minHeight: 100,
   },
   legacyRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    width: '100%',
+    width: '96%',
   },
   legacyCheckRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    width: '100%',
+    width: '96%',
     justifyContent: 'space-between',
   },
-  infoIcon: { 
-    color: GOLD, 
+  infoIcon: {
+    color: GOLD,
     fontSize: 16,
     opacity: 0.8,
   },
@@ -626,8 +626,6 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   nextGradient: {
-    paddingHorizontal: 32,
-    paddingVertical: 12,
     borderRadius: 12,
     borderWidth: 0.5,
     borderColor: GOLD,
@@ -635,6 +633,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   nextText: {
+    paddingHorizontal: 32,
+    paddingVertical: 12,
     color: GOLD,
     fontSize: 24,
     fontFamily: Platform.select({
@@ -713,8 +713,8 @@ const styles = StyleSheet.create({
     color: GOLD,
     fontSize: 16,
     fontFamily: Platform.select({
-       ios: 'CormorantGaramond-SemiBold',
-       android: 'serif',
+      ios: 'CormorantGaramond-SemiBold',
+      android: 'serif',
     }),
   },
 
