@@ -410,7 +410,11 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
             style={styles.backBtn}
             onPress={() => navigation.goBack()}
           >
-            <Image source={require('@assets/back-arrow.png')} style={styles.backArrowImg} resizeMode="contain" />
+            <Image
+              source={require('@assets/back-arrow.png')}
+              style={styles.backArrowImg}
+              resizeMode="contain"
+            />
           </TouchableOpacity>
 
           <Text style={styles.screenTitle}>{titleText}</Text>
@@ -423,23 +427,24 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
           {mode === 'text' && (
             <>
               <Text style={styles.smallLabel}>Message</Text>
-
-              <LinearGradient
-                colors={['rgba(253,253,249,0.04)', 'rgba(253,253,249,0.01)']}
-                start={{ x: 0.5, y: 0 }}
-                end={{ x: 0.5, y: 1 }}
-                style={styles.textInputShell}
-              >
-                <TextInput
-                  value={message}
-                  onChangeText={setMessage}
-                  placeholder="Write message here"
-                  placeholderTextColor="#60739F"
-                  style={styles.bigTextInput}
-                  multiline
-                  textAlignVertical="top"
-                />
-              </LinearGradient>
+              <View style={styles.textInputShell}>
+                <LinearGradient
+                  colors={['rgba(253,253,249,0.04)', 'rgba(253,253,249,0.01)']}
+                  start={{ x: 0.5, y: 0 }}
+                  end={{ x: 0.5, y: 1 }}
+                  style={styles.textInputGradient}
+                >
+                  <TextInput
+                    value={message}
+                    onChangeText={setMessage}
+                    placeholder="Write message here"
+                    placeholderTextColor="#60739F"
+                    style={styles.bigTextInput}
+                    multiline
+                    textAlignVertical="top"
+                  />
+                </LinearGradient>
+              </View>
 
               <View style={styles.bottomButtonsRow}>
                 <SmallPillButton label="Upload File" onPress={onUpload} />
@@ -450,12 +455,17 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
                   disabled={isSaving}
                 >
                   <LinearGradient
-                    colors={['rgba(253,253,249,0.04)', 'rgba(253,253,249,0.01)']}
+                    colors={[
+                      'rgba(253,253,249,0.04)',
+                      'rgba(253,253,249,0.01)',
+                    ]}
                     start={{ x: 0.5, y: 0 }}
                     end={{ x: 0.5, y: 1 }}
                     style={styles.saveGradient}
                   >
-                    <Text style={styles.saveActionText}>{isSaving ? 'SAVING...' : 'SAVE'}</Text>
+                    <Text style={styles.saveActionText}>
+                      {isSaving ? 'SAVING...' : 'SAVE'}
+                    </Text>
                   </LinearGradient>
                 </TouchableOpacity>
               </View>
@@ -468,8 +478,15 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
                 {mediaUri && mediaFile ? (
                   <View style={styles.pickedMediaContainer}>
                     <Text style={styles.pickedMediaIcon}>ðŸ“„</Text>
-                    <Text style={styles.pickedMediaName} numberOfLines={1}>{mediaFile.name}</Text>
-                    <TouchableOpacity onPress={() => { setMediaUri(null); setMediaFile(null); }}>
+                    <Text style={styles.pickedMediaName} numberOfLines={1}>
+                      {mediaFile.name}
+                    </Text>
+                    <TouchableOpacity
+                      onPress={() => {
+                        setMediaUri(null);
+                        setMediaFile(null);
+                      }}
+                    >
                       <Text style={styles.removeMediaText}>Remove</Text>
                     </TouchableOpacity>
                   </View>
@@ -479,8 +496,15 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
               </View>
 
               <View style={styles.centerIconWrap}>
-                 <TouchableOpacity onPress={toggleAudioRecording}>
-                  <CircleIcon icon={isRecording ? require('@assets/pause_circle.png') : require('@assets/mic2.png')} fullSize={isRecording} />
+                <TouchableOpacity onPress={toggleAudioRecording}>
+                  <CircleIcon
+                    icon={
+                      isRecording
+                        ? require('@assets/pause_circle.png')
+                        : require('@assets/mic2.png')
+                    }
+                    fullSize={isRecording}
+                  />
                 </TouchableOpacity>
               </View>
 
@@ -493,12 +517,17 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
                   disabled={isSaving}
                 >
                   <LinearGradient
-                    colors={['rgba(253,253,249,0.04)', 'rgba(253,253,249,0.01)']}
+                    colors={[
+                      'rgba(253,253,249,0.04)',
+                      'rgba(253,253,249,0.01)',
+                    ]}
                     start={{ x: 0.5, y: 0 }}
                     end={{ x: 0.5, y: 1 }}
                     style={styles.saveGradient}
                   >
-                    <Text style={styles.saveActionText}>{isSaving ? 'SAVING...' : 'SAVE'}</Text>
+                    <Text style={styles.saveActionText}>
+                      {isSaving ? 'SAVING...' : 'SAVE'}
+                    </Text>
                   </LinearGradient>
                 </TouchableOpacity>
               </View>
@@ -514,28 +543,40 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
                 style={styles.bigBoxShell}
               >
                 <View style={[styles.bigBoxInnerBorder, styles.videoBigBox]}>
-                    {mediaUri && mediaFile ? (
-                      <View style={[styles.videoPreviewPlaceholder, { backgroundColor: 'transparent' }]}>
-                         <Text style={styles.pickedMediaIcon}>ðŸŽ¬</Text>
-                         <Text style={styles.pickedMediaName} numberOfLines={1}>{mediaFile.name}</Text>
-                         <TouchableOpacity onPress={() => { setMediaUri(null); setMediaFile(null); }}>
-                           <Text style={styles.removeMediaText}>Remove</Text>
-                         </TouchableOpacity>
-                      </View>
-                    ) : device ? (
-                        <Camera
-                            ref={camera}
-                            style={StyleSheet.absoluteFill}
-                            device={device}
-                            isActive={true}
-                            video={true}
-                            audio={true}
-                        />
-                    ) : (
-                      <View style={styles.videoPreviewPlaceholder}>
-                        <Text style={styles.previewHint}>No Camera Device</Text>
-                      </View>
-                    )}
+                  {mediaUri && mediaFile ? (
+                    <View
+                      style={[
+                        styles.videoPreviewPlaceholder,
+                        { backgroundColor: 'transparent' },
+                      ]}
+                    >
+                      <Text style={styles.pickedMediaIcon}>ðŸŽ¬</Text>
+                      <Text style={styles.pickedMediaName} numberOfLines={1}>
+                        {mediaFile.name}
+                      </Text>
+                      <TouchableOpacity
+                        onPress={() => {
+                          setMediaUri(null);
+                          setMediaFile(null);
+                        }}
+                      >
+                        <Text style={styles.removeMediaText}>Remove</Text>
+                      </TouchableOpacity>
+                    </View>
+                  ) : device ? (
+                    <Camera
+                      ref={camera}
+                      style={StyleSheet.absoluteFill}
+                      device={device}
+                      isActive={true}
+                      video={true}
+                      audio={true}
+                    />
+                  ) : (
+                    <View style={styles.videoPreviewPlaceholder}>
+                      <Text style={styles.previewHint}>No Camera Device</Text>
+                    </View>
+                  )}
 
                   {/* Record button overlay */}
                   <TouchableOpacity
@@ -543,11 +584,17 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
                     activeOpacity={0.8}
                     onPress={toggleVideoRecording}
                   >
-                    <CircleIcon icon={isRecording ? require('@assets/pause_circle.png') : require('@assets/videocam_2.png')} fullSize={isRecording} />
+                    <CircleIcon
+                      icon={
+                        isRecording
+                          ? require('@assets/pause_circle.png')
+                          : require('@assets/videocam_2.png')
+                      }
+                      fullSize={isRecording}
+                    />
                   </TouchableOpacity>
                 </View>
               </LinearGradient>
-
 
               <View style={styles.bottomButtonsRow}>
                 <TouchableOpacity
@@ -557,12 +604,17 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
                   disabled={isSaving}
                 >
                   <LinearGradient
-                    colors={['rgba(253,253,249,0.04)', 'rgba(253,253,249,0.01)']}
+                    colors={[
+                      'rgba(253,253,249,0.04)',
+                      'rgba(253,253,249,0.01)',
+                    ]}
                     start={{ x: 0.5, y: 0 }}
                     end={{ x: 0.5, y: 1 }}
                     style={styles.saveGradient}
                   >
-                    <Text style={styles.saveActionText}>{isSaving ? 'SAVING...' : 'SAVE'}</Text>
+                    <Text style={styles.saveActionText}>
+                      {isSaving ? 'SAVING...' : 'SAVE'}
+                    </Text>
                   </LinearGradient>
                 </TouchableOpacity>
               </View>
@@ -588,10 +640,20 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
               <TouchableOpacity
                 activeOpacity={0.85}
                 style={styles.modalItem}
-                onPress={mode === 'text' ? handlePickText : mode === 'audio' ? handlePickAudio : handlePickVideo}
+                onPress={
+                  mode === 'text'
+                    ? handlePickText
+                    : mode === 'audio'
+                    ? handlePickAudio
+                    : handlePickVideo
+                }
               >
                 <Text style={styles.modalItemText}>
-                  {mode === 'text' ? 'Import Text File' : mode === 'audio' ? 'Import Audio File' : 'Choose from Gallery'}
+                  {mode === 'text'
+                    ? 'Import Text File'
+                    : mode === 'audio'
+                    ? 'Import Audio File'
+                    : 'Choose from Gallery'}
                 </Text>
               </TouchableOpacity>
 
@@ -778,21 +840,25 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     marginLeft: 4,
   },
-
   textInputShell: {
-    width: '100%',
     flex: 1,
     borderRadius: 12,
     borderWidth: 0.5,
     borderColor: '#A3B3CC',
     minHeight: 120,
+    overflow: 'hidden',
+    width: '100%',
+  },
+  textInputGradient: {
+    flex: 1,
     paddingHorizontal: 16,
     paddingVertical: 8,
+    width: '100%',
   },
   bigBoxShell: {
     width: '100%',
     borderRadius: 18,
-    padding: 1,
+    // padding: 1,
     borderWidth: 1,
     borderColor: 'rgba(163, 179, 204, 0.45)',
   },
@@ -835,16 +901,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
   },
-  saveWrap: {
-  },
+  saveWrap: {},
   saveGradient: {
     minWidth: 140,
+    minHeight: 48,
     flexDirection: 'row',
     borderRadius: 12,
     borderWidth: 0.5,
     borderColor: '#A3B3CC',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    // paddingVertical: 12,
+    // paddingHorizontal: 16,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
@@ -870,11 +936,12 @@ const styles = StyleSheet.create({
 
   pillShell: {
     minWidth: 140,
+    minHeight: 48,
     borderRadius: 12,
     borderWidth: 0.5,
     borderColor: '#A3B3CC',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    // paddingVertical: 12,
+    // paddingHorizontal: 16,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
