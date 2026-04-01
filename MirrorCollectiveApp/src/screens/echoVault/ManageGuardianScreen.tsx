@@ -302,8 +302,8 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   addButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    // paddingVertical: 12,
+    // paddingHorizontal: 16,
     borderRadius: 12,
     borderWidth: 0.5,
     borderColor: '#A3B3CC',
@@ -311,6 +311,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     gap: 8,
+    minHeight: 44,
   },
   addText: {
     color: GOLD,
@@ -320,6 +321,7 @@ const styles = StyleSheet.create({
       ios: 'CormorantGaramond-Regular',
       android: 'serif',
     }),
+    paddingHorizontal: 10,
   },
 
   /* Error/Empty states */
