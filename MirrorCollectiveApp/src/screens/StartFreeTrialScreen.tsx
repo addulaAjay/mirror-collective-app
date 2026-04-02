@@ -77,6 +77,10 @@ const StartFreeTrialScreen = () => {
         if (response.success) {
           await refreshSubscriptionStatus();
           setAuthenticated();
+          navigation.reset({
+            index: 0,
+            routes: [{ name: 'EnterMirror' }],
+          });
         } else {
           throw new Error(response.message || 'Failed to start trial');
         }
@@ -94,6 +98,10 @@ const StartFreeTrialScreen = () => {
       try {
         await purchaseSubscription(productId);
         await refreshSubscriptionStatus();
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'EnterMirror' }],
+        });
       } catch (error: any) {
         Alert.alert('Purchase Failed', error.message || 'Unable to complete purchase');
       }
