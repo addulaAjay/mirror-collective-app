@@ -57,9 +57,9 @@ const MirrorSideMenu: React.FC<MirrorSideMenuProps> = ({
   ];
 
   const secondaryItems = [
-    { label: 'Settings', route: 'Profile' },
+    // { label: 'Settings', route: 'Profile' },
     { label: 'About Us', route: 'About' },
-    { label: 'FAQ', route: 'FAQ' },
+    // { label: 'FAQ', route: 'FAQ' },
   ];
 
   if (!isOpen) return null;
