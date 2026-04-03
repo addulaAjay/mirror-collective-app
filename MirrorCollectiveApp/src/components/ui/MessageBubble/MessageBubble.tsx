@@ -82,7 +82,6 @@ const styles = StyleSheet.create({
 
   userText: {
     fontFamily: 'Inter',
-    fontStyle: 'italic',
     fontSize: 16,
     fontWeight: '300',
     lineHeight: 24,
