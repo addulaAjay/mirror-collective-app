@@ -20,6 +20,13 @@ export type RootStackParamList = {
   EchoVaultStorage: undefined;
   MirrorEcho: undefined;
   ReflectionRoom: undefined;
+  ReflectionRoomQuiz: undefined;
+  ReflectionRoomLoading: undefined;
+  ReflectionRoomTodaysMotif: undefined;
+  ReflectionRoomEchoSignature: undefined;
+  ReflectionRoomEchoMap: undefined;
+  ReflectionRoomMirrorMoment: undefined;
+  ReflectionRoomCore: undefined;
   MirrorCodeLibrary: undefined;
   TheMirrorPledge: undefined;
   About: undefined;

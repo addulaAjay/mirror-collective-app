@@ -1,0 +1,54 @@
+{
+  "questions": [
+    {
+      "id": 1,
+      "question": "How are you arriving today?",
+      "type": "text",
+      "options": [
+        { "text": "CURIOUS" },
+        { "text": "GROUNDED" },
+        { "text": "HOPEFUL" },
+        { "text": "HEAVY" },
+        { "text": "SCATTERED" },
+        { "text": "NUMB" }
+      ]
+    },
+    {
+      "id": 2,
+      "question": "Which of these speaks to you the most today?",
+      "type": "image",
+      "options": [
+        { "label": "STAR", "image": "rr-quiz-motif-star" },
+        { "label": "BLOCKS", "image": "rr-quiz-motif-blocks" },
+        { "label": "MIRROR", "image": "rr-quiz-motif-mirror" },
+        { "label": "COMPASS", "image": "rr-quiz-motif-compass" },
+        { "label": "FEATHER", "image": "rr-quiz-motif-feather" },
+        { "label": "FLOW", "image": "rr-quiz-motif-flow" }
+      ]
+    },
+    {
+      "id": 3,
+      "question": "What intention would you like to bring into your Reflection Room today?",
+      "type": "text",
+      "options": [
+        { "text": "CLARITY" },
+        { "text": "PEACE" },
+        { "text": "HEALING" },
+        { "text": "INSPIRATION" },
+        { "text": "STILLNESS" }
+      ]
+    },
+    {
+      "id": 4,
+      "question": "What kind of message would help right now?",
+      "type": "text",
+      "options": [
+        { "text": "EMOTIONAL SOOTHING" },
+        { "text": "GENTLE ENCOURAGEMENT" },
+        { "text": "REFLECTIVE INSIGHT" },
+        { "text": "DIRECT TRUTH" },
+        { "text": "NO WORDS JUST PRESENCE" }
+      ]
+    }
+  ]
+}
