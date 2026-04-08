@@ -11,6 +11,7 @@ import {
   Image,
   Alert,
   ActivityIndicator,
+  ScrollView,
   type ViewStyle,
   type TextStyle,
   type ImageStyle,
@@ -22,8 +23,8 @@ import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
 import StarIcon from '@components/StarIcon';
 
-import { useSubscription } from '@/context/SubscriptionContext';
 import { useSession } from '@/context/SessionContext';
+import { useSubscription } from '@/context/SubscriptionContext';
 import { useInAppPurchase } from '@/hooks/useInAppPurchase';
 import { subscriptionApiService } from '@/services/api/subscriptionApi';
 
@@ -76,11 +77,9 @@ const StartFreeTrialScreen = () => {
 
         if (response.success) {
           await refreshSubscriptionStatus();
+          // Setting authenticated will remount NavigationContainer with new key
+          // This automatically navigates to EnterMirror (initialRouteName)
           setAuthenticated();
-          navigation.reset({
-            index: 0,
-            routes: [{ name: 'EnterMirror' }],
-          });
         } else {
           throw new Error(response.message || 'Failed to start trial');
         }
@@ -98,10 +97,7 @@ const StartFreeTrialScreen = () => {
       try {
         await purchaseSubscription(productId);
         await refreshSubscriptionStatus();
-        navigation.reset({
-          index: 0,
-          routes: [{ name: 'EnterMirror' }],
-        });
+        // NavigationContainer will remount when auth state changes
       } catch (error: any) {
         Alert.alert('Purchase Failed', error.message || 'Unable to complete purchase');
       }
@@ -147,7 +143,11 @@ const StartFreeTrialScreen = () => {
                   style={styles.cardGradient}
                   pointerEvents="none"
                 />
-                <View style={styles.cardContent}>
+                <ScrollView
+                  style={styles.cardScroll}
+                  contentContainerStyle={styles.cardContent}
+                  showsVerticalScrollIndicator={false}
+                >
                   <Text style={styles.cardTitle}>Mirror Core</Text>
                   <Text style={styles.cardSubtitle}>Your daily reflective companion.</Text>
 
@@ -220,7 +220,7 @@ const StartFreeTrialScreen = () => {
                   </TouchableOpacity>
 
                   <Text style={styles.cancelText}>Cancel anytime.</Text>
-                </View>
+                </ScrollView>
               </View>
             </View>
 
@@ -255,6 +255,7 @@ const styles = StyleSheet.create<{
   innerBox: ViewStyle;
   cardWrapper: ViewStyle;
   cardGradient: ViewStyle;
+  cardScroll: ViewStyle;
   cardContent: ViewStyle;
   cardTitle: TextStyle;
   cardSubtitle: TextStyle;
@@ -371,11 +372,13 @@ const styles = StyleSheet.create<{
       gap: sectionGap,
       alignSelf: 'stretch',
       paddingHorizontal: innerBoxSidePadding,
+      flex: 1,
     },
 
     cardWrapper: {
       width: cardWidth,
       alignSelf: 'center',
+      flex: 1,
       padding: 20,
       borderRadius: 13,
       borderWidth: 0.25,
@@ -391,9 +394,14 @@ const styles = StyleSheet.create<{
       ...StyleSheet.absoluteFillObject,
       borderRadius: 13,
     },
+    cardScroll: {
+      flex: 1,
+      width: '100%',
+    },
     cardContent: {
       alignItems: 'center',
       gap: 8,
+      paddingBottom: 8,
     },
 
     cardTitle: {

@@ -16,8 +16,8 @@ import {
     type ImageStyle,
     ScrollView,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
@@ -36,17 +36,10 @@ const DESIGN_HEIGHT = 852;
 const outerContainerPaddingHorizontal = Math.max(24, (24 * screenWidth) / DESIGN_WIDTH);
 const outerContainerPaddingBottom = Math.max(53, (53 * screenHeight) / DESIGN_HEIGHT);
 
-// Reserve vertical space for the absolutely-positioned LogoHeader
-const contentStartY = Math.max(120, (120 * screenHeight) / DESIGN_HEIGHT);
-
 const outerBoxWidth = (345 * screenWidth) / DESIGN_WIDTH;
-const outerBoxGap = (40 * screenHeight) / DESIGN_HEIGHT;
 const innerBoxGap = (24 * screenHeight) / DESIGN_HEIGHT;
 
 const titleLineHeight = Math.min(screenWidth * 0.094, 36);
-const titleHeight = titleLineHeight * 2;
-const checkboxRowHeight = 24;
-const continueButtonHeight = 12 * 2 + 22;
 
 const cardMaxWidth = 313;
 const cardWidth = Math.min(cardMaxWidth, outerBoxWidth);
@@ -294,18 +287,16 @@ const styles = StyleSheet.create<{
         flex: 1,
         flexDirection: 'column',
         alignItems: 'center',
-        gap: outerBoxGap,
+        justifyContent: 'space-between',
         marginTop: 20,
     },
     innerBox: {
         flexDirection: 'column',
         alignItems: 'center',
         gap: innerBoxGap,
-        flexGrow: 1,
-        flexShrink: 0,
-        flexBasis: 0,
         alignSelf: 'stretch',
         paddingHorizontal: innerBoxSidePadding,
+        flex: 1,
     },
     titleContainer: {
         alignItems: 'center',
@@ -326,11 +317,13 @@ const styles = StyleSheet.create<{
         width: cardWidth,
         alignSelf: 'center',
         flex: 1,
+        minHeight: 0, // Allow shrinking below natural content size
         padding: 20,
         borderRadius: 13,
         borderWidth: 0.25,
         borderColor: '#9BAAC2',
         backgroundColor: 'transparent',
+        overflow: 'hidden',
         shadowColor: '#E5D6B0',
         shadowOffset: { width: 0, height: 0 },
         shadowOpacity: 0.3,
@@ -346,8 +339,6 @@ const styles = StyleSheet.create<{
         width: '100%',
     },
     cardContent: {
-        alignItems: 'stretch',
-        justifyContent: 'flex-start',
         gap: 16,
         paddingBottom: 8,
     },

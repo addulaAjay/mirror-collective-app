@@ -13,6 +13,7 @@ import { SessionProvider, useSession } from '@context/SessionContext';
 import { SubscriptionProvider } from '@context/SubscriptionContext';
 import { UserProvider } from '@context/UserContext';
 import useAppStateHandler from '@hooks/useAppStateHandler';
+import useInactivityTimer from '@hooks/useInactivityTimer';
 // Import your screens
 import AboutScreen from '@screens/AboutScreen';
 import AppExplainerScreen from '@screens/AppExplainerScreen';
@@ -63,7 +64,6 @@ import TalkToMirrorScreen from '@screens/TalkToMirrorScreen';
 import TermsAndConditionsScreen from '@screens/TermsAndConditionsScreen';
 import TheMirrorPledgeCommingsoonScreen from '@screens/TheMirrorPledgeCommingsoonScreen';
 import VerifyEmailScreen from '@screens/VerifyEmailScreen';
-import useInactivityTimer from '@hooks/useInactivityTimer';
 import PushNotificationService from '@services/PushNotificationService';
 
 import ErrorBoundary from './src/components/ErrorBoundary';
@@ -230,6 +230,7 @@ const AppNavigator = () => {
 
   return (
     <NavigationContainer
+      key={isAuthenticated ? 'authenticated' : 'unauthenticated'}
       onStateChange={navState => {
         if (__DEV__) {
           console.log('Navigation state changed:', navState);
