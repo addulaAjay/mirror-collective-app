@@ -9,3 +9,6 @@ export { SessionManager } from './sessionManager';
 
 // Token Management
 export { tokenManager } from './tokenManager';
+
+// Auth Events
+export { authEvents } from './authEvents';

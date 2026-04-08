@@ -9,6 +9,7 @@ import React, {
 } from 'react';
 
 import { authApiService } from '@services/api';
+import { authEvents } from '@services/authEvents';
 import PushNotificationService from '@services/PushNotificationService';
 
 // Types
@@ -160,6 +161,17 @@ export const SessionProvider = ({ children }: SessionProviderProps) => {
         clearTimeout(initializationTimeoutRef.current);
       }
     };
+  }, [safeDispatch]);
+
+  // Force logout whenever the API layer signals session expiry (401 / token refresh failure)
+  useEffect(() => {
+    const unsubscribe = authEvents.onSessionExpired(() => {
+      if (isMountedRef.current) {
+        authApiService.clearTokens().catch(() => {});
+        safeDispatch({ type: 'LOGOUT_SUCCESS' });
+      }
+    });
+    return unsubscribe;
   }, [safeDispatch]);
 
   const signUp = async (fullName: string, email: string, password: string, phoneNumber?: string, termsAcceptedAt?: string) => {

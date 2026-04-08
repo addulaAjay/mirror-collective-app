@@ -4,8 +4,8 @@ import 'react-native-url-polyfill/auto';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '@types';
-import React, { useEffect } from 'react';
-import { StatusBar } from 'react-native';
+import React, { useCallback, useEffect } from 'react';
+import { StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { ChatErrorBoundary } from '@components/error';
@@ -63,6 +63,7 @@ import TalkToMirrorScreen from '@screens/TalkToMirrorScreen';
 import TermsAndConditionsScreen from '@screens/TermsAndConditionsScreen';
 import TheMirrorPledgeCommingsoonScreen from '@screens/TheMirrorPledgeCommingsoonScreen';
 import VerifyEmailScreen from '@screens/VerifyEmailScreen';
+import useInactivityTimer from '@hooks/useInactivityTimer';
 import PushNotificationService from '@services/PushNotificationService';
 
 import ErrorBoundary from './src/components/ErrorBoundary';
@@ -212,14 +213,20 @@ const AuthenticatedNavigator = () => (
 
 // Main Navigator that switches based on auth state
 const AppNavigator = () => {
-  const { state } = useSession();
+  const { state, signOut } = useSession();
   const { isAuthenticated } = state;
 
-  // Optionally show a loading screen while session is restoring
-  // if (isLoading) {
-  //   // Cast SplashScreen or pass mock props since it's just a loader here
-  //   return <SplashScreen navigation={null as any} />;
-  // }
+  const handleInactivityTimeout = useCallback(async () => {
+    if (__DEV__) {
+      console.log('Session timed out due to inactivity');
+    }
+    await signOut();
+  }, [signOut]);
+
+  const { resetTimer } = useInactivityTimer({
+    isEnabled: isAuthenticated,
+    onTimeout: handleInactivityTimeout,
+  });
 
   return (
     <NavigationContainer
@@ -229,10 +236,26 @@ const AppNavigator = () => {
         }
       }}
     >
-      {isAuthenticated ? <AuthenticatedNavigator /> : <AuthNavigator />}
+      {isAuthenticated ? (
+        <View
+          style={styles.fill}
+          onStartShouldSetResponderCapture={() => {
+            resetTimer();
+            return false; // Don't consume — let children handle the touch
+          }}
+        >
+          <AuthenticatedNavigator />
+        </View>
+      ) : (
+        <AuthNavigator />
+      )}
     </NavigationContainer>
   );
 };
+
+const styles = StyleSheet.create({
+  fill: { flex: 1 },
+});
 
 const App = () => {
   useAppStateHandler({
