@@ -5,6 +5,7 @@ import React, { useState } from 'react';
 import {
   Dimensions,
   Image,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -108,20 +109,13 @@ const ReflectionRoomEchoSignatureScreen: React.FC = () => {
             onPress={() => navigation.navigate('ReflectionRoomEchoMap' as never)}
             activeOpacity={0.8}
           >
-            <LinearGradient
-              colors={['rgba(253, 253, 249, 0.02)', 'rgba(253, 253, 249, 0.00)']}
-              start={{ x: 0.5, y: 0 }}
-              end={{ x: 0.5, y: 1 }}
-              style={styles.ctaGradient}
-            >
-              <Text style={styles.ctaText}>OPEN ECHO MAP</Text>
-            </LinearGradient>
+            <Text style={styles.ctaText}>OPEN ECHO MAP</Text>
           </TouchableOpacity>
         </ScrollView>
       </SafeAreaView>
       {selectedCard && (
         <Pressable style={styles.popupOverlay} onPress={() => setSelectedCard(null)}>
-          <View style={styles.popupContent} onStartShouldSetResponder={() => true}>
+          <Pressable style={styles.popupContainer} onPress={e => e.stopPropagation()}>
             <LinearGradient
               colors={['#F0D4A8', '#E2AE5A']}
               start={{ x: 0.5, y: 0 }}
@@ -138,21 +132,15 @@ const ReflectionRoomEchoSignatureScreen: React.FC = () => {
               </View>
               <Text style={styles.popupPractice}>{selectedCard.practice}</Text>
             </LinearGradient>
+            {/* <Text style={styles.popupSubtext}>{selectedCard.subtitle}</Text> */}
             <TouchableOpacity
               style={styles.doneButton}
               activeOpacity={0.8}
               onPress={() => setSelectedCard(null)}
             >
-              <LinearGradient
-                colors={['rgba(253, 253, 249, 0.02)', 'rgba(253, 253, 249, 0.00)']}
-                start={{ x: 0.5, y: 0 }}
-                end={{ x: 0.5, y: 1 }}
-                style={styles.doneGradient}
-              >
-                <Text style={styles.doneText}>DONE</Text>
-              </LinearGradient>
+              <Text style={styles.doneText}>DONE</Text>
             </TouchableOpacity>
-          </View>
+          </Pressable>
         </Pressable>
       )}
     </BackgroundWrapper>
@@ -264,23 +252,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     zIndex: 100,
   },
-  popupContent: {
+  popupContainer: {
+    width: Math.min(329, screenWidth * 0.9),
     alignItems: 'center',
     gap: 16,
-    width: '80%',
-    maxWidth: 320,
   },
   popupCard: {
     width: '100%',
-    padding: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
     borderRadius: 13,
     alignItems: 'center',
     gap: 8,
-    shadowColor: '#F2E2B1',
+    shadowColor: 'rgba(242, 226, 177, 1)',
     shadowOffset: { width: 2, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 32,
-    elevation: 8,
+    elevation: 10,
   },
   popupTitle: {
     fontFamily: 'CormorantGaramond-Regular',
@@ -294,44 +282,51 @@ const styles = StyleSheet.create({
     height: 40,
   },
   popupPractice: {
-    fontFamily: 'Inter',
-    fontSize: 14,
-    fontStyle: 'italic',
+    fontFamily: 'CormorantGaramond-Italic',
+    fontSize: 18,
     color: '#1A2238',
     textAlign: 'center',
-    lineHeight: 22,
+    lineHeight: 26,
+  },
+  popupSubtext: {
+    fontFamily: 'CormorantGaramond-Italic',
+    fontSize: 18,
+    color: '#FDFDF9',
+    textAlign: 'center',
+    lineHeight: 26,
   },
   doneButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
     borderRadius: 12,
     borderWidth: 0.5,
     borderColor: '#A3B3CC',
-    overflow: 'hidden',
-  },
-  doneGradient: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: 'rgba(191, 199, 217, 0.05)',
+    ...(Platform.OS === 'ios'
+      ? { elevation: 12 }
+      : { boxShadow: '0 0 12px 4px #F0D4A8' }),
   },
   doneText: {
     fontFamily: 'CormorantGaramond-Regular',
-    fontSize: 20,
+    fontSize: 24,
     color: '#F2E2B1',
-    letterSpacing: 2,
+    letterSpacing: 1,
+    textAlign: 'center',
   },
   ctaButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
     borderRadius: 12,
     borderWidth: 0.5,
     borderColor: '#A3B3CC',
-    overflow: 'hidden',
-  },
-  ctaGradient: {
-    flexDirection: 'row',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 8,
+    backgroundColor: 'rgba(191, 199, 217, 0.05)',
+    ...(Platform.OS === 'ios'
+      ? { elevation: 12 }
+      : { boxShadow: '0 0 12px 4px #F0D4A8' }),
   },
   ctaText: {
     fontFamily: 'CormorantGaramond-Regular',
