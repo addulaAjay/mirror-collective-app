@@ -67,14 +67,14 @@ const styles = StyleSheet.create({
   text: {
     fontFamily: 'Inter',
     fontSize: 14,
-    color: '#F2E2B1',
+    color: palette.gold.DEFAULT,
     fontWeight: '600',
     marginBottom: 2,
   },
   subtext: {
     fontFamily: 'Inter',
     fontSize: 12,
-    color: '#A3B3CC',
+    color: palette.navy.light,
     fontWeight: '400',
   },
 });

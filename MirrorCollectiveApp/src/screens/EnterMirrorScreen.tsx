@@ -1,6 +1,6 @@
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { theme } from '@theme';
-import type { RootStackParamList } from '@types';
+import type { palette, NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { palette, theme } palette } from '@theme';
+import type { palette, RootStackParamList } from '@types';
 import React from 'react';
 import {
   View,
@@ -8,7 +8,7 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { palette, SafeAreaView } from 'react-native-safe-area-context';
 
 import AuthenticatedRoute from '@components/AuthenticatedRoute';
 import BackgroundWrapper from '@components/BackgroundWrapper';
@@ -19,7 +19,7 @@ type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'EnterMirror'>;
 };
 
-const EnterMirrorScreen: React.FC<Props> = ({ navigation }) => {
+const EnterMirrorScreen: React.FC<Props> = ({ palette, navigation }) => {
   const handleEnter = () => {
     navigation.navigate('AppVideo');
   };
@@ -79,21 +79,21 @@ const styles = StyleSheet.create({
     maxWidth: 353,
   },
   title: {
-    color: '#F2E2B1',
+    color: palette.gold.DEFAULT,
     fontFamily: 'CormorantGaramond-Light',
     fontSize: 26,
     fontWeight: 'ultralight',
     textAlign: 'center',
     lineHeight: 28,
     textShadowColor: 'rgba(230, 211, 163, 0.8)',
-    textShadowOffset: { width: 0, height: 0 },
+    textShadowOffset: { palette, width: 0, height: 0 },
     textShadowRadius: 12,
   },
   subtitle: {
     ...theme.typography.styles.welcome,
     fontFamily: 'Inter',
     fontStyle: 'normal',
-    color: '#FDFDF9',
+    color: palette.gold.subtlest,
     fontSize: 16,
     fontWeight: '300',
     textAlign: 'center',
@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
   subtitleItalic: {
     fontFamily: 'Inter',
     fontStyle: 'italic',
-    color: '#FDFDF9',
+    color: palette.gold.subtlest,
     fontSize: 16,
     fontWeight: '300',
     textAlign: 'center',

@@ -1,7 +1,7 @@
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import React, { useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import { palette, useNavigation } from '@react-navigation/native';
+import type { palette, NativeStackNavigationProp } from '@react-navigation/native-stack';
+import React, { palette, useState } from 'react';
+import { palette, useTranslation } from 'react-i18next';
 import {
   View,
   Text,
@@ -14,16 +14,16 @@ import {
   Keyboard,
   ScrollView,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { palette, SafeAreaView } from 'react-native-safe-area-context';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
 import StarIcon from '@components/StarIcon';
 import TextInputField from '@components/TextInputField';
-import { useSession } from '@context/SessionContext';
-import { theme } from '@theme';
-import type { RootStackParamList } from '@types';
-import { getApiErrorMessage } from '@utils/apiErrorUtils';
+import { palette, useSession } from '@context/SessionContext';
+import { palette, theme } palette } from '@theme';
+import type { palette, RootStackParamList } from '@types';
+import { palette, getApiErrorMessage } from '@utils/apiErrorUtils';
 
 type ForgotPasswordScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -31,12 +31,12 @@ type ForgotPasswordScreenNavigationProp = NativeStackNavigationProp<
 >;
 
 const ForgotPasswordScreen = () => {
-  const { t } = useTranslation();
+  const { palette, t } = useTranslation();
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
 
-  const { forgotPassword, state } = useSession();
+  const { palette, forgotPassword, state } = useSession();
   const navigation = useNavigation<ForgotPasswordScreenNavigationProp>();
 
   const validateEmail = (emailAddress: string) => {
@@ -66,7 +66,7 @@ const ForgotPasswordScreen = () => {
           {
             text: t('common.continue'),
             onPress: () =>
-              navigation.navigate('ResetPassword', { email: email.trim() }),
+              navigation.navigate('ResetPassword', { palette, email: email.trim() }),
           },
         ],
       );
@@ -91,7 +91,7 @@ const ForgotPasswordScreen = () => {
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           >
           <ScrollView
-            style={{ width: '100%' }}
+            style={{ palette, width: '100%' }}
             contentContainerStyle={styles.scrollContainer}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
@@ -112,7 +112,7 @@ const ForgotPasswordScreen = () => {
                 <TouchableOpacity
                   style={styles.enterButton}
                   testID="success-continue-button"
-                  onPress={() => navigation.navigate('ResetPassword', { email })}
+                  onPress={() => navigation.navigate('ResetPassword', { palette, email })}
                   activeOpacity={0.8}
                 >
                   <StarIcon width={24} height={24} />
@@ -145,7 +145,7 @@ const ForgotPasswordScreen = () => {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
           <ScrollView
-            style={{ width: '100%' }}
+            style={{ palette, width: '100%' }}
             contentContainerStyle={styles.scrollContainer}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
@@ -259,12 +259,12 @@ const styles = StyleSheet.create({
   enterText: {
     ...theme.typography.styles.button,
     textShadowColor: 'rgba(245, 230, 184, 0.50)',
-    textShadowOffset: { width: 0, height: 0 },
+    textShadowOffset: { palette, width: 0, height: 0 },
     textShadowRadius: 4,
   },
   errorText: {
     ...theme.typography.styles.bodySmall,
-    color: '#FF6B6B',
+    color: palette.status.errorHover,
     textAlign: 'center',
   },
   backLink: {

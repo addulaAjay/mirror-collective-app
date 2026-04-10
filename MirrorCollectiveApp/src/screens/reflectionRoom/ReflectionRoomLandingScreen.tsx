@@ -16,6 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
+import { palette } from '@theme';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('screen');
 
@@ -91,12 +92,12 @@ const ReflectionRoomLandingScreen: React.FC = () => {
             />
           </View>
 
-          {/* Description: Inter 16 #fdfdf9, 317w, centered */}
+          {/* Description: Inter 16 palette.gold.subtlest, 317w, centered */}
           <Text style={styles.description}>
             {'Where awareness turns into real change.\nSmall moments. Real change. Over time.\nA quick reflection unlocks the room \nyou need right now.'}
           </Text>
 
-          {/* START: Component 2 — 104x55, r=12, border=#a3b3cc 0.5 */}
+          {/* START: Component 2 — 104x55, r=12, border=palette.navy.light 0.5 */}
           <TouchableOpacity
             style={styles.startButton}
             onPress={() => navigation.navigate('ReflectionRoomQuiz' as never)}
@@ -108,7 +109,7 @@ const ReflectionRoomLandingScreen: React.FC = () => {
           {/* Frame 95: 345x32, HORIZONTAL, gap=20, pa=CENTER — centered together */}
           <View style={styles.ambientRow}>
             <Text style={styles.ambientLabel}>Ambient Sounds</Text>
-            {/* Custom toggle: 60x32, bg=#a3b3cc, r=16, border=#808fb2 1px */}
+            {/* Custom toggle: 60x32, bg=palette.navy.light, r=16, border=palette.navy.border 1px */}
             <TouchableOpacity
               style={[styles.toggle, ambientOn && styles.toggleOn]}
               onPress={() => setAmbientOn(v => !v)}
@@ -173,7 +174,7 @@ const CONTENT_WIDTH = Math.min(screenWidth - 40, 345);
 const styles = StyleSheet.create({
   bg: {
     flex: 1,
-    backgroundColor: '#0B0F1C',
+    backgroundColor: palette.navy.deep,
   },
   bgImage: {
     resizeMode: 'cover',
@@ -203,7 +204,7 @@ const styles = StyleSheet.create({
     fontFamily: 'CormorantGaramond-Regular',
     fontSize: 32,
     fontWeight: '400',
-    color: '#F2E2B1',
+    color: palette.gold.DEFAULT,
     textAlign: 'center',
     lineHeight: 38,
     width: 217,
@@ -262,24 +263,24 @@ const styles = StyleSheet.create({
     height: 172,
   },
 
-  // Description: Inter 16 #fdfdf9, 317w, centered
+  // Description: Inter 16 palette.gold.subtlest, 317w, centered
   description: {
     fontFamily: 'Inter',
     fontSize: 16,
     fontWeight: '400',
-    color: '#FDFDF9',
+    color: palette.gold.subtlest,
     textAlign: 'center',
     lineHeight: 24,
     width: 317,
   },
 
-  // START: 104x55, r=12, border=#a3b3cc 0.5
+  // START: 104x55, r=12, border=palette.navy.light 0.5
   startButton: {
     width: 104,
     height: 55,
     borderRadius: 12,
     borderWidth: 0.5,
-    borderColor: '#a3b3cc',
+    borderColor: palette.navy.light,
     backgroundColor: 'transparent',
     justifyContent: 'center',
     alignItems: 'center',
@@ -288,7 +289,7 @@ const styles = StyleSheet.create({
     fontFamily: 'CormorantGaramond-Regular',
     fontSize: 24,
     fontWeight: '400',
-    color: '#F2E2B1',
+    color: palette.gold.DEFAULT,
     letterSpacing: 1,
   },
 
@@ -304,30 +305,30 @@ const styles = StyleSheet.create({
     fontFamily: 'CormorantGaramond-Regular',
     fontSize: 20,
     fontWeight: '400',
-    color: '#E5D6B0',
+    color: palette.gold.warm,
   },
 
-  // Custom toggle: 60x32, bg=#a3b3cc, r=16, border=#808fb2 1px, padding=4
+  // Custom toggle: 60x32, bg=palette.navy.light, r=16, border=palette.navy.border 1px, padding=4
   toggle: {
     width: 60,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#a3b3cc',
+    backgroundColor: palette.navy.light,
     borderWidth: 1,
-    borderColor: '#808fb2',
+    borderColor: palette.navy.border,
     padding: 4,
     justifyContent: 'center',
   },
   toggleOn: {
-    backgroundColor: '#c59d5f',
-    borderColor: '#c59d5f',
+    backgroundColor: palette.gold.dark,
+    borderColor: palette.gold.dark,
   },
-  // Thumb: Ellipse 1 — 24x24, #fdfdf9
+  // Thumb: Ellipse 1 — 24x24, palette.gold.subtlest
   thumb: {
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#FDFDF9',
+    backgroundColor: palette.gold.subtlest,
     alignSelf: 'flex-start',
   },
   thumbOn: {
@@ -345,9 +346,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(20, 25, 40, 0.95)',
     borderRadius: 13,
     borderWidth: 0.25,
-    borderColor: '#9BAAC2',
+    borderColor: palette.navy.muted,
     padding: 24,
-    shadowColor: '#F2E2B1',
+    shadowColor: palette.gold.DEFAULT,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.3,
     shadowRadius: 12,
@@ -361,13 +362,13 @@ const styles = StyleSheet.create({
   },
   infoCloseText: {
     fontSize: 28,
-    color: '#F2E2B1',
+    color: palette.gold.DEFAULT,
     fontWeight: '300',
   },
   infoTitle: {
     fontFamily: 'CormorantGaramond-Regular',
     fontSize: 28,
-    color: '#F2E2B1',
+    color: palette.gold.DEFAULT,
     textAlign: 'center',
     letterSpacing: 1,
     marginBottom: 16,
@@ -379,7 +380,7 @@ const styles = StyleSheet.create({
   infoBody: {
     fontFamily: 'Inter',
     fontSize: 16,
-    color: '#FFFFFF',
+    color: palette.neutral.white,
     textAlign: 'center',
     lineHeight: 24,
     marginBottom: 16,
@@ -387,7 +388,7 @@ const styles = StyleSheet.create({
   infoSub: {
     fontFamily: 'Inter-Italic',
     fontSize: 15,
-    color: '#F2E2B1',
+    color: palette.gold.DEFAULT,
     textAlign: 'center',
     lineHeight: 22,
     marginTop: 8,
@@ -401,7 +402,7 @@ const styles = StyleSheet.create({
   infoItalicLine: {
     fontFamily: 'Inter-Italic',
     fontSize: 18,
-    color: '#FFFFFF',
+    color: palette.neutral.white,
     textAlign: 'center',
     width: '100%',
     marginBottom: 16,
@@ -415,13 +416,13 @@ const styles = StyleSheet.create({
   infoBulletDot: {
     fontFamily: 'Inter',
     fontSize: 16,
-    color: '#FFFFFF',
+    color: palette.neutral.white,
     lineHeight: 24,
   },
   infoBold: {
     fontFamily: 'Inter-Bold',
     fontSize: 16,
-    color: '#FFFFFF',
+    color: palette.neutral.white,
   },
   infoNavRow: {
     flexDirection: 'row',
@@ -432,7 +433,7 @@ const styles = StyleSheet.create({
   infoArrowImg: {
     width: 28,
     height: 28,
-    tintColor: '#F2E2B1',
+    tintColor: palette.gold.DEFAULT,
   },
   infoArrowPlaceholder: {
     width: 28,

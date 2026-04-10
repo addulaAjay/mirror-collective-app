@@ -21,7 +21,7 @@ interface StarIconProps {
 const StarIcon: React.FC<StarIconProps> = ({
   width = 24,
   height = 24,
-  color = '#E5D6B0',
+  color = palette.gold.warm,
 }) => {
   // Scale to desired size while maintaining aspect ratio
   const viewBoxWidth = 33;

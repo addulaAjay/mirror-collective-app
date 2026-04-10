@@ -27,9 +27,9 @@ type MirrorSideMenuProps = {
   logoSource?: ImageSourcePropType;
 };
 
-const GOLD = '#E5D6B0';
-const PANEL = '#1E2741'; 
-const PILL_BG = '#1A2239';
+const GOLD = palette.gold.warm;
+const PANEL = palette.navy.card; 
+const PILL_BG = palette.navy.DEFAULT;
 
 const MirrorSideMenu: React.FC<MirrorSideMenuProps> = ({
   isOpen,

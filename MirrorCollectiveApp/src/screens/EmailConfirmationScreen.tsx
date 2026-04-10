@@ -1,5 +1,6 @@
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React from 'react';
+import { palette } from '@theme';
 import { useTranslation } from 'react-i18next';
 import {
   View,
@@ -72,7 +73,7 @@ const styles = StyleSheet.create({
     fontFamily: 'CormorantGaramond-Regular',
     fontSize: 28,
     lineHeight: 32,
-    color: '#F2E2B1',
+    color: palette.gold.DEFAULT,
     textAlign: 'center',
   },
   bodyText: {
@@ -80,7 +81,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '300',
     lineHeight: 24,
-    color: '#FDFDF9',
+    color: palette.gold.subtlest,
     textAlign: 'center',
   },
   helperText: {
@@ -88,7 +89,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '300',
     lineHeight: 20,
-    color: '#FDFDF9',
+    color: palette.gold.subtlest,
     textAlign: 'center',
   },
   button: {
@@ -96,7 +97,7 @@ const styles = StyleSheet.create({
     width: '100%',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#A3B3CC',
+    borderColor: palette.navy.light,
     paddingVertical: 14,
     alignItems: 'center',
     backgroundColor: 'rgba(253, 253, 249, 0.05)',
@@ -105,7 +106,7 @@ const styles = StyleSheet.create({
     fontFamily: 'CormorantGaramond-Regular',
     fontSize: 22,
     lineHeight: 28,
-    color: '#F2E2B1',
+    color: palette.gold.DEFAULT,
   },
 });
 

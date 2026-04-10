@@ -1,13 +1,8 @@
-import {
-  COLORS,
-  SHADOWS,
-  SPACING,
-  SCREEN_DIMENSIONS,
-} from '@constants';
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '@types';
-import React, { useMemo } from 'react';
+import { palette, spacing, shadows } palette } from '@theme';
+import { palette, useNavigation } from '@react-navigation/native';
+import type { palette, NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { palette, RootStackParamList } from '@types';
+import React, { palette, useMemo } from 'react';
 import {
   View,
   Text,
@@ -20,7 +15,7 @@ import {
   ScrollView,
   Modal,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { palette, SafeAreaView } from 'react-native-safe-area-context';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
@@ -37,7 +32,7 @@ const COPY =
 
 export function MirrorEchoContent() {
   const navigation = useNavigation<MirrorEchoNavigationProp>();
-  const { width, height } = useWindowDimensions();
+  const { palette, width, height } = useWindowDimensions();
   const [showInfoOverlay, setShowInfoOverlay] = React.useState(false);
 
   const scale = useMemo(() => {
@@ -47,7 +42,7 @@ export function MirrorEchoContent() {
   }, [width]);
 
   const cardMaxWidth = useMemo(
-    () => Math.min(width - SPACING.XL * 2, 440),
+    () => Math.min(width - spacing.l * 2, 440),
     [width],
   );
 
@@ -122,7 +117,7 @@ export function MirrorEchoContent() {
                 activeOpacity={0.9}
                 style={[
                   styles.primaryButton,
-                  { width: buttonWidth, height: buttonHeight },
+                  { palette, width: buttonWidth, height: buttonHeight },
                 ]}
               >
                 <Text style={styles.ctaText}>START ECHO</Text>
@@ -133,7 +128,7 @@ export function MirrorEchoContent() {
                 activeOpacity={0.9}
                 style={[
                   styles.secondaryButton,
-                  { width: buttonWidth, height: buttonHeight },
+                  { palette, width: buttonWidth, height: buttonHeight },
                 ]}
               >
                 <Text style={styles.ctaText}>VIEW VAULT</Text>
@@ -223,7 +218,7 @@ const styles = StyleSheet.create({
   scroll: {
     flex: 1,
     width: '100%',
-    paddingHorizontal: SPACING.XL,
+    paddingHorizontal: spacing.l,
   },
 
   scrollContent: {
@@ -234,12 +229,12 @@ const styles = StyleSheet.create({
 
   card: {
     width: '100%',
-    borderRadius: SPACING.LG,
-    paddingHorizontal: SPACING.XL,
+    borderRadius: spacing.m,
+    paddingHorizontal: spacing.l,
     paddingTop: 10,
-    paddingBottom: SPACING.XL,
+    paddingBottom: spacing.l,
     alignSelf: 'center',
-    ...SHADOWS.LIGHT,
+    ...shadows.LIGHT,
   },
 
   titleRow: {
@@ -252,13 +247,13 @@ const styles = StyleSheet.create({
   },
 
   title: {
-    color: '#F5E6B8',
+    color: palette.gold.DEFAULT,
     letterSpacing: 0.3,
     fontFamily: 'CormorantGaramond-Regular',
     fontWeight: '400',
     textAlign: 'center',
-    textShadowColor: '#E5D6B0',
-    textShadowOffset: { width: 0, height: 0 },
+    textShadowColor: palette.gold.warm,
+    textShadowOffset: { palette, width: 0, height: 0 },
     textShadowRadius: 20,
     paddingRight: 38,
     lineHeight: 28,
@@ -296,8 +291,8 @@ const styles = StyleSheet.create({
   echoImage: {
     alignSelf: 'center',
     maxWidth: 300,
-    shadowColor: '#E5D6B0',
-    shadowOffset: { width: 0, height: 0 },
+    shadowColor: palette.gold.warm,
+    shadowOffset: { palette, width: 0, height: 0 },
     shadowRadius: 40,
   },
 
@@ -311,7 +306,7 @@ const styles = StyleSheet.create({
   copyText: {
     fontFamily: 'Inter-Light',
     fontWeight: '300',
-    color: '#FDFDF9',
+    color: palette.gold.subtlest,
     textAlign: 'center',
     fontSize: 16,
   },
@@ -332,8 +327,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     ...Platform.select({
       ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 10 },
+        shadowColor: palette.neutral.black,
+        shadowOffset: { palette, width: 0, height: 10 },
         shadowOpacity: 0.35,
         shadowRadius: 14,
         elevation: 6,
@@ -358,11 +353,11 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontStyle: 'normal',
     fontWeight: '400',
-    color: '#F2E2B1',
+    color: palette.gold.DEFAULT,
     textAlign: 'center',
     lineHeight: 31.2,
     textShadowColor: 'rgba(229, 214, 176, 0.50)',
-    textShadowOffset: { width: 0, height: 0 },
+    textShadowOffset: { palette, width: 0, height: 0 },
     textShadowRadius: 9,
     includeFontPadding: false,
   },
@@ -373,7 +368,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(11, 15, 28, 0.92)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: SPACING.XL,
+    padding: spacing.l,
   },
 
   infoCard: {
@@ -381,19 +376,19 @@ const styles = StyleSheet.create({
     maxWidth: 440,
     maxHeight: '80%',
     backgroundColor: 'rgba(21, 28, 47, 0.95)',
-    borderRadius: SPACING.LG,
+    borderRadius: spacing.m,
     borderWidth: 1,
     borderColor: 'rgba(229, 214, 176, 0.25)',
-    padding: SPACING.XL,
-    ...SHADOWS.LIGHT,
+    padding: spacing.l,
+    ...shadows.LIGHT,
   },
 
   infoHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: SPACING.LG,
-    paddingBottom: SPACING.MD,
+    marginBottom: spacing.m,
+    paddingBottom: spacing.s,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(229, 214, 176, 0.15)',
   },
@@ -401,7 +396,7 @@ const styles = StyleSheet.create({
   infoTitle: {
     fontFamily: 'CormorantGaramond-Regular',
     fontSize: 24,
-    color: '#F5E6B8',
+    color: palette.gold.DEFAULT,
     letterSpacing: 1.2,
   },
 
@@ -428,16 +423,16 @@ const styles = StyleSheet.create({
   },
 
   infoScrollContent: {
-    paddingBottom: SPACING.MD,
+    paddingBottom: spacing.s,
   },
 
   infoSectionTitle: {
     fontFamily: 'CormorantGaramond-Medium',
     fontSize: 18,
-    color: '#D7C08A',
+    color: palette.gold.mid,
     letterSpacing: 0.8,
-    marginTop: SPACING.LG,
-    marginBottom: SPACING.SM,
+    marginTop: spacing.m,
+    marginBottom: spacing.xs,
   },
 
   infoText: {
@@ -445,11 +440,11 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: 'rgba(253, 253, 249, 0.85)',
     lineHeight: 22,
-    marginBottom: SPACING.SM,
+    marginBottom: spacing.xs,
   },
 
   infoBold: {
     fontFamily: 'CormorantGaramond-Medium',
-    color: '#D7C08A',
+    color: palette.gold.mid,
   },
 });

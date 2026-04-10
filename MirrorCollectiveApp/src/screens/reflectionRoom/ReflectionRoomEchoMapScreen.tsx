@@ -1,3 +1,4 @@
+import { palette } from '@theme';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '@types';
@@ -246,7 +247,7 @@ export default ReflectionRoomEchoMapScreen;
 const styles = StyleSheet.create({
   bg: {
     flex: 1,
-    backgroundColor: '#0B0F1C',
+    backgroundColor: palette.navy.deep,
   },
   bgImage: {
     resizeMode: 'cover',
@@ -275,12 +276,12 @@ const styles = StyleSheet.create({
   },
   backArrow: {
     fontSize: 24,
-    color: '#F2E2B1',
+    color: palette.gold.DEFAULT,
   },
   title: {
     fontFamily: 'CormorantGaramond-Regular',
     fontSize: 32,
-    color: '#F2E2B1',
+    color: palette.gold.DEFAULT,
     textAlign: 'center',
     letterSpacing: 1,
     flex: 1,
@@ -294,12 +295,12 @@ const styles = StyleSheet.create({
   },
   infoIcon: {
     fontSize: 20,
-    color: '#F2E2B1',
+    color: palette.gold.DEFAULT,
   },
   subtitle: {
     fontFamily: 'Inter',
     fontSize: 16,
-    color: '#FDFDF9',
+    color: palette.gold.subtlest,
     textAlign: 'center',
     lineHeight: 24,
     marginBottom: Math.max(24, screenHeight * 0.03),
@@ -327,7 +328,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#1a2238',
+    backgroundColor: palette.navy.DEFAULT,
     overflow: 'hidden',
   },
   echoNodeCustom: {
@@ -345,7 +346,7 @@ const styles = StyleSheet.create({
     padding: 8,
     borderRadius: 8,
     borderWidth: 0.25,
-    borderColor: '#A3B3CC',
+    borderColor: palette.navy.light,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 4,
@@ -354,7 +355,7 @@ const styles = StyleSheet.create({
   popupText: {
     fontFamily: 'Inter-SemiBold',
     fontSize: 13,
-    color: '#FFFFFF',
+    color: palette.neutral.white,
     textAlign: 'center',
     lineHeight: 18,
     marginTop: 4,
@@ -365,14 +366,14 @@ const styles = StyleSheet.create({
   echoNodeText: {
     fontFamily: 'CormorantGaramond-Regular',
     fontSize: 16,
-    color: '#FFFFFF',
+    color: palette.neutral.white,
     textAlign: 'center',
     lineHeight: 20,
   },
   tagline: {
     fontFamily: 'CormorantGaramond-Italic',
     fontSize: 20,
-    color: '#FDFDF9',
+    color: palette.gold.subtlest,
     textAlign: 'center',
     lineHeight: 28,
     marginBottom: Math.max(24, screenHeight * 0.03),
@@ -383,7 +384,7 @@ const styles = StyleSheet.create({
     height: 56,
     backgroundColor: 'rgba(253,253,249,0.15)',
     borderWidth: 0.5,
-    borderColor: '#a3b3cc',
+    borderColor: palette.navy.light,
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
@@ -392,7 +393,7 @@ const styles = StyleSheet.create({
   ctaText: {
     fontFamily: 'CormorantGaramond-Regular',
     fontSize: 22,
-    color: '#F2E2B1',
+    color: palette.gold.DEFAULT,
     letterSpacing: 1,
   },
   secondaryButton: {
@@ -400,7 +401,7 @@ const styles = StyleSheet.create({
     height: 56,
     backgroundColor: 'transparent',
     borderWidth: 0.5,
-    borderColor: '#a3b3cc',
+    borderColor: palette.navy.light,
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
@@ -408,13 +409,13 @@ const styles = StyleSheet.create({
   secondaryText: {
     fontFamily: 'CormorantGaramond-Regular',
     fontSize: 22,
-    color: '#a3b3cc',
+    color: palette.navy.light,
     letterSpacing: 1,
   },
   backArrowImg: {
     width: 24,
     height: 24,
-    tintColor: '#F2E2B1',
+    tintColor: palette.gold.DEFAULT,
   },
   infoOverlay: {
     ...StyleSheet.absoluteFillObject,
@@ -428,9 +429,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(20, 25, 40, 0.95)',
     borderRadius: 13,
     borderWidth: 0.25,
-    borderColor: '#9BAAC2',
+    borderColor: palette.navy.muted,
     padding: 24,
-    shadowColor: '#F2E2B1',
+    shadowColor: palette.gold.DEFAULT,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.3,
     shadowRadius: 12,
@@ -444,13 +445,13 @@ const styles = StyleSheet.create({
   },
   infoCloseText: {
     fontSize: 28,
-    color: '#F2E2B1',
+    color: palette.gold.DEFAULT,
     fontWeight: '300',
   },
   infoTitle: {
     fontFamily: 'CormorantGaramond-Regular',
     fontSize: 28,
-    color: '#F2E2B1',
+    color: palette.gold.DEFAULT,
     textAlign: 'center',
     letterSpacing: 1,
     marginBottom: 16,
@@ -462,7 +463,7 @@ const styles = StyleSheet.create({
   infoBody: {
     fontFamily: 'Inter',
     fontSize: 16,
-    color: '#FFFFFF',
+    color: palette.neutral.white,
     textAlign: 'center',
     lineHeight: 24,
     marginBottom: 16,
@@ -470,7 +471,7 @@ const styles = StyleSheet.create({
   infoSub: {
     fontFamily: 'Inter-Italic',
     fontSize: 15,
-    color: '#F2E2B1',
+    color: palette.gold.DEFAULT,
     textAlign: 'center',
     lineHeight: 22,
     marginTop: 8,
@@ -484,7 +485,7 @@ const styles = StyleSheet.create({
   infoItalicLine: {
     fontFamily: 'Inter-Italic',
     fontSize: 18,
-    color: '#FFFFFF',
+    color: palette.neutral.white,
     textAlign: 'center',
     width: '100%',
     marginBottom: 16,
@@ -498,13 +499,13 @@ const styles = StyleSheet.create({
   infoBulletDot: {
     fontFamily: 'Inter',
     fontSize: 16,
-    color: '#FFFFFF',
+    color: palette.neutral.white,
     lineHeight: 24,
   },
   infoBold: {
     fontFamily: 'Inter-Bold',
     fontSize: 16,
-    color: '#FFFFFF',
+    color: palette.neutral.white,
   },
   infoNavRow: {
     flexDirection: 'row',
@@ -515,7 +516,7 @@ const styles = StyleSheet.create({
   infoArrowImg: {
     width: 28,
     height: 28,
-    tintColor: '#F2E2B1',
+    tintColor: palette.gold.DEFAULT,
   },
   infoArrowPlaceholder: {
     width: 28,

@@ -1,6 +1,7 @@
 import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useCallback, useRef, useState } from 'react';
+import { palette } from '@theme';
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Video from 'react-native-video';
@@ -44,7 +45,7 @@ const AppVideoScreen: React.FC<Props> = ({ navigation }) => {
               <ActivityIndicator
                 style={StyleSheet.absoluteFill}
                 size="large"
-                color="#E5D6B0"
+                color=palette.gold.warm
               />
             )}
             {hasError ? (
@@ -82,7 +83,7 @@ const AppVideoScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   bg: {
     flex: 1,
-    backgroundColor: '#090E1A',
+    backgroundColor: palette.navy.deep,
   },
   safe: {
     flex: 1,
@@ -118,7 +119,7 @@ const styles = StyleSheet.create({
   errorText: {
     fontFamily: 'CormorantGaramond-Italic',
     fontSize: 16,
-    color: '#A3B3CC',
+    color: palette.navy.light,
     textAlign: 'center',
   },
   nextButton: {
@@ -135,7 +136,7 @@ const styles = StyleSheet.create({
   nextText: {
     textAlign: 'center',
     fontFamily: 'CormorantGaramond-Light',
-    color: '#E5D6B0',
+    color: palette.gold.warm,
     fontSize: 20,
     fontWeight: '600',
     lineHeight: 28,

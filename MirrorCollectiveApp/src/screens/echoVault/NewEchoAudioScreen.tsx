@@ -32,7 +32,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'NewEchoAudioScreen'>;
 
 const { width: W, height: H } = Dimensions.get('window');
 
-const GOLD = '#D7C08A';
+const GOLD = palette.gold.mid;
 const OFFWHITE = 'rgba(253, 253, 249, 0.92)';
 
 const SURFACE_BORDER = 'rgba(253, 253, 249, 0.18)';
@@ -495,7 +495,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   removeText: {
-    color: '#ff6b6b',
+    color: palette.status.errorHover,
     fontSize: 14,
     textDecorationLine: 'underline',
   },

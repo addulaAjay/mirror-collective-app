@@ -1,4 +1,5 @@
 import React, { Component, ReactNode } from 'react';
+import { palette } from '@theme';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 
@@ -89,7 +90,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 24,
-    backgroundColor: '#050912',
+    backgroundColor: palette.navy.deep,
   },
   title: {
     fontSize: 24,
@@ -115,18 +116,18 @@ const styles = StyleSheet.create({
   errorTitle: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#FF6B6B',
+    color: palette.status.errorHover,
     marginBottom: 8,
   },
   errorText: {
     fontSize: 14,
-    color: '#FF6B6B',
+    color: palette.status.errorHover,
     marginBottom: 8,
     fontFamily: 'Courier',
   },
   errorStack: {
     fontSize: 10,
-    color: '#FF6B6B',
+    color: palette.status.errorHover,
     fontFamily: 'Courier',
   },
   restartButton: {

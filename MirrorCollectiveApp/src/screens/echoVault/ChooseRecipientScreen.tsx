@@ -1,3 +1,4 @@
+import { palette } from '@theme';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '@types';
@@ -28,7 +29,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'ChooseRecipientScreen'>
 
 const { width } = Dimensions.get('window');
 
-const GOLD = '#D7C08A';
+const GOLD = palette.gold.mid;
 const OFFWHITE = 'rgba(253,253,249,0.92)';
 const SUBTEXT = 'rgba(253,253,249,0.65)';
 const BORDER = 'rgba(253,253,249,0.18)';
@@ -263,7 +264,7 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
               value={notes}
               onChangeText={setNotes}
               placeholder="Write notes here"
-              placeholderTextColor="#60739F"
+              placeholderTextColor=palette.navy.medium
               multiline
               style={styles.textAreaInput}
             />
@@ -455,7 +456,7 @@ const styles = StyleSheet.create({
     }),
   },
   subLabel: {
-    color: '#60739F',
+    color: palette.navy.medium,
     fontSize: 16,
     fontStyle: 'italic',
     marginBottom: 8,
@@ -477,7 +478,7 @@ const styles = StyleSheet.create({
   inputShell: {
     borderRadius: 12,
     borderWidth: 0.5,
-    borderColor: '#60739F',
+    borderColor: palette.navy.medium,
     backgroundColor: 'rgba(253,253,249,0.04)',
     paddingHorizontal: 16,
     paddingVertical: 12,
@@ -488,7 +489,7 @@ const styles = StyleSheet.create({
     minHeight: 48,
   },
   placeholder: {
-    color: '#60739F',
+    color: palette.navy.medium,
     fontSize: 15,
   },
   selectedText: {
@@ -501,7 +502,7 @@ const styles = StyleSheet.create({
     width: '100%',
     borderRadius: 12,
     borderWidth: 0.25,
-    borderColor: '#60739F',
+    borderColor: palette.navy.medium,
     marginBottom: 12,
     height: 48,
     justifyContent: 'center',
@@ -586,7 +587,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(215,192,138,0.7)',
   },
   checkMark: {
-    color: '#1A1F2E',
+    color: palette.navy.card,
     fontSize: 10,
     fontWeight: 'bold',
     lineHeight: 13,
@@ -670,7 +671,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   dropdownContainer: {
-    backgroundColor: '#0B0F1A',
+    backgroundColor: palette.navy.deep,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: BORDER,
@@ -728,7 +729,7 @@ const styles = StyleSheet.create({
   guardianPromptCard: {
     width: '85%',
     maxWidth: 400,
-    backgroundColor: '#1A1F2E',
+    backgroundColor: palette.navy.card,
     borderRadius: 16,
     padding: 24,
     borderWidth: 1,
@@ -773,7 +774,7 @@ const styles = StyleSheet.create({
   },
   guardianPromptButtonText: {
     fontSize: 18,
-    color: '#1A1F2E',
+    color: palette.navy.card,
     fontFamily: Platform.select({
       ios: 'CormorantGaramond-Medium',
       android: 'serif',

@@ -1,4 +1,4 @@
-import { BORDER_RADIUS, COLORS, SPACING } from '@constants';
+import { palette, spacing, radius } from '@theme';
 import { useNavigation } from '@react-navigation/native';
 import LogoHeader from '@components/LogoHeader';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -242,9 +242,9 @@ const styles = StyleSheet.create<{
     fontSize: responsiveFontSize(32, 24, 40),
     fontWeight: '300',
     letterSpacing: 2,
-    color: '#E5D6B0',
+    color: palette.gold.warm,
     textAlign: 'center',
-    textShadowColor: '#E5D6B0',
+    textShadowColor: palette.gold.warm,
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 8,
     textTransform: 'uppercase',
@@ -257,7 +257,7 @@ const styles = StyleSheet.create<{
     padding: 20,
     borderRadius: 20,
     borderWidth: 0.25,
-    borderColor: '#1A2238',
+    borderColor: palette.navy.DEFAULT,
     backgroundColor: 'transparent',
     // Figma: box-shadow: 0 0 24px 8px rgba(242, 226, 177, 0.50)
     shadowColor: 'rgba(242, 226, 177, 0.5)',
@@ -287,17 +287,17 @@ const styles = StyleSheet.create<{
   regularText: {
     fontFamily: 'CormorantGaramond-Light',
     fontWeight: '300',
-    color: '#FDFDF9',
+    color: palette.gold.subtlest,
   },
   italicHighlight: {
     fontFamily: 'CormorantGaramond-MediumItalic',
     fontWeight: '300',
-    color: '#F2E2B1',
+    color: palette.gold.DEFAULT,
   },
   mediumItalicHighlight: {
     fontFamily: 'CormorantGaramond-MediumItalic',
     fontWeight: '500',
-    color: '#F2E2B1',
+    color: palette.gold.DEFAULT,
   },
   emphasis: {
     fontSize: responsiveFontSize(26, 22, 32),
@@ -310,12 +310,12 @@ const styles = StyleSheet.create<{
   emphasisText: {
     fontFamily: 'CormorantGaramond-MediumItalic',
     fontWeight: '500',
-    color: '#F2E2B1',
+    color: palette.gold.DEFAULT,
   },
   mirrorHighlight: {
     fontFamily: 'CormorantGaramond-SemiBoldItalic',
     fontWeight: '600',
-    color: '#F2E2B1',
+    color: palette.gold.DEFAULT,
   },
   buttonContainer: {
     width: '100%',
@@ -329,19 +329,19 @@ const styles = StyleSheet.create<{
     shadowOpacity: 0,
     shadowRadius: 0,
     elevation: 0,
-    borderRadius: BORDER_RADIUS.MD,
+    borderRadius: radius.s,
   },
   glassButtonContainer: {
     borderWidth: 0.5,
-    borderRadius: BORDER_RADIUS.MD,
+    borderRadius: radius.s,
   },
   glassButtonContent: {
-    paddingVertical: SPACING.MD,
-    paddingHorizontal: SPACING.XXL,
+    paddingVertical: spacing.s,
+    paddingHorizontal: spacing.xl,
     minWidth: 0,
   },
   glassButtonText: {
-    color: COLORS.PRIMARY.GOLD,
+    color: palette.gold.warm,
     fontSize: responsiveFontSize(18, 16, 20),
   },
 });

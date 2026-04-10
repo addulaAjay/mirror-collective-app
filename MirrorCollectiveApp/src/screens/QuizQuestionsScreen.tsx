@@ -1,4 +1,4 @@
-import { BORDER_RADIUS, COLORS, SPACING } from '@constants';
+import { palette, spacing, radius } from '@theme';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '@types';
@@ -97,7 +97,7 @@ const QuizQuestionsScreen = () => {
           <LogoHeader />
           <View style={styles.loadingContainer}>
             <View style={styles.loadingContent}>
-              <ActivityIndicator size="large" color="#E5D6B0" />
+              <ActivityIndicator size="large" color=palette.gold.warm />
               <Text style={styles.loadingText}>{t('quiz.quizQuestions.loading')}</Text>
             </View>
           </View>
@@ -383,7 +383,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginTop: 20,
-    color: '#E5D6B0',
+    color: palette.gold.warm,
     fontSize: 16,
     fontFamily: 'CormorantGaramond-Regular',
   },
@@ -418,12 +418,12 @@ const styles = StyleSheet.create({
     fontSize: Math.min(screenWidth * 0.061, 24), // Proportional to text size in Figma
     fontWeight: '300',
     lineHeight: Math.min(screenWidth * 0.072, 28), // Tight line height
-    color: '#E5D6B0', // Exact fill1 color from Figma
+    color: palette.gold.warm, // Exact fill1 color from Figma
     width: Math.min(screenWidth * 0.796, 313), // Match header width
     textAlign: 'center',
     marginTop: Math.max(20, screenHeight * 0.025),
     marginBottom: Math.max(20, screenHeight * 0.025),
-    textShadowColor: '#E5D6B0', // Exact effect5 glow shadow
+    textShadowColor: palette.gold.warm, // Exact effect5 glow shadow
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 8,
   },
@@ -479,19 +479,19 @@ const styles = StyleSheet.create({
     shadowOpacity: 0,
     shadowRadius: 0,
     elevation: 0,
-    borderRadius: BORDER_RADIUS.MD,
+    borderRadius: radius.s,
   },
   glassButtonContainer: {
     borderWidth: 0.5,
-    borderRadius: BORDER_RADIUS.MD,
+    borderRadius: radius.s,
   },
   glassButtonContent: {
-    paddingVertical: SPACING.MD,
-    paddingHorizontal: SPACING.XXL,
+    paddingVertical: spacing.s,
+    paddingHorizontal: spacing.xl,
     minWidth: 0,
   },
   glassButtonText: {
-    color: COLORS.PRIMARY.GOLD,
+    color: palette.gold.warm,
     fontSize: Math.min(screenWidth * 0.05, 18),
   },
 });

@@ -1,6 +1,6 @@
-import { theme } from '@theme';
-import React, { useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import { palette, theme } palette } from '@theme';
+import React, { palette, useState } from 'react';
+import { palette, useTranslation } from 'react-i18next';
 import {
   View,
   Text,
@@ -12,14 +12,14 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import Svg, { Path } from 'react-native-svg';
+import { palette, SafeAreaView } from 'react-native-safe-area-context';
+import Svg, { palette, Path } from 'react-native-svg';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
 import StarIcon from '@components/StarIcon';
 import TextInputField from '@components/TextInputField';
-import { useSession } from '@context/SessionContext';
+import { palette, useSession } from '@context/SessionContext';
 
 interface SignUpScreenProps {
   navigation: any;
@@ -49,8 +49,8 @@ const formatPhoneDisplay = (e164: string): string => {
   return `+1 (${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
 };
 
-const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
-  const { t } = useTranslation();
+const SignUpScreen = ({ palette, navigation }: SignUpScreenProps) => {
+  const { palette, t } = useTranslation();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('+1');
@@ -62,7 +62,7 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
 
   const clearError = (field: keyof FormErrors) => {
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
+      setErrors(prev => ({ palette, ...prev, [field]: '' }));
     }
   };
 
@@ -78,7 +78,7 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
   };
 
   const validateForm = (): boolean => {
-    const newErrors: FormErrors = { ...EMPTY_ERRORS };
+    const newErrors: FormErrors = { palette, ...EMPTY_ERRORS };
     let isValid = true;
 
     if (!fullName.trim()) {
@@ -167,13 +167,13 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
                     <TouchableOpacity
                       onPress={() => navigation.goBack()}
                       style={styles.backButton}
-                      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                      hitSlop={{ palette, top: 10, bottom: 10, left: 10, right: 10 }}
                       testID="back-button"
                     >
                       <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
                         <Path
                           d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
-                          fill="#F2E2B1"
+                          fill=palette.gold.DEFAULT
                         />
                       </Svg>
                     </TouchableOpacity>
@@ -407,9 +407,9 @@ const styles = StyleSheet.create({
     ...theme.typography.styles.title,
     fontSize: 32,
     lineHeight: 42,
-    color: '#F2E2B1',
-    textShadowColor: '#F0D4A8',
-    textShadowOffset: { width: 0, height: 0 },
+    color: palette.gold.DEFAULT,
+    textShadowColor: palette.gold.glow,
+    textShadowOffset: { palette, width: 0, height: 0 },
     textShadowRadius: 16,
     textAlign: 'center',
     flex: 1,
@@ -418,7 +418,7 @@ const styles = StyleSheet.create({
     ...theme.typography.styles.subtitle,
     fontSize: 24,
     lineHeight: 31,
-    color: '#FDFDF9',
+    color: palette.gold.subtlest,
     textAlign: 'center',
   },
   formSection: {
@@ -433,12 +433,12 @@ const styles = StyleSheet.create({
     ...theme.typography.styles.label,
     fontSize: 20,
     lineHeight: 26,
-    color: '#FDFDF9',
+    color: palette.gold.subtlest,
     paddingLeft: 2,
   },
   errorText: {
     ...theme.typography.styles.bodySmall,
-    color: '#FF6B6B',
+    color: palette.status.errorHover,
     marginTop: -4,
     paddingLeft: 2,
   },
@@ -453,9 +453,9 @@ const styles = StyleSheet.create({
     ...theme.typography.styles.title,
     fontSize: 28,
     lineHeight: 36,
-    color: '#F2E2B1',
+    color: palette.gold.DEFAULT,
     textShadowColor: 'rgba(242, 226, 177, 0.5)',
-    textShadowOffset: { width: 0, height: 0 },
+    textShadowOffset: { palette, width: 0, height: 0 },
     textShadowRadius: 24,
   },
 });

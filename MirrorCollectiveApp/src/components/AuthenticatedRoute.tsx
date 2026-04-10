@@ -68,7 +68,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#1B1B1D',
+    backgroundColor: palette.navy.DEFAULT,
     gap: 20,
   },
   loadingText: {

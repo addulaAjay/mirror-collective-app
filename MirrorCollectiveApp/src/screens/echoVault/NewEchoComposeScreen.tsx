@@ -1,3 +1,4 @@
+import { palette } from '@theme';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '@types';
 import React, { useState, useMemo } from 'react';
@@ -34,7 +35,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'NewEchoComposeScreen'>;
 
 const { width: W } = Dimensions.get('window');
 
-const GOLD = '#D7C08A';
+const GOLD = palette.gold.mid;
 const OFFWHITE = 'rgba(253, 253, 249, 0.92)';
 const SURFACE_BORDER = 'rgba(253, 253, 249, 0.18)';
 const SURFACE_BORDER_2 = 'rgba(253, 253, 249, 0.08)';
@@ -438,7 +439,7 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
                     value={message}
                     onChangeText={setMessage}
                     placeholder="Write message here"
-                    placeholderTextColor="#60739F"
+                    placeholderTextColor=palette.navy.medium
                     style={styles.bigTextInput}
                     multiline
                     textAlignVertical="top"
@@ -828,7 +829,7 @@ const styles = StyleSheet.create({
   },
 
   smallLabel: {
-    color: '#F2E2B1',
+    color: palette.gold.DEFAULT,
     fontFamily: Platform.select({
       ios: 'CormorantGaramond-Medium',
       android: 'serif',
@@ -844,7 +845,7 @@ const styles = StyleSheet.create({
     flex: 1,
     borderRadius: 12,
     borderWidth: 0.5,
-    borderColor: '#A3B3CC',
+    borderColor: palette.navy.light,
     minHeight: 120,
     overflow: 'hidden',
     width: '100%',
@@ -908,7 +909,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     borderRadius: 12,
     borderWidth: 0.5,
-    borderColor: '#A3B3CC',
+    borderColor: palette.navy.light,
     // paddingVertical: 12,
     // paddingHorizontal: 16,
     alignItems: 'center',
@@ -916,7 +917,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   saveActionText: {
-    color: '#F2E2B1',
+    color: palette.gold.DEFAULT,
     textAlign: 'center',
     textShadowColor: 'rgba(229, 214, 176, 0.50)',
     textShadowOffset: { width: 0, height: 0 },
@@ -939,7 +940,7 @@ const styles = StyleSheet.create({
     minHeight: 48,
     borderRadius: 12,
     borderWidth: 0.5,
-    borderColor: '#A3B3CC',
+    borderColor: palette.navy.light,
     // paddingVertical: 12,
     // paddingHorizontal: 16,
     alignItems: 'center',
@@ -947,7 +948,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   pillText: {
-    color: '#F2E2B1',
+    color: palette.gold.DEFAULT,
     textAlign: 'center',
     textShadowColor: 'rgba(229, 214, 176, 0.50)',
     textShadowOffset: { width: 0, height: 0 },
@@ -1002,14 +1003,14 @@ const styles = StyleSheet.create({
     height: 72,
     borderRadius: 36,
     borderWidth: 0.2,
-    borderColor: '#9BAAC2',
+    borderColor: palette.navy.muted,
     backgroundColor: 'rgba(242, 226, 177, 0.06)',
     alignItems: 'center',
     justifyContent: 'center',
     ...Platform.select({
       ios: {
         // iOS uses shadowColor for blur glow
-        shadowColor: '#F2E2B1',
+        shadowColor: palette.gold.DEFAULT,
         shadowOffset: { width: 0, height: 0 },
         shadowOpacity: 0.5,
         shadowRadius: 24,
@@ -1077,7 +1078,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   modalItemCancel: {
-    color: '#ff6b6b',
+    color: palette.status.errorHover,
     fontSize: 15,
     textAlign: 'center',
   },
@@ -1101,7 +1102,7 @@ const styles = StyleSheet.create({
     }),
   },
   removeMediaText: {
-    color: '#ff6b6b',
+    color: palette.status.errorHover,
     fontSize: 14,
     textDecorationLine: 'underline',
     marginTop: 8,

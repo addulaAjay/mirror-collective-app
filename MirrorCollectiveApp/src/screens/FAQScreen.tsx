@@ -1,5 +1,6 @@
 // FAQScreen.tsx
 import React from 'react';
+import { palette } from '@theme';
 import {
   View,
   Text,
@@ -17,8 +18,8 @@ import { useNavigation } from '@react-navigation/native';
 import BackgroundWrapper from '../components/BackgroundWrapper';
 import LogoHeader from '../components/LogoHeader';
 
-const GOLD = '#E5D6B0';
-const WHITE = '#FFFFFF';
+const GOLD = palette.gold.warm;
+const WHITE = palette.neutral.white;
 
 if (
   Platform.OS === 'android' &&

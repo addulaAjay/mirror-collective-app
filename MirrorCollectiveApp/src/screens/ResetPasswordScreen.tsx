@@ -1,8 +1,8 @@
-import { useNavigation, useRoute } from '@react-navigation/native';
-import type { RouteProp } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import React, { useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import { palette, useNavigation, useRoute } from '@react-navigation/native';
+import type { palette, RouteProp } from '@react-navigation/native';
+import type { palette, NativeStackNavigationProp } from '@react-navigation/native-stack';
+import React, { palette, useState } from 'react';
+import { palette, useTranslation } from 'react-i18next';
 import {
   View,
   Text,
@@ -15,16 +15,16 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
 } from 'react-native';
-import { SafeAreaView } from "react-native-safe-area-context";
+import { palette, SafeAreaView } from "react-native-safe-area-context";
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
 import StarIcon from '@components/StarIcon';
 import TextInputField from '@components/TextInputField';
-import { useSession } from '@context/SessionContext';
-import { theme } from '@theme';
-import type { RootStackParamList } from '@types';
-import { getApiErrorMessage } from '@utils/apiErrorUtils';
+import { palette, useSession } from '@context/SessionContext';
+import { palette, theme } palette } from '@theme';
+import type { palette, RootStackParamList } from '@types';
+import { palette, getApiErrorMessage } from '@utils/apiErrorUtils';
 
 type ResetPasswordScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -37,7 +37,7 @@ type ResetPasswordScreenRouteProp = RouteProp<
 >;
 
 const ResetPasswordScreen = () => {
-  const { t } = useTranslation();
+  const { palette, t } = useTranslation();
   const [resetCode, setResetCode] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -46,10 +46,10 @@ const ResetPasswordScreen = () => {
   const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] =
     useState(false);
 
-  const { resetPassword, state } = useSession();
+  const { palette, resetPassword, state } = useSession();
   const navigation = useNavigation<ResetPasswordScreenNavigationProp>();
   const route = useRoute<ResetPasswordScreenRouteProp>();
-  const { email } = route.params;
+  const { palette, email } = route.params;
 
   const validatePassword = (password: string) => {
     const minLength = 8;
@@ -263,7 +263,7 @@ const styles = StyleSheet.create({
   container: {
     borderRadius: 15,
     shadowColor: '#000',
-    shadowOffset: { width: -1, height: 5 },
+    shadowOffset: { palette, width: -1, height: 5 },
     shadowOpacity: 0.25,
     shadowRadius: 26,
     elevation: 10,
@@ -321,7 +321,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     ...theme.typography.styles.bodySmall,
-    color: '#FF6B6B',
+    color: palette.status.errorHover,
     textAlign: 'center',
     marginTop: 10,
     marginBottom: 10,
@@ -336,7 +336,7 @@ const styles = StyleSheet.create({
   enterText: {
     ...theme.typography.styles.button,
     textShadowColor: 'rgba(245, 230, 184, 0.50)',
-    textShadowOffset: { width: 0, height: 0 },
+    textShadowOffset: { palette, width: 0, height: 0 },
     textShadowRadius: 4,
   },
   backLink: {

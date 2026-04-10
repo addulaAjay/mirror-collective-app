@@ -112,7 +112,7 @@ const LogoHeader = ({
               hitSlop={12}
               style={styles.homeButton}
             >
-              <HomeIcon width={24} height={24} color="#E5D6B0" />
+              <HomeIcon width={24} height={24} color=palette.gold.warm />
             </Pressable>
           )}
         </View>
@@ -128,7 +128,7 @@ const lhNormal = Math.min(Math.max(screenWidth * 0.045, 16), 18);
 const baseText = {
   fontSize: fs,
   textAlign: 'center',
-  color: '#E5D6B0',
+  color: palette.gold.warm,
   textShadowOffset: { width: 0, height: 4 },
   textShadowRadius: 9,
   textShadowColor: 'rgba(0,0,0,0.25)',
@@ -185,7 +185,7 @@ const styles = StyleSheet.create({
   hamLine: {
     height: 2,
     borderRadius: 2,
-    backgroundColor: '#E5D6B0',
+    backgroundColor: palette.gold.warm,
     opacity: 0.9,
   },
   container: {

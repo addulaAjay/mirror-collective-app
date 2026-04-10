@@ -1,3 +1,4 @@
+import { palette } from '@theme';
 import React, { useState } from 'react';
 import {
   Dimensions,
@@ -75,7 +76,7 @@ const ProfileScreen: React.FC = () => {
                   <Svg width="120" height="120" viewBox="0 0 60 50" fill="none">
                     <Path
                       d="M30 30C37.18 30 43 24.18 43 17C43 9.82 37.18 4 30 4C22.82 4 17 9.82 17 17C17 24.18 22.82 30 30 30ZM30 37C21.33 37 4 41.34 4 50V56H56V50C56 41.34 38.67 37 30 37Z"
-                      fill="#A3B3CC"
+                      fill=palette.navy.light
                     />
                   </Svg>
                 </View>
@@ -84,7 +85,7 @@ const ProfileScreen: React.FC = () => {
                   <Svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                     <Path
                       d="M10 4V16M4 10H16"
-                      stroke="#0B0F1C"
+                      stroke=palette.navy.deep
                       strokeWidth="2"
                       strokeLinecap="round"
                     />
@@ -178,7 +179,7 @@ const ProfileScreen: React.FC = () => {
 const styles = StyleSheet.create({
   bg: {
     flex: 1,
-    backgroundColor: '#0B0F1C',
+    backgroundColor: palette.navy.deep,
   },
   bgImage: {
     resizeMode: 'cover',
@@ -212,9 +213,9 @@ const styles = StyleSheet.create({
     fontSize: Math.min(screenWidth * 0.082, 32),
     fontWeight: '400',
     lineHeight: Math.min(screenWidth * 0.082 * 1.3, 41.6),
-    color: '#F2E2B1',
+    color: palette.gold.DEFAULT,
     textAlign: 'center',
-    textShadowColor: '#E5D6B0',
+    textShadowColor: palette.gold.warm,
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 10,
     letterSpacing: 4,
@@ -224,7 +225,7 @@ const styles = StyleSheet.create({
     fontSize: Math.min(screenWidth * 0.041, 16),
     fontWeight: '300',
     lineHeight: 24,
-    color: '#FDFDF9',
+    color: palette.gold.subtlest,
     textAlign: 'center',
     alignSelf: 'stretch',
   },
@@ -241,7 +242,7 @@ const styles = StyleSheet.create({
     height: 120,
     aspectRatio: 1 / 1,
     borderRadius: 100,
-    backgroundColor: '#7B8FA6',
+    backgroundColor: palette.navy.light,
     justifyContent: 'center',
     alignItems: 'center',
     overflow: 'hidden',
@@ -253,11 +254,11 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#A3B3CC',
+    backgroundColor: palette.navy.light,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 3,
-    borderColor: '#0B0F1C',
+    borderColor: palette.navy.deep,
   },
   formSection: {
     width: '100%',
@@ -272,11 +273,11 @@ const styles = StyleSheet.create({
     fontFamily: 'CormorantGaramond-Light',
     fontSize: 20,
     fontWeight: '300',
-    color: '#F2E2B1',
+    color: palette.gold.DEFAULT,
     paddingLeft: 4,
   },
   customPlaceholder: {
-    color: '#A3B3CC',
+    color: palette.navy.light,
     fontFamily: 'CormorantGaramond-Italic',
     fontSize: 20,
     fontWeight: '400',
@@ -286,7 +287,7 @@ const styles = StyleSheet.create({
     marginTop: 24,
     borderRadius: 12,
     borderWidth: 0.5,
-    borderColor: '#A3B3CC',
+    borderColor: palette.navy.light,
     overflow: 'hidden',
     alignSelf: 'center',
   },
@@ -302,7 +303,7 @@ const styles = StyleSheet.create({
     fontFamily: 'CormorantGaramond-Medium',
     fontSize: 24,
     fontWeight: '500',
-    color: '#E5D6B0',
+    color: palette.gold.warm,
     textShadowColor: 'rgba(229, 214, 176, 0.5)',
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 8,

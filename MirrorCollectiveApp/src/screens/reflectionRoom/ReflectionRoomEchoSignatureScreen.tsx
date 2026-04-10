@@ -1,3 +1,4 @@
+import { palette } from '@theme';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '@types';
@@ -123,7 +124,7 @@ const ReflectionRoomEchoSignatureScreen: React.FC = () => {
         <Pressable style={styles.popupOverlay} onPress={() => setSelectedCard(null)}>
           <View style={styles.popupContent} onStartShouldSetResponder={() => true}>
             <LinearGradient
-              colors={['#F0D4A8', '#E2AE5A']}
+              colors={[palette.gold.glow, palette.gold.amber]}
               start={{ x: 0.5, y: 0 }}
               end={{ x: 0.5, y: 1 }}
               style={styles.popupCard}
@@ -164,7 +165,7 @@ export default ReflectionRoomEchoSignatureScreen;
 const styles = StyleSheet.create({
   bg: {
     flex: 1,
-    backgroundColor: '#0B0F1C',
+    backgroundColor: palette.navy.deep,
   },
   bgImage: {
     resizeMode: 'cover',
@@ -194,12 +195,12 @@ const styles = StyleSheet.create({
   backArrowImg: {
     width: 24,
     height: 24,
-    tintColor: '#F2E2B1',
+    tintColor: palette.gold.DEFAULT,
   },
   title: {
     fontFamily: 'CormorantGaramond-Regular',
     fontSize: 32,
-    color: '#F2E2B1',
+    color: palette.gold.DEFAULT,
     textAlign: 'center',
     letterSpacing: 1,
     flex: 1,
@@ -208,7 +209,7 @@ const styles = StyleSheet.create({
   subtitle: {
     fontFamily: 'Inter',
     fontSize: 16,
-    color: '#FDFDF9',
+    color: palette.gold.subtlest,
     textAlign: 'center',
     lineHeight: 24,
     marginBottom: Math.max(24, screenHeight * 0.03),
@@ -222,9 +223,9 @@ const styles = StyleSheet.create({
   practiceCard: {
     width: '100%',
     borderWidth: 0.5,
-    borderColor: '#A3B3CC',
+    borderColor: palette.navy.light,
     borderRadius: 13,
-    backgroundColor: '#1a2238',
+    backgroundColor: palette.navy.DEFAULT,
     flexDirection: 'column',
     alignItems: 'flex-start',
     paddingVertical: 20,
@@ -247,14 +248,14 @@ const styles = StyleSheet.create({
   cardLabel: {
     fontFamily: 'CormorantGaramond-Regular',
     fontSize: 24,
-    color: '#F2E2B1',
+    color: palette.gold.DEFAULT,
     letterSpacing: 1,
   },
   cardSubtitle: {
     fontFamily: 'Inter',
     fontSize: 15,
     fontStyle: 'italic',
-    color: '#FDFDF9',
+    color: palette.gold.subtlest,
     lineHeight: 22,
   },
   popupOverlay: {
@@ -276,7 +277,7 @@ const styles = StyleSheet.create({
     borderRadius: 13,
     alignItems: 'center',
     gap: 8,
-    shadowColor: '#F2E2B1',
+    shadowColor: palette.gold.DEFAULT,
     shadowOffset: { width: 2, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 32,
@@ -285,7 +286,7 @@ const styles = StyleSheet.create({
   popupTitle: {
     fontFamily: 'CormorantGaramond-Regular',
     fontSize: 22,
-    color: '#1A2238',
+    color: palette.navy.DEFAULT,
     letterSpacing: 1,
     textAlign: 'center',
   },
@@ -297,14 +298,14 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter',
     fontSize: 14,
     fontStyle: 'italic',
-    color: '#1A2238',
+    color: palette.navy.DEFAULT,
     textAlign: 'center',
     lineHeight: 22,
   },
   doneButton: {
     borderRadius: 12,
     borderWidth: 0.5,
-    borderColor: '#A3B3CC',
+    borderColor: palette.navy.light,
     overflow: 'hidden',
   },
   doneGradient: {
@@ -316,13 +317,13 @@ const styles = StyleSheet.create({
   doneText: {
     fontFamily: 'CormorantGaramond-Regular',
     fontSize: 20,
-    color: '#F2E2B1',
+    color: palette.gold.DEFAULT,
     letterSpacing: 2,
   },
   ctaButton: {
     borderRadius: 12,
     borderWidth: 0.5,
-    borderColor: '#A3B3CC',
+    borderColor: palette.navy.light,
     overflow: 'hidden',
   },
   ctaGradient: {
@@ -336,7 +337,7 @@ const styles = StyleSheet.create({
   ctaText: {
     fontFamily: 'CormorantGaramond-Regular',
     fontSize: 24,
-    color: '#F2E2B1',
+    color: palette.gold.DEFAULT,
     letterSpacing: 2,
   },
 });

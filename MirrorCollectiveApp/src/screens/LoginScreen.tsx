@@ -1,6 +1,6 @@
-import { theme } from '@theme';
-import React, { useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import { palette, theme } palette } from '@theme';
+import React, { palette, useEffect, useState } from 'react';
+import { palette, useTranslation } from 'react-i18next';
 import {
   View,
   Text,
@@ -13,31 +13,31 @@ import {
   Keyboard,
   ScrollView,
 } from 'react-native';
-import Svg, { Mask, Rect, G, Path } from 'react-native-svg';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import Svg, { palette, Mask, Rect, G, Path } from 'react-native-svg';
+import { palette, SafeAreaView } from 'react-native-safe-area-context';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
 import StarIcon from '@components/StarIcon';
 import TextInputField from '@components/TextInputField';
-import { useSession } from '@context/SessionContext';
-import { useUser } from '@context/UserContext';
-import { quizApiService } from '@services/api';
-import { QuizStorageService } from '@services/quizStorageService';
-import type { LoginScreenProps } from '@types';
-import { getApiErrorMessage } from '@utils/apiErrorUtils';
+import { palette, useSession } from '@context/SessionContext';
+import { palette, useUser } from '@context/UserContext';
+import { palette, quizApiService } from '@services/api';
+import { palette, QuizStorageService } from '@services/quizStorageService';
+import type { palette, LoginScreenProps } from '@types';
+import { palette, getApiErrorMessage } from '@utils/apiErrorUtils';
 
-const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
-  const { t } = useTranslation();
+const LoginScreen: React.FC<LoginScreenProps> = ({ palette, navigation }) => {
+  const { palette, t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
-  const { signIn, state } = useSession();
-  const { setUser } = useUser();
-  const { isAuthenticated } = state;
+  const { palette, signIn, state } = useSession();
+  const { palette, setUser } = useUser();
+  const { palette, isAuthenticated } = state;
 
   useEffect(() => {
     // If authenticated, navigation will be handled by AppNavigator
@@ -109,7 +109,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
         <SafeAreaView style={styles.safe}>
           <LogoHeader />
           <ScrollView
-            style={{ width: '100%' }}
+            style={{ palette, width: '100%' }}
             contentContainerStyle={styles.scrollContainer}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
@@ -235,7 +235,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     ...theme.typography.styles.bodySmall,
-    color: '#FF6B6B',
+    color: palette.status.errorHover,
     textAlign: 'center',
     marginTop: -8,
   },
@@ -245,7 +245,7 @@ const styles = StyleSheet.create({
   },
   forgotPasswordText: {
     ...theme.typography.styles.linkSmall,
-    color: '#A3B3CC',
+    color: palette.navy.light,
     textDecorationLine: 'none',
   },
   enterButton: {
@@ -257,7 +257,7 @@ const styles = StyleSheet.create({
   },
   enterText: {
     ...theme.typography.styles.button,
-    color: '#E5D6B0',
+    color: palette.gold.warm,
     fontSize: 20,
     fontWeight: '600',
   },
@@ -269,7 +269,7 @@ const styles = StyleSheet.create({
   },
   signupText: {
     ...theme.typography.styles.bodyItalic,
-    color: '#FDFDF9',
+    color: palette.gold.subtlest,
     opacity: 0.6,
     textAlign: 'center',
   },

@@ -20,8 +20,8 @@ interface MotifSelectionModalProps {
   onSelect: (motifId: string) => void;
 }
 
-const LIGHT_GOLD = '#f2e2b1';
-const BLUE_GREY = '#a3b3cc';
+const LIGHT_GOLD = palette.gold.DEFAULT;
+const BLUE_GREY = palette.navy.light;
 
 const MotifSelectionModal: React.FC<MotifSelectionModalProps> = ({
   visible,
@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
     borderColor: BLUE_GREY,
     padding: 24,
     alignItems: 'center',
-    shadowColor: '#e5d6b0',
+    shadowColor: palette.gold.warm,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.3,
     shadowRadius: 15,
@@ -152,7 +152,7 @@ const styles = StyleSheet.create({
   footerText: {
     marginTop: 24,
     fontSize: 14,
-    color: '#fdfdf9', // Offwhite
+    color: palette.gold.subtlest, // Offwhite
     textAlign: 'center',
     lineHeight: 20,
     fontFamily: Platform.select({

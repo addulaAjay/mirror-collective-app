@@ -1,5 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { palette } from '@theme';
 import type { RootStackParamList } from '@types';
 import React, { useMemo } from 'react';
 import {
@@ -79,7 +80,7 @@ export default ReflectionRoomTodaysMotifScreen;
 const styles = StyleSheet.create({
   bg: {
     flex: 1,
-    backgroundColor: '#0B0F1C',
+    backgroundColor: palette.navy.deep,
   },
   bgImage: {
     resizeMode: 'cover',
@@ -100,7 +101,7 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: '400',
     lineHeight: 36,
-    color: '#F2E2B1',
+    color: palette.gold.DEFAULT,
     textAlign: 'center',
     letterSpacing: 4,
     marginBottom: Math.max(32, screenHeight * 0.04),
@@ -108,7 +109,7 @@ const styles = StyleSheet.create({
   motifName: {
     fontFamily: 'CormorantGaramond-Regular',
     fontSize: 42,
-    color: '#F2E2B1',
+    color: palette.gold.DEFAULT,
     textAlign: 'center',
     letterSpacing: 3,
     marginBottom: 6,
@@ -129,7 +130,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter',
     fontSize: 16,
     fontWeight: '500',
-    color: '#FDFDF9',
+    color: palette.gold.subtlest,
     textAlign: 'center',
     lineHeight: 24,
     marginBottom: Math.max(32, screenHeight * 0.04),
@@ -139,7 +140,7 @@ const styles = StyleSheet.create({
   ctaButton: {
     borderRadius: 12,
     borderWidth: 0.5,
-    borderColor: '#A3B3CC',
+    borderColor: palette.navy.light,
     overflow: 'hidden',
   },
   ctaGradient: {
@@ -153,7 +154,7 @@ const styles = StyleSheet.create({
   ctaText: {
     fontFamily: 'CormorantGaramond-Regular',
     fontSize: 24,
-    color: '#F2E2B1',
+    color: palette.gold.DEFAULT,
     letterSpacing: 2,
   },
 });

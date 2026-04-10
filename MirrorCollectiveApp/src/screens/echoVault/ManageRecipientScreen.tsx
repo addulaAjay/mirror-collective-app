@@ -1,3 +1,4 @@
+import { palette } from '@theme';
 import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '@types';
@@ -28,7 +29,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'ManageRecipientScreen'>
 
 const { width } = Dimensions.get('window');
 
-const GOLD = '#D7C08A';
+const GOLD = palette.gold.mid;
 const OFFWHITE = 'rgba(253,253,249,0.92)';
 const SUBTEXT = 'rgba(253,253,249,0.65)';
 const BORDER = 'rgba(253,253,249,0.16)';
@@ -337,13 +338,13 @@ const styles = StyleSheet.create({
     // paddingHorizontal: 4,
     borderRadius: 12,
     borderWidth: 0.5,
-    borderColor: '#A3B3CC',
+    borderColor: palette.navy.light,
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 44,
   },
   addText: {
-    color: '#E5D6B0',
+    color: palette.gold.warm,
     fontSize: 24,
     letterSpacing: 2,
     padding: 14,
@@ -377,7 +378,7 @@ const styles = StyleSheet.create({
     }),
   },
   guardianCardTitle: {
-    color: '#E5D6B0',
+    color: palette.gold.warm,
     fontSize: 16,
     fontFamily: Platform.select({
       ios: 'CormorantGaramond-Regular',
@@ -400,7 +401,7 @@ const styles = StyleSheet.create({
     borderRadius: 13,
     borderWidth: 0.25,
     minHeight: 44,
-    borderColor: '#9BAAC2',
+    borderColor: palette.navy.muted,
     alignItems: 'center',
     justifyContent: 'center',
     ...Platform.select({
@@ -416,7 +417,7 @@ const styles = StyleSheet.create({
     }),
   },
   guardianText: {
-    color: '#E5D6B0',
+    color: palette.gold.warm,
     fontSize: 20,
     letterSpacing: 1.5,
     paddingHorizontal: 10,
@@ -432,7 +433,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   errorText: {
-    color: '#ff6b6b',
+    color: palette.status.errorHover,
     fontSize: 14,
     textAlign: 'center',
     marginBottom: 12,

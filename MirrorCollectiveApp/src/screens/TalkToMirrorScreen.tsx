@@ -1,5 +1,6 @@
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React from 'react';
+import { palette } from '@theme';
 import {
   Alert,
   Image,
@@ -158,7 +159,7 @@ const styles = StyleSheet.create({
   menuLine: {
     width: 16,
     height: 2,
-    backgroundColor: '#F8EED4',
+    backgroundColor: palette.gold.subtle,
     marginVertical: 2,
   },
   menuLineShort: {
@@ -167,7 +168,7 @@ const styles = StyleSheet.create({
   greeting: {
     fontFamily: 'CormorantGaramond-Italic',
     fontSize: 28,
-    color: '#F4EFE4',
+    color: palette.gold.subtle,
     textAlign: 'center',
     marginTop: 20, // Reduced from 80 for better consistency
   },
@@ -189,7 +190,7 @@ const styles = StyleSheet.create({
     fontFamily: 'CormorantGaramond-Regular',
     fontSize: 32,
     letterSpacing: 2,
-    color: '#F2E2B1',
+    color: palette.gold.DEFAULT,
   },
   menuGrid: {
     width: '100%',
@@ -203,7 +204,7 @@ const styles = StyleSheet.create({
     minHeight: 88,
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: '#A3B3CC',
+    borderColor: palette.navy.light,
     paddingVertical: 16,
     paddingHorizontal: 12,
     marginBottom: 16,
@@ -220,7 +221,7 @@ const styles = StyleSheet.create({
     fontFamily: 'CormorantGaramond-Regular',
     fontSize: 20,
     letterSpacing: 1,
-    color: '#F2E2B1',
+    color: palette.gold.DEFAULT,
     textAlign: 'center',
     lineHeight: 24,
     width: '100%',

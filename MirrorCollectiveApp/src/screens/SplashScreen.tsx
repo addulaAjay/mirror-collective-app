@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
     fontSize: Math.min(Math.max(screenWidth * 0.08, 28), 35),
     lineHeight: Math.min(Math.max(screenWidth * 0.095, 34), 42),
     textAlign: 'center',
-    color: '#E5D6B0',
+    color: palette.gold.warm,
     textShadowOffset: { width: 0, height: 4 },
     textShadowRadius: 9,
     textShadowColor: 'rgba(0, 0, 0, 0.25)',

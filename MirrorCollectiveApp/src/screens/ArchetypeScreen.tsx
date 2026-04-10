@@ -2,6 +2,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '@types';
 import React from 'react';
+import { palette } from '@theme';
 import { useTranslation } from 'react-i18next';
 import {
   View,
@@ -168,9 +169,9 @@ const styles = StyleSheet.create({
     fontSize: Math.min(screenWidth * 0.082, 32),
     fontWeight: '300',
     lineHeight: Math.min(screenWidth * 0.082, 32),
-    color: '#E5D6B0',
+    color: palette.gold.warm,
     textAlign: 'center',
-    textShadowColor: '#E5D6B0',
+    textShadowColor: palette.gold.warm,
     textShadowRadius: 8,
   },
   imageContainer: {
@@ -180,7 +181,7 @@ const styles = StyleSheet.create({
   archetypeImage: {
     width: Math.min(screenWidth * 0.7, 275),
     height: Math.min(screenHeight * 0.5, 424),
-    shadowColor: '#E5D6B0',
+    shadowColor: palette.gold.warm,
     shadowOffset: { width: 0, height: 0 },
     // shadowOpacity: 0.3,
     shadowRadius: 40,
@@ -201,7 +202,7 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     fontSize: Math.min(screenWidth * 0.061, 16),
     fontWeight: '400',
-    color: '#F2E2B1',
+    color: palette.gold.DEFAULT,
     textAlign: 'center',
     lineHeight: Math.min(screenWidth * 0.079, 31.2),
   },
@@ -210,7 +211,7 @@ const styles = StyleSheet.create({
     fontSize: Math.min(screenWidth * 0.051, 18),
     fontWeight: '300',
     lineHeight: Math.min(screenWidth * 0.064, 25),
-    color: '#FDFDF9',
+    color: palette.gold.subtlest,
     textAlign: 'center',
   },
   questionText: {
@@ -218,7 +219,7 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     fontWeight: '400',
     fontSize: Math.min(screenWidth * 0.051, 18),
-    color: '#FDFDF9',
+    color: palette.gold.subtlest,
     textAlign: 'center',
     marginTop: Math.max(10, screenHeight * 0.012),
   },
@@ -226,7 +227,7 @@ const styles = StyleSheet.create({
     fontFamily: 'CormorantGaramond-Regular',
     fontSize: Math.min(screenWidth * 0.061, 16),
     fontWeight: '400',
-    color: '#F2E2B1',
+    color: palette.gold.DEFAULT,
     textAlign: 'center',
     lineHeight: Math.min(screenWidth * 0.079, 31.2),
     flex: 1,

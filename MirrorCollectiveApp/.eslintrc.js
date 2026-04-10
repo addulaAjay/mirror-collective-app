@@ -9,7 +9,26 @@ module.exports = {
       },
     },
   },
+  overrides: [
+    {
+      // Hex literals are allowed in the theme layer — that's where they're defined.
+      files: ['src/theme/**/*.ts', 'src/theme/**/*.tsx'],
+      rules: {
+        'no-restricted-syntax': 'off',
+      },
+    },
+  ],
   rules: {
+    // Warn on raw hex color literals outside the theme directory.
+    // This prevents new hardcoded colors from creeping back in.
+    // Will be escalated to 'error' once Phase 6b hex cleanup is complete.
+    'no-restricted-syntax': [
+      'warn',
+      {
+        selector: "Literal[value=/^#[0-9a-fA-F]{3,8}$/]",
+        message: "Avoid hardcoded hex colors. Use palette.* or theme.colors.* from '@theme' instead.",
+      },
+    ],
     'no-restricted-imports': [
       'error',
       {

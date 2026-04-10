@@ -1,6 +1,7 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '@types';
 import React, { useState, useEffect, useCallback } from 'react';
+import { palette } from '@theme';
 import {
   View,
   Text,
@@ -28,7 +29,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'ChooseGuardianScreen'>;
 
 const { width } = Dimensions.get('window');
 
-const GOLD = '#D7C08A';
+const GOLD = palette.gold.mid;
 const OFFWHITE = 'rgba(253,253,249,0.92)';
 const SUBTEXT = 'rgba(253,253,249,0.65)';
 const BORDER = 'rgba(253,253,249,0.18)';
@@ -407,7 +408,7 @@ const styles = StyleSheet.create({
     width: '100%',
     borderRadius: 12,
     borderWidth: 0.25,
-    borderColor: '#60739F',
+    borderColor: palette.navy.medium,
     marginBottom: 16,
     height: 48,
     justifyContent: 'center',
@@ -476,7 +477,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(215,192,138,0.7)',
   },
   checkMark: {
-    color: '#1A1F2E',
+    color: palette.navy.card,
     fontSize: 11,
     fontWeight: 'bold',
     lineHeight: 14,
@@ -520,7 +521,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   dropdownContainer: {
-    backgroundColor: '#0B0F1A',
+    backgroundColor: palette.navy.deep,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: BORDER,

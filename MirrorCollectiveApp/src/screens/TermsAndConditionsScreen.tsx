@@ -1,3 +1,4 @@
+import { palette } from '@theme';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '@types';
@@ -245,7 +246,7 @@ const styles = StyleSheet.create<{
 }>({
     bg: {
         flex: 1,
-        backgroundColor: '#0B0F1C',
+        backgroundColor: palette.navy.deep,
     },
     bgImage: {
         resizeMode: 'cover',
@@ -280,7 +281,7 @@ const styles = StyleSheet.create<{
         width: 20,
         height: 20,
         resizeMode: 'contain',
-        tintColor: '#E5D6B0',
+        tintColor: palette.gold.warm,
     },
     outerBox: {
         width: outerBoxWidth,
@@ -306,9 +307,9 @@ const styles = StyleSheet.create<{
         fontSize: Math.min(screenWidth * 0.082, 32),
         fontWeight: '300',
         lineHeight: titleLineHeight,
-        color: '#E5D6B0',
+        color: palette.gold.warm,
         textAlign: 'center',
-        textShadowColor: '#E5D6B0',
+        textShadowColor: palette.gold.warm,
         textShadowOffset: { width: 0, height: 0 },
         textShadowRadius: 8,
     },
@@ -321,10 +322,10 @@ const styles = StyleSheet.create<{
         padding: 20,
         borderRadius: 13,
         borderWidth: 0.25,
-        borderColor: '#9BAAC2',
+        borderColor: palette.navy.muted,
         backgroundColor: 'transparent',
         overflow: 'hidden',
-        shadowColor: '#E5D6B0',
+        shadowColor: palette.gold.warm,
         shadowOffset: { width: 0, height: 0 },
         shadowOpacity: 0.3,
         shadowRadius: 15,
@@ -347,7 +348,7 @@ const styles = StyleSheet.create<{
         fontSize: 24,
         fontWeight: '400',
         lineHeight: 31.2,
-        color: '#FDFDF9',
+        color: palette.gold.subtlest,
         textAlign: 'center',
     },
     cardEmphasis: {
@@ -356,7 +357,7 @@ const styles = StyleSheet.create<{
         fontStyle: 'italic',
         fontWeight: '600',
         lineHeight: 27,
-        color: '#FDFDF9',
+        color: palette.gold.subtlest,
         textAlign: 'center',
     },
     cardBody: {
@@ -364,7 +365,7 @@ const styles = StyleSheet.create<{
         fontSize: 16,
         fontWeight: '300',
         lineHeight: 24,
-        color: '#FDFDF9',
+        color: palette.gold.subtlest,
         textAlign: 'center',
     },
     checkboxRow: {
@@ -389,7 +390,7 @@ const styles = StyleSheet.create<{
     checkboxCheck: {
         fontSize: 16,
         lineHeight: 16,
-        color: '#E5D6B0',
+        color: palette.gold.warm,
     },
     checkboxLabel: {
         flexShrink: 1,
@@ -398,7 +399,7 @@ const styles = StyleSheet.create<{
         fontStyle: 'normal',
         fontWeight: '400',
         lineHeight: 24,
-        color: '#F2E2B1',
+        color: palette.gold.DEFAULT,
     },
     continueButton: {
         width: 313,
@@ -417,7 +418,7 @@ const styles = StyleSheet.create<{
     continueButtonText: {
         textAlign: 'center',
         fontFamily: 'CormorantGaramond-Light',
-        color: '#E5D6B0',
+        color: palette.gold.warm,
         fontSize: 20,
         fontWeight: '600',
         lineHeight: 28,

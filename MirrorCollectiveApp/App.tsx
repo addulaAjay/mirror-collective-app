@@ -1,8 +1,10 @@
 import '@i18n'; // Initialize i18n configuration
 import 'react-native-get-random-values';
 import 'react-native-url-polyfill/auto';
+
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { ThemeProvider } from '@theme';
 import type { RootStackParamList } from '@types';
 import React, { useCallback, useEffect } from 'react';
 import { StatusBar, StyleSheet, View } from 'react-native';
@@ -293,6 +295,7 @@ const App = () => {
 
   return (
     <SafeAreaProvider>
+      <ThemeProvider>
       <ErrorBoundary>
         <SessionProvider>
           <UserProvider>
@@ -309,6 +312,7 @@ const App = () => {
           </UserProvider>
         </SessionProvider>
       </ErrorBoundary>
+      </ThemeProvider>
     </SafeAreaProvider>
   );
 };

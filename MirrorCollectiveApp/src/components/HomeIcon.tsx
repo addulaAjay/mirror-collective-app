@@ -10,7 +10,7 @@ interface HomeIconProps {
 const HomeIcon: React.FC<HomeIconProps> = ({
   width = 24,
   height = 24,
-  color = '#E5D6B0',
+  color = palette.gold.warm,
 }) => {
   return (
     <Svg

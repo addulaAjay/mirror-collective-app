@@ -20,7 +20,9 @@
     "build:android:bundle": "cd android && ./gradlew bundleRelease",
     "distribute:android": "firebase appdistribution:distribute android/app/build/outputs/apk/release/app-release.apk --app 1:410727302750:android:e763289950a648d43516cf --release-notes 'Automated Android build'",
     "android:deep-clean": "bash ./android-clean.sh",
-    "prepare": "husky"
+    "prepare": "husky",
+    "tokens:build": "node design/style-dictionary.config.mjs",
+    "tokens:verify": "node design/style-dictionary.config.mjs && git diff --exit-code src/theme/generated/"
   },
   "dependencies": {
     "@aws-sdk/client-sns": "^3.876.0",
@@ -70,6 +72,7 @@
     "@react-native/metro-config": "0.80.1",
     "@react-native/typescript-config": "0.80.1",
     "@testing-library/react-native": "^13.2.0",
+    "@tokens-studio/sd-transforms": "^2.0.3",
     "@types/jest": "^29.5.13",
     "@types/react": "^19.1.0",
     "@types/react-test-renderer": "^19.1.0",
@@ -83,6 +86,7 @@
     "prettier": "2.8.8",
     "react-native-asset": "^2.1.1",
     "react-test-renderer": "19.1.0",
+    "style-dictionary": "^4.4.0",
     "typescript": "5.0.4"
   },
   "lint-staged": {

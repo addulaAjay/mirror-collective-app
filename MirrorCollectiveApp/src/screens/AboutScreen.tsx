@@ -1,3 +1,4 @@
+import { palette } from '@theme';
 import { useFocusEffect } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useRef, useState } from 'react';
@@ -40,7 +41,7 @@ const AboutScreen: React.FC = () => {
               <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
                 <Path
                   d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
-                  fill="#F2E2B1"
+                  fill=palette.gold.DEFAULT
                 />
               </Svg>
             </TouchableOpacity>
@@ -54,7 +55,7 @@ const AboutScreen: React.FC = () => {
               <ActivityIndicator
                 style={StyleSheet.absoluteFill}
                 size="large"
-                color="#E5D6B0"
+                color=palette.gold.warm
               />
             )}
             {hasError ? (
@@ -92,7 +93,7 @@ export default AboutScreen;
 const styles = StyleSheet.create({
   bg: {
     flex: 1,
-    backgroundColor: '#0B0F1C',
+    backgroundColor: palette.navy.deep,
   },
   bgImage: {
     resizeMode: 'cover',
@@ -132,9 +133,9 @@ const styles = StyleSheet.create({
     fontFamily: 'CormorantGaramond-Light',
     fontSize: Math.min(screenWidth * 0.082, 32),
     fontWeight: '400',
-    color: '#F2E2B1',
+    color: palette.gold.DEFAULT,
     textAlign: 'center',
-    textShadowColor: '#E5D6B0',
+    textShadowColor: palette.gold.warm,
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 10,
     letterSpacing: 4,
@@ -145,9 +146,9 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     overflow: 'hidden',
     borderWidth: 0.25,
-    borderColor: '#9BAAC2',
-    backgroundColor: '#000',
-    shadowColor: '#000000',
+    borderColor: palette.navy.muted,
+    backgroundColor: palette.neutral.black,
+    shadowColor: palette.neutral.black,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.25,
     shadowRadius: 11.9,
@@ -167,7 +168,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontStyle: 'italic',
     fontWeight: '300',
-    color: '#F2E2B1',
+    color: palette.gold.DEFAULT,
     opacity: 0.7,
   },
   descriptionContainer: {
@@ -180,7 +181,7 @@ const styles = StyleSheet.create({
     fontSize: Math.min(screenWidth * 0.041, 16),
     fontWeight: '300',
     lineHeight: 24,
-    color: '#FDFDF9',
+    color: palette.gold.subtlest,
     textAlign: 'center',
   },
 });

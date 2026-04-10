@@ -2,6 +2,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '@types';
 import React, { useEffect } from 'react';
+import { palette } from '@theme';
 import { useTranslation } from 'react-i18next';
 import {
   View,
@@ -103,9 +104,9 @@ const styles = StyleSheet.create({
     fontSize: Math.min(screenWidth * 0.082, 32),
     fontWeight: '300',
     lineHeight: Math.min(screenWidth * 0.082, 32),
-    color: '#E5D6B0',
+    color: palette.gold.warm,
     textAlign: 'center',
-    textShadowColor: '#E5D6B0',
+    textShadowColor: palette.gold.warm,
     textShadowRadius: 8,
   },
   mirrorContainer: {
@@ -121,7 +122,7 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
     maxWidth: 275,
     maxHeight: 400,
-    shadowColor: '#E5D6B0',
+    shadowColor: palette.gold.warm,
     shadowOffset: { width: 0, height: 0 },
     // shadowOpacity: 0.3,
     shadowRadius: 40,
@@ -135,7 +136,7 @@ const styles = StyleSheet.create({
     fontStyle: 'normal',
     fontSize: Math.min(screenWidth * 0.051, 16),
     fontWeight: '400',
-    color: '#FDFDF9',
+    color: palette.gold.subtlest,
     textAlign: 'center',
     // marginBottom: Math.max(10, screenHeight * 0.025),
   },
@@ -144,7 +145,7 @@ const styles = StyleSheet.create({
     fontStyle: 'normal',
     fontSize: Math.min(screenWidth * 0.051, 16),
     fontWeight: '400',
-    color: '#FDFDF9',
+    color: palette.gold.subtlest,
     textAlign: 'center',
     marginBottom: Math.max(10, screenHeight * 0.025),
   },

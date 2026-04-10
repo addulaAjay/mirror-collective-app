@@ -2,6 +2,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '@types';
 import React from 'react';
+import { palette } from '@theme';
 import {
   Dimensions,
   ScrollView,
@@ -103,7 +104,7 @@ export default ReflectionRoomCoreScreen;
 const styles = StyleSheet.create({
   bg: {
     flex: 1,
-    backgroundColor: '#0B0F1C',
+    backgroundColor: palette.navy.deep,
   },
   bgImage: {
     resizeMode: 'cover',
@@ -122,7 +123,7 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: 'CormorantGaramond-Regular',
     fontSize: 32,
-    color: '#F2E2B1',
+    color: palette.gold.DEFAULT,
     textAlign: 'center',
     letterSpacing: 1,
     marginTop: Math.max(16, screenHeight * 0.02),
@@ -131,7 +132,7 @@ const styles = StyleSheet.create({
   subtitle: {
     fontFamily: 'Inter',
     fontSize: 16,
-    color: '#FDFDF9',
+    color: palette.gold.subtlest,
     textAlign: 'center',
     lineHeight: 24,
     marginBottom: Math.max(28, screenHeight * 0.035),
@@ -146,7 +147,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
     fontStyle: 'italic',
     fontSize: 18,
-    color: '#F2E2B1',
+    color: palette.gold.DEFAULT,
     textAlign: 'center',
     lineHeight: 26,
     marginBottom: Math.max(28, screenHeight * 0.035),
@@ -162,7 +163,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderWidth: 0.5,
-    borderColor: '#A3B3CC',
+    borderColor: palette.navy.light,
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
@@ -172,7 +173,7 @@ const styles = StyleSheet.create({
   ctaText: {
     fontFamily: 'CormorantGaramond-Regular',
     fontSize: 24,
-    color: '#F2E2B1',
+    color: palette.gold.DEFAULT,
     letterSpacing: 2,
   },
 });

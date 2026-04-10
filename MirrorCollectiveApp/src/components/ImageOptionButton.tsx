@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
     borderRadius: 60,
     backgroundColor: 'transparent',
     borderWidth: 0.25,
-    borderColor: '#9BAAC2',
+    borderColor: palette.navy.muted,
     shadowColor: 'rgba(0, 0, 0, 0.29)',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 1,
@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
   selectedBackground: {
     borderRadius: 60,
     // Exact dual shadow from Figma: 0px 4px 19px 4px rgba(0, 0, 0, 0.1), 1px 4px 38px 2px rgba(229, 214, 176, 0.17)
-    shadowColor: '#000000',
+    shadowColor: palette.neutral.black,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 19,

@@ -25,7 +25,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'ManageGuardianScreen'>;
 
 const { width } = Dimensions.get('window');
 
-const GOLD = '#D7C08A';
+const GOLD = palette.gold.mid;
 const OFFWHITE = 'rgba(253,253,249,0.92)';
 const SUBTEXT = 'rgba(253,253,249,0.65)';
 const BORDER = 'rgba(253,253,249,0.16)';
@@ -306,7 +306,7 @@ const styles = StyleSheet.create({
     // paddingHorizontal: 16,
     borderRadius: 12,
     borderWidth: 0.5,
-    borderColor: '#A3B3CC',
+    borderColor: palette.navy.light,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
@@ -330,7 +330,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   errorText: {
-    color: '#ff6b6b',
+    color: palette.status.errorHover,
     fontSize: 14,
     textAlign: 'center',
     marginBottom: 12,
