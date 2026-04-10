@@ -1,4 +1,6 @@
 // EchoDetailScreen.tsx
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList } from '@types';
 import React, { useMemo, useState, useEffect } from 'react';
 import {
   View,
@@ -6,6 +8,7 @@ import {
   StyleSheet,
   StatusBar,
   TouchableOpacity,
+  Image,
   Dimensions,
   Platform,
   ScrollView,
@@ -14,13 +17,12 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import BackgroundWrapper from '@components/BackgroundWrapper';
 import LinearGradient from 'react-native-linear-gradient';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '@types';
-import { echoApiService, EchoResponse } from '@services/api/echo';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
+import { echoApiService, EchoResponse } from '@services/api/echo';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'EchoDetailScreen'>;
 
@@ -42,7 +44,7 @@ const EchoDetailScreen: React.FC<Props> = ({ navigation, route }) => {
   const [folderModalOpen, setFolderModalOpen] = useState(false);
 
   const contentWidth = useMemo(() => Math.min(W * 0.88, 360), []);
-  const textBoxHeight = useMemo(() => Math.min(H * 0.54, 470), []);
+  const textBoxHeight = useMemo(() => Math.min(H * 0.65, 515), []);
 
   useEffect(() => {
     fetchEchoDetails();
@@ -103,7 +105,7 @@ const EchoDetailScreen: React.FC<Props> = ({ navigation, route }) => {
               style={styles.backBtn}
               onPress={() => navigation.goBack()}
             >
-              <Text style={styles.backIcon}>‹</Text>
+              <Image source={require('@assets/back-arrow.png')} style={styles.backArrowImg} resizeMode="contain" />
             </TouchableOpacity>
 
             <Text style={styles.screenTitle} numberOfLines={1}>
@@ -115,37 +117,28 @@ const EchoDetailScreen: React.FC<Props> = ({ navigation, route }) => {
         </View>
 
         {/* Text box */}
-        <View
-          style={[
-            styles.textBoxShell,
-            { width: contentWidth, height: textBoxHeight },
-          ]}
+        <LinearGradient
+          colors={['rgba(253,253,249,0.04)', 'rgba(253,253,249,0.01)']}
+          start={{ x: 0.5, y: 0 }}
+          end={{ x: 0.5, y: 1 }}
+          style={[styles.textBoxShell, { width: contentWidth, height: textBoxHeight }]}
         >
-          <LinearGradient
-            colors={['rgba(253,253,249,0.07)', 'rgba(253,253,249,0.02)']}
-            start={{ x: 0.5, y: 0 }}
-            end={{ x: 0.5, y: 1 }}
-            style={styles.textBoxGradient}
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.scrollContent}
           >
-            <View style={styles.textBoxInnerBorder}>
-              <ScrollView
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={styles.scrollContent}
-              >
-                <Text style={styles.bodyText}>{body}</Text>
-              </ScrollView>
-            </View>
-          </LinearGradient>
-        </View>
+            <Text style={styles.bodyText}>{body}</Text>
+          </ScrollView>
+        </LinearGradient>
 
         {/* Bottom actions */}
         <View style={[styles.actionsRow, { width: contentWidth }]}>
-          <ActionIconButton label="⬇" onPress={() => {}} />
+          <ActionIconButton icon={require('@assets/download.png')} onPress={() => {}} />
           <ActionPrimaryButton
             label="VAULT"
             onPress={() => setFolderModalOpen(true)}
           />
-          <ActionIconButton label="✎" onPress={() => {}} />
+          <ActionIconButton icon={require('@assets/edit-icon.png')} onPress={() => {}} />
         </View>
 
         {/* Folder modal sheet */}
@@ -226,27 +219,24 @@ export default EchoDetailScreen;
 /* ---------- Buttons ---------- */
 
 const ActionIconButton = ({
-  label,
+  icon,
   onPress,
 }: {
-  label: string;
+  icon: ReturnType<typeof require>;
   onPress: () => void;
 }) => {
   return (
     <TouchableOpacity
       activeOpacity={0.9}
       onPress={onPress}
-      style={{ width: 64 }}
     >
       <LinearGradient
-        colors={['rgba(253,253,249,0.10)', 'rgba(253,253,249,0.03)']}
+        colors={['rgba(253,253,249,0.04)', 'rgba(253,253,249,0.01)']}
         start={{ x: 0.5, y: 0 }}
         end={{ x: 0.5, y: 1 }}
         style={styles.iconBtnShell}
       >
-        <View style={styles.iconBtnInner}>
-          <Text style={styles.iconBtnLabel}>{label}</Text>
-        </View>
+        <Image source={icon} style={styles.iconBtnImg} resizeMode="contain" />
       </LinearGradient>
     </TouchableOpacity>
   );
@@ -260,16 +250,14 @@ const ActionPrimaryButton = ({
   onPress: () => void;
 }) => {
   return (
-    <TouchableOpacity activeOpacity={0.9} onPress={onPress} style={{ flex: 1 }}>
+    <TouchableOpacity activeOpacity={0.9} onPress={onPress}>
       <LinearGradient
-        colors={['rgba(253,253,249,0.10)', 'rgba(253,253,249,0.03)']}
+        colors={['rgba(253,253,249,0.04)', 'rgba(253,253,249,0.01)']}
         start={{ x: 0.5, y: 0 }}
         end={{ x: 0.5, y: 1 }}
         style={styles.primaryBtnShell}
       >
-        <View style={styles.primaryBtnInner}>
-          <Text style={styles.primaryBtnText}>{label}</Text>
-        </View>
+        <Text style={styles.primaryBtnText}>{label}</Text>
       </LinearGradient>
     </TouchableOpacity>
   );
@@ -306,6 +294,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   backIcon: { color: 'rgba(215,192,138,0.9)', fontSize: 30, marginLeft: 2 },
+  backArrowImg: { width: 20, height: 20, tintColor: 'rgba(215,192,138,0.9)' },
   screenTitle: {
     color: 'rgba(215,192,138,0.92)',
     fontSize: 28,
@@ -324,21 +313,24 @@ const styles = StyleSheet.create({
 
   textBoxShell: {
     marginTop: 16,
-    borderRadius: 18,
-    padding: 1,
-    borderWidth: 1,
-    borderColor: BORDER_SOFT,
+    borderRadius: 8,
+    borderWidth: 0.2,
+    borderColor: '#9BAAC2',
+    padding: 16,
+    ...Platform.select({
+      ios: {
+        shadowColor: 'rgba(229,214,176,1)',
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.30,
+        shadowRadius: 15,
+        elevation: 5,
+      },
+      android: {
+        boxShadow: '0 0 15px 0 rgba(229, 214, 176, 0.30)',
+      },
+    }),
   },
-  textBoxGradient: { flex: 1, borderRadius: 18, padding: 1 },
-  textBoxInnerBorder: {
-    flex: 1,
-    borderRadius: 17,
-    borderWidth: 1,
-    borderColor: BORDER,
-    backgroundColor: SURFACE,
-    overflow: 'hidden',
-  },
-  scrollContent: { paddingHorizontal: 16, paddingVertical: 14 },
+  scrollContent: { paddingBottom: 8 },
   bodyText: {
     color: 'rgba(253,253,249,0.84)',
     fontSize: 15,
@@ -350,44 +342,30 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     paddingBottom: 18,
   },
   iconBtnShell: {
-    width: 64,
-    height: 52,
-    borderRadius: 14,
-    padding: 1,
-    borderWidth: 1,
-    borderColor: 'rgba(215,192,138,0.22)',
-  },
-  iconBtnInner: {
-    flex: 1,
-    borderRadius: 13,
-    borderWidth: 1,
-    borderColor: BORDER_SOFT,
-    backgroundColor: 'rgba(7,9,14,0.28)',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 0.5,
+    borderColor: '#A3B3CC',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  iconBtnLabel: {
-    color: 'rgba(215,192,138,0.92)',
-    fontSize: 20,
+  iconBtnImg: {
+    width: 22,
+    height: 22,
+    tintColor: 'rgba(215,192,138,0.92)',
   },
 
   primaryBtnShell: {
-    height: 52,
-    borderRadius: 14,
-    padding: 1,
-    borderWidth: 1,
-    borderColor: 'rgba(215,192,138,0.28)',
-  },
-  primaryBtnInner: {
-    flex: 1,
-    borderRadius: 13,
-    borderWidth: 1,
-    borderColor: BORDER_SOFT,
-    backgroundColor: 'rgba(7,9,14,0.28)',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 0.5,
+    borderColor: '#A3B3CC',
     alignItems: 'center',
     justifyContent: 'center',
   },

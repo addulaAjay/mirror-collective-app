@@ -1,4 +1,6 @@
 // NewEchoAudioScreen.tsx
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList } from '@types';
 import React, { useMemo, useState } from 'react';
 import {
   View,
@@ -13,18 +15,18 @@ import {
   Linking,
   PermissionsAndroid,
   ActivityIndicator,
+  Image,
 } from 'react-native';
-import DocumentPicker from 'react-native-document-picker';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import LinearGradient from 'react-native-linear-gradient';
-import BackgroundWrapper from '@components/BackgroundWrapper';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '@types';
-import { Camera } from 'react-native-vision-camera';
 import AudioRecorderPlayer from 'react-native-audio-recorder-player';
-import { echoApiService } from '@services/api';
+import DocumentPicker from 'react-native-document-picker';
+import LinearGradient from 'react-native-linear-gradient';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Camera } from 'react-native-vision-camera';
+
+import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
 import StarIcon from '@components/StarIcon';
+import { echoApiService } from '@services/api';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'NewEchoAudioScreen'>;
 
@@ -160,7 +162,7 @@ const NewEchoAudioScreen: React.FC<Props> = ({ navigation, route }) => {
       }
       setIsUploading(true);
       const res = await DocumentPicker.pickSingle({
-        type: [DocumentPicker.types.audio],
+         type: [DocumentPicker.types.audio],
       });
       if (res) {
         setPickedFile({
@@ -250,7 +252,7 @@ const NewEchoAudioScreen: React.FC<Props> = ({ navigation, route }) => {
             style={styles.backBtn}
             onPress={() => navigation.goBack()}
           >
-            <Text style={styles.backIcon}>‹</Text>
+            <Image source={require('@assets/back-arrow.png')} style={styles.backArrowImg} resizeMode="contain" />
           </TouchableOpacity>
 
           <Text style={styles.screenTitle}>NEW ECHO</Text>
@@ -286,7 +288,10 @@ const NewEchoAudioScreen: React.FC<Props> = ({ navigation, route }) => {
               >
                 <View style={styles.micOuter}>
                   <View style={styles.micInner}>
-                    <Text style={styles.micIcon}>🎙️</Text>
+                    {isRecording
+                      ? <Text style={styles.micIcon}>⏹</Text>
+                      : <Image source={require('@assets/mic.png')} style={{ width: 26, height: 26, tintColor: 'rgba(215,192,138,0.92)' }} resizeMode="contain" />
+                    }
                   </View>
                 </View>
               </View>
@@ -445,6 +450,11 @@ const styles = StyleSheet.create({
     color: 'rgba(215,192,138,0.9)',
     fontSize: 30,
     marginLeft: 2,
+  },
+  backArrowImg: {
+    width: 20,
+    height: 20,
+    tintColor: 'rgba(215,192,138,0.9)',
   },
   screenTitle: {
     color: 'rgba(215,192,138,0.92)',

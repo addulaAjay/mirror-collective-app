@@ -20,12 +20,15 @@ export interface SignUpData {
   email: string;
   password: string;
   fullName: string;
+  phoneNumber?: string;
+  termsAcceptedAt?: string;
 }
 
 export interface VerifyEmailData {
   email: string;
   verificationCode: string;
   anonymousId?: string;  // For linking anonymous quiz data
+  termsAcceptedAt?: string;
 }
 
 export interface ResetPasswordData {

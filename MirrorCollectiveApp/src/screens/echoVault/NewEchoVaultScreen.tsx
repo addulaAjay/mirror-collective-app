@@ -1,4 +1,6 @@
 // NewEchoVaultScreen.tsx
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList } from '@types';
 import React, { useMemo, useState } from 'react';
 import {
   View,
@@ -15,11 +17,10 @@ import {
   ScrollView,
   KeyboardAvoidingView,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import BackgroundWrapper from '@components/BackgroundWrapper';
 import LinearGradient from 'react-native-linear-gradient';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '@types';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
 import StarIcon from '@components/StarIcon';
 
@@ -96,19 +97,19 @@ const NewEchoScreen: React.FC<Props> = ({ navigation }) => {
             style={styles.backBtn}
             onPress={() => navigation.goBack()}
           >
-            <Text style={{ color: GOLD, fontSize: 30 }}>‹</Text>
+            <Image source={require('@assets/back-arrow.png')} style={{ width: 20, height: 20, tintColor: GOLD }} resizeMode="contain" />
           </TouchableOpacity>
-          
+
           <Text style={styles.screenTitle}>NEW ECHO</Text>
-          
+
           <View style={styles.headerSpacer} />
         </View>
 
-        <KeyboardAvoidingView 
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={{ flex: 1, width: '100%' }}
         >
-          <ScrollView 
+          <ScrollView
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.scrollContent}
           >
@@ -122,22 +123,22 @@ const NewEchoScreen: React.FC<Props> = ({ navigation }) => {
                 style={styles.inputShell}
               >
                 <View style={styles.inputContainer}>
-                    <TextInput
-                        value={title}
-                        onChangeText={setTitle}
-                        placeholder="Enter Title here"
-                        placeholderTextColor="rgba(253,253,249,0.5)"
-                        style={styles.textInput}
-                    />
+                  <TextInput
+                    value={title}
+                    onChangeText={setTitle}
+                    placeholder="Enter Title here"
+                    placeholderTextColor="rgba(253,253,249,0.5)"
+                    style={styles.textInput}
+                  />
                 </View>
               </LinearGradient>
 
               {/* Illustration - Replaced Placeholder */}
               <View style={styles.illustrationWrap}>
                 <Image
-                    source={require('@assets/mirror_echo_illustration.png')}
-                    style={styles.illustrationImage}
-                    resizeMode="contain"
+                  source={require('@assets/mirror_echo_illustration.png')}
+                  style={[styles.illustrationImage, { width: contentWidth }]}
+                  resizeMode="contain"
                 />
               </View>
 
@@ -153,76 +154,106 @@ const NewEchoScreen: React.FC<Props> = ({ navigation }) => {
                   end={{ x: 0.5, y: 1 }}
                   style={styles.dropdownShell}
                 >
-                    <View style={styles.dropdownContent}>
-                        {/* Icon + Text Group */}
-                        <View style={styles.dropdownLeft}>
-                            <Text style={{ color: OFFWHITE, fontSize: 18, transform: [{ scaleY: -1 }] }}>▾</Text>
-                        </View>
+                  <View style={styles.dropdownContent}>
+                    <View style={styles.dropdownLeft} />
 
-                         <Text
-                            style={[
-                                styles.dropdownText,
-                                !category && { color: OFFWHITE, opacity: 0.9 }, 
-                            ]}
-                            >
-                            {category ?? 'Choose echo category'}
-                        </Text>
+                    <Text
+                      style={[
+                        styles.dropdownText,
+                        !category && { color: OFFWHITE, opacity: 0.9 },
+                      ]}
+                    >
+                      {category ?? 'Choose echo category'}
+                    </Text>
 
-                        <View style={styles.dropdownRight}>
-                             <Text style={{ color: OFFWHITE, fontSize: 18, transform: [{ scaleY: -1 }] }}>▾</Text>
-                        </View>
+                    <View style={styles.dropdownRight}>
+                      <Image
+                        source={require('@assets/down-arrow.png')}
+                        style={{ width: 16, height: 16, tintColor: OFFWHITE }}
+                        resizeMode="contain"
+                      />
                     </View>
+                  </View>
                 </LinearGradient>
               </TouchableOpacity>
 
+              {/* Recipient yes/no - Updated to horizontal layout */}
+              <View style={styles.recipientBlock}>
+                <Text style={styles.recipientQuestion}>
+                  Do you have a recipient?
+                </Text>
 
-              {/* Recipient yes/no - Updated to "Do you have a recipient?" block */}
-              <View style={styles.recipientQuestion}>
-                <Text style={styles.recipientQuestion}>Do you have a recipient?</Text>
-                
                 <View style={styles.recipientButtons}>
-                     <TouchableOpacity
-                        activeOpacity={0.8}
-                        style={styles.recipientBtn}
-                        onPress={() => setRecipientChoice('yes')}
-                     >
-                        <View style={[styles.radioOuter, recipientChoice === 'yes' && styles.radioOuterSelected]}>
-                            {recipientChoice === 'yes' && <View style={styles.radioInner} />}
-                        </View>
-                        <Text style={[styles.recipientBtnText, recipientChoice === 'yes' && styles.recipientBtnTextSelected]}>YES</Text>
-                     </TouchableOpacity>
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    style={styles.recipientBtn}
+                    onPress={() => setRecipientChoice('yes')}
+                  >
+                    <View
+                      style={[
+                        styles.radioOuter,
+                        recipientChoice === 'yes' && styles.radioOuterSelected,
+                      ]}
+                    >
+                      {recipientChoice === 'yes' && (
+                        <Text style={styles.checkMark}>✓</Text>
+                      )}
+                    </View>
+                    <Text
+                      style={[
+                        styles.recipientBtnText,
+                        recipientChoice === 'yes' &&
+                          styles.recipientBtnTextSelected,
+                      ]}
+                    >
+                      YES
+                    </Text>
+                  </TouchableOpacity>
 
-                     <TouchableOpacity
-                        activeOpacity={0.8}
-                        style={styles.recipientBtn}
-                        onPress={() => setRecipientChoice('no')}
-                     >
-                        <View style={[styles.radioOuter, recipientChoice === 'no' && styles.radioOuterSelected]}>
-                             {recipientChoice === 'no' && <View style={styles.radioInner} />}
-                        </View>
-                        <Text style={[styles.recipientBtnText, recipientChoice === 'no' && styles.recipientBtnTextSelected]}>NO</Text>
-                     </TouchableOpacity>
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    style={styles.recipientBtn}
+                    onPress={() => setRecipientChoice('no')}
+                  >
+                    <View
+                      style={[
+                        styles.radioOuter,
+                        recipientChoice === 'no' && styles.radioOuterSelected,
+                      ]}
+                    >
+                      {recipientChoice === 'no' && (
+                        <Text style={styles.checkMark}>✓</Text>
+                      )}
+                    </View>
+                    <Text
+                      style={[
+                        styles.recipientBtnText,
+                        recipientChoice === 'no' &&
+                          styles.recipientBtnTextSelected,
+                      ]}
+                    >
+                      NO
+                    </Text>
+                  </TouchableOpacity>
                 </View>
               </View>
 
-
-
               {/* Action buttons row - Updated Icons */}
               <View style={styles.actionRow}>
-                <ActionSquare 
-                  emoji="T" 
+                <ActionSquare
+                  icon={require('@assets/T_Icon.png')}
                   selected={selectedMode === 'text'}
-                  onPress={() => setSelectedMode('text')} 
+                  onPress={() => setSelectedMode('text')}
                 />
-                <ActionSquare 
-                  emoji="🎤" 
+                <ActionSquare
+                  icon={require('@assets/mic.png')}
                   selected={selectedMode === 'audio'}
-                  onPress={() => setSelectedMode('audio')} 
+                  onPress={() => setSelectedMode('audio')}
                 />
-                <ActionSquare 
-                  emoji="📹" 
+                <ActionSquare
+                  icon={require('@assets/videocam.png')}
                   selected={selectedMode === 'video'}
-                  onPress={() => setSelectedMode('video')} 
+                  onPress={() => setSelectedMode('video')}
                 />
               </View>
 
@@ -232,9 +263,14 @@ const NewEchoScreen: React.FC<Props> = ({ navigation }) => {
                 onPress={onNext}
                 style={styles.nextWrap}
               >
-                <StarIcon width={24} height={24} />
-                <Text style={styles.nextText}>NEXT</Text>
-                <StarIcon width={24} height={24} />
+                <LinearGradient
+                  colors={['rgba(253,253,249,0.04)', 'rgba(253,253,249,0.01)']}
+                  start={{ x: 0.5, y: 0 }}
+                  end={{ x: 0.5, y: 1 }}
+                  style={styles.nextGradient}
+                >
+                  <Text style={styles.nextText}>NEXT</Text>
+                </LinearGradient>
               </TouchableOpacity>
             </View>
           </ScrollView>
@@ -277,10 +313,12 @@ const NewEchoScreen: React.FC<Props> = ({ navigation }) => {
 
 const ActionSquare = ({
   emoji,
+  icon,
   onPress,
   selected,
 }: {
-  emoji: string;
+  emoji?: string;
+  icon?: any;
   onPress: () => void;
   selected?: boolean;
 }) => {
@@ -295,7 +333,15 @@ const ActionSquare = ({
             selected && { borderColor: GOLD, backgroundColor: 'rgba(242, 226, 177, 0.1)' } 
         ]}
       >
+        {icon ? (
+          <Image
+            source={icon}
+            style={{ width: 30, height: 30, tintColor: selected ? GOLD : 'rgba(242, 226, 177, 0.92)' }}
+            resizeMode="contain"
+          />
+        ) : (
           <Text style={{ fontSize: 30, color: selected ? GOLD : 'rgba(242, 226, 177, 0.92)' }}>{emoji}</Text>
+        )}
       </LinearGradient>
     </TouchableOpacity>
   );
@@ -327,7 +373,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 20,
-    backgroundColor: 'rgba(0,0,0,0.2)' // Add a subtle back for touch target
+    backgroundColor: 'rgba(0,0,0,0.2)', // Add a subtle back for touch target
   },
   screenTitle: {
     color: '#F2E2B1',
@@ -342,13 +388,13 @@ const styles = StyleSheet.create({
     textShadowRadius: 16,
   },
   headerSpacer: {
-      width: 40, // Balance back button
+    width: 40, // Balance back button
   },
 
   scrollContent: {
-      flexGrow: 1,
-      alignItems: 'center',
-      paddingBottom: 60,
+    flexGrow: 1,
+    alignItems: 'center',
+    paddingBottom: 60,
   },
   content: {
     paddingTop: 10,
@@ -359,16 +405,17 @@ const styles = StyleSheet.create({
   /* Title Input */
   inputShell: {
     width: '100%',
+    height: 48,
     borderRadius: 12,
     borderWidth: 0.5,
     borderColor: '#A3B3CC', // var(--border/subtle)
     marginBottom: 24,
+    justifyContent: 'center',
   },
   inputContainer: {
-      paddingVertical: 12,
-      paddingHorizontal: 16,
-      alignItems: 'center',
-      justifyContent: 'center',
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   textInput: {
     color: '#FDFDF9', // var(--text/paragraph-2)
@@ -384,12 +431,12 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
-    height: 160, 
-    marginBottom: 20,
+    height: 200,
+    marginTop: 16,
+    marginBottom: 16,
   },
   illustrationImage: {
-      width: '100%',
-      height: '100%',
+    height: 200,
   },
 
   /* Dropdown */
@@ -399,96 +446,98 @@ const styles = StyleSheet.create({
     borderWidth: 0.25,
     borderColor: '#60739F', // var(--border/inverse-1)
     // Wait, in Figma, Component 2 (Dropdown) is above the recipient block.
-    marginBottom: 24, 
+    marginBottom: 24,
     height: 48,
     justifyContent: 'center',
   },
   dropdownContent: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
   },
   dropdownText: {
+    flex: 1,
     color: '#FDFDF9',
     fontSize: 16,
     fontFamily: 'Inter',
     fontStyle: 'italic',
+    textAlign: 'center',
   },
   dropdownLeft: {
-      width: 24,
-      alignItems: 'center',
+    width: 24,
   },
   dropdownRight: {
     width: 24,
-    alignItems: 'center',
-  },
-  
-  /* Recipient Block - Changed to Column for Visibility */
-  recipientBlock: {
-      width: '100%',
-      borderRadius: 14,
-      borderWidth: 1,
-      borderColor: 'rgba(253, 253, 249, 0.12)',
-      padding: 16,
-      marginBottom: 20,
-      backgroundColor: 'rgba(253, 253, 249, 0.02)',
-  },
-  recipientQuestion: {
-      color: '#FDFDF9',
-      fontSize: 16,
-      fontFamily: 'Inter',
-      fontStyle: 'italic',
-      marginBottom: 16,
-      textAlign: 'center',
-  },
-  recipientButtons: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 32,
-  },
-  recipientBtn: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 8,
-  },
-  radioOuter: {
-      width: 20,
-      height: 20,
-      borderRadius: 10,
-      borderWidth: 1.5,
-      borderColor: '#F2E2B1',
-      alignItems: 'center',
-      justifyContent: 'center',
-  },
-  radioOuterSelected: {
-      borderColor: '#F2E2B1',
-  },
-  radioInner: {
-      width: 10,
-      height: 10,
-      borderRadius: 5,
-      backgroundColor: '#F2E2B1',
-  },
-  recipientBtnText: {
-      color: '#F2E2B1',
-      fontSize: 16,
-      fontFamily: 'Inter',
-      fontWeight: '500',
-  },
-  recipientBtnTextSelected: {
-      fontWeight: '700',
+    alignItems: 'flex-end',
   },
 
+  /* Recipient Block - Horizontal Layout */
+  recipientBlock: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    marginBottom: 24,
+  },
+  recipientQuestion: {
+    color: '#FDFDF9',
+    fontSize: 16,
+    fontFamily: 'Inter',
+    fontStyle: 'italic',
+    flex: 1,
+  },
+  recipientButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 24,
+  },
+  recipientBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  radioOuter: {
+    width: 16,
+    height: 16,
+    borderRadius: 0,
+    borderWidth: 1,
+    borderColor: GOLD,
+    backgroundColor: 'transparent',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  radioOuterSelected: {
+    backgroundColor: 'rgba(215,192,138,0.7)',
+  },
+  checkMark: {
+    color: '#1A1F2E',
+    fontSize: 10,
+    fontWeight: 'bold',
+    lineHeight: 13,
+  },
+  recipientBtnText: {
+    color: GOLD,
+    fontSize: 14,
+    fontFamily: Platform.select({
+      ios: 'Inter-Regular',
+      android: 'sans-serif',
+    }),
+  },
+  recipientBtnTextSelected: {
+    fontWeight: '700',
+  },
 
   /* Action Row */
   actionRow: {
     width: '100%',
     flexDirection: 'row',
     justifyContent: 'space-between', // gap 32px in Figma, assume justify-between handles for small screens, or gap.
-    gap: 16,
-    marginBottom: 32,
+    gap: 24,
+    marginBottom: 0,
+    paddingHorizontal: 48,
   },
   actionShell: {
     flex: 1, // Distribute evenly
@@ -499,22 +548,34 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     // Shadow from Figma
-    shadowColor: '#F2E2B1',
-    shadowOffset: { width: 2, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 32,
-    elevation: 5,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#F2E2B1',
+        shadowOffset: { width: 2, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 32,
+        elevation: 5,
+      },
+      android: {
+        boxShadow: '2px 2px 32px 0px rgba(242, 226, 177, 0.20)',
+      },
+    }),
   },
 
-  /* Next Button - Updated to Star Flanked Style */
+  /* Next Button */
   nextWrap: {
+    alignSelf: 'center',
+    marginTop: 20,
+  },
+  nextGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 16,
-    marginTop: 20, // Reduced from 40 for better visibility
-    width: '100%',
-    paddingVertical: 10,
+    gap: 8,
+    minHeight: 48,
+    borderRadius: 12,
+    borderWidth: 0.5,
+    borderColor: '#A3B3CC',
   },
   nextText: {
     fontFamily: 'CormorantGaramond-Medium',
@@ -525,8 +586,8 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 8,
     textTransform: 'uppercase',
+    padding: 10,
   },
-
 
   /* Modal */
   modalBackdrop: {

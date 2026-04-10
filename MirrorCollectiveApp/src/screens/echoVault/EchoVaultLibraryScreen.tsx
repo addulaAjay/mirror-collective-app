@@ -5,6 +5,9 @@ import {
   SCREEN_DIMENSIONS,
   PLATFORM_SPECIFIC,
 } from '@constants';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { RootStackParamList } from '@types';
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
@@ -18,17 +21,14 @@ import {
   Image,
   ActivityIndicator,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '@types';
-import { echoApiService, EchoResponse } from '@services/api/echo';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
-import { MOTIF_ICONS, getMotifIcon } from '@assets/motifs/MotifAssets';
 
+import { MOTIF_ICONS, getMotifIcon } from '@assets/motifs/MotifAssets';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
+import { echoApiService, EchoResponse } from '@services/api/echo';
 
 type EchoLibraryNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -48,6 +48,7 @@ export function EchoLibraryContent() {
   const [echoes, setEchoes] = useState<EchoResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'LIBRARY' | 'INBOX'>('LIBRARY');
   const [activeTab, setActiveTab] = useState<'RECIPIENT' | 'CATEGORY'>('RECIPIENT');
 
   const cardMaxWidth = Math.min(width - SPACING.XL * 2, 440);
@@ -56,7 +57,9 @@ export function EchoLibraryContent() {
     try {
       setLoading(true);
       setError(null);
-      const response = await echoApiService.getEchoes();
+      const response = viewMode === 'INBOX'
+        ? await echoApiService.getInboxEchoes()
+        : await echoApiService.getEchoes();
       if (response.success && response.data) {
         setEchoes(response.data);
       } else {
@@ -69,11 +72,11 @@ export function EchoLibraryContent() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [viewMode]);
 
   useEffect(() => {
     fetchEchoes();
-  }, []);
+  }, [fetchEchoes]);
 
   const handleMenu = () => {
     (navigation as any)?.openDrawer?.();
@@ -84,6 +87,7 @@ export function EchoLibraryContent() {
   };
 
   const handleOpenItem = (item: EchoResponse) => {
+
     if (item.echo_type === 'AUDIO') {
       navigation.navigate('EchoAudioPlaybackScreen', { echoId: item.echo_id, title: item.title });
     } else if (item.echo_type === 'VIDEO') {
@@ -130,46 +134,56 @@ export function EchoLibraryContent() {
             </View>
           </View>
 
+          {/* Echo Inbox */}
+          <View style={styles.echoInboxRow}>
+            <Image
+              source={require('@assets/mail.png')}
+              style={styles.echoInboxIcon}
+              resizeMode="contain"
+            />
+            <Text style={styles.echoInboxText}>Echo Inbox</Text>
+          </View>
+
           <LinearGradient
             colors={['rgba(253, 253, 249, 0.04)', 'rgba(253, 253, 249, 0.01)']}
             start={{ x: 0.5, y: 0 }}
             end={{ x: 0.5, y: 1 }}
             style={styles.card}
           >
-            {/* Echo Inbox Header */}
-            <View style={styles.inboxHeader}>
-              <View style={styles.inboxIconContainer}>
-                <Image
-                  source={require('@assets/mail.png')}
-                  style={{ width: 24, height: 24, tintColor: GOLD }}
-                  resizeMode="contain"
-                />
-              </View>
-              <Text style={styles.inboxTitle}>Echo Inbox</Text>
-            </View>
-
             <View style={{ flex: 1, width: '100%' }}>
               <View style={styles.tableHeader}>
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.headerTab}
                   onPress={() => setActiveTab('RECIPIENT')}
                   activeOpacity={0.7}
                 >
-                  <Text style={[
-                    styles.headerText, 
-                    activeTab === 'RECIPIENT' ? styles.activeHeader : styles.inactiveHeader
-                  ]}>RECIPIENT</Text>
+                  <Text
+                    style={[
+                      styles.headerText,
+                      activeTab === 'RECIPIENT'
+                        ? styles.activeHeader
+                        : styles.inactiveHeader,
+                    ]}
+                  >
+                    RECIPIENT
+                  </Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.headerTab}
                   onPress={() => setActiveTab('CATEGORY')}
                   activeOpacity={0.7}
                 >
-                  <Text style={[
-                    styles.headerText, 
-                    activeTab === 'CATEGORY' ? styles.activeHeader : styles.inactiveHeader
-                  ]}>CATEGORY</Text>
+                  <Text
+                    style={[
+                      styles.headerText,
+                      activeTab === 'CATEGORY'
+                        ? styles.activeHeader
+                        : styles.inactiveHeader,
+                    ]}
+                  >
+                    CATEGORY
+                  </Text>
                 </TouchableOpacity>
               </View>
 
@@ -180,7 +194,10 @@ export function EchoLibraryContent() {
               ) : error ? (
                 <View style={styles.errorContainer}>
                   <Text style={styles.errorText}>{error}</Text>
-                  <TouchableOpacity onPress={fetchEchoes} style={styles.retryBtn}>
+                  <TouchableOpacity
+                    onPress={fetchEchoes}
+                    style={styles.retryBtn}
+                  >
                     <Text style={styles.retryText}>Retry</Text>
                   </TouchableOpacity>
                 </View>
@@ -204,45 +221,56 @@ export function EchoLibraryContent() {
                       style={styles.row}
                     >
                       {/* Recipient / Category Column */}
+
                       <View style={styles.rowLeft}>
                         {/* Avatar/Icon Group */}
-                        <View style={styles.avatarGroup}>
-                           <View style={styles.avatarContainer}>
-                              {item.recipient?.motif && getMotifIcon(item.recipient.motif) ? (
+                        {activeTab == 'RECIPIENT' && (
+                          <View style={styles.avatarGroup}>
+                            <View style={styles.avatarContainer}>
+                              {item.recipient?.motif &&
+                              getMotifIcon(item.recipient.motif) ? (
                                 <View style={{ width: 24, height: 24 }}>
-                                  <SvgXml 
-                                    xml={getMotifIcon(item.recipient.motif)?.xml || ''} 
-                                    width="100%" 
-                                    height="100%" 
+                                  <SvgXml
+                                    xml={
+                                      getMotifIcon(item.recipient.motif)?.xml ||
+                                      ''
+                                    }
+                                    width="100%"
+                                    height="100%"
                                   />
                                 </View>
                               ) : item.recipient?.motif ? (
-                                <Text style={{ fontSize: 18 }}>{item.recipient.motif}</Text>
+                                <Text style={{ fontSize: 18 }}>
+                                  {item.recipient.motif}
+                                </Text>
                               ) : (
-                                <Image 
-                                  source={require('@assets/Group.png')} 
-                                  style={styles.avatarImage} 
+                                <Image
+                                  source={require('@assets/Group.png')}
+                                  style={styles.avatarImage}
                                 />
                               )}
-                           </View>
-                        </View>
-                        
+                            </View>
+                          </View>
+                        )}
+
                         <View style={styles.rowTextWrap}>
-                          <Text style={styles.rowTitle} numberOfLines={1}>{item.title}</Text>
+                          <Text style={styles.rowTitle}>{item.title}</Text>
                           <Text style={styles.rowSub}>
-                             {item.scheduled_at ? `Unlocks ${formatDate(item.scheduled_at)}` : `Saved ${formatDate(item.created_at)}`}
+                            {item.scheduled_at
+                              ? `Unlocks ${formatDate(item.scheduled_at)}`
+                              : `Saved ${formatDate(item.created_at)}`}
                           </Text>
                         </View>
                       </View>
 
                       {/* Right Side: Recipient/Category Name */}
                       <View style={styles.rowRight}>
-                         <Text style={styles.recipientText}>
-                          {activeTab === 'RECIPIENT' 
-                            ? (item.recipient?.name?.toUpperCase() || 'UNASSIGNED')
-                            : (item.category?.toUpperCase() || 'UNCATEGORIZED')}
+                        <Text style={styles.recipientText}>
+                          {activeTab === 'RECIPIENT'
+                            ? item.recipient?.name?.toUpperCase() ||
+                              'UNASSIGNED'
+                            : item.category?.toUpperCase() || 'UNCATEGORIZED'}
                         </Text>
-                         <Text style={styles.arrowIcon}>{'>'}</Text>
                       </View>
                     </TouchableOpacity>
                   ))}
@@ -255,17 +283,31 @@ export function EchoLibraryContent() {
             <TouchableOpacity
               onPress={handleCreateEcho}
               activeOpacity={0.9}
-              style={styles.createButton}
+              style={styles.buttonTouch}
             >
-              <Text style={styles.buttonText}>CREATE AN ECHO</Text>
+              <LinearGradient
+                colors={['rgba(253, 253, 249, 0.04)', 'rgba(253, 253, 249, 0.01)']}
+                start={{ x: 0.5, y: 0 }}
+                end={{ x: 0.5, y: 1 }}
+                style={styles.buttonGradient}
+              >
+                <Text style={styles.buttonText}>CREATE AN ECHO</Text>
+              </LinearGradient>
             </TouchableOpacity>
 
             <TouchableOpacity
               onPress={handleManageRecipients}
               activeOpacity={0.9}
-              style={styles.secondaryButton}
+              style={styles.buttonTouch}
             >
-              <Text style={styles.buttonText}>MANAGE RECIPIENTS</Text>
+              <LinearGradient
+                colors={['rgba(253, 253, 249, 0.04)', 'rgba(253, 253, 249, 0.01)']}
+                start={{ x: 0.5, y: 0 }}
+                end={{ x: 0.5, y: 1 }}
+                style={styles.buttonGradient}
+              >
+                <Text style={styles.buttonText}>MANAGE RECIPIENTS</Text>
+              </LinearGradient>
             </TouchableOpacity>
           </View>
         </View>
@@ -320,9 +362,49 @@ const styles = StyleSheet.create({
     marginTop: 0,
   },
   listContent: {
-      paddingBottom: 20,
+    paddingBottom: 20,
   },
-  // INBOX HEADER
+
+  // VIEW MODE TOGGLE
+  viewModeToggle: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#A3B3CC',
+    gap: 12,
+  },
+  toggleButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+    borderWidth: 0.5,
+    borderColor: '#A3B3CC',
+    minWidth: 120,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  toggleButtonActive: {
+    borderColor: GOLD,
+    backgroundColor: 'rgba(242, 226, 177, 0.1)',
+  },
+  toggleText: {
+    fontFamily: 'CormorantGaramond-Regular',
+    fontSize: 18,
+    color: '#A3B3CC',
+  },
+  toggleTextActive: {
+    color: GOLD,
+  },
+  inboxToggleContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+
+  // INBOX HEADER (OLD - NOW REPLACED BY TOGGLE)
   inboxHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -334,17 +416,47 @@ const styles = StyleSheet.create({
     marginBottom: 0,
   },
   inboxIconContainer: {
-     width: 24,
-     height: 24,
-     marginRight: 8,
-     justifyContent: 'center',
-     alignItems: 'center',
+    width: 24,
+    height: 24,
+    marginRight: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   inboxTitle: {
     fontFamily: 'CormorantGaramond-Regular',
     fontSize: 28,
     color: GOLD,
     textAlign: 'center',
+  },
+
+  // ECHO INBOX HEADING
+  echoInboxRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginBottom: 16,
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    alignSelf: 'center',
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#F2E2B1',
+  },
+  echoInboxIcon: {
+    width: 24,
+    height: 24,
+    tintColor: GOLD,
+  },
+  echoInboxText: {
+    fontFamily: Platform.select({
+      ios: 'CormorantGaramond-Regular',
+      android: 'serif',
+    }),
+    fontSize: 28,
+    fontWeight: '400',
+    color: '#F2E2B1',
+    textAlign: 'center',
+    lineHeight: 36.4,
   },
 
   // CARD / LIST
@@ -373,9 +485,7 @@ const styles = StyleSheet.create({
     // borderBottomWidth: 1, // Removed border
   },
   headerTab: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#A3B3CC', // Default subtle border
-    paddingBottom: 2,
+    paddingBottom: 4,
   },
   headerText: {
     fontFamily: 'CormorantGaramond-Regular',
@@ -383,16 +493,13 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   activeHeader: {
-    color: '#FDFDF9', // Figma says text-paragraph-2 #FDFDF9 for Recipient?
-    // Wait, Figma: RECIPIENT text color #FDFDF9, Category #A3B3CC
+    color: '#FDFDF9',
+    borderBottomWidth: 1.5,
+    borderBottomColor: '#FDFDF9',
+    paddingBottom: 2,
   },
   inactiveHeader: {
-    color: '#A3B3CC', // text-inverse-paragraph-2
-    borderBottomWidth: 0, // Inactive doesn't have border in Figma snippet? 
-    // Actually Figma snippet shows: border-b for RECIPIENT.
-  },
-  activeIndicator: {
-      // Replaced by borderBottom on tab
+    color: '#A3B3CC',
   },
 
   // LIST ROWS
@@ -406,86 +513,80 @@ const styles = StyleSheet.create({
     borderBottomColor: '#D9A766', // border-brand-active
   },
   rowLeft: {
-     flexDirection: 'row',
-     alignItems: 'center',
-     gap: 12,
-     flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
   },
   avatarGroup: {
-     // Container for avatar
+    // Container for avatar
   },
   avatarContainer: {
-     width: 40,
-     height: 40,
-     borderRadius: 20,
-     backgroundColor: 'rgba(197, 158, 95, 0.05)',
-     borderWidth: 0.5,
-     borderColor: '#F2E2B1',
-     justifyContent: 'center',
-     alignItems: 'center',
-     // Shadow...
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(197, 158, 95, 0.05)',
+    borderWidth: 0.5,
+    borderColor: '#F2E2B1',
+    justifyContent: 'center',
+    alignItems: 'center',
+    // Shadow...
   },
   avatarImage: {
-     width: 20,
-     height: 20,
-     // tintColor: GOLD,
+    width: 20,
+    height: 20,
+    // tintColor: GOLD,
   },
   rowTextWrap: {
-     marginLeft: 0,
-     flex: 1,
+    marginLeft: 0,
+    flex: 1,
   },
   rowTitle: {
-     fontFamily: 'CormorantGaramond-Regular',
-     fontSize: 20,
-     color: '#FFFFFF',
-     lineHeight: 26,
+    fontFamily: 'CormorantGaramond-Regular',
+    fontSize: 20,
+    color: '#FFFFFF',
+    lineHeight: 26,
   },
   rowSub: {
-     fontFamily: 'Inter-LightItalic', // Assuming font
-     fontSize: 14,
-     color: '#FFFFFF', // Italic text color
-     opacity: 0.8,
+    fontFamily: 'Inter-LightItalic', // Assuming font
+    fontSize: 14,
+    color: '#FFFFFF', // Italic text color
+    opacity: 0.8,
   },
   recipientText: {
-     fontFamily: 'Inter-Light',
-     fontSize: 16,
-     color: GOLD,
-     marginRight: 8,
+    fontFamily: 'Inter-Light',
+    fontSize: 16,
+    color: GOLD,
+    marginRight: 8,
   },
   arrowIcon: {
-      color: GOLD,
-      fontSize: 14,
-      fontFamily: 'Inter-Regular', 
+    color: GOLD,
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
   },
-  
+
   // BUTTONS
   buttonContainer: {
-      width: '100%',
-      gap: 12,
-      marginBottom: 20,
-  },
-  createButton: {
     width: '100%',
-    height: 52,
+    gap: 12,
+    marginBottom: 20,
+  },
+  buttonTouch: {
+    alignSelf: 'center',
+    width: 280,
     borderRadius: 12,
     borderWidth: 0.5,
     borderColor: '#A3B3CC',
-    // backgroundColor: gradient handled in render? 
-    // Figma uses gradient background for button.
-    backgroundColor: 'rgba(253, 253, 249, 0.04)', // Approximate
+    overflow: 'hidden',
+  },
+  buttonGradient: {
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 8,
+    minHeight: 48,
   },
-  secondaryButton: {
-    width: '100%',
-    height: 52,
-    borderRadius: 12,
-    borderWidth: 0.5,
-    borderColor: '#A3B3CC',
-    backgroundColor: 'rgba(253, 253, 249, 0.04)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  createButton: {},
+  secondaryButton: {},
   buttonText: {
     fontFamily: 'CormorantGaramond-Regular',
     fontSize: 24,

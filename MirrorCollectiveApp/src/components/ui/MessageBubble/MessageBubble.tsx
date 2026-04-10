@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
   },
 
   text: {
-    ...theme.typography.styles.body,
+    ...theme.typography.styles.bodyItalic,
     flexShrink: 1,
     includeFontPadding: false,
     textAlignVertical: 'center',
@@ -82,9 +82,8 @@ const styles = StyleSheet.create({
 
   userText: {
     fontFamily: 'Inter',
-    fontStyle: 'italic',
     fontSize: 16,
-    fontWeight: '400',
+    fontWeight: '300',
     lineHeight: 24,
     color: '#F2E2B1',
     padding: SPACING.SM,
@@ -93,8 +92,9 @@ const styles = StyleSheet.create({
 
   systemText: {
     fontFamily: 'Inter',
+    fontStyle: 'italic',
     fontSize: 16,
-    fontWeight: '400',
+    fontWeight: '300',
     lineHeight: 24,
     color: '#F2E2B1',
   },

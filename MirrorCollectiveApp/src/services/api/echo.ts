@@ -8,7 +8,10 @@ export interface CreateEchoRequest {
   category: string;
   echo_type: 'TEXT' | 'AUDIO' | 'VIDEO';
   recipient_id?: string;
+  guardian_id?: string;
   content?: string; // For text echoes
+  release_date?: string; // ISO 8601 date string for scheduled release
+  unlock_on_death?: boolean; // If true, echo is released when creator dies (verified by guardian)
 }
 
 export interface EchoResponse {
@@ -27,6 +30,7 @@ export interface EchoResponse {
   };
   scheduled_at?: string; // ISO date string
 }
+
 
 export interface UploadUrlResponse {
   upload_url: string;
@@ -85,6 +89,16 @@ export class EchoApiService extends BaseApiService {
       true
     );
     return ApiErrorHandler.handleApiResponse(response, 'Echo retrieved');
+  }
+
+  async getInboxEchoes(): Promise<ApiResponse<EchoResponse[]>> {
+    const response = await this.makeRequest<EchoResponse[]>(
+      '/api/echoes/inbox',
+      'GET',
+      null,
+      true
+    );
+    return ApiErrorHandler.handleApiResponse(response, 'Inbox echoes retrieved');
   }
 
   async createEcho(data: CreateEchoRequest): Promise<ApiResponse<EchoResponse>> {

@@ -9,6 +9,7 @@ import React, {
 } from 'react';
 
 import { authApiService } from '@services/api';
+import { authEvents } from '@services/authEvents';
 import PushNotificationService from '@services/PushNotificationService';
 
 // Types
@@ -21,7 +22,7 @@ interface SessionState {
 
 interface SessionContextType {
   state: SessionState;
-  signUp: (fullName: string, email: string, password: string) => Promise<void>;
+  signUp: (fullName: string, email: string, password: string, phoneNumber?: string, termsAcceptedAt?: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<any>; // Returns full response for UserContext to use
   signOut: () => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
@@ -32,6 +33,7 @@ interface SessionContextType {
   ) => Promise<void>;
   clearError: () => void;
   setLoading: (isLoading: boolean) => void;
+  setAuthenticated: () => void;
 }
 
 // Action Types
@@ -161,7 +163,18 @@ export const SessionProvider = ({ children }: SessionProviderProps) => {
     };
   }, [safeDispatch]);
 
-  const signUp = async (fullName: string, email: string, password: string) => {
+  // Force logout whenever the API layer signals session expiry (401 / token refresh failure)
+  useEffect(() => {
+    const unsubscribe = authEvents.onSessionExpired(() => {
+      if (isMountedRef.current) {
+        authApiService.clearTokens().catch(() => {});
+        safeDispatch({ type: 'LOGOUT_SUCCESS' });
+      }
+    });
+    return unsubscribe;
+  }, [safeDispatch]);
+
+  const signUp = async (fullName: string, email: string, password: string, phoneNumber?: string, termsAcceptedAt?: string) => {
     if (!isMountedRef.current) return;
     try {
       safeDispatch({ type: 'SET_LOADING', payload: true });
@@ -171,6 +184,8 @@ export const SessionProvider = ({ children }: SessionProviderProps) => {
         fullName: fullName.trim(),
         email: email.toLowerCase().trim(),
         password,
+        phoneNumber: phoneNumber?.trim(),
+        termsAcceptedAt,
       });
 
       if (!response.success) {
@@ -305,7 +320,13 @@ export const SessionProvider = ({ children }: SessionProviderProps) => {
       if (isMountedRef.current) {
           safeDispatch({ type: 'SET_LOADING', payload: isLoading });
       }
-  }
+  };
+
+  const setAuthenticated = () => {
+    if (isMountedRef.current) {
+      safeDispatch({ type: 'LOGIN_SUCCESS' });
+    }
+  };
 
   const contextValue: SessionContextType = {
     state,
@@ -315,7 +336,8 @@ export const SessionProvider = ({ children }: SessionProviderProps) => {
     forgotPassword,
     resetPassword,
     clearError,
-    setLoading
+    setLoading,
+    setAuthenticated,
   };
 
   return (

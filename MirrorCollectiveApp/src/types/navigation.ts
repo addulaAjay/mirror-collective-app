@@ -10,11 +10,23 @@ type ArchetypeRouteParams = {
 
 export type RootStackParamList = {
   Splash: undefined;
-  TermsAndConditions: undefined;
+  TermsAndConditions: {
+    fullName: string;
+    email: string;
+    password: string;
+    phoneNumber?: string;
+  };
   StartFreeTrial: undefined;
   EchoVaultStorage: undefined;
   MirrorEcho: undefined;
   ReflectionRoom: undefined;
+  ReflectionRoomQuiz: undefined;
+  ReflectionRoomLoading: undefined;
+  ReflectionRoomTodaysMotif: undefined;
+  ReflectionRoomEchoSignature: undefined;
+  ReflectionRoomEchoMap: undefined;
+  ReflectionRoomMirrorMoment: undefined;
+  ReflectionRoomCore: undefined;
   MirrorCodeLibrary: undefined;
   TheMirrorPledge: undefined;
   About: undefined;
@@ -29,7 +41,7 @@ export type RootStackParamList = {
   Login: undefined;
   MirrorChat: undefined;
   SignUp: undefined;
-  VerifyEmail: { email?: string; fullName?: string } | undefined;
+  VerifyEmail: { email?: string; fullName?: string; password?: string; termsAcceptedAt?: string } | undefined;
   ForgotPassword: undefined;
   ResetPassword: { email: string };
   QuizWelcome: undefined;
@@ -55,6 +67,10 @@ export type RootStackParamList = {
     hasRecipient?: boolean;
     recipientId?: string;
     recipient?: any;
+    guardianId?: string;
+    guardianName?: string;
+    lockDate?: string;
+    unlockOnDeath?: boolean;
   };
   NewEchoAudioScreen: {
     recipientId?: string;
@@ -70,13 +86,21 @@ export type RootStackParamList = {
   };
   ManageGuardianScreen: undefined;
   ManageRecipientScreen: undefined;
-  ChooseGuardianScreen: undefined;
+  ChooseGuardianScreen: {
+    title: string;
+    category: string;
+    mode: 'text' | 'audio' | 'video';
+    recipientId: string;
+    recipientName: string;
+    lockDate?: string;
+    unlockOnDeath?: boolean;
+  };
   ChooseRecipientScreen: {
     title: string;
     category: string;
     mode: 'text' | 'audio' | 'video';
   };
-  AddNewProfileScreen: undefined;
+  AddNewProfileScreen: { mode?: 'recipient' | 'guardian' } | undefined;
   EchoDetailScreen: { echoId: string; title?: string; body?: string };
   EchoAudioPlaybackScreen: { echoId: string; title?: string; transcript?: string };
   EchoVideoPlaybackScreen: { echoId: string; title?: string };

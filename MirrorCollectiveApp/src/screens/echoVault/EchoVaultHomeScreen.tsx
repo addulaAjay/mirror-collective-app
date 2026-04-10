@@ -4,6 +4,9 @@ import {
   SPACING,
   SCREEN_DIMENSIONS,
 } from '@constants';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { RootStackParamList } from '@types';
 import React, { useMemo } from 'react';
 import {
   View,
@@ -15,11 +18,9 @@ import {
   useWindowDimensions,
   Platform,
   ScrollView,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '@types';
-import { useNavigation } from '@react-navigation/native';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
@@ -30,15 +31,14 @@ type MirrorEchoNavigationProp = NativeStackNavigationProp<
 >;
 
 const COPY =
-  'Preserve your legacy in the Echo Vault —\n' +
-  'a secure space to create and save your most\n' +
-  'meaningful memories, reflections, and\n' +
-  'moments that matter. A living record, kept\n' +
-  'for yourself or gifted to someone you love';
+  'Become the architect of your own story.\n' +
+  'Save what you’ve learned, loved, and lived \n' +
+  '— in a private vault that’s yours.';
 
 export function MirrorEchoContent() {
   const navigation = useNavigation<MirrorEchoNavigationProp>();
   const { width, height } = useWindowDimensions();
+  const [showInfoOverlay, setShowInfoOverlay] = React.useState(false);
 
   const scale = useMemo(() => {
     const baseW = 390;
@@ -62,7 +62,7 @@ export function MirrorEchoContent() {
   }, [cardMaxWidth]);
 
   const handleInfo = () => {
-    // navigation.navigate('MirrorEchoInfo' as any); // TODO: Add Info Screen
+    setShowInfoOverlay(true);
   };
 
   const handleStartEcho = () => {
@@ -141,6 +141,64 @@ export function MirrorEchoContent() {
             </View>
           </View>
         </ScrollView>
+
+        {/* Info Overlay Modal */}
+        <Modal
+          visible={showInfoOverlay}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowInfoOverlay(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.infoCard}>
+              <View style={styles.infoHeader}>
+                <Text style={styles.infoTitle}>MIRROR ECHO</Text>
+                <TouchableOpacity
+                  onPress={() => setShowInfoOverlay(false)}
+                  style={styles.closeButton}
+                >
+                  <Text style={styles.closeButtonText}>✕</Text>
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView
+                style={styles.infoScroll}
+                contentContainerStyle={styles.infoScrollContent}
+                showsVerticalScrollIndicator={false}
+              >
+                <Text style={styles.infoSectionTitle}>What is Mirror Echo?</Text>
+                <Text style={styles.infoText}>
+                  Mirror Echo is a secure digital vault where you can preserve your most meaningful memories,
+                  reflections, and messages for the future. Create echoes in text, audio, or video format.
+                </Text>
+
+                <Text style={styles.infoSectionTitle}>Key Features</Text>
+                <Text style={styles.infoText}>
+                  • <Text style={styles.infoBold}>Personal Vault:</Text> Keep echoes private for your own reflection{'\n'}
+                  • <Text style={styles.infoBold}>Recipients:</Text> Designate trusted people to receive your echoes{'\n'}
+                  • <Text style={styles.infoBold}>Guardians:</Text> Assign someone to manage when echoes are released{'\n'}
+                  • <Text style={styles.infoBold}>Lock Dates:</Text> Schedule echoes to unlock at specific times{'\n'}
+                  • <Text style={styles.infoBold}>Legacy Mode:</Text> Preserve messages to be delivered after you pass
+                </Text>
+
+                <Text style={styles.infoSectionTitle}>Privacy & Security</Text>
+                <Text style={styles.infoText}>
+                  All echoes are encrypted and stored securely. Only you and your designated recipients
+                  can access the content. Guardians can manage release timing but cannot view echo content
+                  unless they are also listed as recipients.
+                </Text>
+
+                <Text style={styles.infoSectionTitle}>Getting Started</Text>
+                <Text style={styles.infoText}>
+                  1. Click "START ECHO" to create your first echo{'\n'}
+                  2. Choose a category and type (text, audio, or video){'\n'}
+                  3. Optionally select a recipient and guardian{'\n'}
+                  4. Compose your echo and save it to your vault
+                </Text>
+              </ScrollView>
+            </View>
+          </View>
+        </Modal>
       </SafeAreaView>
     </BackgroundWrapper>
   );
@@ -251,7 +309,7 @@ const styles = StyleSheet.create({
   },
 
   copyText: {
-    fontFamily: 'CormorantGaramond-Light',
+    fontFamily: 'Inter-Light',
     fontWeight: '300',
     color: '#FDFDF9',
     textAlign: 'center',
@@ -272,11 +330,18 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(253,253,249,0.08)',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.35,
-    shadowRadius: 14,
-    elevation: 6,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.35,
+        shadowRadius: 14,
+        elevation: 6,
+      },
+      android: {
+        boxShadow: '2px 2px 32px 0px rgba(242, 226, 177, 0.20)',
+      },
+    }),
   },
 
   secondaryButton: {
@@ -290,9 +355,101 @@ const styles = StyleSheet.create({
 
   ctaText: {
     fontFamily: 'CormorantGaramond-Regular',
-    fontSize: 20,
+    fontSize: 24,
+    fontStyle: 'normal',
     fontWeight: '400',
-    color: 'rgba(242,226,177,0.95)',
-    letterSpacing: 1.6,
+    color: '#F2E2B1',
+    textAlign: 'center',
+    lineHeight: 31.2,
+    textShadowColor: 'rgba(229, 214, 176, 0.50)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 9,
+    includeFontPadding: false,
+  },
+
+  /* Info Modal */
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(11, 15, 28, 0.92)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: SPACING.XL,
+  },
+
+  infoCard: {
+    width: '100%',
+    maxWidth: 440,
+    maxHeight: '80%',
+    backgroundColor: 'rgba(21, 28, 47, 0.95)',
+    borderRadius: SPACING.LG,
+    borderWidth: 1,
+    borderColor: 'rgba(229, 214, 176, 0.25)',
+    padding: SPACING.XL,
+    ...SHADOWS.LIGHT,
+  },
+
+  infoHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: SPACING.LG,
+    paddingBottom: SPACING.MD,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(229, 214, 176, 0.15)',
+  },
+
+  infoTitle: {
+    fontFamily: 'CormorantGaramond-Regular',
+    fontSize: 24,
+    color: '#F5E6B8',
+    letterSpacing: 1.2,
+  },
+
+  closeButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(253, 253, 249, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(229, 214, 176, 0.25)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  closeButtonText: {
+    fontFamily: 'CormorantGaramond-Regular',
+    fontSize: 20,
+    color: 'rgba(242, 226, 177, 0.85)',
+    lineHeight: 22,
+  },
+
+  infoScroll: {
+    flex: 1,
+  },
+
+  infoScrollContent: {
+    paddingBottom: SPACING.MD,
+  },
+
+  infoSectionTitle: {
+    fontFamily: 'CormorantGaramond-Medium',
+    fontSize: 18,
+    color: '#D7C08A',
+    letterSpacing: 0.8,
+    marginTop: SPACING.LG,
+    marginBottom: SPACING.SM,
+  },
+
+  infoText: {
+    fontFamily: 'CormorantGaramond-Light',
+    fontSize: 15,
+    color: 'rgba(253, 253, 249, 0.85)',
+    lineHeight: 22,
+    marginBottom: SPACING.SM,
+  },
+
+  infoBold: {
+    fontFamily: 'CormorantGaramond-Medium',
+    color: '#D7C08A',
   },
 });

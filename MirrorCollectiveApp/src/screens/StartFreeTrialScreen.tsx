@@ -11,6 +11,7 @@ import {
   Image,
   Alert,
   ActivityIndicator,
+  ScrollView,
   type ViewStyle,
   type TextStyle,
   type ImageStyle,
@@ -22,6 +23,7 @@ import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
 import StarIcon from '@components/StarIcon';
 
+import { useSession } from '@/context/SessionContext';
 import { useSubscription } from '@/context/SubscriptionContext';
 import { useInAppPurchase } from '@/hooks/useInAppPurchase';
 import { subscriptionApiService } from '@/services/api/subscriptionApi';
@@ -45,7 +47,9 @@ const innerBoxSidePadding = Math.max(0, (outerBoxWidth - cardWidth) / 2);
 
 const StartFreeTrialScreen = () => {
   const navigation = useNavigation<NavigationProp>();
+  const canGoBack = navigation.canGoBack();
   const { hasUsedTrial, hasActiveSubscription, refreshSubscriptionStatus } = useSubscription();
+  const { setAuthenticated } = useSession();
   const { purchaseSubscription, purchasing, PRODUCT_IDS } = useInAppPurchase();
   const [loading, setLoading] = useState(false);
   const [selectedPeriod] = useState<'monthly' | 'yearly'>('monthly');
@@ -73,16 +77,9 @@ const StartFreeTrialScreen = () => {
 
         if (response.success) {
           await refreshSubscriptionStatus();
-          Alert.alert(
-            'Trial Started!',
-            '14 days of full access to Mirror Core. Enjoy!',
-            [
-              {
-                text: 'Continue',
-                onPress: () => navigation.navigate('EnterMirror' as never),
-              },
-            ],
-          );
+          // Setting authenticated will remount NavigationContainer with new key
+          // This automatically navigates to EnterMirror (initialRouteName)
+          setAuthenticated();
         } else {
           throw new Error(response.message || 'Failed to start trial');
         }
@@ -100,6 +97,7 @@ const StartFreeTrialScreen = () => {
       try {
         await purchaseSubscription(productId);
         await refreshSubscriptionStatus();
+        // NavigationContainer will remount when auth state changes
       } catch (error: any) {
         Alert.alert('Purchase Failed', error.message || 'Unable to complete purchase');
       }
@@ -114,22 +112,24 @@ const StartFreeTrialScreen = () => {
 
           <View style={styles.outerBox}>
             <View style={styles.headerRow}>
-              <TouchableOpacity
-                accessibilityRole="button"
-                onPress={() => navigation.goBack()}
-                style={styles.backButton}
-              >
-                <Image
-                  source={require('../assets/back-arrow.png')}
-                  style={styles.backArrow}
-                  accessibilityIgnoresInvertColors
-                />
-              </TouchableOpacity>
+              {canGoBack && (
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  onPress={() => navigation.goBack()}
+                  style={styles.backButton}
+                >
+                  <Image
+                    source={require('../assets/back-arrow.png')}
+                    style={styles.backArrow}
+                    accessibilityIgnoresInvertColors
+                  />
+                </TouchableOpacity>
+              )}
 
               <View style={styles.titleContainer}>
-                <Text style={styles.title}>Start{`\n`}14 Day free trial</Text>
+                <Text style={styles.title}>Start your{`\n`}14 Day free trial</Text>
                 <Text style={styles.subtitle}>
-                  Reflect, remember, and track what’s{`\n`}changing in real time.
+                  Reflect, remember, and track what’s changing in real time.
                 </Text>
               </View>
             </View>
@@ -143,7 +143,11 @@ const StartFreeTrialScreen = () => {
                   style={styles.cardGradient}
                   pointerEvents="none"
                 />
-                <View style={styles.cardContent}>
+                <ScrollView
+                  style={styles.cardScroll}
+                  contentContainerStyle={styles.cardContent}
+                  showsVerticalScrollIndicator={false}
+                >
                   <Text style={styles.cardTitle}>Mirror Core</Text>
                   <Text style={styles.cardSubtitle}>Your daily reflective companion.</Text>
 
@@ -167,19 +171,19 @@ const StartFreeTrialScreen = () => {
                     <View style={styles.bulletRow}>
                       <Text style={styles.bulletMarker}>•</Text>
                       <Text style={styles.bulletLine}>
-                        <Text style={styles.bulletLead}>MirrorGPT</Text> — reflect, process,{`\n`}and gain clarity
+                        <Text style={styles.bulletLead}>MirrorGPT</Text> — reflect, process, and gain clarity
                       </Text>
                     </View>
                     <View style={styles.bulletRow}>
                       <Text style={styles.bulletMarker}>•</Text>
                       <Text style={styles.bulletLine}>
-                        <Text style={styles.bulletLead}>Echo Map + micro-practices</Text> —{`\n`}see patterns and shift them
+                        <Text style={styles.bulletLead}>Echo Map + micro-practices</Text> — see patterns and shift them
                       </Text>
                     </View>
                     <View style={styles.bulletRow}>
                       <Text style={styles.bulletMarker}>•</Text>
                       <Text style={styles.bulletLine}>
-                        <Text style={styles.bulletLead}>Private Echo Vault (50 GB)</Text> —{`\n`}your memories, your story
+                        <Text style={styles.bulletLead}>Private Echo Vault (50 GB)</Text> — your memories, your story
                       </Text>
                     </View>
                   </View>
@@ -206,32 +210,26 @@ const StartFreeTrialScreen = () => {
                     activeOpacity={0.85}
                     onPress={handleButtonPress}
                     disabled={loading || purchasing || hasActiveSubscription}
+                    style={styles.ctaButton}
                   >
-                    <LinearGradient
-                      colors={['rgba(253, 253, 249, 0.03)', 'rgba(253, 253, 249, 0.20)']}
-                      start={{ x: 0.5, y: 0 }}
-                      end={{ x: 0.5, y: 1 }}
-                      style={styles.ctaButton}
-                    >
-                      {(loading || purchasing) ? (
-                        <ActivityIndicator color="#F2E2B1" />
-                      ) : (
-                        <Text style={styles.ctaButtonText}>{buttonText}</Text>
-                      )}
-                    </LinearGradient>
+                    {(loading || purchasing) ? (
+                      <ActivityIndicator color="#F2E2B1" />
+                    ) : (
+                      <Text style={styles.ctaButtonText}>{buttonText}</Text>
+                    )}
                   </TouchableOpacity>
 
                   <Text style={styles.cancelText}>Cancel anytime.</Text>
-                </View>
+                </ScrollView>
               </View>
+            </View>
 
-              <View style={styles.footerLinksRow}>
-                <Text style={styles.footerLinkText}>Terms</Text>
-                <Text style={styles.footerLinkText}>·</Text>
-                <Text style={styles.footerLinkText}>Privacy</Text>
-                <Text style={styles.footerLinkText}>·</Text>
-                <Text style={styles.footerLinkText}>Restore Purchase</Text>
-              </View>
+            <View style={styles.footerLinksRow}>
+              <Text style={styles.footerLinkText}>Terms</Text>
+              <Text style={styles.footerLinkText}>•</Text>
+              <Text style={styles.footerLinkText}>Privacy</Text>
+              <Text style={styles.footerLinkText}>•</Text>
+              <Text style={styles.footerLinkText}>Restore Purchase</Text>
             </View>
           </View>
         </View>
@@ -257,6 +255,7 @@ const styles = StyleSheet.create<{
   innerBox: ViewStyle;
   cardWrapper: ViewStyle;
   cardGradient: ViewStyle;
+  cardScroll: ViewStyle;
   cardContent: ViewStyle;
   cardTitle: TextStyle;
   cardSubtitle: TextStyle;
@@ -276,6 +275,7 @@ const styles = StyleSheet.create<{
   priceYearAmount: TextStyle;
   priceYearSuffix: TextStyle;
   priceRemainder: TextStyle;
+  ctaButtonTouchable: ViewStyle;
   ctaButton: ViewStyle;
   ctaButtonText: TextStyle;
   cancelText: TextStyle;
@@ -307,7 +307,7 @@ const styles = StyleSheet.create<{
       flex: 1,
       flexDirection: 'column',
       alignItems: 'center',
-      gap: sectionGap,
+      justifyContent: 'space-between',
       marginTop: 20,
     },
 
@@ -325,6 +325,7 @@ const styles = StyleSheet.create<{
       height: 40,
       alignItems: 'center',
       justifyContent: 'center',
+      zIndex: 10,
     },
     backArrow: {
       width: 20,
@@ -369,21 +370,21 @@ const styles = StyleSheet.create<{
       flexDirection: 'column',
       alignItems: 'center',
       gap: sectionGap,
-      flexGrow: 1,
       alignSelf: 'stretch',
       paddingHorizontal: innerBoxSidePadding,
-      justifyContent: 'flex-start',
+      flex: 1,
     },
 
     cardWrapper: {
-      flex: 1,
       width: cardWidth,
       alignSelf: 'center',
+      flex: 1,
       padding: 20,
       borderRadius: 13,
       borderWidth: 0.25,
       borderColor: '#9BAAC2',
       backgroundColor: 'transparent',
+      overflow: 'hidden',
       shadowColor: 'rgba(163, 179, 204, 0.30)',
       shadowOffset: { width: 0, height: 0 },
       shadowOpacity: 1,
@@ -393,11 +394,14 @@ const styles = StyleSheet.create<{
       ...StyleSheet.absoluteFillObject,
       borderRadius: 13,
     },
+    cardScroll: {
+      flex: 1,
+      width: '100%',
+    },
     cardContent: {
       alignItems: 'center',
-      flexGrow: 1,
-      justifyContent: 'center',
-      gap: 12,
+      gap: 8,
+      paddingBottom: 8,
     },
 
     cardTitle: {
@@ -429,8 +433,8 @@ const styles = StyleSheet.create<{
       alignItems: 'center',
       justifyContent: 'center',
       gap: 12,
-      marginTop: 6,
-      marginBottom: 6,
+      marginTop: 2,
+      marginBottom: 2,
       alignSelf: 'stretch',
     },
     starDividerLine: {
@@ -447,7 +451,7 @@ const styles = StyleSheet.create<{
 
     bullets: {
       alignSelf: 'stretch',
-      gap: 10,
+      gap: 6,
     },
     bulletRow: {
       flexDirection: 'row',
@@ -484,8 +488,8 @@ const styles = StyleSheet.create<{
       flexDirection: 'row',
       justifyContent: 'center',
       alignItems: 'flex-end',
-      marginTop: 8,
-      marginBottom: 4,
+      marginTop: 4,
+      marginBottom: 2,
     },
     priceAmount: {
       color: '#FDFDF9',
@@ -556,18 +560,19 @@ const styles = StyleSheet.create<{
       includeFontPadding: false,
     },
 
+    ctaButtonTouchable: {
+      alignSelf: 'stretch',
+    },
     ctaButton: {
       flexDirection: 'row',
       justifyContent: 'center',
       alignItems: 'center',
-      gap: 8,
+      alignSelf: 'stretch',
       borderRadius: 12,
-      borderWidth: 0.5,
-      borderColor: '#A3B3CC',
-      paddingVertical: 12,
-      paddingHorizontal: 16,
-      width: '100%',
-      height: 55,
+      borderWidth: 1,
+      borderColor: 'rgba(229, 214, 176, 0.4)',
+      backgroundColor: 'rgba(58, 74, 92, 0.3)',
+      height: 44,
       shadowColor: '#F2E2B1',
       shadowOffset: { width: 0, height: 0 },
       shadowOpacity: 0.25,

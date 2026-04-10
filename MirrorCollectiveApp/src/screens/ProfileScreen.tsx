@@ -19,10 +19,27 @@ import TextInputField from '@components/TextInputField';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('screen');
 
+const formatPhoneDisplay = (e164: string): string => {
+  const digits = e164.startsWith('+1') ? e164.slice(2) : '';
+  if (digits.length === 0) return '+1';
+  if (digits.length <= 3) return `+1 (${digits}`;
+  if (digits.length <= 6) return `+1 (${digits.slice(0, 3)}) ${digits.slice(3)}`;
+  return `+1 (${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
+};
+
 const ProfileScreen: React.FC = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('+1');
+
+  const handlePhoneChange = (text: string) => {
+    let digits = text.replace(/\D/g, '');
+    if (digits.startsWith('1')) {
+      digits = digits.slice(1);
+    }
+    digits = digits.slice(0, 10);
+    setPhoneNumber(digits.length === 0 ? '+1' : `+1${digits}`);
+  };
 
   const handleSave = () => {
     // Handle save logic
@@ -118,9 +135,9 @@ const ProfileScreen: React.FC = () => {
                 <Text style={styles.fieldLabel}>Phone Number</Text>
                 <TextInputField
                   size="medium"
-                  placeholder="Enter your phone number"
-                  value={phoneNumber}
-                  onChangeText={setPhoneNumber}
+                  placeholder="(555) 123-4567"
+                  value={formatPhoneDisplay(phoneNumber)}
+                  onChangeText={handlePhoneChange}
                   keyboardType="phone-pad"
                   autoCapitalize="none"
                   placeholderAlign="left"

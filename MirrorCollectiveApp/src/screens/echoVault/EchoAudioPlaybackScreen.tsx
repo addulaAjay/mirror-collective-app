@@ -1,4 +1,6 @@
 // EchoAudioPlaybackScreen.tsx
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList } from '@types';
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import {
   View,
@@ -6,20 +8,20 @@ import {
   StyleSheet,
   StatusBar,
   TouchableOpacity,
+  Image,
   Dimensions,
   Platform,
   ScrollView,
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import BackgroundWrapper from '@components/BackgroundWrapper';
-import LinearGradient from 'react-native-linear-gradient';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import AudioRecorderPlayer from 'react-native-audio-recorder-player';
-import { RootStackParamList } from '@types';
-import { echoApiService, EchoResponse } from '@services/api/echo';
+import LinearGradient from 'react-native-linear-gradient';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
+import { echoApiService, EchoResponse } from '@services/api/echo';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'EchoAudioPlaybackScreen'>;
 
@@ -45,7 +47,7 @@ const EchoAudioPlaybackScreen: React.FC<Props> = ({ navigation, route }) => {
   const audioPlayer = useRef(AudioRecorderPlayer).current;
 
   const contentWidth = useMemo(() => Math.min(W * 0.88, 360), []);
-  const transcriptBoxH = useMemo(() => Math.min(H * 0.18, 150), []);
+  const transcriptBoxH = useMemo(() => Math.min(H * 0.22, 160), []);
 
   useEffect(() => {
     fetchEchoDetails();
@@ -164,7 +166,7 @@ const EchoAudioPlaybackScreen: React.FC<Props> = ({ navigation, route }) => {
             style={styles.backBtn}
             onPress={() => navigation.goBack()}
           >
-            <Text style={styles.backIcon}>‹</Text>
+            <Image source={require('@assets/back-arrow.png')} style={styles.backArrowImg} resizeMode="contain" />
           </TouchableOpacity>
 
           <Text style={styles.screenTitle} numberOfLines={1}>
@@ -185,45 +187,34 @@ const EchoAudioPlaybackScreen: React.FC<Props> = ({ navigation, route }) => {
             activeOpacity={0.9}
             onPress={onPlayPause}
           >
-            <View style={styles.playOuter}>
-              <View style={styles.playInner}>
-                <Text style={styles.playIcon}>{playing ? '❚❚' : '▶'}</Text>
-              </View>
-            </View>
+            <Image
+              source={playing ? require('@assets/pause_circle.png') : require('@assets/play_circle.png')}
+              style={styles.playCircleImg}
+              resizeMode="contain"
+            />
           </TouchableOpacity>
-          {/* Debug/Progress Info Optional */}
-          {/* <Text style={{color:'white', marginTop:10}}>{Math.floor(currentPosition/1000)}s / {Math.floor(duration/1000)}s</Text> */}
         </View>
 
         {/* Transcript preview */}
-        <View
-          style={[
-            styles.transcriptShell,
-            { width: contentWidth, height: transcriptBoxH },
-          ]}
+        <LinearGradient
+          colors={['rgba(253,253,249,0.04)', 'rgba(253,253,249,0.01)']}
+          start={{ x: 0.5, y: 0 }}
+          end={{ x: 0.5, y: 1 }}
+          style={[styles.transcriptShell, { width: contentWidth, height: transcriptBoxH }]}
         >
-          <LinearGradient
-            colors={['rgba(253,253,249,0.07)', 'rgba(253,253,249,0.02)']}
-            start={{ x: 0.5, y: 0 }}
-            end={{ x: 0.5, y: 1 }}
-            style={styles.transcriptGradient}
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.transcriptPad}
           >
-            <View style={styles.transcriptInnerBorder}>
-              <ScrollView
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={styles.transcriptPad}
-              >
-                <Text style={styles.transcriptText}>{transcript}</Text>
-              </ScrollView>
-            </View>
-          </LinearGradient>
-        </View>
+            <Text style={styles.transcriptText}>{transcript}</Text>
+          </ScrollView>
+        </LinearGradient>
 
         {/* Bottom actions */}
         <View style={[styles.actionsRow, { width: contentWidth }]}>
-          <ActionIconButton label="⬇" onPress={() => {}} />
+          <ActionIconButton icon={require('@assets/download.png')} onPress={() => {}} />
           <ActionPrimaryButton label="VAULT" onPress={() => {}} />
-          <ActionIconButton label="✎" onPress={() => {}} />
+          <ActionIconButton icon={require('@assets/edit-icon.png')} onPress={() => {}} />
         </View>
       </SafeAreaView>
     </BackgroundWrapper>
@@ -255,27 +246,24 @@ const Waveform = ({ active }: { active: boolean }) => {
 };
 
 const ActionIconButton = ({
-  label,
+  icon,
   onPress,
 }: {
-  label: string;
+  icon: ReturnType<typeof require>;
   onPress: () => void;
 }) => {
   return (
     <TouchableOpacity
       activeOpacity={0.9}
       onPress={onPress}
-      style={{ width: 64 }}
     >
       <LinearGradient
-        colors={['rgba(253,253,249,0.10)', 'rgba(253,253,249,0.03)']}
+        colors={['rgba(253,253,249,0.04)', 'rgba(253,253,249,0.01)']}
         start={{ x: 0.5, y: 0 }}
         end={{ x: 0.5, y: 1 }}
         style={styles.iconBtnShell}
       >
-        <View style={styles.iconBtnInner}>
-          <Text style={styles.iconBtnLabel}>{label}</Text>
-        </View>
+        <Image source={icon} style={styles.iconBtnImg} resizeMode="contain" />
       </LinearGradient>
     </TouchableOpacity>
   );
@@ -289,16 +277,14 @@ const ActionPrimaryButton = ({
   onPress: () => void;
 }) => {
   return (
-    <TouchableOpacity activeOpacity={0.9} onPress={onPress} style={{ flex: 1 }}>
+    <TouchableOpacity activeOpacity={0.9} onPress={onPress}>
       <LinearGradient
-        colors={['rgba(253,253,249,0.10)', 'rgba(253,253,249,0.03)']}
+        colors={['rgba(253,253,249,0.04)', 'rgba(253,253,249,0.01)']}
         start={{ x: 0.5, y: 0 }}
         end={{ x: 0.5, y: 1 }}
         style={styles.primaryBtnShell}
       >
-        <View style={styles.primaryBtnInner}>
-          <Text style={styles.primaryBtnText}>{label}</Text>
-        </View>
+        <Text style={styles.primaryBtnText}>{label}</Text>
       </LinearGradient>
     </TouchableOpacity>
   );
@@ -373,6 +359,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   backIcon: { color: 'rgba(215,192,138,0.9)', fontSize: 30, marginLeft: 2 },
+  backArrowImg: { width: 20, height: 20, tintColor: 'rgba(215,192,138,0.9)' },
   screenTitle: {
     color: 'rgba(215,192,138,0.92)',
     fontSize: 28,
@@ -408,47 +395,35 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  playOuter: {
+  playCircleImg: {
     width: 96,
     height: 96,
-    borderRadius: 48,
-    backgroundColor: 'rgba(215,192,138,0.10)',
-    borderWidth: 1,
-    borderColor: 'rgba(215,192,138,0.22)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  playInner: {
-    width: 78,
-    height: 78,
-    borderRadius: 39,
-    backgroundColor: 'rgba(253,253,249,0.92)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  playIcon: {
-    color: 'rgba(7,9,14,0.85)',
-    fontSize: 26,
-    marginLeft: 2,
+    tintColor: GOLD,
   },
 
   transcriptShell: {
-    borderRadius: 18,
-    padding: 1,
-    borderWidth: 1,
-    borderColor: BORDER_SOFT,
+    borderRadius: 8,
+    borderWidth: 0.2,
+    borderColor: '#A3B3CC',
+    padding: 16,
     marginBottom: 18,
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    gap: 8,
+    ...Platform.select({
+      ios: {
+        shadowColor: 'rgba(242,226,177,1)',
+        shadowOffset: { width: 2, height: 2 },
+        shadowOpacity: 0.20,
+        shadowRadius: 32,
+        elevation: 5,
+      },
+      android: {
+        boxShadow: '2px 2px 32px 4px rgba(242, 226, 177, 0.20)',
+      },
+    }),
   },
-  transcriptGradient: { flex: 1, borderRadius: 18, padding: 1 },
-  transcriptInnerBorder: {
-    flex: 1,
-    borderRadius: 17,
-    borderWidth: 1,
-    borderColor: BORDER,
-    backgroundColor: SURFACE,
-    overflow: 'hidden',
-  },
-  transcriptPad: { paddingHorizontal: 16, paddingVertical: 12 },
+  transcriptPad: { paddingBottom: 4 },
   transcriptText: {
     color: 'rgba(253,253,249,0.84)',
     fontSize: 14,
@@ -460,44 +435,30 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     paddingBottom: 18,
   },
   iconBtnShell: {
-    width: 64,
-    height: 52,
-    borderRadius: 14,
-    padding: 1,
-    borderWidth: 1,
-    borderColor: 'rgba(215,192,138,0.22)',
-  },
-  iconBtnInner: {
-    flex: 1,
-    borderRadius: 13,
-    borderWidth: 1,
-    borderColor: BORDER_SOFT,
-    backgroundColor: 'rgba(7,9,14,0.28)',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 0.5,
+    borderColor: '#A3B3CC',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  iconBtnLabel: {
-    color: 'rgba(215,192,138,0.92)',
-    fontSize: 20,
+  iconBtnImg: {
+    width: 22,
+    height: 22,
+    tintColor: 'rgba(215,192,138,0.92)',
   },
 
   primaryBtnShell: {
-    height: 52,
-    borderRadius: 14,
-    padding: 1,
-    borderWidth: 1,
-    borderColor: 'rgba(215,192,138,0.28)',
-  },
-  primaryBtnInner: {
-    flex: 1,
-    borderRadius: 13,
-    borderWidth: 1,
-    borderColor: BORDER_SOFT,
-    backgroundColor: 'rgba(7,9,14,0.28)',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 0.5,
+    borderColor: '#A3B3CC',
     alignItems: 'center',
     justifyContent: 'center',
   },

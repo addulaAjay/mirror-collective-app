@@ -4,15 +4,16 @@ import 'react-native-url-polyfill/auto';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '@types';
-import React, { useEffect } from 'react';
-import { StatusBar } from 'react-native';
+import React, { useCallback, useEffect } from 'react';
+import { StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { ChatErrorBoundary } from '@components/error';
 import { SessionProvider, useSession } from '@context/SessionContext';
-import { UserProvider } from '@context/UserContext';
 import { SubscriptionProvider } from '@context/SubscriptionContext';
+import { UserProvider } from '@context/UserContext';
 import useAppStateHandler from '@hooks/useAppStateHandler';
+import useInactivityTimer from '@hooks/useInactivityTimer';
 // Import your screens
 import AboutScreen from '@screens/AboutScreen';
 import AppExplainerScreen from '@screens/AppExplainerScreen';
@@ -47,7 +48,14 @@ import ProfileScreen from '@screens/ProfileScreen';
 import QuizQuestionsScreen from '@screens/QuizQuestionsScreen';
 import QuizTuningScreen from '@screens/QuizTuningScreen';
 import QuizWelcomeScreen from '@screens/QuizWelcomeScreen';
-import ReflectionRoomCommingsoonScreen from '@screens/ReflectionRoomCommingsoonScreen';
+import ReflectionRoomCoreScreen from '@screens/reflectionRoom/ReflectionRoomCoreScreen';
+import ReflectionRoomEchoMapScreen from '@screens/reflectionRoom/ReflectionRoomEchoMapScreen';
+import ReflectionRoomEchoSignatureScreen from '@screens/reflectionRoom/ReflectionRoomEchoSignatureScreen';
+import ReflectionRoomLandingScreen from '@screens/reflectionRoom/ReflectionRoomLandingScreen';
+import ReflectionRoomLoadingScreen from '@screens/reflectionRoom/ReflectionRoomLoadingScreen';
+import ReflectionRoomMirrorMomentScreen from '@screens/reflectionRoom/ReflectionRoomMirrorMomentScreen';
+import ReflectionRoomQuizScreen from '@screens/reflectionRoom/ReflectionRoomQuizScreen';
+import ReflectionRoomTodaysMotifScreen from '@screens/reflectionRoom/ReflectionRoomTodaysMotifScreen';
 import ResetPasswordScreen from '@screens/ResetPasswordScreen';
 import SignUpScreen from '@screens/SignUpScreen';
 import SplashScreen from '@screens/SplashScreen';
@@ -120,12 +128,19 @@ const AuthNavigator = () => (
       name="MirrorCodeLibrary"
       component={MirrorCodeLibraryCommingsoonScreen}
     />
-    <Stack.Screen
-      name="ReflectionRoom"
-      component={ReflectionRoomCommingsoonScreen}
-    />
+    <Stack.Screen name="ReflectionRoom" component={ReflectionRoomLandingScreen} />
+    <Stack.Screen name="ReflectionRoomQuiz" component={ReflectionRoomQuizScreen} />
+    <Stack.Screen name="ReflectionRoomLoading" component={ReflectionRoomLoadingScreen} />
+    <Stack.Screen name="ReflectionRoomTodaysMotif" component={ReflectionRoomTodaysMotifScreen} />
+    <Stack.Screen name="ReflectionRoomEchoSignature" component={ReflectionRoomEchoSignatureScreen} />
+    <Stack.Screen name="ReflectionRoomEchoMap" component={ReflectionRoomEchoMapScreen} />
+    <Stack.Screen name="ReflectionRoomMirrorMoment" component={ReflectionRoomMirrorMomentScreen} />
+    <Stack.Screen name="ReflectionRoomCore" component={ReflectionRoomCoreScreen} />
     <Stack.Screen name="MirrorEcho" component={MirrorEchoCommingsoonScreen} />
-    <Stack.Screen name="TermsAndConditions" component={TermsAndConditionsScreen} />
+    <Stack.Screen
+      name="TermsAndConditions"
+      component={TermsAndConditionsScreen}
+    />
     <Stack.Screen name="StartFreeTrial" component={StartFreeTrialScreen} />
     <Stack.Screen name="Checkout" component={CheckoutScreen} />
     <Stack.Screen name="EchoVaultStorage" component={EchoVaultStorageScreen} />
@@ -166,7 +181,14 @@ const AuthenticatedNavigator = () => (
     <Stack.Screen name="FAQ" component={FAQScreen} />
     {/* Menu Screens */}
     <Stack.Screen name="MirrorCodeLibrary" component={MirrorCodeLibraryCommingsoonScreen} />
-    <Stack.Screen name="ReflectionRoom" component={ReflectionRoomCommingsoonScreen} />
+    <Stack.Screen name="ReflectionRoom" component={ReflectionRoomLandingScreen} />
+    <Stack.Screen name="ReflectionRoomQuiz" component={ReflectionRoomQuizScreen} />
+    <Stack.Screen name="ReflectionRoomLoading" component={ReflectionRoomLoadingScreen} />
+    <Stack.Screen name="ReflectionRoomTodaysMotif" component={ReflectionRoomTodaysMotifScreen} />
+    <Stack.Screen name="ReflectionRoomEchoSignature" component={ReflectionRoomEchoSignatureScreen} />
+    <Stack.Screen name="ReflectionRoomEchoMap" component={ReflectionRoomEchoMapScreen} />
+    <Stack.Screen name="ReflectionRoomMirrorMoment" component={ReflectionRoomMirrorMomentScreen} />
+    <Stack.Screen name="ReflectionRoomCore" component={ReflectionRoomCoreScreen} />
     <Stack.Screen name="TheMirrorPledge" component={TheMirrorPledgeCommingsoonScreen} />
     {/* Echo Vault Screens */}
     <Stack.Screen name="MirrorEchoVaultHome" component={MirrorEchoVaultHomeScreen} />
@@ -184,32 +206,57 @@ const AuthenticatedNavigator = () => (
     <Stack.Screen name="EchoAudioPlaybackScreen" component={EchoAudioPlaybackScreen} />
     <Stack.Screen name="EchoVideoPlaybackScreen" component={EchoVideoPlaybackScreen} />
     <Stack.Screen name="Checkout" component={CheckoutScreen} />
+    <Stack.Screen name="StartFreeTrial" component={StartFreeTrialScreen} />
+    <Stack.Screen name="EchoVaultStorage" component={EchoVaultStorageScreen} />
   </Stack.Navigator>
 );
 
 // Main Navigator that switches based on auth state
 const AppNavigator = () => {
-  const { state } = useSession();
+  const { state, signOut } = useSession();
   const { isAuthenticated } = state;
 
-  // Optionally show a loading screen while session is restoring
-  // if (isLoading) {
-  //   // Cast SplashScreen or pass mock props since it's just a loader here
-  //   return <SplashScreen navigation={null as any} />;
-  // }
+  const handleInactivityTimeout = useCallback(async () => {
+    if (__DEV__) {
+      console.log('Session timed out due to inactivity');
+    }
+    await signOut();
+  }, [signOut]);
+
+  const { resetTimer } = useInactivityTimer({
+    isEnabled: isAuthenticated,
+    onTimeout: handleInactivityTimeout,
+  });
 
   return (
     <NavigationContainer
+      key={isAuthenticated ? 'authenticated' : 'unauthenticated'}
       onStateChange={navState => {
         if (__DEV__) {
           console.log('Navigation state changed:', navState);
         }
       }}
     >
-      {isAuthenticated ? <AuthenticatedNavigator /> : <AuthNavigator />}
+      {isAuthenticated ? (
+        <View
+          style={styles.fill}
+          onStartShouldSetResponderCapture={() => {
+            resetTimer();
+            return false; // Don't consume — let children handle the touch
+          }}
+        >
+          <AuthenticatedNavigator />
+        </View>
+      ) : (
+        <AuthNavigator />
+      )}
     </NavigationContainer>
   );
 };
+
+const styles = StyleSheet.create({
+  fill: { flex: 1 },
+});
 
 const App = () => {
   useAppStateHandler({

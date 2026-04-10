@@ -1,3 +1,5 @@
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList } from '@types';
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
@@ -5,19 +7,22 @@ import {
   StyleSheet,
   StatusBar,
   TouchableOpacity,
+  Image,
   TextInput,
   Dimensions,
   Platform,
   FlatList,
   ActivityIndicator,
   Modal,
+  ScrollView,
+  KeyboardAvoidingView,
 } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
 import BackgroundWrapper from '@components/BackgroundWrapper';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '@types';
-import { echoApiService, Guardian } from '@services/api/echo';
 import LogoHeader from '@components/LogoHeader';
+import { echoApiService, Guardian } from '@services/api/echo';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ChooseGuardianScreen'>;
 
@@ -29,7 +34,8 @@ const SUBTEXT = 'rgba(253,253,249,0.65)';
 const BORDER = 'rgba(253,253,249,0.18)';
 const SURFACE = 'rgba(7,9,14,0.35)';
 
-const ChooseGuardianScreen: React.FC<Props> = ({ navigation }) => {
+const ChooseGuardianScreen: React.FC<Props> = ({ navigation, route }) => {
+  const { title, category, mode, recipientId, recipientName, lockDate, unlockOnDeath } = route.params || {};
   const [guardians, setGuardians] = useState<Guardian[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedGuardian, setSelectedGuardian] = useState<Guardian | null>(null);
@@ -37,6 +43,8 @@ const ChooseGuardianScreen: React.FC<Props> = ({ navigation }) => {
   const [notes, setNotes] = useState('');
   const [scope, setScope] = useState<string[]>([]);
   const [triggers, setTriggers] = useState<string[]>([]);
+  const [authRelease, setAuthRelease] = useState(false);
+  const [authCustodian, setAuthCustodian] = useState(false);
 
   const contentWidth = Math.min(width * 0.88, 360);
 
@@ -73,6 +81,22 @@ const ChooseGuardianScreen: React.FC<Props> = ({ navigation }) => {
     setShowDropdown(false);
   };
 
+  const handleContinue = () => {
+    if (selectedGuardian) {
+      navigation.navigate('NewEchoComposeScreen', {
+        mode,
+        title,
+        category,
+        recipientId,
+        recipientName,
+        guardianId: selectedGuardian.guardian_id,
+        guardianName: selectedGuardian.name,
+        lockDate,
+        unlockOnDeath,
+      });
+    }
+  };
+
   return (
     <BackgroundWrapper style={styles.root}>
       <SafeAreaView style={styles.safe}>
@@ -82,39 +106,60 @@ const ChooseGuardianScreen: React.FC<Props> = ({ navigation }) => {
           backgroundColor="transparent"
         />
 
-        <LogoHeader navigation={navigation} />
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={{ flex: 1, width: '100%' }}
+        >
+          <ScrollView
+            style={{ flex: 1 }}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            <LogoHeader navigation={navigation} />
 
-        {/* Title */}
-        <View style={styles.titleRowContainer}>
-          <View style={[styles.titleRow, { width: contentWidth }]}>
-            <TouchableOpacity onPress={() => navigation.goBack()}>
-              <Text style={styles.backArrow}>←</Text>
-            </TouchableOpacity>
+            {/* Title */}
+            <View style={[styles.titleRow, { width: contentWidth, alignSelf: 'center' }]}>
+              <TouchableOpacity onPress={() => navigation.goBack()}>
+                <Image source={require('@assets/back-arrow.png')} style={styles.backArrowImg} resizeMode="contain" />
+              </TouchableOpacity>
 
-            <Text style={styles.title}>CHOOSE YOUR{'\n'}GUARDIAN</Text>
+              <Text style={styles.title}>CHOOSE YOUR{'\n'}GUARDIAN</Text>
 
-            <View style={{ width: 24 }} />
-          </View>
-        </View>
+              <View style={{ width: 24 }} />
+            </View>
 
-        {/* Description */}
-        <Text style={[styles.description, { width: contentWidth }]}>
-          Designate a person(s) to receive your memories. Nothing is shared
-          until your chosen triggers occur.
-        </Text>
+            {/* Description */}
+            <Text style={[styles.description, { width: contentWidth, alignSelf: 'center' }]}>
+              Designate a person(s) to receive your memories. Nothing is shared
+              until your chosen triggers occur.
+            </Text>
 
-        {/* Content */}
-        <View style={[styles.content, { width: contentWidth }]}>
+            {/* Content */}
+            <View style={[styles.content, { width: contentWidth, alignSelf: 'center' }]}>
           {/* Guardian dropdown */}
           <Text style={styles.label}>Guardian</Text>
           <TouchableOpacity
-            style={styles.inputShell}
+            activeOpacity={0.9}
             onPress={() => setShowDropdown(true)}
+            style={{ width: '100%' }}
           >
-            <Text style={selectedGuardian ? styles.selectedText : styles.placeholder}>
-              {selectedGuardian ? selectedGuardian.name : 'Choose from list'}
-            </Text>
-            <Text style={styles.chevron}>▾</Text>
+            <LinearGradient
+              colors={['rgba(253,253,249,0.04)', 'rgba(253,253,249,0.01)']}
+              start={{ x: 0.5, y: 0 }}
+              end={{ x: 0.5, y: 1 }}
+              style={styles.dropdownShell}
+            >
+              <View style={styles.dropdownContent}>
+                <View style={styles.dropdownLeft} />
+                <Text style={selectedGuardian ? styles.dropdownValueText : styles.dropdownPlaceholderText}>
+                  {selectedGuardian ? selectedGuardian.name : 'Choose from list'}
+                </Text>
+                <View style={styles.dropdownRight}>
+                  <Image source={require('@assets/down-arrow.png')} style={{ width: 16, height: 16, tintColor: OFFWHITE }} resizeMode="contain" />
+                </View>
+              </View>
+            </LinearGradient>
           </TouchableOpacity>
 
           {/* Scope of Access */}
@@ -169,7 +214,44 @@ const ChooseGuardianScreen: React.FC<Props> = ({ navigation }) => {
               style={styles.textAreaInput}
             />
           </View>
-        </View>
+
+          {/* Authorization Checkboxes */}
+          <TouchableOpacity style={styles.authRow} onPress={() => setAuthRelease(!authRelease)}>
+            <View style={[styles.checkbox, authRelease && styles.checkboxActive]}>
+              {authRelease && <Text style={styles.checkMark}>✓</Text>}
+            </View>
+            <Text style={styles.authText}>
+              I authorize Mirror to release my selected Echoes to my Guardian(s) upon verification of the chosen trigger.
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.authRow} onPress={() => setAuthCustodian(!authCustodian)}>
+            <View style={[styles.checkbox, authCustodian && styles.checkboxActive]}>
+              {authCustodian && <Text style={styles.checkMark}>✓</Text>}
+            </View>
+            <Text style={styles.authText}>
+              I understand Mirror is a custodian only and may decline release if verification is incomplete.
+            </Text>
+          </TouchableOpacity>
+          </View>
+
+            {/* Next Button */}
+            <TouchableOpacity
+              style={[styles.nextAction, !selectedGuardian && styles.disabled]}
+              onPress={handleContinue}
+              disabled={!selectedGuardian}
+            >
+              <LinearGradient
+                colors={['rgba(253,253,249,0.04)', 'rgba(253,253,249,0.01)']}
+                start={{ x: 0.5, y: 0 }}
+                end={{ x: 0.5, y: 1 }}
+                style={styles.nextGradient}
+              >
+                <Text style={styles.nextText}>NEXT</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </ScrollView>
+        </KeyboardAvoidingView>
 
         {/* Dropdown Modal */}
         <Modal
@@ -242,7 +324,9 @@ const CheckRow = ({
   onPress: () => void;
 }) => (
   <TouchableOpacity style={styles.checkRow} onPress={onPress}>
-    <View style={[styles.checkbox, checked && styles.checkboxActive]} />
+    <View style={[styles.checkbox, checked && styles.checkboxActive]}>
+      {checked && <Text style={styles.checkMark}>✓</Text>}
+    </View>
     <Text style={styles.checkLabel}>{label}</Text>
   </TouchableOpacity>
 );
@@ -250,23 +334,25 @@ const CheckRow = ({
 /* ---------------- STYLES ---------------- */
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: 'transparent', alignItems: 'center' },
+  safe: { flex: 1, backgroundColor: 'transparent' },
   root: {
     flex: 1,
   },
+  scrollContent: {
+    alignItems: 'center',
+    paddingHorizontal: 0,
+    paddingBottom: 40,
+  },
 
   /* Title */
-  titleRowContainer: {
-    width: '100%',
-    alignItems: 'center',
-    marginTop: 20,
-  },
   titleRow: {
+    marginTop: 20,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
   backArrow: { fontSize: 22, color: GOLD },
+  backArrowImg: { width: 20, height: 20, tintColor: GOLD },
   title: {
     textAlign: 'center',
     color: GOLD,
@@ -317,6 +403,34 @@ const styles = StyleSheet.create({
   placeholder: { color: 'rgba(253,253,249,0.55)', fontSize: 15 },
   selectedText: { color: OFFWHITE, fontSize: 15 },
   chevron: { color: OFFWHITE, fontSize: 16 },
+  dropdownShell: {
+    width: '100%',
+    borderRadius: 12,
+    borderWidth: 0.25,
+    borderColor: '#60739F',
+    marginBottom: 16,
+    height: 48,
+    justifyContent: 'center',
+  },
+  dropdownContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+  },
+  dropdownLeft: { width: 24 },
+  dropdownRight: { width: 24, alignItems: 'flex-end' as const },
+  dropdownValueText: {
+    flex: 1,
+    color: OFFWHITE,
+    fontSize: 15,
+    textAlign: 'center',
+  },
+  dropdownPlaceholderText: {
+    flex: 1,
+    color: 'rgba(253,253,249,0.55)',
+    fontSize: 15,
+    textAlign: 'center',
+  },
 
   /* Cards */
   card: {
@@ -354,10 +468,18 @@ const styles = StyleSheet.create({
     height: 18,
     borderRadius: 3,
     borderWidth: 1,
-    borderColor: GOLD,
+    borderColor: OFFWHITE,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   checkboxActive: {
     backgroundColor: 'rgba(215,192,138,0.7)',
+  },
+  checkMark: {
+    color: '#1A1F2E',
+    fontSize: 11,
+    fontWeight: 'bold',
+    lineHeight: 14,
   },
   checkLabel: {
     color: OFFWHITE,
@@ -374,6 +496,20 @@ const styles = StyleSheet.create({
     color: OFFWHITE,
     fontSize: 15,
     textAlignVertical: 'top',
+  },
+
+  authRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+    marginBottom: 16,
+    paddingHorizontal: 4,
+  },
+  authText: {
+    flex: 1,
+    color: OFFWHITE,
+    fontSize: 14,
+    lineHeight: 20,
   },
 
   /* Modal */
@@ -416,5 +552,39 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
     paddingVertical: 20,
+  },
+
+  /* Next */
+  nextAction: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+    justifyContent: 'center',
+    marginTop: 40,
+    marginBottom: 40,
+  },
+  nextGradient: {
+    paddingHorizontal: 32,
+    paddingVertical: 12,
+    borderRadius: 12,
+    borderWidth: 0.5,
+    borderColor: GOLD,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  nextText: {
+    color: GOLD,
+    fontSize: 24,
+    fontFamily: Platform.select({
+      ios: 'CormorantGaramond-Regular',
+      android: 'serif',
+    }),
+    textShadowColor: 'rgba(229, 214, 176, 0.5)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 9,
+    letterSpacing: 2,
+  },
+  disabled: {
+    opacity: 0.5,
   },
 });

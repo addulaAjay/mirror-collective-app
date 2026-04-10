@@ -1,0 +1,60 @@
+{
+  "motifs": [
+    {
+      "name": "COMPASS",
+      "image": "compass",
+      "description": "Find your true north. Trust the direction you already know."
+    },
+    {
+      "name": "MIRROR",
+      "image": "mirror",
+      "description": "See yourself clearly — without distortion, without judgment."
+    },
+    {
+      "name": "BLOCKS",
+      "image": "blocks",
+      "description": "Set steady boundaries that protect your energy and keep you grounded."
+
+    },
+    {
+      "name": "SPIRAL",
+      "image": "spiral",
+      "description": "Growth isn't linear. Each return brings deeper understanding."
+    },
+    {
+      "name": "RADIANT BURST",
+      "image": "radiant-burst",
+      "description": "Clarity is breaking through. Let yourself see what's emerging."
+    },
+    {
+      "name": "FEATHER",
+      "image": "feather",
+      "description": "Release what's been weighing you down. Move forward lighter."
+    },
+    {
+      "name": "WAVES",
+      "image": "waves",
+      "description": "Let emotion move. Flow, express, and breathe again."
+    },
+    {
+      "name": "PYRAMID",
+      "image": "pyramid",
+      "description": "Focus your energy. Precision brings calm and control."
+    },
+    {
+      "name": "WATER DROP",
+      "image": "water-drop",
+      "description": "Feel honestly. Emotion isn't weakness — it's information."
+    },
+    {
+      "name": "BRICK STACK",
+      "image": "brick-stack",
+      "description": "Build one solid step at a time. Self-trust creates stability."
+    },
+    {
+      "name": "SPROUT",
+      "image": "sprout",
+      "description": "Something new is forming. Growth has already begun."
+    }
+  ]
+}

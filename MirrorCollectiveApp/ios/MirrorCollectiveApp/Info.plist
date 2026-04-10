@@ -24,24 +24,42 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
 	</dict>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>Mirror Collective needs access to your microphone to record audio echoes.</string>
-	<key>NSCameraUsageDescription</key>
-	<string>Mirror Collective needs access to your camera to record video echoes.</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Mirror Collective needs access to your photo library to save or upload echoes.</string>
 	<key>NSAppleMusicUsageDescription</key>
 	<string>Mirror Collective needs access to your media library to browse and upload audio files.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Mirror Collective needs access to your camera to record video echoes.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-
-	<string/>
+	<string>This app does not use your location. This entry is required by a third-party library.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Mirror Collective needs access to your microphone to record audio echoes.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Mirror Collective needs access to your photo library to save or upload echoes.</string>
 	<key>RCTNewArchEnabled</key>
 	<true/>
+	<key>UIAppFonts</key>
+	<array>
+		<string>CormorantGaramond-Bold.ttf</string>
+		<string>CormorantGaramond-BoldItalic.ttf</string>
+		<string>CormorantGaramond-Italic.ttf</string>
+		<string>CormorantGaramond-Light.ttf</string>
+		<string>CormorantGaramond-LightItalic.ttf</string>
+		<string>CormorantGaramond-Medium.ttf</string>
+		<string>CormorantGaramond-MediumItalic.ttf</string>
+		<string>CormorantGaramond-Regular.ttf</string>
+		<string>CormorantGaramond-SemiBold.ttf</string>
+		<string>CormorantGaramond-SemiBoldItalic.ttf</string>
+	</array>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIRequiredDeviceCapabilities</key>
@@ -56,22 +74,5 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
-	<key>UIBackgroundModes</key>
-	<array>
-		<string>remote-notification</string>
-	</array>
-	<key>UIAppFonts</key>
-	<array>
-		<string>CormorantGaramond-Bold.ttf</string>
-		<string>CormorantGaramond-BoldItalic.ttf</string>
-		<string>CormorantGaramond-Italic.ttf</string>
-		<string>CormorantGaramond-Light.ttf</string>
-		<string>CormorantGaramond-LightItalic.ttf</string>
-		<string>CormorantGaramond-Medium.ttf</string>
-		<string>CormorantGaramond-MediumItalic.ttf</string>
-		<string>CormorantGaramond-Regular.ttf</string>
-		<string>CormorantGaramond-SemiBold.ttf</string>
-		<string>CormorantGaramond-SemiBoldItalic.ttf</string>
-	</array>
 </dict>
 </plist>

@@ -1,6 +1,7 @@
 import type { ApiResponse, ApiError } from '@types';
 
 import { API_CONFIG } from '@constants/config';
+import { authEvents } from '@services/authEvents';
 import { tokenManager } from '@services/tokenManager';
 
 import { ApiErrorHandler } from './errorHandler';
@@ -31,9 +32,11 @@ export class BaseApiService {
 
       if (requiresAuth) {
         const token = await tokenManager.getValidToken();
-        if (token) {
-          headers.Authorization = `Bearer ${token}`;
+        if (!token) {
+          authEvents.emitSessionExpired();
+          throw this.createApiError('Session expired. Please log in again.', 401);
         }
+        headers.Authorization = `Bearer ${token}`;
       }
 
       const config: RequestInit = {
@@ -67,6 +70,9 @@ export class BaseApiService {
       clearTimeout(timeoutId);
 
       if (!response.ok) {
+        if (response.status === 401 && requiresAuth) {
+          authEvents.emitSessionExpired();
+        }
         if (ApiErrorHandler.shouldHandleGracefully(endpoint, response.status)) {
           return responseData;
         }

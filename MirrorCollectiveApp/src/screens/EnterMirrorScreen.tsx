@@ -21,7 +21,7 @@ type Props = {
 
 const EnterMirrorScreen: React.FC<Props> = ({ navigation }) => {
   const handleEnter = () => {
-    navigation.navigate('TalkToMirror');
+    navigation.navigate('AppVideo');
   };
 
   return (
@@ -79,31 +79,32 @@ const styles = StyleSheet.create({
     maxWidth: 353,
   },
   title: {
-    ...theme.typography.styles.headline,
     color: '#F2E2B1',
-    fontFamily: 'CormorantGaramond-Regular',
-    fontSize: 32,
-    fontWeight: '600',
+    fontFamily: 'CormorantGaramond-Light',
+    fontSize: 26,
+    fontWeight: 'ultralight',
     textAlign: 'center',
-    lineHeight: 48,
+    lineHeight: 28,
+    textShadowColor: 'rgba(230, 211, 163, 0.8)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 12,
   },
   subtitle: {
     ...theme.typography.styles.welcome,
     fontFamily: 'Inter',
     fontStyle: 'normal',
     color: '#FDFDF9',
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '300',
     textAlign: 'center',
     lineHeight: 24,
     marginTop: 16,
   },
   subtitleItalic: {
-    ...theme.typography.styles.welcome,
     fontFamily: 'Inter',
     fontStyle: 'italic',
     color: '#FDFDF9',
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '300',
     textAlign: 'center',
     lineHeight: 24,

@@ -1,3 +1,6 @@
+import { useFocusEffect } from '@react-navigation/native';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList } from '@types';
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
@@ -5,21 +8,21 @@ import {
   StyleSheet,
   StatusBar,
   TouchableOpacity,
+  Image,
   Dimensions,
   Platform,
   FlatList,
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { SvgXml } from 'react-native-svg';
-import { MOTIF_ICONS, getMotifIcon } from '@assets/motifs/MotifAssets';
+import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { SvgXml } from 'react-native-svg';
+
+import { MOTIF_ICONS, getMotifIcon } from '@assets/motifs/MotifAssets';
 import BackgroundWrapper from '@components/BackgroundWrapper';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '@types';
-import { echoApiService, Recipient } from '@services/api/echo';
 import LogoHeader from '@components/LogoHeader';
-import { useFocusEffect } from '@react-navigation/native';
+import { echoApiService, Recipient } from '@services/api/echo';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ManageRecipientScreen'>;
 
@@ -122,7 +125,7 @@ const ManageRecipientScreen: React.FC<Props> = ({ navigation }) => {
         style={styles.deleteBtn}
         onPress={() => handleRemoveRecipient(item.recipient_id)}
       >
-        <Text style={styles.deleteIcon}>🗑</Text>
+        <Image source={require('@assets/delete.png')} style={styles.deleteIcon} resizeMode="contain" />
       </TouchableOpacity>
     </View>
   );
@@ -142,7 +145,7 @@ const ManageRecipientScreen: React.FC<Props> = ({ navigation }) => {
         <View style={styles.titleRowContainer}>
           <View style={[styles.titleRow, { width: contentWidth }]}>
             <TouchableOpacity onPress={() => navigation.goBack()}>
-              <Text style={styles.backArrow}>←</Text>
+              <Image source={require('@assets/back-arrow.png')} style={styles.backArrowImg} resizeMode="contain" />
             </TouchableOpacity>
 
             <Text style={styles.title}>MANAGE{'\n'}RECIPIENTS</Text>
@@ -153,7 +156,7 @@ const ManageRecipientScreen: React.FC<Props> = ({ navigation }) => {
 
         {/* Description */}
         <Text style={[styles.description, { width: contentWidth }]}>
-          Create and manage the people you want to leave echoes for.
+          Choose who can access echoes you share.
         </Text>
 
         {/* List */}
@@ -181,15 +184,38 @@ const ManageRecipientScreen: React.FC<Props> = ({ navigation }) => {
 
         {/* Buttons */}
         <View style={[styles.buttonContainer, { width: contentWidth }]}>
-          <TouchableOpacity style={styles.addWrap} onPress={handleAddRecipient}>
-            <View style={styles.addButton}>
+          <TouchableOpacity activeOpacity={0.8} onPress={handleAddRecipient}>
+            <LinearGradient
+              colors={['rgba(253,253,249,0.04)', 'rgba(253,253,249,0.01)']}
+              start={{ x: 0.5, y: 0 }}
+              end={{ x: 0.5, y: 1 }}
+              style={styles.addButton}
+            >
               <Text style={styles.addText}>ADD RECIPIENT</Text>
-            </View>
+            </LinearGradient>
           </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.guardianWrap} onPress={handleManageGuardians}>
-            <Text style={styles.guardianText}>MANAGE GUARDIANS</Text>
-          </TouchableOpacity>
+
+          <LinearGradient
+            colors={['rgba(253,253,249,0.04)', 'rgba(253,253,249,0.01)']}
+            start={{ x: 0.5, y: 0 }}
+            end={{ x: 0.5, y: 1 }}
+            style={styles.guardianCard}
+          >
+            <Text style={styles.guardianCardTitle}>Need a Vault Guardian?</Text>
+            <Text style={styles.guardianCardDesc}>
+              Choose someone you trust to manage {'\n'} access if something happens to you.
+            </Text>
+            <TouchableOpacity activeOpacity={0.9} onPress={handleManageGuardians}>
+              <LinearGradient
+                colors={['rgba(253, 253, 249, 0.04)', 'rgba(253,253,249,0.01)']}
+                start={{ x: 0.5, y: 1 }}
+                end={{ x: 0.5, y: 0 }}
+                style={styles.guardianWrap}
+              >
+                <Text style={styles.guardianText}>MANAGE GUARDIANS</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </LinearGradient>
         </View>
       </SafeAreaView>
     </BackgroundWrapper>
@@ -218,6 +244,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   backArrow: { fontSize: 22, color: GOLD },
+  backArrowImg: { width: 20, height: 20, tintColor: GOLD },
   title: {
     fontSize: 28,
     color: GOLD,
@@ -293,8 +320,9 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   deleteIcon: {
-    fontSize: 14,
-    color: OFFWHITE,
+    width: 16,
+    height: 16,
+    tintColor: OFFWHITE,
   },
 
   /* Buttons */
@@ -302,41 +330,96 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 30,
     gap: 12,
-  },
-  addWrap: {
-    width: '100%',
-  },
-  addButton: {
-    width: '100%',
-    paddingVertical: 14,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(215,192,138,0.45)',
-    backgroundColor: 'rgba(7,9,14,0.4)',
     alignItems: 'center',
   },
+  addButton: {
+    // paddingVertical: 12,
+    // paddingHorizontal: 4,
+    borderRadius: 12,
+    borderWidth: 0.5,
+    borderColor: '#A3B3CC',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 44,
+  },
   addText: {
-    color: GOLD,
+    color: '#E5D6B0',
+    fontSize: 24,
+    letterSpacing: 2,
+    padding: 14,
+    fontFamily: Platform.select({
+      ios: 'CormorantGaramond-Medium',
+      android: 'serif',
+    }),
+    textShadowColor: 'rgba(229, 214, 176, 0.5)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 8,
+  },
+  guardianCard: {
+    width: '100%',
+    borderRadius: 16,
+    // borderWidth: 1,
+    // borderColor: 'rgba(215,192,138,0.25)',
+    // paddingVertical: 16,
+    // paddingHorizontal: 0,
+    alignItems: 'center',
+    gap: 12,
+    ...Platform.select({
+      ios: {
+        shadowColor: 'rgba(229,214,176,0.25)',
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 1,
+        shadowRadius: 15,
+      },
+      android: {
+        boxShadow: '0 4 19 4 rgba(0,0,0,0.10), 0 0 15 2 rgba(229,214,176,0.25)',
+      },
+    }),
+  },
+  guardianCardTitle: {
+    color: '#E5D6B0',
     fontSize: 16,
-    letterSpacing: 1.5,
     fontFamily: Platform.select({
       ios: 'CormorantGaramond-Regular',
       android: 'serif',
     }),
+    marginBottom: 6,
+    paddingTop: 10,
+  },
+  guardianCardDesc: {
+    color: SUBTEXT,
+    fontSize: 13,
+    lineHeight: 18,
+    textAlign: 'center',
+    marginBottom: 14,
   },
   guardianWrap: {
-    width: '100%',
-    paddingVertical: 14,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(215,192,138,0.25)',
-    backgroundColor: 'rgba(7,9,14,0.2)',
+    // paddingVertical: 8,
+    // paddingHorizontal: 20,
+    marginBottom: 10,
+    borderRadius: 13,
+    borderWidth: 0.25,
+    minHeight: 44,
+    borderColor: '#9BAAC2',
     alignItems: 'center',
+    justifyContent: 'center',
+    ...Platform.select({
+      ios: {
+        shadowColor: 'rgba(229,214,176,0.25)',
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 1,
+        shadowRadius: 15,
+      },
+      android: {
+        boxShadow: '0 4 19 4 rgba(0,0,0,0.10), 0 0 15 2 rgba(229,214,176,0.25)',
+      },
+    }),
   },
   guardianText: {
-    color: SUBTEXT,
-    fontSize: 14,
+    color: '#E5D6B0',
+    fontSize: 20,
     letterSpacing: 1.5,
+    paddingHorizontal: 10,
     fontFamily: Platform.select({
       ios: 'CormorantGaramond-Regular',
       android: 'serif',

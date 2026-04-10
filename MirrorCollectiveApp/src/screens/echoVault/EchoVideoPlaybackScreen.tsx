@@ -1,3 +1,5 @@
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList } from '@types';
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import {
   View,
@@ -5,19 +7,20 @@ import {
   StyleSheet,
   StatusBar,
   TouchableOpacity,
+  Image,
   Dimensions,
   Platform,
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
-import BackgroundWrapper from '@components/BackgroundWrapper';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Video, { VideoRef } from 'react-native-video';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '@types';
-import { echoApiService, EchoResponse } from '../../services/api/echo';
+
+import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
+
+import { echoApiService, EchoResponse } from '../../services/api/echo';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'EchoVideoPlaybackScreen'>;
 
@@ -91,7 +94,7 @@ const EchoVideoPlaybackScreen: React.FC<Props> = ({ navigation, route }) => {
             style={styles.backBtn}
             onPress={() => navigation.goBack()}
           >
-            <Text style={styles.backIcon}>‹</Text>
+            <Image source={require('@assets/back-arrow.png')} style={styles.backArrowImg} resizeMode="contain" />
           </TouchableOpacity>
 
           <Text style={styles.screenTitle} numberOfLines={1}>
@@ -164,9 +167,9 @@ const EchoVideoPlaybackScreen: React.FC<Props> = ({ navigation, route }) => {
 
         {/* Bottom actions */}
         <View style={[styles.actionsRow, { width: contentWidth }]}>
-          <ActionIconButton label="⬇" />
+          <ActionIconButton icon={require('@assets/download.png')} />
           <ActionPrimaryButton label="VAULT" />
-          <ActionIconButton label="✎" />
+          <ActionIconButton icon={require('@assets/edit-icon.png')} />
         </View>
       </SafeAreaView>
     </BackgroundWrapper>
@@ -177,32 +180,28 @@ export default EchoVideoPlaybackScreen;
 
 /* ---------- Action Buttons ---------- */
 
-const ActionIconButton = ({ label }: { label: string }) => (
-  <TouchableOpacity activeOpacity={0.9} style={{ width: 64 }}>
+const ActionIconButton = ({ icon }: { icon: ReturnType<typeof require> }) => (
+  <TouchableOpacity activeOpacity={0.9}>
     <LinearGradient
-      colors={['rgba(253,253,249,0.10)', 'rgba(253,253,249,0.03)']}
+      colors={['rgba(253,253,249,0.04)', 'rgba(253,253,249,0.01)']}
       start={{ x: 0.5, y: 0 }}
       end={{ x: 0.5, y: 1 }}
       style={styles.iconBtnShell}
     >
-      <View style={styles.iconBtnInner}>
-        <Text style={styles.iconBtnLabel}>{label}</Text>
-      </View>
+      <Image source={icon} style={styles.iconBtnImg} resizeMode="contain" />
     </LinearGradient>
   </TouchableOpacity>
 );
 
 const ActionPrimaryButton = ({ label }: { label: string }) => (
-  <TouchableOpacity activeOpacity={0.9} style={{ flex: 1 }}>
+  <TouchableOpacity activeOpacity={0.9}>
     <LinearGradient
-      colors={['rgba(253,253,249,0.10)', 'rgba(253,253,249,0.03)']}
+      colors={['rgba(253,253,249,0.04)', 'rgba(253,253,249,0.01)']}
       start={{ x: 0.5, y: 0 }}
       end={{ x: 0.5, y: 1 }}
       style={styles.primaryBtnShell}
     >
-      <View style={styles.primaryBtnInner}>
-        <Text style={styles.primaryBtnText}>{label}</Text>
-      </View>
+      <Text style={styles.primaryBtnText}>{label}</Text>
     </LinearGradient>
   </TouchableOpacity>
 );
@@ -252,6 +251,7 @@ const styles = StyleSheet.create({
   },
   backBtn: { width: 44, height: 44, justifyContent: 'center' },
   backIcon: { color: GOLD, fontSize: 30 },
+  backArrowImg: { width: 20, height: 20, tintColor: GOLD },
   screenTitle: {
     color: GOLD,
     fontSize: 28,
@@ -317,41 +317,26 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     paddingBottom: 18,
   },
   iconBtnShell: {
-    width: 64,
-    height: 52,
-    borderRadius: 14,
-    padding: 1,
-    borderWidth: 1,
-    borderColor: 'rgba(215,192,138,0.22)',
-  },
-  iconBtnInner: {
-    flex: 1,
-    borderRadius: 13,
-    borderWidth: 1,
-    borderColor: BORDER_SOFT,
-    backgroundColor: 'rgba(7,9,14,0.28)',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 0.5,
+    borderColor: '#A3B3CC',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  iconBtnLabel: { color: GOLD, fontSize: 20 },
+  iconBtnImg: { width: 22, height: 22, tintColor: GOLD },
 
   primaryBtnShell: {
-    height: 52,
-    borderRadius: 14,
-    padding: 1,
-    borderWidth: 1,
-    borderColor: 'rgba(215,192,138,0.28)',
-  },
-  primaryBtnInner: {
-    flex: 1,
-    borderRadius: 13,
-    borderWidth: 1,
-    borderColor: BORDER_SOFT,
-    backgroundColor: 'rgba(7,9,14,0.28)',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 0.5,
+    borderColor: '#A3B3CC',
     alignItems: 'center',
     justifyContent: 'center',
   },
