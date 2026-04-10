@@ -119,11 +119,13 @@ const ReflectionRoomQuizScreen: React.FC = () => {
                       selected === motif.label && styles.motifCircleSelected,
                     ]}
                   >
-                    <SvgXml
-                      xml={MOTIF_SVG[MOTIF_KEYS[motif.image!]] || ''}
-                      width="60%"
-                      height="60%"
-                    />
+                    <View style={styles.motifIconWrapper}>
+                      <SvgXml
+                        xml={MOTIF_SVG[MOTIF_KEYS[motif.image!]] || ''}
+                        width={84.5}
+                        height={84.5}
+                      />
+                    </View>
                   </View>
                 </TouchableOpacity>
               ))}
@@ -256,7 +258,7 @@ const styles = StyleSheet.create({
   },
   motifWrapper: {
     alignItems: 'center',
-    borderRadius: 40,
+    borderRadius: 55,
   },
   motifWrapperSelected: {
     ...(Platform.OS === 'ios'
@@ -268,9 +270,9 @@ const styles = StyleSheet.create({
         }),
   },
   motifCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 110,
+    height: 110,
+    borderRadius: 55,
     backgroundColor: '#1a2238',
     borderWidth: 0.25,
     borderColor: '#9baac2',
@@ -281,6 +283,13 @@ const styles = StyleSheet.create({
   motifCircleSelected: {
     borderWidth: 1.5,
     borderColor: '#F2E2B1',
+  },
+  motifIconWrapper: {
+    width: 84.5,
+    height: 84.5,
+    aspectRatio: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   motifImage: {
     width: '60%',
