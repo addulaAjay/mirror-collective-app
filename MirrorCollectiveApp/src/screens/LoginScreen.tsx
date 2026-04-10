@@ -1,4 +1,5 @@
 import { theme } from '@theme';
+import type { LoginScreenProps } from '@types';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -13,8 +14,8 @@ import {
   Keyboard,
   ScrollView,
 } from 'react-native';
-import Svg, { Mask, Rect, G, Path } from 'react-native-svg';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Svg, { Mask, Rect, G, Path } from 'react-native-svg';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
@@ -24,7 +25,6 @@ import { useSession } from '@context/SessionContext';
 import { useUser } from '@context/UserContext';
 import { quizApiService } from '@services/api';
 import { QuizStorageService } from '@services/quizStorageService';
-import type { LoginScreenProps } from '@types';
 import { getApiErrorMessage } from '@utils/apiErrorUtils';
 
 const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
