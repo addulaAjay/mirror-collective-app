@@ -306,11 +306,13 @@ const styles = StyleSheet.create({
   bottomRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     width: '100%',
-    gap: 12,
+    position: 'relative',
   },
   backSquare: {
+    position: 'absolute',
+    left: 0,
     width: 52,
     height: 52,
     backgroundColor: 'rgba(10, 18, 40, 0.7)',
