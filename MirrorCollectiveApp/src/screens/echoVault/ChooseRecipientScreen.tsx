@@ -1,7 +1,7 @@
 import DateTimePicker from '@react-native-community/datetimepicker';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '@types';
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -49,12 +49,16 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
   const [lockDate, setLockDate] = useState<Date | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const scrollViewRef = useRef<ScrollView>(null);
 
   const contentWidth = Math.min(width * 0.88, 360);
 
   useEffect(() => {
     const showSub = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
-    const hideSub = Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false));
+    const hideSub = Keyboard.addListener('keyboardDidHide', () => {
+      setKeyboardVisible(false);
+      scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+    });
     return () => {
       showSub.remove();
       hideSub.remove();
@@ -162,6 +166,7 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
           style={{ flex: 1, width: '100%' }}
         >
           <ScrollView
+            ref={scrollViewRef}
             style={{ flex: 1 }}
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
@@ -654,8 +659,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 16,
     justifyContent: 'center',
-    marginTop: 40,
-    marginBottom: 40,
+    marginTop: 20,
+    marginBottom: 20,
   },
   nextGradient: {
     borderRadius: 12,
