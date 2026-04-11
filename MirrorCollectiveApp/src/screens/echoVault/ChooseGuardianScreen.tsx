@@ -288,6 +288,16 @@ const ChooseGuardianScreen: React.FC<Props> = ({ navigation, route }) => {
                   )}
                 />
               )}
+              {/* Add New Guardian Button */}
+              <TouchableOpacity
+                style={styles.addNewButton}
+                onPress={() => {
+                  setShowDropdown(false);
+                  navigation.navigate('AddNewProfileScreen', { mode: 'guardian' });
+                }}
+              >
+                <Text style={styles.addNewText}>+ Add New Guardian</Text>
+              </TouchableOpacity>
             </View>
           </TouchableOpacity>
         </Modal>
@@ -554,6 +564,20 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
     paddingVertical: 20,
+  },
+  addNewButton: {
+    paddingVertical: 14,
+    borderTopWidth: 1,
+    borderTopColor: BORDER,
+    alignItems: 'center',
+  },
+  addNewText: {
+    color: GOLD,
+    fontSize: 16,
+    fontFamily: Platform.select({
+      ios: 'CormorantGaramond-SemiBold',
+      android: 'serif',
+    }),
   },
 
   /* Next */

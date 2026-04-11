@@ -1,4 +1,3 @@
-import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '@types';
 import React, { useState, useEffect, useCallback } from 'react';
@@ -58,11 +57,11 @@ const ManageRecipientScreen: React.FC<Props> = ({ navigation }) => {
     }
   }, []);
 
-  useFocusEffect(
-    useCallback(() => {
-      fetchRecipients();
-    }, [fetchRecipients])
-  );
+  useEffect(() => {
+    fetchRecipients();
+    const unsubscribe = navigation.addListener('focus', fetchRecipients);
+    return unsubscribe;
+  }, [navigation, fetchRecipients]);
 
   const handleRemoveRecipient = async (id: string) => {
     Alert.alert(
