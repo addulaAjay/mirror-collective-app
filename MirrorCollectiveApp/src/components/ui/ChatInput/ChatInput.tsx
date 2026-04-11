@@ -100,13 +100,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: SPACING.MD,
     paddingHorizontal: SPACING.XS,
-    // paddingVertical: SPACING.XS,
+    paddingVertical: SPACING.XS,
     marginTop: SPACING.XL,
     marginBottom: SPACING.XL,
     ...SHADOWS.MEDIUM,
     // borderWidth: 0.25,
     borderColor: COLORS.BORDER.PRIMARY,
-    height: 40,
+    minHeight: 40,
   },
 
   iconButton: {
@@ -135,7 +135,9 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     fontWeight: '400',
     maxHeight: 100,
-    paddingBottom: 10,
+    paddingTop: 4,
+    paddingBottom: 4,
+    textAlignVertical: 'center',
   },
 
   sendButton: {
