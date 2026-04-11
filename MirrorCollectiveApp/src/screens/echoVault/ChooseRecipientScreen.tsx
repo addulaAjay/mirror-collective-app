@@ -15,6 +15,9 @@ import {
   ActivityIndicator,
   Modal,
   Image,
+  ScrollView,
+  KeyboardAvoidingView,
+  Keyboard,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -45,8 +48,18 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
   const [showGuardianPrompt, setShowGuardianPrompt] = useState(false);
   const [lockDate, setLockDate] = useState<Date | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
 
   const contentWidth = Math.min(width * 0.88, 360);
+
+  useEffect(() => {
+    const showSub = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
+    const hideSub = Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false));
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
   const fetchRecipients = useCallback(async () => {
     try {
@@ -144,12 +157,22 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
           backgroundColor="transparent"
         />
 
-        {/* Header */}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={{ flex: 1, width: '100%' }}
+        >
+          <ScrollView
+            style={{ flex: 1 }}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            scrollEnabled={keyboardVisible}
+          >
         {/* Header */}
         <LogoHeader navigation={navigation} />
 
         {/* Title */}
-        <View style={[styles.titleRow, { width: contentWidth }]}>
+        <View style={[styles.titleRow, { width: contentWidth, alignSelf: 'center' }]}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Image source={require('@assets/back-arrow.png')} style={styles.backArrowImg} resizeMode="contain" />
           </TouchableOpacity>
@@ -160,7 +183,7 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
         </View>
 
         {/* Content */}
-        <View style={[styles.content, { width: contentWidth }]}>
+        <View style={[styles.content, { width: contentWidth, alignSelf: 'center' }]}>
           {/* Recipient dropdown */}
           <Text style={styles.label}>Recipient</Text>
           <TouchableOpacity
@@ -287,6 +310,8 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
             <Text style={styles.nextText}>NEXT</Text>
           </LinearGradient>
         </TouchableOpacity>
+          </ScrollView>
+        </KeyboardAvoidingView>
 
         {/* Dropdown Modal */}
         <Modal
@@ -442,6 +467,11 @@ const styles = StyleSheet.create({
       ios: 'CormorantGaramond-Regular',
       android: 'serif',
     }),
+  },
+
+  scrollContent: {
+    alignItems: 'center',
+    paddingBottom: 80,
   },
 
   /* Content */
