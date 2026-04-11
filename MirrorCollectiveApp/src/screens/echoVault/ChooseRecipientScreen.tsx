@@ -64,7 +64,9 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
 
   useEffect(() => {
     fetchRecipients();
-  }, [fetchRecipients]);
+    const unsubscribe = navigation.addListener('focus', fetchRecipients);
+    return unsubscribe;
+  }, [navigation, fetchRecipients]);
 
   const handleSelectRecipient = (recipient: Recipient) => {
     setSelectedRecipient(recipient);

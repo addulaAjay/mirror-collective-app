@@ -64,7 +64,9 @@ const ChooseGuardianScreen: React.FC<Props> = ({ navigation, route }) => {
 
   useEffect(() => {
     fetchGuardians();
-  }, [fetchGuardians]);
+    const unsubscribe = navigation.addListener('focus', fetchGuardians);
+    return unsubscribe;
+  }, [navigation, fetchGuardians]);
 
   const toggle = (
     value: string,
