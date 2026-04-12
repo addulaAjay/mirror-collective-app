@@ -117,6 +117,7 @@ const TextInputField = ({
                 width={20}
                 height={20}
               >
+                {/* eslint-disable-next-line no-restricted-syntax -- SVG mask fill must be literal white; theme values are not valid SVG attributes */}
                 <Rect width={20} height={20} fill="#fff" />
               </Mask>
               <G mask="url(#eyeMask)">
@@ -136,6 +137,7 @@ const TextInputField = ({
                 width={20}
                 height={20}
               >
+                {/* eslint-disable-next-line no-restricted-syntax -- SVG mask fill must be literal white; theme values are not valid SVG attributes */}
                 <Rect width={20} height={20} fill="#fff" />
               </Mask>
               <G mask="url(#eyeOffMask)">

@@ -362,6 +362,7 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     justifyContent: 'center',
     alignItems: 'center',
+    // eslint-disable-next-line no-restricted-syntax -- true black required for video player background
     backgroundColor: '#000',
   },
   errorText: {

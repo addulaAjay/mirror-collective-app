@@ -118,15 +118,30 @@ export const radius = {
 // ---------------------------------------------------------------------------
 
 export const fontFamily = {
+  // Cormorant Garamond — Figma: Heading family
   heading: 'CormorantGaramond-Regular',
+  headingMedium: 'CormorantGaramond-Medium',
   headingMediumItalic: 'CormorantGaramond-MediumItalic',
   headingItalic: 'CormorantGaramond-Italic',
   headingSemiBold: 'CormorantGaramond-SemiBold',
-  headingMedium: 'CormorantGaramond-Medium',
-  fallback: 'Georgia',
-  // Figma defines these — not yet installed in app (Phase 7)
-  // title: 'PlayfairDisplay-Regular',
-  // body: 'Inter-Regular',
+  headingFallback: 'Georgia',
+  // Playfair Display — Figma: Title family
+  title: 'PlayfairDisplay-Regular',
+  titleMedium: 'PlayfairDisplay-Medium',
+  titleMediumItalic: 'PlayfairDisplay-MediumItalic',
+  titleSemiBold: 'PlayfairDisplay-SemiBold',
+  titleBold: 'PlayfairDisplay-Bold',
+  titleItalic: 'PlayfairDisplay-Italic',
+  titleFallback: 'Georgia',
+  // Inter — Figma: Body family
+  body: 'Inter-Regular',
+  bodyLight: 'Inter-Light',
+  bodyMedium: 'Inter-Medium',
+  bodySemiBold: 'Inter-SemiBold',
+  bodyBold: 'Inter-Bold',
+  bodyItalic: 'Inter-Italic',
+  bodyMediumItalic: 'Inter-MediumItalic',
+  bodyFallback: 'System',
 } as const;
 
 export const fontSize = {

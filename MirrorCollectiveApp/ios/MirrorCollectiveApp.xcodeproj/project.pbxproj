@@ -23,7 +23,19 @@
 		BB4E211127A04D2E9CB7508C /* CormorantGaramond-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 603826A3CC464B6D88130433 /* CormorantGaramond-Bold.ttf */; };
 		CFED59A060953C043FE83A60 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */; };
 		E61D5EDD5FEB441C9C9D1D80 /* CormorantGaramond-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 4BBA87E728E24ADAA99316A1 /* CormorantGaramond-Regular.ttf */; };
-		F454EAE64A8C47D19E9D1002 /* Cormorant_Garamond.zip in Resources */ = {isa = PBXBuildFile; fileRef = E84FD726931240F9AE63C057 /* Cormorant_Garamond.zip */; };
+		88C9338CAABD49B7A419F58B /* Inter-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = F8F1BB4938674507BAFEC9A0 /* Inter-Medium.ttf */; };
+		E81B34625E134316A2FF39FF /* Inter-Light.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 69D7C5D5DCE4468C9A350FD3 /* Inter-Light.ttf */; };
+		E3C4B11A47D9461CAE3EBC53 /* PlayfairDisplay-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A7CC8ED559D6472CB9F4DEF5 /* PlayfairDisplay-Bold.ttf */; };
+		250FD571562A4F68A0A571A6 /* PlayfairDisplay-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 77CBC69D1BAF439CAAEA81B0 /* PlayfairDisplay-SemiBold.ttf */; };
+		6A80A64BC43E422E8E02F40E /* PlayfairDisplay-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = BF46F95A8EB244039717913B /* PlayfairDisplay-Medium.ttf */; };
+		05930E0559E94F6B81227DBE /* Inter-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = BEF706D4C0E64DCC88C32705 /* Inter-Bold.ttf */; };
+		95F9D860E00B49CABC5FC3A0 /* Inter-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = F060942D7ED84B489D37C248 /* Inter-Regular.ttf */; };
+		39B8D04C2A9C4007B48EA9DD /* PlayfairDisplay-Italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 995838B1B8524C8EA9B44F38 /* PlayfairDisplay-Italic.ttf */; };
+		648168E2B49A461CBF8AB602 /* PlayfairDisplay-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D1207EDBD3594F34B56CD1B3 /* PlayfairDisplay-Regular.ttf */; };
+		948B7B45FA864C458B95EDA7 /* Inter-MediumItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 071679317F8B43409DC118E3 /* Inter-MediumItalic.ttf */; };
+		514403BF3F784F7D80F364C7 /* Inter-Italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3E3136FFE0A14B1BBB1ACE93 /* Inter-Italic.ttf */; };
+		5958DC9E13C5404CA22219B9 /* PlayfairDisplay-MediumItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = F75AB2C199CC40138E1E7CDB /* PlayfairDisplay-MediumItalic.ttf */; };
+		D41D66A26AA34CF09FA5D9F5 /* Inter-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 7984E27E339542FCBB31BE2E /* Inter-SemiBold.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -45,10 +57,22 @@
 		917C4960DF9BAAD92E350716 /* Pods-MirrorCollectiveApp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MirrorCollectiveApp.debug.xcconfig"; path = "Target Support Files/Pods-MirrorCollectiveApp/Pods-MirrorCollectiveApp.debug.xcconfig"; sourceTree = "<group>"; };
 		AB4D647FB550B398C1E49174 /* Pods_MirrorCollectiveApp.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_MirrorCollectiveApp.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		E1E83D06AAA84D2D93496997 /* CormorantGaramond-Medium.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "CormorantGaramond-Medium.ttf"; path = "../assets/fonts/CormorantGaramond-Medium.ttf"; sourceTree = "<group>"; };
-		E84FD726931240F9AE63C057 /* Cormorant_Garamond.zip */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Cormorant_Garamond.zip; path = ../assets/fonts/Cormorant_Garamond.zip; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F9E90AD1F653F040EA7D7492 /* Pods-MirrorCollectiveApp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MirrorCollectiveApp.release.xcconfig"; path = "Target Support Files/Pods-MirrorCollectiveApp/Pods-MirrorCollectiveApp.release.xcconfig"; sourceTree = "<group>"; };
 		FA777DBE23EF404883BA9073 /* CormorantGaramond-Italic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "CormorantGaramond-Italic.ttf"; path = "../assets/fonts/CormorantGaramond-Italic.ttf"; sourceTree = "<group>"; };
+		F8F1BB4938674507BAFEC9A0 /* Inter-Medium.ttf */ = {isa = PBXFileReference; name = "Inter-Medium.ttf"; path = "../assets/fonts/Inter-Medium.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		69D7C5D5DCE4468C9A350FD3 /* Inter-Light.ttf */ = {isa = PBXFileReference; name = "Inter-Light.ttf"; path = "../assets/fonts/Inter-Light.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		A7CC8ED559D6472CB9F4DEF5 /* PlayfairDisplay-Bold.ttf */ = {isa = PBXFileReference; name = "PlayfairDisplay-Bold.ttf"; path = "../assets/fonts/PlayfairDisplay-Bold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		77CBC69D1BAF439CAAEA81B0 /* PlayfairDisplay-SemiBold.ttf */ = {isa = PBXFileReference; name = "PlayfairDisplay-SemiBold.ttf"; path = "../assets/fonts/PlayfairDisplay-SemiBold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		BF46F95A8EB244039717913B /* PlayfairDisplay-Medium.ttf */ = {isa = PBXFileReference; name = "PlayfairDisplay-Medium.ttf"; path = "../assets/fonts/PlayfairDisplay-Medium.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		BEF706D4C0E64DCC88C32705 /* Inter-Bold.ttf */ = {isa = PBXFileReference; name = "Inter-Bold.ttf"; path = "../assets/fonts/Inter-Bold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		F060942D7ED84B489D37C248 /* Inter-Regular.ttf */ = {isa = PBXFileReference; name = "Inter-Regular.ttf"; path = "../assets/fonts/Inter-Regular.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		995838B1B8524C8EA9B44F38 /* PlayfairDisplay-Italic.ttf */ = {isa = PBXFileReference; name = "PlayfairDisplay-Italic.ttf"; path = "../assets/fonts/PlayfairDisplay-Italic.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		D1207EDBD3594F34B56CD1B3 /* PlayfairDisplay-Regular.ttf */ = {isa = PBXFileReference; name = "PlayfairDisplay-Regular.ttf"; path = "../assets/fonts/PlayfairDisplay-Regular.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		071679317F8B43409DC118E3 /* Inter-MediumItalic.ttf */ = {isa = PBXFileReference; name = "Inter-MediumItalic.ttf"; path = "../assets/fonts/Inter-MediumItalic.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		3E3136FFE0A14B1BBB1ACE93 /* Inter-Italic.ttf */ = {isa = PBXFileReference; name = "Inter-Italic.ttf"; path = "../assets/fonts/Inter-Italic.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		F75AB2C199CC40138E1E7CDB /* PlayfairDisplay-MediumItalic.ttf */ = {isa = PBXFileReference; name = "PlayfairDisplay-MediumItalic.ttf"; path = "../assets/fonts/PlayfairDisplay-MediumItalic.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		7984E27E339542FCBB31BE2E /* Inter-SemiBold.ttf */ = {isa = PBXFileReference; name = "Inter-SemiBold.ttf"; path = "../assets/fonts/Inter-SemiBold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -128,7 +152,19 @@
 				4BBA87E728E24ADAA99316A1 /* CormorantGaramond-Regular.ttf */,
 				45F75DB4ADF44A83BF85DE37 /* CormorantGaramond-SemiBold.ttf */,
 				0C83038FCF3C45B1B6C04ADD /* CormorantGaramond-SemiBoldItalic.ttf */,
-				E84FD726931240F9AE63C057 /* Cormorant_Garamond.zip */,
+				F8F1BB4938674507BAFEC9A0 /* Inter-Medium.ttf */,
+				69D7C5D5DCE4468C9A350FD3 /* Inter-Light.ttf */,
+				A7CC8ED559D6472CB9F4DEF5 /* PlayfairDisplay-Bold.ttf */,
+				77CBC69D1BAF439CAAEA81B0 /* PlayfairDisplay-SemiBold.ttf */,
+				BF46F95A8EB244039717913B /* PlayfairDisplay-Medium.ttf */,
+				BEF706D4C0E64DCC88C32705 /* Inter-Bold.ttf */,
+				F060942D7ED84B489D37C248 /* Inter-Regular.ttf */,
+				995838B1B8524C8EA9B44F38 /* PlayfairDisplay-Italic.ttf */,
+				D1207EDBD3594F34B56CD1B3 /* PlayfairDisplay-Regular.ttf */,
+				071679317F8B43409DC118E3 /* Inter-MediumItalic.ttf */,
+				3E3136FFE0A14B1BBB1ACE93 /* Inter-Italic.ttf */,
+				F75AB2C199CC40138E1E7CDB /* PlayfairDisplay-MediumItalic.ttf */,
+				7984E27E339542FCBB31BE2E /* Inter-SemiBold.ttf */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -216,8 +252,20 @@
 				E61D5EDD5FEB441C9C9D1D80 /* CormorantGaramond-Regular.ttf in Resources */,
 				37F30B3D49AA4EA18E634E28 /* CormorantGaramond-SemiBold.ttf in Resources */,
 				59ADE86C80FD41F8B4971B1B /* CormorantGaramond-SemiBoldItalic.ttf in Resources */,
-				F454EAE64A8C47D19E9D1002 /* Cormorant_Garamond.zip in Resources */,
 				263462234C690E59A0E34C33 /* GoogleService-Info.plist in Resources */,
+				88C9338CAABD49B7A419F58B /* Inter-Medium.ttf in Resources */,
+				E81B34625E134316A2FF39FF /* Inter-Light.ttf in Resources */,
+				E3C4B11A47D9461CAE3EBC53 /* PlayfairDisplay-Bold.ttf in Resources */,
+				250FD571562A4F68A0A571A6 /* PlayfairDisplay-SemiBold.ttf in Resources */,
+				6A80A64BC43E422E8E02F40E /* PlayfairDisplay-Medium.ttf in Resources */,
+				05930E0559E94F6B81227DBE /* Inter-Bold.ttf in Resources */,
+				95F9D860E00B49CABC5FC3A0 /* Inter-Regular.ttf in Resources */,
+				39B8D04C2A9C4007B48EA9DD /* PlayfairDisplay-Italic.ttf in Resources */,
+				648168E2B49A461CBF8AB602 /* PlayfairDisplay-Regular.ttf in Resources */,
+				948B7B45FA864C458B95EDA7 /* Inter-MediumItalic.ttf in Resources */,
+				514403BF3F784F7D80F364C7 /* Inter-Italic.ttf in Resources */,
+				5958DC9E13C5404CA22219B9 /* PlayfairDisplay-MediumItalic.ttf in Resources */,
+				D41D66A26AA34CF09FA5D9F5 /* Inter-SemiBold.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

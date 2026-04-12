@@ -1,5 +1,7 @@
-import React, { Component, ReactNode } from 'react';
+/* eslint-disable no-restricted-syntax -- ErrorBoundary intentionally uses inline colors.
+   It must not depend on the theme system in case the app itself has crashed. */
 import { palette } from '@theme';
+import React, { Component, ReactNode } from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 

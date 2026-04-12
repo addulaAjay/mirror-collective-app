@@ -1,7 +1,7 @@
+import { theme, spacing } from '@theme';
 import React from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 
-import { theme, spacing } from '@theme';
 
 interface LoadingIndicatorProps {
   message?: string;
@@ -17,7 +17,7 @@ export const LoadingIndicator: React.FC<LoadingIndicatorProps> = ({
       {showSpinner && (
         <ActivityIndicator
           size="small"
-          color="#ccc"
+          color={theme.colors.text.muted}
           style={styles.spinner}
           testID="loading-spinner"
         />
@@ -41,6 +41,6 @@ const styles = StyleSheet.create({
 
   text: {
     ...theme.typography.styles.body,
-    color: '#ccc',
+    color: theme.colors.text.muted,
   },
 });

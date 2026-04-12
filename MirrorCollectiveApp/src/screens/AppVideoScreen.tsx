@@ -104,6 +104,7 @@ const styles = StyleSheet.create({
     width: '100%',
     borderRadius: 12,
     overflow: 'hidden',
+    // eslint-disable-next-line no-restricted-syntax -- true black required for video player background
     backgroundColor: '#000',
     marginBottom: 20,
   },

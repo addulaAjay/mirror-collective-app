@@ -40,6 +40,9 @@ export const semantic = {
     // Backgrounds
     background: {
       primary: palette.neutral.transparent,
+      // TODO: designer confirmation needed — 0.01 opacity looks like a Figma decimal
+      // precision error (1% → 0.01). Functionally invisible on Android. Should this
+      // be fully transparent or have a visible tint? Track in Phase 8 follow-up.
       input: 'rgba(217, 217, 217, 0.01)',
       surface: palette.surface.DEFAULT,
       surfaceActive: palette.surface.active,
@@ -139,9 +142,10 @@ export const semantic = {
   // Typography
   typography: {
     fontFamily: {
-      primary: fontFamily.heading,
-      secondary: fontFamily.heading,
-      fallback: fontFamily.fallback,
+      heading: fontFamily.heading,
+      title: fontFamily.title,
+      body: fontFamily.body,
+      fallback: fontFamily.bodyFallback,
     },
 
     // Scale — matches existing code API (xs/sm/base/lg...)
@@ -173,6 +177,7 @@ export const semantic = {
     // Composite text styles — fontSize uses moderateScale(size, 0.3) for gentle
     // phone scaling (~±3px across iPhone SE → Pro Max). Baseline: 393px (iPhone 14 Pro).
     styles: {
+      // --- Heading family (Cormorant Garamond) ---
       headline: {
         fontFamily: fontFamily.headingMediumItalic,
         fontSize: moderateScale(fontSize['3xl'], 0.3),   // 32 base
@@ -180,42 +185,11 @@ export const semantic = {
         color: palette.gold.DEFAULT,
         letterSpacing: 0.5,
       },
-      title: {
-        fontFamily: fontFamily.heading,
-        fontSize: moderateScale(fontSize.xl, 0.3),       // 24 base
-        lineHeight: lineHeight.xxl,                      // 40
-        color: palette.gold.DEFAULT,
-        letterSpacing: 0.3,
-      },
       subtitle: {
         fontFamily: fontFamily.heading,
         fontSize: moderateScale(fontSize.l, 0.3),        // 20 base
         lineHeight: lineHeight.l,                        // 28
         color: palette.neutral.offWhite,
-      },
-      welcome: {
-        fontFamily: fontFamily.heading,
-        fontSize: moderateScale(fontSize.m, 0.3),        // 18 base
-        lineHeight: lineHeight.m,                        // 24
-        color: palette.neutral.offWhite,
-      },
-      body: {
-        fontFamily: fontFamily.heading,
-        fontSize: moderateScale(fontSize.s, 0.3),        // 16 base
-        lineHeight: lineHeight.m,                        // 24
-        color: palette.neutral.cream,
-      },
-      bodySmall: {
-        fontFamily: fontFamily.heading,
-        fontSize: moderateScale(fontSize.xs, 0.3),       // 14 base
-        lineHeight: lineHeight.s,                        // 20
-        color: palette.neutral.cream,
-      },
-      bodyItalic: {
-        fontFamily: fontFamily.headingItalic,
-        fontSize: moderateScale(fontSize.s, 0.3),        // 16 base
-        lineHeight: lineHeight.m,                        // 24
-        color: palette.neutral.cream,
       },
       logoText: {
         fontFamily: fontFamily.heading,
@@ -233,47 +207,80 @@ export const semantic = {
         textTransform: 'uppercase' as const,
         letterSpacing: 2,
       },
+      // --- Title family (Playfair Display) ---
+      title: {
+        fontFamily: fontFamily.title,
+        fontSize: moderateScale(fontSize.xl, 0.3),       // 24 base
+        lineHeight: lineHeight.xxl,                      // 40
+        color: palette.gold.DEFAULT,
+        letterSpacing: 0.3,
+      },
+      // --- Body family (Inter) ---
+      welcome: {
+        fontFamily: fontFamily.body,
+        fontSize: moderateScale(fontSize.m, 0.3),        // 18 base
+        lineHeight: lineHeight.m,                        // 24
+        color: palette.neutral.offWhite,
+      },
+      body: {
+        fontFamily: fontFamily.body,
+        fontSize: moderateScale(fontSize.s, 0.3),        // 16 base
+        lineHeight: lineHeight.m,                        // 24
+        color: palette.neutral.cream,
+      },
+      bodySmall: {
+        fontFamily: fontFamily.body,
+        fontSize: moderateScale(fontSize.xs, 0.3),       // 14 base
+        lineHeight: lineHeight.s,                        // 20
+        color: palette.neutral.cream,
+      },
+      bodyItalic: {
+        fontFamily: fontFamily.bodyItalic,
+        fontSize: moderateScale(fontSize.s, 0.3),        // 16 base
+        lineHeight: lineHeight.m,                        // 24
+        color: palette.neutral.cream,
+      },
       input: {
-        fontFamily: fontFamily.heading,
+        fontFamily: fontFamily.body,
         fontSize: moderateScale(fontSize.s, 0.3),        // 16 base
         lineHeight: lineHeight.s,                        // 20
         color: palette.neutral.offWhite,
       },
       inputPlaceholder: {
-        fontFamily: fontFamily.headingItalic,
+        fontFamily: fontFamily.bodyItalic,
         fontSize: moderateScale(fontSize.l, 0.3),        // 20 base
         lineHeight: lineHeight.s,                        // 20
         color: '#E8F1F2',
       },
       link: {
-        fontFamily: fontFamily.heading,
+        fontFamily: fontFamily.body,
         fontSize: moderateScale(fontSize.xs, 0.3),       // 14 base
         lineHeight: lineHeight.s,                        // 20
         color: palette.gold.DEFAULT,
         textDecorationLine: 'underline' as const,
       },
       linkSmall: {
-        fontFamily: fontFamily.heading,
+        fontFamily: fontFamily.body,
         fontSize: moderateScale(fontSize.xs, 0.3),       // 14 base
         lineHeight: lineHeight.xs,                       // 18
         color: palette.gold.DEFAULT,
         textDecorationLine: 'underline' as const,
       },
       linkLarge: {
-        fontFamily: fontFamily.headingMedium,
+        fontFamily: fontFamily.bodyMedium,
         fontSize: moderateScale(fontSize.m, 0.3),        // 18 base
         lineHeight: lineHeight.s,                        // 20
         color: palette.gold.DEFAULT,
         textDecorationLine: 'underline' as const,
       },
       label: {
-        fontFamily: fontFamily.headingItalic,
+        fontFamily: fontFamily.bodyItalic,
         fontSize: moderateScale(fontSize.xs, 0.3),       // 14 base
         lineHeight: lineHeight.s,                        // 20
         color: palette.neutral.offWhite,
       },
       caption: {
-        fontFamily: fontFamily.heading,
+        fontFamily: fontFamily.body,
         fontSize: moderateScale(fontSize.xxs, 0.3),      // 12 base
         lineHeight: lineHeight.xs,                       // 18
         color: palette.neutral.caption,

@@ -19,11 +19,10 @@ module.exports = {
     },
   ],
   rules: {
-    // Warn on raw hex color literals outside the theme directory.
-    // This prevents new hardcoded colors from creeping back in.
-    // Will be escalated to 'error' once Phase 6b hex cleanup is complete.
+    // Block raw hex color literals outside the theme directory.
+    // All colors must reference palette.* or theme.colors.* from '@theme'.
     'no-restricted-syntax': [
-      'warn',
+      'error',
       {
         selector: "Literal[value=/^#[0-9a-fA-F]{3,8}$/]",
         message: "Avoid hardcoded hex colors. Use palette.* or theme.colors.* from '@theme' instead.",
