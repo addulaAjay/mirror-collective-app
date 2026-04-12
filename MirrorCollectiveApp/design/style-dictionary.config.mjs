@@ -5,24 +5,16 @@
  * Output: src/theme/generated/tokens.ts
  *
  * Run:  npm run tokens:build
+ *
+ * Mobile-first approach: All tokens are single values that scale at runtime.
+ * See design/MOBILE_SCALING_GUIDE.md for scaling best practices.
  */
 
 import StyleDictionary from 'style-dictionary';
 import { register } from '@tokens-studio/sd-transforms';
 
-// Register Tokens Studio transforms (handles multi-mode values like Mobile/Desktop)
+// Register Tokens Studio transforms
 register(StyleDictionary, { excludeParentKeys: false });
-
-// ---------------------------------------------------------------------------
-// Custom transform: extract Mobile value from multi-mode tokens
-// e.g. { Mobile: 16, Desktop: 15 } → 16
-// ---------------------------------------------------------------------------
-StyleDictionary.registerTransform({
-  name: 'mc/mobile-value',
-  type: 'value',
-  filter: token => typeof token.$value === 'object' && token.$value !== null && 'Mobile' in token.$value,
-  transform: token => token.$value.Mobile,
-});
 
 // ---------------------------------------------------------------------------
 // Custom transform: strip px suffix for React Native (numbers only)
@@ -108,7 +100,7 @@ const sd = new StyleDictionary({
   platforms: {
     typescript: {
       transformGroup: 'tokens-studio',
-      transforms: ['mc/mobile-value', 'mc/strip-px'],
+      transforms: ['mc/strip-px'],
       buildPath: 'src/theme/generated/',
       files: [
         {

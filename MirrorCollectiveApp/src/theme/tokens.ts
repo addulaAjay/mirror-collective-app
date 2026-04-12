@@ -5,8 +5,10 @@
  * Do NOT import this file directly in components — use theme/index.ts.
  */
 
-// Figma-generated token constants (for reference / future automation)
-export type { } from './generated/tokens';
+// Figma-generated token constants — imported to catch drift between Figma and
+// the hand-maintained primitives below at build time.
+import { figmaColour, figmaSpacingRadius, figmaTypography } from './generated/tokens';
+export { figmaColour, figmaSpacingRadius, figmaTypography };
 
 // ---------------------------------------------------------------------------
 // Colour palette (from Figma Colour collection)
@@ -141,16 +143,14 @@ export const fontSize = {
 } as const;
 
 export const lineHeight = {
-  xxs: 16, // Figma XXS Mobile
-  xs: 18,  // Figma XS — ASSUMED (see design/DESIGN_SYSTEM_PLAN.md)
-  s: 18,   // Figma S
-  m: 32,   // Figma M
-  l: 40,   // Figma L
-  xl: 48,  // Figma XL
-  '2xl': 36, // Figma 2XL — ASSUMED
-  '3xl': 40, // Figma 3XL — ASSUMED
-  '4xl': 44, // Figma 4XL — ASSUMED
-  '5xl': 56, // Figma 5XL — ASSUMED
+  xxs: 16, // Figma XXS
+  xs: 18,  // Figma XS
+  s: 20,   // Figma S
+  m: 24,   // Figma M
+  l: 28,   // Figma L
+  xl: 32,  // Figma XL
+  xxl: 40, // Figma XXL
+  '3xl': 48, // Figma 3XL
 } as const;
 
 export const fontWeight = {

@@ -26,14 +26,12 @@ export const figmaTypography = {
   'font.size.5XL': 48,
   'font.line-height.XXS': 16,
   'font.line-height.XS': 18,
-  'font.line-height.S': 18,
-  'font.line-height.M': 32,
-  'font.line-height.L': 40,
-  'font.line-height.XL': 48,
-  'font.line-height.2XL': 36,
-  'font.line-height.3XL': 40,
-  'font.line-height.4XL': 44,
-  'font.line-height.5XL': 56,
+  'font.line-height.S': 20,
+  'font.line-height.M': 24,
+  'font.line-height.L': 28,
+  'font.line-height.XL': 32,
+  'font.line-height.XXL': 40,
+  'font.line-height.3XL': 48,
 } as const;
 
 export const figmaSpacingRadius = {

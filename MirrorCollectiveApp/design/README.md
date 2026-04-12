@@ -75,9 +75,40 @@ See [migration-guide.md](./migration-guide.md) for full before/after examples.
 
 | File | Purpose |
 |------|---------|
-| `figma-tokens/tokens.json` | Figma export — source of truth for all token values |
+| `figma-tokens/tokens.json` | Figma export — source of truth for all token values (mobile-first, single values) |
 | `style-dictionary.config.mjs` | Pipeline config — transforms tokens.json → TypeScript |
 | `token-audit.md` | Conflict resolution log + code-defined tokens needing Figma addition |
+| `MOBILE_SCALING_GUIDE.md` | **Mobile-first scaling guide** — responsive functions, device coverage, best practices |
+| `DESIGN_SYSTEM_PLAN.md` | Design system roadmap and implementation phases |
+| `migration-guide.md` | Component migration examples (using theme vs deprecated constants) |
+
+---
+
+## Mobile-First Responsive Design
+
+**All tokens scale at runtime** for iOS (320px → 428px) and Android devices.
+
+Quick reference for responsive scaling:
+
+```tsx
+import { scale, moderateScale, scaleCap, scaleMin } from '@theme';
+
+// Typography — use moderateScale (prevents oversizing)
+fontSize: moderateScale(18, 0.5)
+
+// Spacing — use scale
+padding: scale(16)
+
+// Touch targets — use scaleMin (accessibility)
+minHeight: scaleMin(44, 44)  // iOS: 44×44 minimum
+
+// Max widths — use scaleCap
+maxWidth: scaleCap(350, 400)
+```
+
+**📖 Full guide:** [MOBILE_SCALING_GUIDE.md](./MOBILE_SCALING_GUIDE.md)
+
+---
 | `migration-guide.md` | How to migrate components from `@constants` to `useTheme` |
 | `DESIGN_SYSTEM_PLAN.md` | Full phased implementation plan |
 

@@ -4,6 +4,7 @@
  * Do NOT import this file directly in components — use theme/index.ts.
  */
 
+import { moderateScale } from './responsive';
 import {
   palette,
   spacing,
@@ -100,27 +101,32 @@ export const semantic = {
   shadows: {
     ...shadows,
     text: {
-      color: 'rgba(229, 214, 176, 0.5)',
-      offset: { width: 0, height: 0 },
-      radius: 4,
+      shadowColor: 'rgba(229, 214, 176, 0.5)',
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: 1 as const,
+      shadowRadius: 4,
+      elevation: 4,
     },
     button: {
-      color: palette.gold.warm,
-      offset: { width: 0, height: 0 },
-      opacity: 1,
-      radius: 4,
+      shadowColor: palette.gold.warm,
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: 1 as const,
+      shadowRadius: 4,
+      elevation: 4,
     },
     input: {
-      color: palette.neutral.black,
-      offset: { width: 0, height: 4 },
-      opacity: 0.25,
-      radius: 12,
+      shadowColor: palette.neutral.black,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.25 as const,
+      shadowRadius: 12,
+      elevation: 12,
     },
     container: {
-      color: palette.neutral.black,
-      offset: { width: -1, height: 5 },
-      opacity: 0.25,
-      radius: 26,
+      shadowColor: palette.neutral.black,
+      shadowOffset: { width: -1, height: 5 },
+      shadowOpacity: 0.25 as const,
+      shadowRadius: 26,
+      elevation: 26,
     },
   },
 
@@ -152,123 +158,124 @@ export const semantic = {
     },
 
     lineHeights: {
-      xs: lineHeight.xxs,    // 16
-      sm: lineHeight.xs,     // 18 (assumed)
-      base: 24,              // kept from existing code — body text needs more breathing room
-      lg: 26,
-      xl: 28,
-      '2xl': 32,
-      '3xl': 36,
-      '4xl': 42,
+      xs: lineHeight.xxs,   // 16 — Figma XXS
+      sm: lineHeight.xs,    // 18 — Figma XS
+      base: lineHeight.s,   // 20 — Figma S
+      lg: lineHeight.m,     // 24 — Figma M
+      xl: lineHeight.l,     // 28 — Figma L
+      '2xl': lineHeight.xl, // 32 — Figma XL
+      '3xl': lineHeight.xxl, // 40 — Figma XXL
+      '4xl': lineHeight['3xl'], // 48 — Figma 3XL
     },
 
     weights: fontWeight,
 
-    // Composite text styles
+    // Composite text styles — fontSize uses moderateScale(size, 0.3) for gentle
+    // phone scaling (~±3px across iPhone SE → Pro Max). Baseline: 393px (iPhone 14 Pro).
     styles: {
       headline: {
         fontFamily: fontFamily.headingMediumItalic,
-        fontSize: fontSize['3xl'],   // 32
-        lineHeight: 42,
-        color: palette.gold.DEFAULT,  // Figma: Colour.Text.Paragraph-1
+        fontSize: moderateScale(fontSize['3xl'], 0.3),   // 32 base
+        lineHeight: lineHeight['3xl'],                   // 48
+        color: palette.gold.DEFAULT,
         letterSpacing: 0.5,
       },
       title: {
         fontFamily: fontFamily.heading,
-        fontSize: fontSize.xl,       // 24
-        lineHeight: 32,
-        color: palette.gold.DEFAULT,  // Figma: Colour.Text.Paragraph-1
+        fontSize: moderateScale(fontSize.xl, 0.3),       // 24 base
+        lineHeight: lineHeight.xxl,                      // 40
+        color: palette.gold.DEFAULT,
         letterSpacing: 0.3,
       },
       subtitle: {
         fontFamily: fontFamily.heading,
-        fontSize: fontSize.l,        // 20
-        lineHeight: 26,
+        fontSize: moderateScale(fontSize.l, 0.3),        // 20 base
+        lineHeight: lineHeight.l,                        // 28
         color: palette.neutral.offWhite,
       },
       welcome: {
         fontFamily: fontFamily.heading,
-        fontSize: fontSize.m,        // 18
-        lineHeight: 24,
+        fontSize: moderateScale(fontSize.m, 0.3),        // 18 base
+        lineHeight: lineHeight.m,                        // 24
         color: palette.neutral.offWhite,
       },
       body: {
         fontFamily: fontFamily.heading,
-        fontSize: fontSize.s,        // 16
-        lineHeight: 24,
+        fontSize: moderateScale(fontSize.s, 0.3),        // 16 base
+        lineHeight: lineHeight.m,                        // 24
         color: palette.neutral.cream,
       },
       bodySmall: {
         fontFamily: fontFamily.heading,
-        fontSize: fontSize.xs,       // 14
-        lineHeight: 22,
+        fontSize: moderateScale(fontSize.xs, 0.3),       // 14 base
+        lineHeight: lineHeight.s,                        // 20
         color: palette.neutral.cream,
       },
       bodyItalic: {
         fontFamily: fontFamily.headingItalic,
-        fontSize: fontSize.s,        // 16
-        lineHeight: 24,
+        fontSize: moderateScale(fontSize.s, 0.3),        // 16 base
+        lineHeight: lineHeight.m,                        // 24
         color: palette.neutral.cream,
       },
       logoText: {
         fontFamily: fontFamily.heading,
-        fontSize: fontSize.xs,       // 14
-        lineHeight: 18,
-        color: palette.gold.DEFAULT,  // Figma: Colour.Text.Paragraph-1
+        fontSize: moderateScale(fontSize.xs, 0.3),       // 14 base
+        lineHeight: lineHeight.xs,                       // 18
+        color: palette.gold.DEFAULT,
         textTransform: 'uppercase' as const,
         letterSpacing: 1.5,
       },
       button: {
         fontFamily: fontFamily.headingSemiBold,
-        fontSize: fontSize.m,        // 18
-        lineHeight: 22,
-        color: palette.gold.DEFAULT,  // Figma: Colour.Text.Paragraph-1
+        fontSize: moderateScale(fontSize.m, 0.3),        // 18 base
+        lineHeight: lineHeight.s,                        // 20
+        color: palette.gold.DEFAULT,
         textTransform: 'uppercase' as const,
         letterSpacing: 2,
       },
       input: {
         fontFamily: fontFamily.heading,
-        fontSize: fontSize.s,        // 16
-        lineHeight: 20,
+        fontSize: moderateScale(fontSize.s, 0.3),        // 16 base
+        lineHeight: lineHeight.s,                        // 20
         color: palette.neutral.offWhite,
       },
       inputPlaceholder: {
         fontFamily: fontFamily.headingItalic,
-        fontSize: fontSize.l,        // 20
-        lineHeight: 20,
+        fontSize: moderateScale(fontSize.l, 0.3),        // 20 base
+        lineHeight: lineHeight.s,                        // 20
         color: '#E8F1F2',
       },
       link: {
         fontFamily: fontFamily.heading,
-        fontSize: fontSize.xs,       // 14
-        lineHeight: 20,
-        color: palette.gold.DEFAULT,  // Figma: Colour.Text.Paragraph-1
+        fontSize: moderateScale(fontSize.xs, 0.3),       // 14 base
+        lineHeight: lineHeight.s,                        // 20
+        color: palette.gold.DEFAULT,
         textDecorationLine: 'underline' as const,
       },
       linkSmall: {
         fontFamily: fontFamily.heading,
-        fontSize: fontSize.xs,       // 14
-        lineHeight: 18,
-        color: palette.gold.DEFAULT,  // Figma: Colour.Text.Paragraph-1
+        fontSize: moderateScale(fontSize.xs, 0.3),       // 14 base
+        lineHeight: lineHeight.xs,                       // 18
+        color: palette.gold.DEFAULT,
         textDecorationLine: 'underline' as const,
       },
       linkLarge: {
         fontFamily: fontFamily.headingMedium,
-        fontSize: fontSize.m,        // 18
-        lineHeight: 22,
-        color: palette.gold.DEFAULT,  // Figma: Colour.Text.Paragraph-1
+        fontSize: moderateScale(fontSize.m, 0.3),        // 18 base
+        lineHeight: lineHeight.s,                        // 20
+        color: palette.gold.DEFAULT,
         textDecorationLine: 'underline' as const,
       },
       label: {
         fontFamily: fontFamily.headingItalic,
-        fontSize: fontSize.xs,       // 14
-        lineHeight: 20,
+        fontSize: moderateScale(fontSize.xs, 0.3),       // 14 base
+        lineHeight: lineHeight.s,                        // 20
         color: palette.neutral.offWhite,
       },
       caption: {
         fontFamily: fontFamily.heading,
-        fontSize: fontSize.xxs,      // 12
-        lineHeight: 18,
+        fontSize: moderateScale(fontSize.xxs, 0.3),      // 12 base
+        lineHeight: lineHeight.xs,                       // 18
         color: palette.neutral.caption,
       },
     },
