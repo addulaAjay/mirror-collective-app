@@ -1,52 +1,46 @@
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import React, { useEffect } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  Image,
+  fontFamily,
+  fontSize,
+  moderateScale,
+  palette,
+  scaleCap,
+  spacing,
+} from '@theme';
+import type { RootStackParamList } from '@types';
+import React, { useCallback, useEffect } from 'react';
+import {
   Dimensions,
+  Image,
+  StyleSheet,
+  Text,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
-import type { RootStackParamList } from '@types';
-import { palette } from '@theme';
 
-const { width: screenWidth, height: screenHeight } = Dimensions.get('screen');
+const { width: screenWidth } = Dimensions.get('screen');
+
+const LOGO_SIZE = Math.max(120, scaleCap(screenWidth * 0.35, 175));
 
 type SplashProps = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'Splash'>;
 };
 
 const SplashScreen: React.FC<SplashProps> = ({ navigation }) => {
-  useEffect(() => {
-    const initializeApp = async () => {
-      // Navigate after timeout
-      const timer = setTimeout(() => {
-        try {
-          navigation.replace('MirrorAnimation');
-        } catch (error) {
-          console.error('Navigation error in SplashScreen:', error);
-          try {
-            navigation.navigate('MirrorAnimation');
-          } catch (fallbackError) {
-            console.error('Fallback navigation also failed:', fallbackError);
-          }
-        }
-      }, 3000);
-
-      return timer;
-    };
-
-    const cleanupTimer = initializeApp();
-
-    return () => {
-      if (cleanupTimer instanceof Promise) {
-        cleanupTimer.then(timer => clearTimeout(timer));
-      }
-    };
+  const goNext = useCallback(() => {
+    try {
+      navigation.replace('MirrorAnimation');
+    } catch {
+      navigation.navigate('MirrorAnimation');
+    }
   }, [navigation]);
+
+  useEffect(() => {
+    const timer = setTimeout(goNext, 3000);
+    return () => clearTimeout(timer);
+  }, [goNext]);
 
   return (
     <BackgroundWrapper style={styles.bg}>
@@ -73,32 +67,31 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: Math.max(24, screenWidth * 0.06),
+    paddingHorizontal: spacing.xl, // 24
   },
   logoContainer: {
     alignItems: 'center',
-    gap: Math.max(20, screenHeight * 0.025),
+    gap: spacing.xl, // 24
   },
   logo: {
-    width: Math.min(Math.max(screenWidth * 0.35, 120), 175),
-    height: Math.min(Math.max(screenWidth * 0.35, 120), 175),
-    shadowColor: 'rgba(229, 214, 176, 0.86)',
+    width: LOGO_SIZE,
+    height: LOGO_SIZE,
+    shadowColor: palette.gold.warm,
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 1,
-    shadowRadius: Math.max(5, screenWidth * 0.015),
+    shadowOpacity: 0.86,
+    shadowRadius: moderateScale(20, 0.3),
     elevation: 8,
   },
   title: {
-    fontFamily: 'CormorantGaramond-Light',
+    fontFamily: fontFamily.headingLight,  // CormorantGaramond-Light
     fontWeight: '300',
-    fontSize: Math.min(Math.max(screenWidth * 0.08, 28), 35),
-    lineHeight: Math.min(Math.max(screenWidth * 0.095, 34), 42),
+    fontSize: moderateScale(fontSize['2xl'], 0.3), // 28 base
+    lineHeight: moderateScale(fontSize['2xl'] * 1.3, 0.3),
     textAlign: 'center',
     color: palette.gold.warm,
+    textShadowColor: 'rgba(0, 0, 0, 0.25)',
     textShadowOffset: { width: 0, height: 4 },
     textShadowRadius: 9,
-    textShadowColor: 'rgba(0, 0, 0, 0.25)',
-    textTransform: 'none',
   },
 });
 

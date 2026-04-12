@@ -1,5 +1,5 @@
-import React from 'react';
 import { palette } from '@theme';
+import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import Svg, {
   G,
@@ -25,12 +25,12 @@ const OuterStar = () => (
         gradientUnits="userSpaceOnUse"
         gradientTransform="translate(44.001 43.999) scale(40.0112 39.9867)"
       >
-        <Stop offset="0" stopColor=palette.gold.warm />
-        <Stop offset="0.37" stopColor=palette.gold.DEFAULT />
-        <Stop offset="0.54" stopColor=palette.gold.warm />
-        <Stop offset="0.72" stopColor=palette.gold.mid />
-        <Stop offset="0.88" stopColor=palette.gold.mid />
-        <Stop offset="1" stopColor=palette.gold.dark />
+        <Stop offset="0" stopColor={palette.gold.warm} />
+        <Stop offset="0.37" stopColor={palette.gold.DEFAULT} />
+        <Stop offset="0.54" stopColor={palette.gold.warm} />
+        <Stop offset="0.72" stopColor={palette.gold.mid} />
+        <Stop offset="0.88" stopColor={palette.gold.mid} />
+        <Stop offset="1" stopColor={palette.gold.dark} />
       </RadialGradient>
     </Defs>
     <G clipPath="url(#outerClip)">
@@ -61,12 +61,12 @@ const InnerStar = () => (
         gradientUnits="userSpaceOnUse"
         gradientTransform="translate(30.8336 30.8323) rotate(15) scale(25.1819 25.1665)"
       >
-        <Stop offset="0" stopColor=palette.gold.warm />
-        <Stop offset="0.37" stopColor=palette.gold.DEFAULT />
-        <Stop offset="0.54" stopColor=palette.gold.warm />
-        <Stop offset="0.72" stopColor=palette.gold.mid />
-        <Stop offset="0.88" stopColor=palette.gold.mid />
-        <Stop offset="1" stopColor=palette.gold.dark />
+        <Stop offset="0" stopColor={palette.gold.warm} />
+        <Stop offset="0.37" stopColor={palette.gold.DEFAULT} />
+        <Stop offset="0.54" stopColor={palette.gold.warm} />
+        <Stop offset="0.72" stopColor={palette.gold.mid} />
+        <Stop offset="0.88" stopColor={palette.gold.mid} />
+        <Stop offset="1" stopColor={palette.gold.dark} />
       </RadialGradient>
     </Defs>
     <G clipPath="url(#innerClip)">
@@ -89,12 +89,12 @@ const CoreStar = () => (
         gradientUnits="userSpaceOnUse"
         gradientTransform="translate(24.9144 24.6942) rotate(15) scale(25.1819 25.1665)"
       >
-        <Stop offset="0" stopColor=palette.gold.warm />
-        <Stop offset="0.37" stopColor=palette.gold.DEFAULT />
-        <Stop offset="0.54" stopColor=palette.gold.warm />
-        <Stop offset="0.72" stopColor=palette.gold.mid />
-        <Stop offset="0.88" stopColor=palette.gold.mid />
-        <Stop offset="1" stopColor=palette.gold.dark />
+        <Stop offset="0" stopColor={palette.gold.warm} />
+        <Stop offset="0.37" stopColor={palette.gold.DEFAULT} />
+        <Stop offset="0.54" stopColor={palette.gold.warm} />
+        <Stop offset="0.72" stopColor={palette.gold.mid} />
+        <Stop offset="0.88" stopColor={palette.gold.mid} />
+        <Stop offset="1" stopColor={palette.gold.dark} />
       </RadialGradient>
     </Defs>
     <Path

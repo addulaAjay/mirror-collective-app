@@ -27,6 +27,7 @@ export const palette = {
     rich: '#cfa64f',     // Code-defined: rich amber gold used in gradient stops (add to Figma — Phase 8 follow-up)
     amber: '#e2ae5a',    // Code-defined: amber gold gradient stop (add to Figma — Phase 8 follow-up)
     chat: '#D8C278',     // Chat bubble gold (existing app)
+    bronze: '#9F8B61',   // MC logo SVG fill — used in MCLogo component
     // NOTE: #F5E6B8 (old accent) replaced by palette.gold.DEFAULT (#f2e2b1) — Figma Colour.Text.Paragraph-1
   },
   navy: {
@@ -120,6 +121,8 @@ export const radius = {
 export const fontFamily = {
   // Cormorant Garamond — Figma: Heading family
   heading: 'CormorantGaramond-Regular',
+  headingLight: 'CormorantGaramond-Light',
+  headingLightItalic: 'CormorantGaramond-LightItalic',
   headingMedium: 'CormorantGaramond-Medium',
   headingMediumItalic: 'CormorantGaramond-MediumItalic',
   headingItalic: 'CormorantGaramond-Italic',
