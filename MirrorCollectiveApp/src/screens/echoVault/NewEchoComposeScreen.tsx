@@ -439,7 +439,7 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
                     value={message}
                     onChangeText={setMessage}
                     placeholder="Write message here"
-                    placeholderTextColor=palette.navy.medium
+                    placeholderTextColor={palette.navy.medium}
                     style={styles.bigTextInput}
                     multiline
                     textAlignVertical="top"

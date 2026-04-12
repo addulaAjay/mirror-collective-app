@@ -1,5 +1,7 @@
+import { palette } from '@theme';
 import React from 'react';
 import { TouchableOpacity, Image, StyleSheet, ViewStyle } from 'react-native';
+
 
 interface SymbolOptionProps {
   icon: any; // require() or uri

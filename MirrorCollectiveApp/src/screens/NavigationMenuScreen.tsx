@@ -13,8 +13,10 @@ import {
   Image,
   ImageSourcePropType,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import { palette } from '@/theme';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const DRAWER_WIDTH = Math.round(SCREEN_WIDTH * 0.78); 
@@ -57,7 +59,7 @@ const MirrorSideMenu: React.FC<MirrorSideMenuProps> = ({
   ];
 
   const secondaryItems = [
-    // { label: 'Settings', route: 'Profile' },
+    { label: 'Settings', route: 'Profile' },
     { label: 'About Us', route: 'About' },
     // { label: 'FAQ', route: 'FAQ' },
   ];

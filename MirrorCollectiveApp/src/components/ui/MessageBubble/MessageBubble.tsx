@@ -1,4 +1,4 @@
-import { theme, spacing, radius, shadows } from '@theme';
+import { theme, spacing, radius, shadows, palette } from '@theme';
 import type { Message } from '@types';
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';

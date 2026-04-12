@@ -1,4 +1,5 @@
 // ImageOptionButton.tsx
+import { palette } from '@theme';
 import React from 'react';
 import { TouchableOpacity, StyleSheet, View } from 'react-native';
 

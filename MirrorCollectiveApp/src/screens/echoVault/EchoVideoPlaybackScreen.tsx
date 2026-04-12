@@ -13,6 +13,8 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
+
+import { palette } from '@theme';
 import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Video, { VideoRef } from 'react-native-video';

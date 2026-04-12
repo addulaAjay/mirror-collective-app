@@ -14,6 +14,8 @@ import {
   Linking,
   ActivityIndicator,
 } from 'react-native';
+
+import { palette } from '@theme';
 import { launchImageLibrary } from 'react-native-image-picker';
 import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';

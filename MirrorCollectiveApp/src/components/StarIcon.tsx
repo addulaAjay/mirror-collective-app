@@ -1,3 +1,4 @@
+import { palette } from '@theme';
 import React from 'react';
 import Svg, {
   Path,
@@ -11,6 +12,7 @@ import Svg, {
   FeBlend,
   G,
 } from 'react-native-svg';
+
 
 interface StarIconProps {
   width?: number;

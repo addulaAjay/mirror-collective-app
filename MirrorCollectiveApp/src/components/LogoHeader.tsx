@@ -1,5 +1,6 @@
 
 import { useNavigation } from '@react-navigation/native';
+import { palette } from '@theme';
 import React, { useState } from 'react';
 import {
   View,
@@ -20,6 +21,7 @@ import { useUser } from '@context/UserContext';
 import MirrorSideMenu from '../screens/NavigationMenuScreen';
 
 import HomeIcon from './HomeIcon';
+
 
 
 
@@ -112,7 +114,7 @@ const LogoHeader = ({
               hitSlop={12}
               style={styles.homeButton}
             >
-              <HomeIcon width={24} height={24} color=palette.gold.warm />
+              <HomeIcon width={24} height={24} color={palette.gold.warm} />
             </Pressable>
           )}
         </View>

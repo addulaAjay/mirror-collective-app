@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { scale, scaleMin, scaleCap } from '@theme';
+import { scale, scaleMin, scaleCap, palette } from '@theme';
 import type { RootStackParamList } from '@types';
 import React, { useMemo, useState } from 'react';
 import {
@@ -153,7 +153,7 @@ const StartFreeTrialScreen = () => {
                       end={{ x: 1, y: 0.5 }}
                       style={styles.starDividerLine}
                     />
-                    <StarIcon width={18} height={18} color=palette.gold.DEFAULT />
+                    <StarIcon width={18} height={18} color={palette.gold.DEFAULT} />
                     <LinearGradient
                       colors={[palette.gold.rich, palette.gold.DEFAULT]}
                       start={{ x: 0, y: 0.5 }}
@@ -208,7 +208,7 @@ const StartFreeTrialScreen = () => {
                     style={styles.ctaButton}
                   >
                     {(loading || purchasing) ? (
-                      <ActivityIndicator color=palette.gold.DEFAULT />
+                      <ActivityIndicator color={palette.gold.DEFAULT} />
                     ) : (
                       <Text style={styles.ctaButtonText}>{buttonText}</Text>
                     )}

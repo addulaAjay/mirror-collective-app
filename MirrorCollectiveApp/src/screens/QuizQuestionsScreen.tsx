@@ -97,7 +97,7 @@ const QuizQuestionsScreen = () => {
           <LogoHeader />
           <View style={styles.loadingContainer}>
             <View style={styles.loadingContent}>
-              <ActivityIndicator size="large" color=palette.gold.warm />
+              <ActivityIndicator size="large" color={palette.gold.warm} />
               <Text style={styles.loadingText}>{t('quiz.quizQuestions.loading')}</Text>
             </View>
           </View>

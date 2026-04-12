@@ -1,3 +1,4 @@
+import { palette, scaleCap, moderateScale } from '@theme';
 import React from 'react';
 import {
   Text,
@@ -6,7 +7,6 @@ import {
   ViewStyle,
 } from 'react-native';
 
-import { palette, scaleCap, moderateScale } palette } from '@theme';
 
 interface Props {
   label: string;
@@ -15,7 +15,7 @@ interface Props {
   style?: ViewStyle;
 }
 
-const OptionButton = ({ palette, label, selected, onPress, style }: Props) => {
+const OptionButton = ({ label, selected, onPress, style }: Props) => {
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
     borderColor: palette.navy.muted,
     borderRadius: 13,
     shadowColor: palette.neutral.black,
-    shadowOffset: { palette, width: 0, height: 4 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 19,
     // Additional shadow for the second effect
@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16, // Selected state has padding: 8px 16px from Figma CSS
     // Exact dual shadow from selected Figma: 0px 4px 19px 4px rgba(0, 0, 0, 0.1), 1px 4px 38px 2px rgba(229, 214, 176, 0.23)
     shadowColor: palette.neutral.black,
-    shadowOffset: { palette, width: 0, height: 4 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 19,
     boxShadow: '0 0 7px 4px rgba(242, 226, 177, 0.50)',
@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
     textAlign: 'center', // Exact text-align: center from Figma CSS
     // Exact text-shadow: 0px 0px 8px palette.gold.warm from Figma
     textShadowColor: palette.gold.warm,
-    textShadowOffset: { palette, width: 0, height: 0 },
+    textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 8,
     // width: 313, // Exact width: 313px from non-selected Figma CSS
     // height: 72, // Exact height: 72px      from Figma
@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
     color: palette.gold.subtle,
     textAlign: 'center', // Center align for selected state
     textShadowColor: palette.gold.warm,
-    textShadowOffset: { palette, width: 0, height: 0 },
+    textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 8, // Exact 8px from Figma
     // width: 297, // Exact width: 313px from selected Figma CSS
     // minHeight: 72,

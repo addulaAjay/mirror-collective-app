@@ -1,6 +1,6 @@
-import type { palette, NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { palette, theme } palette } from '@theme';
-import type { palette, RootStackParamList } from '@types';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { palette, theme } from '@theme';
+import type { RootStackParamList } from '@types';
 import React from 'react';
 import {
   View,
@@ -8,7 +8,7 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from 'react-native';
-import { palette, SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import AuthenticatedRoute from '@components/AuthenticatedRoute';
 import BackgroundWrapper from '@components/BackgroundWrapper';
@@ -19,7 +19,7 @@ type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'EnterMirror'>;
 };
 
-const EnterMirrorScreen: React.FC<Props> = ({ palette, navigation }) => {
+const EnterMirrorScreen: React.FC<Props> = ({ navigation }) => {
   const handleEnter = () => {
     navigation.navigate('AppVideo');
   };
@@ -86,7 +86,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 28,
     textShadowColor: 'rgba(230, 211, 163, 0.8)',
-    textShadowOffset: { palette, width: 0, height: 0 },
+    textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 12,
   },
   subtitle: {

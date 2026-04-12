@@ -1,6 +1,8 @@
 import React from 'react';
 import Svg, { Path } from 'react-native-svg';
 
+import { palette } from '@theme';
+
 interface HomeIconProps {
   width?: number;
   height?: number;

@@ -193,7 +193,7 @@ const EchoVaultStorageScreen = () => {
                       end={{ x: 1, y: 0.5 }}
                       style={styles.starDividerLine}
                     />
-                    <StarIcon width={18} height={18} color=palette.gold.DEFAULT />
+                    <StarIcon width={18} height={18} color={palette.gold.DEFAULT} />
                     <LinearGradient
                       colors={[palette.gold.rich, palette.gold.DEFAULT]}
                       start={{ x: 0, y: 0.5 }}

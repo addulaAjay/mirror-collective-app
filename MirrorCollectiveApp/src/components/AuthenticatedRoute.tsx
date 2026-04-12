@@ -1,11 +1,11 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { theme, palette } from '@theme';
+import type { RootStackParamList } from '@types';
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 
 import { useAuthGuard } from '@hooks/useAuthGuard';
-import { theme } from '@theme';
-import type { RootStackParamList } from '@types';
 
 interface AuthenticatedRouteProps {
   children: React.ReactNode;

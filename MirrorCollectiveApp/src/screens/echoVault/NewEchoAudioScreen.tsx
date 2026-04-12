@@ -1,5 +1,6 @@
 // NewEchoAudioScreen.tsx
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { palette } from '@theme';
 import { RootStackParamList } from '@types';
 import React, { useMemo, useState } from 'react';
 import {
@@ -22,6 +23,7 @@ import DocumentPicker from 'react-native-document-picker';
 import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Camera } from 'react-native-vision-camera';
+
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';

@@ -14,6 +14,8 @@ import { SvgXml } from 'react-native-svg';
 
 import { CLOSE_ICON_XML, MOTIF_ICONS } from '../assets/motifs/MotifAssets';
 
+import { palette } from '@/theme';
+
 interface MotifSelectionModalProps {
   visible: boolean;
   onClose: () => void;

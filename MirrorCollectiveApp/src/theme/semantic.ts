@@ -61,6 +61,7 @@ export const semantic = {
       subtle: palette.navy.light,
       subtlest: palette.navy.lighter,
       inverse: palette.navy.DEFAULT,
+      'inverse-1': palette.navy.medium,        // Figma: Colour.Border.Inverse-1 (#60739f)
       gold: palette.gold.chat,
     },
 

@@ -1,4 +1,7 @@
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { palette } from '@theme';
+import type { RootStackParamList } from '@types';
 import React, { useState } from 'react';
 import {
   Dimensions,
@@ -10,8 +13,8 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
@@ -29,6 +32,7 @@ const formatPhoneDisplay = (e164: string): string => {
 };
 
 const ProfileScreen: React.FC = () => {
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('+1');
@@ -76,7 +80,7 @@ const ProfileScreen: React.FC = () => {
                   <Svg width="120" height="120" viewBox="0 0 60 50" fill="none">
                     <Path
                       d="M30 30C37.18 30 43 24.18 43 17C43 9.82 37.18 4 30 4C22.82 4 17 9.82 17 17C17 24.18 22.82 30 30 30ZM30 37C21.33 37 4 41.34 4 50V56H56V50C56 41.34 38.67 37 30 37Z"
-                      fill=palette.navy.light
+                      fill={palette.navy.light}
                     />
                   </Svg>
                 </View>
@@ -85,7 +89,7 @@ const ProfileScreen: React.FC = () => {
                   <Svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                     <Path
                       d="M10 4V16M4 10H16"
-                      stroke=palette.navy.deep
+                      stroke={palette.navy.deep}
                       strokeWidth="2"
                       strokeLinecap="round"
                     />
@@ -167,6 +171,20 @@ const ProfileScreen: React.FC = () => {
                 <Text style={styles.saveText}>SAVE</Text>
               </LinearGradient>
             </TouchableOpacity>
+
+            {/* Developer Tools */}
+            {__DEV__ && (
+              <View style={styles.devSection}>
+                <Text style={styles.devTitle}>Developer Tools</Text>
+                <TouchableOpacity
+                  style={styles.devButton}
+                  onPress={() => navigation.navigate('ComponentDemo')}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.devButtonText}>🎨 View Component Demo</Text>
+                </TouchableOpacity>
+              </View>
+            )}
 
             </View>
           </TouchableWithoutFeedback>
@@ -308,6 +326,34 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 8,
     letterSpacing: 2,
+  },
+  devSection: {
+    marginTop: 40,
+    paddingTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: palette.navy.light + '40',
+    width: '100%',
+    alignItems: 'center',
+    gap: 12,
+  },
+  devTitle: {
+    fontFamily: 'CormorantGaramond-Light',
+    fontSize: 18,
+    color: palette.navy.light,
+    marginBottom: 8,
+  },
+  devButton: {
+    backgroundColor: palette.navy.light + '20',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: palette.navy.light + '40',
+  },
+  devButtonText: {
+    fontFamily: 'CormorantGaramond-Medium',
+    fontSize: 16,
+    color: palette.gold.DEFAULT,
   },
 });
 

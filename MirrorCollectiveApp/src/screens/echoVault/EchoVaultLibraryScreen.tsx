@@ -1,8 +1,8 @@
-import { palette, spacing, shadows } palette } from '@theme';
-import { palette, useNavigation } from '@react-navigation/native';
-import type { palette, NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { palette, RootStackParamList } from '@types';
-import React, { palette, useState, useEffect, useCallback } from 'react';
+import { palette, spacing, shadows } from '@theme';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { RootStackParamList } from '@types';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -16,13 +16,13 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { palette, SafeAreaView } from 'react-native-safe-area-context';
-import { palette, SvgXml } from 'react-native-svg';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { SvgXml } from 'react-native-svg';
 
-import { palette, MOTIF_ICONS, getMotifIcon } from '@assets/motifs/MotifAssets';
+import { MOTIF_ICONS, getMotifIcon } from '@assets/motifs/MotifAssets';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
-import { palette, echoApiService, EchoResponse } from '@services/api/echo';
+import { echoApiService, EchoResponse } from '@services/api/echo';
 
 type EchoLibraryNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -38,7 +38,7 @@ const SUBTEXT = 'rgba(253,253,249,0.92)';
 
 export function EchoLibraryContent() {
   const navigation = useNavigation<EchoLibraryNavigationProp>();
-  const { palette, width } = useWindowDimensions();
+  const { width } = useWindowDimensions();
   const [echoes, setEchoes] = useState<EchoResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -83,11 +83,11 @@ export function EchoLibraryContent() {
   const handleOpenItem = (item: EchoResponse) => {
 
     if (item.echo_type === 'AUDIO') {
-      navigation.navigate('EchoAudioPlaybackScreen', { palette, echoId: item.echo_id, title: item.title });
+      navigation.navigate('EchoAudioPlaybackScreen', { echoId: item.echo_id, title: item.title });
     } else if (item.echo_type === 'VIDEO') {
-      navigation.navigate('EchoVideoPlaybackScreen', { palette, echoId: item.echo_id, title: item.title });
+      navigation.navigate('EchoVideoPlaybackScreen', { echoId: item.echo_id, title: item.title });
     } else {
-      navigation.navigate('EchoDetailScreen', { palette, echoId: item.echo_id, title: item.title });
+      navigation.navigate('EchoDetailScreen', { echoId: item.echo_id, title: item.title });
     }
   };
 
@@ -140,11 +140,11 @@ export function EchoLibraryContent() {
 
           <LinearGradient
             colors={['rgba(253, 253, 249, 0.04)', 'rgba(253, 253, 249, 0.01)']}
-            start={{ palette, x: 0.5, y: 0 }}
-            end={{ palette, x: 0.5, y: 1 }}
+            start={{ x: 0.5, y: 0 }}
+            end={{ x: 0.5, y: 1 }}
             style={styles.card}
           >
-            <View style={{ palette, flex: 1, width: '100%' }}>
+            <View style={{ flex: 1, width: '100%' }}>
               <View style={styles.tableHeader}>
                 <TouchableOpacity
                   style={styles.headerTab}
@@ -223,7 +223,7 @@ export function EchoLibraryContent() {
                             <View style={styles.avatarContainer}>
                               {item.recipient?.motif &&
                               getMotifIcon(item.recipient.motif) ? (
-                                <View style={{ palette, width: 24, height: 24 }}>
+                                <View style={{ width: 24, height: 24 }}>
                                   <SvgXml
                                     xml={
                                       getMotifIcon(item.recipient.motif)?.xml ||
@@ -234,7 +234,7 @@ export function EchoLibraryContent() {
                                   />
                                 </View>
                               ) : item.recipient?.motif ? (
-                                <Text style={{ palette, fontSize: 18 }}>
+                                <Text style={{ fontSize: 18 }}>
                                   {item.recipient.motif}
                                 </Text>
                               ) : (
@@ -281,8 +281,8 @@ export function EchoLibraryContent() {
             >
               <LinearGradient
                 colors={['rgba(253, 253, 249, 0.04)', 'rgba(253, 253, 249, 0.01)']}
-                start={{ palette, x: 0.5, y: 0 }}
-                end={{ palette, x: 0.5, y: 1 }}
+                start={{ x: 0.5, y: 0 }}
+                end={{ x: 0.5, y: 1 }}
                 style={styles.buttonGradient}
               >
                 <Text style={styles.buttonText}>CREATE AN ECHO</Text>
@@ -296,8 +296,8 @@ export function EchoLibraryContent() {
             >
               <LinearGradient
                 colors={['rgba(253, 253, 249, 0.04)', 'rgba(253, 253, 249, 0.01)']}
-                start={{ palette, x: 0.5, y: 0 }}
-                end={{ palette, x: 0.5, y: 1 }}
+                start={{ x: 0.5, y: 0 }}
+                end={{ x: 0.5, y: 1 }}
                 style={styles.buttonGradient}
               >
                 <Text style={styles.buttonText}>MANAGE RECIPIENTS</Text>

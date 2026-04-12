@@ -1,8 +1,7 @@
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { palette } from '@theme';
-import { useFocusEffect } from '@react-navigation/native';
-import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useRef, useState } from 'react';
-import { ActivityIndicator, Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import Video from 'react-native-video';
@@ -41,7 +40,7 @@ const AboutScreen: React.FC = () => {
               <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
                 <Path
                   d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
-                  fill=palette.gold.DEFAULT
+                  fill={palette.gold.DEFAULT}
                 />
               </Svg>
             </TouchableOpacity>
@@ -55,7 +54,7 @@ const AboutScreen: React.FC = () => {
               <ActivityIndicator
                 style={StyleSheet.absoluteFill}
                 size="large"
-                color=palette.gold.warm
+                color={palette.gold.warm}
               />
             )}
             {hasError ? (

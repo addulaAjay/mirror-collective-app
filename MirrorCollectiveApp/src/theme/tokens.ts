@@ -56,12 +56,12 @@ export const palette = {
     linkActive: '#2563eb',
   },
   secondary: {
-    purple: '#d8c8f6',   // Secondary-Color-1
-    gold: '#e5d6b0',     // Secondary-Color-2
-    burgundy: '#7b3f45', // Secondary-Color-3
-    blush: '#f1d2c9',    // Secondary-Color-4
-    steel: '#a3b3cc',    // Secondary-Color-5
-    charcoal: '#424242', // Secondary-Color-6
+    'secondary-color-1': '#d8c8f6',  // Figma: Colour.Secondary.Secondary-Color-1 (purple)
+    'secondary-color-2': '#e5d6b0',  // Figma: Colour.Secondary.Secondary-Color-2 (gold)
+    'secondary-color-3': '#7b3f45',  // Figma: Colour.Secondary.Secondary-Color-3 (burgundy)
+    'secondary-color-4': '#f1d2c9',  // Figma: Colour.Secondary.Secondary-Color-4 (blush)
+    'secondary-color-5': '#a3b3cc',  // Figma: Colour.Secondary.Secondary-Color-5 (steel)
+    'secondary-color-6': '#424242',  // Figma: Colour.Secondary.Secondary-Color-6 (charcoal)
   },
   neutral: {
     white: '#ffffff',

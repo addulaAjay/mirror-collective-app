@@ -11,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import type { RootStackParamList } from '@types';
+import { palette } from '@theme';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('screen');
 

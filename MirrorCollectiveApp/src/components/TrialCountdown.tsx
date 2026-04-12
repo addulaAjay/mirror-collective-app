@@ -6,6 +6,7 @@ import React from 'react';
 import {Text, StyleSheet, TouchableOpacity} from 'react-native';
 
 import {useSubscription} from '@/context/SubscriptionContext';
+import { palette } from '@theme';
 
 const TrialCountdown: React.FC = () => {
   const {isInTrial, trialDaysRemaining} = useSubscription();

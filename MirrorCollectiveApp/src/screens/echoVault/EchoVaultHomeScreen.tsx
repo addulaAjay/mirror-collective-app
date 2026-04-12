@@ -1,8 +1,8 @@
-import { palette, spacing, shadows } palette } from '@theme';
-import { palette, useNavigation } from '@react-navigation/native';
-import type { palette, NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { palette, RootStackParamList } from '@types';
-import React, { palette, useMemo } from 'react';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { palette, spacing, shadows } from '@theme';
+import type { RootStackParamList } from '@types';
+import React, { useMemo } from 'react';
 import {
   View,
   Text,
@@ -15,7 +15,7 @@ import {
   ScrollView,
   Modal,
 } from 'react-native';
-import { palette, SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
@@ -32,7 +32,7 @@ const COPY =
 
 export function MirrorEchoContent() {
   const navigation = useNavigation<MirrorEchoNavigationProp>();
-  const { palette, width, height } = useWindowDimensions();
+  const { width } = useWindowDimensions();
   const [showInfoOverlay, setShowInfoOverlay] = React.useState(false);
 
   const scale = useMemo(() => {
@@ -117,7 +117,7 @@ export function MirrorEchoContent() {
                 activeOpacity={0.9}
                 style={[
                   styles.primaryButton,
-                  { palette, width: buttonWidth, height: buttonHeight },
+                  { width: buttonWidth, height: buttonHeight },
                 ]}
               >
                 <Text style={styles.ctaText}>START ECHO</Text>
@@ -128,7 +128,7 @@ export function MirrorEchoContent() {
                 activeOpacity={0.9}
                 style={[
                   styles.secondaryButton,
-                  { palette, width: buttonWidth, height: buttonHeight },
+                  { width: buttonWidth, height: buttonHeight },
                 ]}
               >
                 <Text style={styles.ctaText}>VIEW VAULT</Text>
@@ -253,7 +253,7 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     textAlign: 'center',
     textShadowColor: palette.gold.warm,
-    textShadowOffset: { palette, width: 0, height: 0 },
+    textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 20,
     paddingRight: 38,
     lineHeight: 28,
@@ -292,7 +292,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     maxWidth: 300,
     shadowColor: palette.gold.warm,
-    shadowOffset: { palette, width: 0, height: 0 },
+    shadowOffset: { width: 0, height: 0 },
     shadowRadius: 40,
   },
 
@@ -328,7 +328,7 @@ const styles = StyleSheet.create({
     ...Platform.select({
       ios: {
         shadowColor: palette.neutral.black,
-        shadowOffset: { palette, width: 0, height: 10 },
+        shadowOffset: { width: 0, height: 10 },
         shadowOpacity: 0.35,
         shadowRadius: 14,
         elevation: 6,
@@ -357,7 +357,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 31.2,
     textShadowColor: 'rgba(229, 214, 176, 0.50)',
-    textShadowOffset: { palette, width: 0, height: 0 },
+    textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 9,
     includeFontPadding: false,
   },

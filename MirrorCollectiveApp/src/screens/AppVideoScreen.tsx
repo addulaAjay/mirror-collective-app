@@ -45,7 +45,7 @@ const AppVideoScreen: React.FC<Props> = ({ navigation }) => {
               <ActivityIndicator
                 style={StyleSheet.absoluteFill}
                 size="large"
-                color=palette.gold.warm
+                color={palette.gold.warm}
               />
             )}
             {hasError ? (

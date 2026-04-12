@@ -264,7 +264,7 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
               value={notes}
               onChangeText={setNotes}
               placeholder="Write notes here"
-              placeholderTextColor=palette.navy.medium
+              placeholderTextColor={palette.navy.medium}
               multiline
               style={styles.textAreaInput}
             />
