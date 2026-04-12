@@ -1,5 +1,5 @@
-import React from 'react';
 import { palette } from '@theme';
+import React from 'react';
 import Svg, {
   G,
   Path,
@@ -15,7 +15,7 @@ const BrickSymbol = () => (
     <G clipPath="url(#clip0_349_1399)">
       <Path
         d="M54.2974 0L80 52.5227L60.5464 59.5714L32.0286 0H54.2974Z"
-        fill=palette.secondary.burgundy
+        fill={palette.secondary['secondary-color-3']}
       />
       <Path
         d="M30.79 0.841309L59.092 60.2627L48.3164 68.8554L21.3684 13.891L30.79 0.841309Z"
@@ -23,7 +23,7 @@ const BrickSymbol = () => (
       />
       <Path
         d="M0 40.5303L24.13 47.8173C24.3142 54.8646 23.8524 61.9399 23.917 68.9998L0 60.0242V40.5303Z"
-        fill=palette.secondary.burgundy
+        fill={palette.secondary['secondary-color-3']}
       />
       <Path
         d="M42.7466 61.2808L25.4319 68.8596L25.7687 47.8174L34.7779 44.7993L42.7466 61.2808Z"
@@ -31,7 +31,7 @@ const BrickSymbol = () => (
       />
       <Path
         d="M29.1281 33.1074L34.0904 43.334L25.1623 46.3591C17.5084 44.3185 9.97689 41.7955 2.33813 39.6877L29.1294 33.1074H29.1281Z"
-        fill=palette.secondary.burgundy
+        fill={palette.secondary['secondary-color-3']}
       />
     </G>
     <Defs>
@@ -43,8 +43,8 @@ const BrickSymbol = () => (
         y2="68.8554"
         gradientUnits="userSpaceOnUse"
       >
-        <Stop stopColor=palette.navy.deep />
-        <Stop offset="1" stopColor=palette.navy.DEFAULT />
+        <Stop stopColor={palette.navy.deep} />
+        <Stop offset="1" stopColor={palette.navy.DEFAULT} />
       </LinearGradient>
       <LinearGradient
         id="paint1_linear_349_1399"
@@ -54,8 +54,8 @@ const BrickSymbol = () => (
         y2="57.9076"
         gradientUnits="userSpaceOnUse"
       >
-        <Stop stopColor=palette.navy.DEFAULT />
-        <Stop offset="0.5" stopColor=palette.secondary.burgundy />
+        <Stop stopColor={palette.navy.DEFAULT} />
+        <Stop offset="0.5" stopColor={palette.secondary['secondary-color-3']} />
       </LinearGradient>
       <ClipPath id="clip0_349_1399">
         <Rect width="80" height="69" fill="white" />

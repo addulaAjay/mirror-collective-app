@@ -1,6 +1,6 @@
 # Mirror Collective — Design System Plan
 
-## Status: Phase 6 complete — working on Phase 6b (hex cleanup)
+## Status: Phases 6b + 7 complete — building component library from Figma
 
 ---
 
@@ -39,6 +39,8 @@ The following line-height values were assumed based on the existing code theme a
 | 4 | Responsive utility — `scale`, `verticalScale`, `moderateScale`, `scaleCap`, `scaleMin` | ✅ |
 | 5 | Button unification — `Button` with `variant: 'gradient' \| 'auth'`; old buttons deprecated | ✅ |
 | 6 | Screen/component migration off deprecated constants; deleted `colors.ts`, `dimensions.ts`, `shadows.ts` | ✅ |
+| 6b | Hex literal cleanup — ESLint rule escalated to error; hardcoded hex replaced across screens + components | ✅ |
+| 7 | Font integration — Playfair Display + Inter installed, linked, wired into `tokens.ts` + `semantic.ts` | ✅ |
 
 ---
 
@@ -117,6 +119,37 @@ Replace hardcoded hex strings with `palette.*`, `theme.colors.*`, or `theme.typo
 
 ---
 
+## Phase 7b: Component Library — Figma Build + API Cleanup
+
+**Priority:** HIGH | **Depends on:** Phase 7 complete  
+**Current state:** `TextInputField` rebuilt from Figma specs. Remaining components still use old ad-hoc styles.
+
+### Goal
+Build (or rebuild) every reusable component with Figma as sole source of truth. After each component is migrated and all callers updated, remove backward-compat shims.
+
+### Steps
+
+1. **Build components from Figma** (using MCP `get_design_context` for exact specs)
+   - `TextInputField` — ✅ built (Figma node 147:967)
+   - `Button` — verify against Figma; update if needed
+   - `LoadingIndicator` — verify against Figma
+   - *(add others as they are identified)*
+
+2. **Update all callers to new prop APIs** — do screen by screen after each component is built
+
+3. **TextInputField deprecated prop cleanup** (once all callers updated):
+   - Remove `placeholderFontFamily` — never applied, safe to delete outright
+   - Remove `inputTextStyle` — replace caller usage with a proper `variant` prop, then remove
+   - Collapse `FieldSize` — drop `'small' | 'normal' | 'medium'` once all screens pass `'S'` or `'L'`; remove `resolvedSize` mapping
+   - Remove `inputGoldRegular` style and the `inputTextStyle === 'gold-regular'` conditional
+   - Audit `placeholderAlign` / `placeholderStyle` — if no screen still needs the custom Text overlay, replace with native `placeholder` + `placeholderTextColor`
+
+4. **Token gap resolution** — flag values that fall outside the token scale (e.g. helper text 13px) to designer for a new token, or confirm nearest existing token is acceptable
+
+**Success criteria:** All components match Figma specs. No `@deprecated` props remain. No hardcoded sizes or font families in component files.
+
+---
+
 ## Phase 8: Shadow Tokens
 
 **Priority:** MEDIUM | **Depends on:** Phase 1 complete  
@@ -171,11 +204,11 @@ Replace hardcoded hex strings with `palette.*`, `theme.colors.*`, or `theme.typo
 
 | PR | Content |
 |----|---------|
-| 1–6 | ✅ Phases 1–6 complete |
-| 7 | Phase 6b — ESLint hex rule + screen hex cleanup |
-| 8 | Phase 7 — Font integration (Playfair Display + Inter) |
-| 9 | Phase 8 — Shadow token decision + implementation |
-| 10 | Phase 9 — Theme tests (80% coverage) |
+| 1–7 | ✅ Phases 1–7 complete (tokens, responsive, fonts, hex cleanup) |
+| 8 | Phase 7b — Component builds from Figma (`TextInputField` + next component) |
+| 9 | Phase 7b — Caller migrations + deprecated prop removal |
+| 10 | Phase 8 — Shadow token decision + implementation |
+| 11 | Phase 9 — Theme tests (80% coverage) |
 | Optional | Phase 10 — Dark mode |
 
 ---
@@ -203,7 +236,9 @@ Replace hardcoded hex strings with `palette.*`, `theme.colors.*`, or `theme.typo
 - [ ] ESLint rule prevents hex literal regression *(Phase 6b)*
 - [ ] Zero hardcoded hex values in `src/screens/` and `src/components/` *(Phase 6b)*
 - [ ] CI job verifies generated tokens match committed `tokens.json` *(Phase 6b)*
-- [ ] Playfair Display and Inter fonts installed and wired *(Phase 7)*
+- [x] Playfair Display and Inter fonts installed and wired *(Phase 7)*
+- [ ] All reusable components built from Figma specs *(Phase 7b)*
+- [ ] No `@deprecated` props remain in any component *(Phase 7b)*
 - [ ] Shadow tokens decision made and implemented *(Phase 8)*
 - [ ] 80%+ test coverage on theme module *(Phase 9)*
 - [ ] Visual regression baseline established *(Phase 9)*

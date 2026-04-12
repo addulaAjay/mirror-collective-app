@@ -1,5 +1,5 @@
-import React from 'react';
 import { palette } from '@theme';
+import React from 'react';
 import Svg, { Path, Defs, LinearGradient, Stop } from 'react-native-svg';
 
 const SpiralSymbol = () => (
@@ -42,7 +42,7 @@ const SpiralSymbol = () => (
         y2="80"
         gradientUnits="userSpaceOnUse"
       >
-        <Stop stopColor=palette.navy.medium />
+        <Stop stopColor={palette.navy.medium} />
         <Stop offset="1" stopColor="white" />
       </LinearGradient>
       <LinearGradient
@@ -53,7 +53,7 @@ const SpiralSymbol = () => (
         y2="55.3133"
         gradientUnits="userSpaceOnUse"
       >
-        <Stop stopColor=palette.navy.medium />
+        <Stop stopColor={palette.navy.medium} />
         <Stop offset="1" stopColor="white" />
       </LinearGradient>
       <LinearGradient
@@ -64,7 +64,7 @@ const SpiralSymbol = () => (
         y2="36.023"
         gradientUnits="userSpaceOnUse"
       >
-        <Stop stopColor=palette.navy.medium />
+        <Stop stopColor={palette.navy.medium} />
         <Stop offset="1" stopColor="white" />
       </LinearGradient>
       <LinearGradient
@@ -75,7 +75,7 @@ const SpiralSymbol = () => (
         y2="20.3573"
         gradientUnits="userSpaceOnUse"
       >
-        <Stop stopColor=palette.navy.medium />
+        <Stop stopColor={palette.navy.medium} />
         <Stop offset="1" stopColor="white" />
       </LinearGradient>
       <LinearGradient
@@ -86,7 +86,7 @@ const SpiralSymbol = () => (
         y2="10.3883"
         gradientUnits="userSpaceOnUse"
       >
-        <Stop stopColor=palette.navy.medium />
+        <Stop stopColor={palette.navy.medium} />
         <Stop offset="1" stopColor="white" />
       </LinearGradient>
       <LinearGradient
@@ -97,7 +97,7 @@ const SpiralSymbol = () => (
         y2="3.29212"
         gradientUnits="userSpaceOnUse"
       >
-        <Stop stopColor=palette.navy.medium />
+        <Stop stopColor={palette.navy.medium} />
         <Stop offset="1" stopColor="white" />
       </LinearGradient>
     </Defs>
