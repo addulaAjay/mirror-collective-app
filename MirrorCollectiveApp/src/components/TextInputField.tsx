@@ -46,7 +46,7 @@ interface Props {
   onChangeText?: (text: string) => void;
   keyboardType?: 'default' | 'email-address' | 'numeric' | 'phone-pad';
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
-  autoComplete?: 'email' | 'password' | 'new-password' | 'name' | 'off';
+  autoComplete?: 'email' | 'password' | 'new-password' | 'name' | 'off' | 'one-time-code';
   textContentType?:
     | 'none'
     | 'emailAddress'
@@ -57,6 +57,7 @@ interface Props {
     | 'familyName'
     | 'telephoneNumber'
     | 'username';
+  maxLength?: number;
   // Password toggle
   showPasswordToggle?: boolean;
   isPasswordVisible?: boolean;
@@ -86,6 +87,7 @@ const TextInputField = ({
   autoCapitalize = 'none',
   autoComplete,
   textContentType,
+  maxLength,
   showPasswordToggle = false,
   isPasswordVisible = false,
   onTogglePassword,
@@ -153,6 +155,7 @@ const TextInputField = ({
           autoCapitalize={autoCapitalize}
           autoComplete={autoComplete}
           textContentType={textContentType}
+          maxLength={maxLength}
           multiline={isMultiline}
           style={[
             styles.input,
@@ -248,7 +251,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.m,      // 16 — Figma: var(--radius/m,16px)
     borderWidth: 0.5,
     paddingHorizontal: spacing.m, // 16
-    paddingVertical: spacing.xs,  // 8
+    paddingVertical: spacing.s,   // 12 — Figma: var(--spacing/s,12px)
     minHeight: 40,                // Size S — Figma
     flexDirection: 'row',
     alignItems: 'center',

@@ -1,6 +1,16 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { palette, theme } from '@theme';
+import {
+  palette,
+  fontFamily,
+  fontSize,
+  fontWeight,
+  lineHeight,
+  scale,
+  verticalScale,
+  moderateScale,
+  textShadow,
+} from '@theme';
 import type { RootStackParamList } from '@types';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -16,6 +26,7 @@ import {
   Keyboard,
   ScrollView,
 } from 'react-native';
+import Svg, { Circle, Path } from 'react-native-svg';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
@@ -81,204 +92,274 @@ const ForgotPasswordScreen = () => {
     navigation.navigate('Login');
   };
 
+  // ── Email sent confirmation state ────────────────────────────────────────
   if (emailSent) {
     return (
-      <BackgroundWrapper style={styles.root}>
-        <SafeAreaView style={styles.safe}>
-          <LogoHeader />
-          <KeyboardAvoidingView
-            style={styles.keyboardContainer}
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          >
-          <ScrollView
-            style={{ width: '100%' }}
-            contentContainerStyle={styles.scrollContainer}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          >
-            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-              <View style={styles.contentContainer}>
-                <Text style={styles.title}>{t('auth.forgotPassword.title')}</Text>
-                <Text style={styles.subtitle}>
-                  {t('auth.forgotPassword.successMessage')}
-                  {'\n'}
-                  <Text style={styles.emailText}>{email}</Text>
-                </Text>
+      <KeyboardAvoidingView
+        style={styles.keyboardContainer}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <BackgroundWrapper style={styles.container}>
+          <SafeAreaView style={styles.safe}>
+            <LogoHeader />
+            <ScrollView
+              style={styles.scrollView}
+              contentContainerStyle={styles.scrollContainer}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
+              <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                <View style={styles.contentContainer}>
+                  <Text style={styles.title}>
+                    {t('auth.forgotPassword.title')}
+                  </Text>
+                  <Text style={styles.subtitle}>
+                    {t('auth.forgotPassword.successMessage')}
+                    {'\n'}
+                    <Text style={styles.emailHighlight}>{email}</Text>
+                  </Text>
 
-                <Text style={styles.instructions}>
-                  {t('auth.resetPassword.subtitle')}
-                </Text>
+                  <TouchableOpacity
+                    style={styles.enterButton}
+                    testID="success-continue-button"
+                    onPress={() => navigation.navigate('ResetPassword', { email })}
+                    activeOpacity={0.8}
+                  >
+                    <StarIcon width={20} height={20} />
+                    <Text style={styles.enterText}>{t('common.continue')}</Text>
+                    <StarIcon width={20} height={20} />
+                  </TouchableOpacity>
 
-                <TouchableOpacity
-                  style={styles.enterButton}
-                  testID="success-continue-button"
-                  onPress={() => navigation.navigate('ResetPassword', { email })}
-                  activeOpacity={0.8}
-                >
-                  <StarIcon width={24} height={24} />
-                  <Text style={styles.enterText}>{t('common.continue')}</Text>
-                  <StarIcon width={24} height={24} />
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={handleBackToLogin}
-                  style={styles.backLink}
-                  testID="success-back-to-login"
-                >
-                  <Text style={styles.backLinkText}>{t('auth.forgotPassword.backToLogin')}</Text>
-                </TouchableOpacity>
-              </View>
-            </TouchableWithoutFeedback>
-          </ScrollView>
-        </KeyboardAvoidingView>
-        </SafeAreaView>
-      </BackgroundWrapper>
+                  <TouchableOpacity
+                    onPress={handleBackToLogin}
+                    testID="success-back-to-login"
+                  >
+                    <Text style={styles.backLinkText}>
+                      {t('auth.forgotPassword.backToLogin')}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </TouchableWithoutFeedback>
+            </ScrollView>
+          </SafeAreaView>
+        </BackgroundWrapper>
+      </KeyboardAvoidingView>
     );
   }
 
+  // ── Default state — Figma: node 4116:513 ────────────────────────────────
   return (
-    <BackgroundWrapper style={styles.root}>
-      <SafeAreaView style={styles.safe}>
-        <LogoHeader />
-        <KeyboardAvoidingView
-          style={styles.keyboardContainer}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        >
+    <KeyboardAvoidingView
+      style={styles.keyboardContainer}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <BackgroundWrapper style={styles.container}>
+        <SafeAreaView style={styles.safe}>
+          <LogoHeader />
           <ScrollView
-            style={{ width: '100%' }}
+            style={styles.scrollView}
             contentContainerStyle={styles.scrollContainer}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
+            keyboardDismissMode={
+              Platform.OS === 'ios' ? 'interactive' : 'on-drag'
+            }
           >
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+              {/* Figma: node 4116:516 — flat flex col gap-40px, left:40px */}
               <View style={styles.contentContainer}>
-                <Text style={styles.title}>{t('auth.forgotPassword.title')}</Text>
+
+                {/* Title — Figma: Cormorant Regular 3XL (32px), lh:40 (XXL), #f2e2b1, no shadow */}
+                <Text style={styles.title}>
+                  {t('auth.forgotPassword.title')}
+                </Text>
+
+                {/* Subtitle — Figma: node 4117:604, Cormorant Regular L (20px), lh:24, #fdfdf9 */}
                 <Text style={styles.subtitle}>
                   {t('auth.forgotPassword.subtitle')}
                 </Text>
 
-                <View style={styles.formContainer}>
+                {/* Email input — Figma: node 4116:519, Cormorant Medium centered placeholder */}
+                <View style={styles.inputWrapper}>
                   <TextInputField
                     testID="email-input"
+                    size="S"
                     placeholder={t('auth.forgotPassword.emailPlaceholder')}
                     value={email}
                     onChangeText={setEmail}
                     keyboardType="email-address"
                     autoCapitalize="none"
                     autoComplete="email"
-                    size="small"
+                    placeholderAlign="center"
                   />
-
-                  {state.error && <Text style={styles.errorText}>{state.error}</Text>}
-
-                  <TouchableOpacity
-                    style={styles.enterButton}
-                    testID="forgot-password-button"
-                    onPress={handleForgotPassword}
-                    disabled={isLoading}
-                    activeOpacity={0.8}
-                  >
-                    <StarIcon width={24} height={24} />
-                    <Text style={styles.enterText}>
-                      {isLoading ? t('auth.forgotPassword.sendingButton') : t('auth.forgotPassword.sendButton')}
-                    </Text>
-                    <StarIcon width={24} height={24} />
-                  </TouchableOpacity>
+                  {/* Error row — Figma: node 4121:367, icon 20×20 + Inter XS error text, items-start, gap-4px */}
+                  {state.error && (
+                    <View style={styles.errorRow}>
+                      <Svg width={20} height={20} viewBox="0 0 20 20" fill="none">
+                        <Circle cx="10" cy="10" r="9" stroke={palette.status.error} strokeWidth="1.5" />
+                        <Path d="M10 6v5" stroke={palette.status.error} strokeWidth="1.5" strokeLinecap="round" />
+                        <Circle cx="10" cy="13.5" r="0.75" fill={palette.status.error} />
+                      </Svg>
+                      <Text style={styles.errorText}>{state.error}</Text>
+                    </View>
+                  )}
                 </View>
 
-                <TouchableOpacity onPress={handleBackToLogin} style={styles.backLink} testID="back-to-login-button">
+                {/* SEND LINK button — Figma: node 4116:521, stars 20×20, 2XL 28px */}
+                <TouchableOpacity
+                  style={styles.enterButton}
+                  testID="forgot-password-button"
+                  onPress={handleForgotPassword}
+                  disabled={isLoading}
+                  activeOpacity={0.8}
+                >
+                  <StarIcon width={20} height={20} />
+                  <Text style={styles.enterText}>
+                    {isLoading
+                      ? t('auth.forgotPassword.sendingButton')
+                      : t('auth.forgotPassword.sendButton')}
+                  </Text>
+                  <StarIcon width={20} height={20} />
+                </TouchableOpacity>
+
+                {/* Back to login — Figma: node 4116:526, Cormorant Italic L (20px), #fdfdf9 */}
+                <TouchableOpacity
+                  onPress={handleBackToLogin}
+                  testID="back-to-login-button"
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
                   <Text style={styles.backLinkText}>
                     {t('auth.forgotPassword.backToLogin')}
                   </Text>
                 </TouchableOpacity>
+
               </View>
             </TouchableWithoutFeedback>
           </ScrollView>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
-    </BackgroundWrapper>
+        </SafeAreaView>
+      </BackgroundWrapper>
+    </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
-  root: {
+  keyboardContainer: {
     flex: 1,
+  },
+  container: {
+    flex: 1,
+    alignSelf: 'stretch',
   },
   safe: {
     flex: 1,
+    backgroundColor: 'transparent',
+    width: '100%',
   },
-  keyboardContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+  scrollView: {
+    width: '100%',
   },
+  // Figma: content left:40px on 393px frame → paddingHorizontal:40, top:212px → ~80px below LogoHeader
   scrollContainer: {
     flexGrow: 1,
-    width: '100%',
     alignItems: 'center',
-    justifyContent: 'center',
+    paddingHorizontal: scale(40),
+    paddingTop: verticalScale(80),
+    paddingBottom: verticalScale(40),
   },
+
+  // Figma: node 4116:516 — flat flex col, gap:40px, items:center
   contentContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 40,
-    gap: 20,
     width: '100%',
-    maxWidth: 313,
+    alignItems: 'center',
+    gap: verticalScale(40),
   },
+
+  // Figma: Heading/Heading L — Cormorant Regular 3XL (32px), lh:40 (XXL), #f2e2b1
+  // NOTE: No text shadow in Figma (unlike other screens)
   title: {
-    ...theme.typography.styles.title,
+    fontFamily: fontFamily.heading,                       // CormorantGaramond-Regular
+    fontSize: moderateScale(fontSize['3xl']),              // 32px — Figma: font/size/3XL
+    fontWeight: fontWeight.regular,                        // 400
+    lineHeight: lineHeight.xxl,                           // 40px — Figma: font/line-height/XXL
+    letterSpacing: 0,
+    color: palette.gold.DEFAULT,                           // #f2e2b1 — Figma: text/paragraph-1
     textAlign: 'center',
-    fontFamily: 'CormorantGaramond-Italic',
   },
+
+  // Figma: Heading/Heading XS — Cormorant Regular L (20px), lh:24px, #fdfdf9
   subtitle: {
-    ...theme.typography.styles.body,
+    fontFamily: fontFamily.heading,                       // CormorantGaramond-Regular
+    fontSize: moderateScale(fontSize.l),                  // 20px — Figma: font/size/L
+    fontWeight: fontWeight.regular,                        // 400
+    lineHeight: lineHeight.m,                             // 24px — Figma: leading-font/size/XL=24
+    letterSpacing: 0,
+    color: palette.gold.subtlest,                          // #fdfdf9 — Figma: text/paragraph-2
     textAlign: 'center',
-    fontFamily: 'CormorantGaramond-LightItalic',
-  },
-  emailText: {
-    color: theme.colors.text.accent,
-    fontWeight: '600',
-  },
-  instructions: {
-    ...theme.typography.styles.bodySmall,
-    textAlign: 'center',
-  },
-  formContainer: {
-    gap: 12,
     width: '100%',
-    alignItems: 'center',
   },
+
+  // Figma: node 4121:381 — flex col gap-8px, wraps input + error row
+  inputWrapper: {
+    width: '100%',
+    gap: verticalScale(8),
+  },
+
+  // Figma: node 4121:367 — flex row gap-4px, items-start
+  errorRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: scale(4),
+    width: '100%',
+  },
+
+  // Figma: node 4121:369 — Inter Regular XS (14px), lh S (20px), text/error (#f83b3d), flex-1
+  errorText: {
+    flex: 1,
+    fontFamily: fontFamily.body,
+    fontSize: moderateScale(fontSize.xs),    // 14px — Figma: font/size/xs
+    lineHeight: lineHeight.s,                // 20px — Figma: font/line-height/s
+    color: palette.status.error,             // #f83b3d
+  },
+
+  // Figma: node 4116:521 — flex row gap-16px, items center, justify center
   enterButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
+    gap: scale(16),
     justifyContent: 'center',
-    marginTop: 20,
   },
+
+  // Figma: Heading/Heading M — Cormorant Regular 2XL (28px), lh:32 (XL), #f2e2b1
+  // Shadow: 0 0 4px rgba(229,214,176,0.5) — warmGlow color, radius 4
   enterText: {
-    ...theme.typography.styles.button,
-    textShadowColor: 'rgba(245, 230, 184, 0.50)',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 4,
+    fontFamily: fontFamily.heading,                        // CormorantGaramond-Regular
+    fontSize: moderateScale(fontSize['2xl']),               // 28px — Figma: font/size/2XL
+    fontWeight: fontWeight.regular,                         // 400
+    lineHeight: lineHeight.xl,                             // 32px — Figma: font/line-height/XL
+    letterSpacing: 0,
+    color: palette.gold.DEFAULT,                            // #f2e2b1
+    textShadowColor: textShadow.warmGlow.color,             // rgba(229,214,176,0.5)
+    textShadowOffset: textShadow.warmGlow.offset,
+    textShadowRadius: 4,                                    // Figma: 4px (not warmGlow token 9)
   },
-  errorText: {
-    ...theme.typography.styles.bodySmall,
-    color: palette.status.errorHover,
-    textAlign: 'center',
-  },
-  backLink: {
-    marginTop: 20,
-  },
+
+  // Figma: node 4116:526 — Heading/Heading XS Italic, Cormorant Italic L (20px), lh:24, #fdfdf9
   backLinkText: {
-    ...theme.typography.styles.body,
+    fontFamily: fontFamily.headingItalic,                  // CormorantGaramond-Italic
+    fontStyle: 'italic',                                   // Required on iOS
+    fontSize: moderateScale(fontSize.l),                   // 20px — Figma: font/size/L
+    fontWeight: fontWeight.regular,                         // 400
+    lineHeight: lineHeight.m,                              // 24px
+    letterSpacing: 0,
+    color: palette.gold.subtlest,                          // #fdfdf9 — Figma: text/paragraph-2
     textAlign: 'center',
-    fontFamily: 'CormorantGaramond-Italic',
   },
-  linkText: {
-    ...theme.typography.styles.linkLarge,
-    fontWeight: '600',
-    fontFamily: 'CormorantGaramond-LightItalic',
+
+  // Used in emailSent state for the highlighted email address
+  emailHighlight: {
+    fontFamily: fontFamily.body,
+    fontWeight: fontWeight.semibold,
+    color: palette.gold.DEFAULT,
   },
 });
 

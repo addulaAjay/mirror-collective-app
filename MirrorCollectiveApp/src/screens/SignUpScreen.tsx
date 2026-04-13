@@ -1,4 +1,13 @@
-import { palette, theme } from '@theme';
+import {
+  palette,
+  fontFamily,
+  fontSize,
+  lineHeight,
+  moderateScale,
+  scale,
+  verticalScale,
+  textShadow,
+} from '@theme';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -182,7 +191,7 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
                   <Text style={styles.subtitle}>{t('auth.signup.subtitle')}</Text>
                 </View>
 
-                {/* Form Section */}
+                {/* Form Section — Figma: node 286:1358, gap-12px, px-16px */}
                 <View style={styles.formSection}>
                   {/* Full Name Field */}
                   <View style={styles.fieldContainer}>
@@ -190,7 +199,7 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
                       {t('auth.signup.fields.fullName')}
                     </Text>
                     <TextInputField
-                      size="medium"
+                      size="S"
                       placeholder={t('auth.signup.fields.fullNamePlaceholder')}
                       value={fullName}
                       onChangeText={text => {
@@ -200,8 +209,7 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
                       autoCapitalize="words"
                       autoComplete="name"
                       placeholderAlign="left"
-                      placeholderFontFamily="regular"
-                      inputTextStyle="gold-regular"
+                      placeholderStyle={styles.inputPlaceholder}
                       testID="fullname-input"
                     />
                     {errors.fullName ? (
@@ -217,7 +225,7 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
                       {t('auth.signup.fields.email')}
                     </Text>
                     <TextInputField
-                      size="medium"
+                      size="S"
                       placeholder={t('auth.signup.fields.emailPlaceholder')}
                       value={email}
                       onChangeText={text => {
@@ -228,8 +236,7 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
                       autoCapitalize="none"
                       autoComplete="email"
                       placeholderAlign="left"
-                      placeholderFontFamily="regular"
-                      inputTextStyle="gold-regular"
+                      placeholderStyle={styles.inputPlaceholder}
                       testID="email-input"
                     />
                     {errors.email ? (
@@ -245,15 +252,14 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
                       {t('auth.signup.fields.phone')}
                     </Text>
                     <TextInputField
-                      size="medium"
-                      placeholder="(555) 123-4567"
+                      size="S"
+                      placeholder={t('auth.signup.fields.phonePlaceholder')}
                       value={formatPhoneDisplay(phoneNumber)}
                       onChangeText={handlePhoneChange}
                       keyboardType="phone-pad"
                       autoCapitalize="none"
                       placeholderAlign="left"
-                      placeholderFontFamily="regular"
-                      inputTextStyle="gold-regular"
+                      placeholderStyle={styles.inputPlaceholder}
                       testID="phone-input"
                     />
                     {errors.phoneNumber ? (
@@ -269,7 +275,7 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
                       {t('auth.signup.fields.password')}
                     </Text>
                     <TextInputField
-                      size="medium"
+                      size="S"
                       placeholder={t('auth.signup.fields.passwordPlaceholder')}
                       value={password}
                       onChangeText={text => {
@@ -283,8 +289,7 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
                       autoComplete="new-password"
                       textContentType="newPassword"
                       placeholderAlign="left"
-                      placeholderFontFamily="regular"
-                      inputTextStyle="gold-regular"
+                      placeholderStyle={styles.inputPlaceholder}
                       testID="password-input"
                     />
                     {errors.password ? (
@@ -300,7 +305,7 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
                       {t('auth.signup.fields.confirmPassword')}
                     </Text>
                     <TextInputField
-                      size="medium"
+                      size="S"
                       placeholder={t(
                         'auth.signup.fields.confirmPasswordPlaceholder',
                       )}
@@ -318,8 +323,7 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
                       autoComplete="new-password"
                       textContentType="newPassword"
                       placeholderAlign="left"
-                      placeholderFontFamily="regular"
-                      inputTextStyle="gold-regular"
+                      placeholderStyle={styles.inputPlaceholder}
                       testID="confirm-password-input"
                     />
                     {errors.confirmPassword ? (
@@ -370,21 +374,21 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     flexGrow: 1,
-    width: '100%',
     alignItems: 'center',
-    paddingBottom: 100,
+    paddingHorizontal: scale(24),    // Figma: left:24px on 393px frame
+    paddingTop: verticalScale(20),
+    paddingBottom: verticalScale(60),
   },
   contentContainer: {
     alignItems: 'center',
-    paddingTop: 20,
-    gap: 40,
-    paddingBottom: 100,
+    gap: verticalScale(40),          // Figma: gap-40px between all sections
     width: '100%',
-    maxWidth: 313,
   },
+
+  // Figma: node 286:1355 — header col gap-4px
   headerSection: {
     alignItems: 'center',
-    gap: 4,
+    gap: verticalScale(4),
     width: '100%',
   },
   titleRow: {
@@ -394,68 +398,107 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   backButton: {
-    width: 20,
-    height: 20,
+    width: scale(20),
+    height: scale(20),
     alignItems: 'center',
     justifyContent: 'center',
   },
   backButtonSpacer: {
-    width: 20,
+    width: scale(20),               // Mirrors backButton for visual centering of title
   },
+
+  // Figma: Heading/Heading L — Cormorant Regular 3XL (32px), lh:40 (XXL), #f2e2b1, glow shadow
   title: {
-    ...theme.typography.styles.title,
-    fontSize: 32,
-    lineHeight: 42,
-    color: palette.gold.DEFAULT,
-    textShadowColor: palette.gold.glow,
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 16,
+    fontFamily: fontFamily.heading,                       // CormorantGaramond-Regular
+    fontSize: moderateScale(fontSize['3xl']),              // 32px
+    fontWeight: '400',
+    lineHeight: lineHeight.xxl,                           // 40px — Figma: font/line-height/XXL
+    letterSpacing: 0,
+    color: palette.gold.DEFAULT,                          // #f2e2b1
+    textShadowColor: textShadow.glow.color,               // rgba(240,212,168,0.6)
+    textShadowOffset: textShadow.glow.offset,
+    textShadowRadius: textShadow.glow.radius,             // 16px
     textAlign: 'center',
     flex: 1,
   },
+
+  // Figma: Heading/Heading S — Cormorant Regular XL (24px), lh:28 (2XL), #fdfdf9
   subtitle: {
-    ...theme.typography.styles.subtitle,
-    fontSize: 24,
-    lineHeight: 31,
-    color: palette.gold.subtlest,
+    fontFamily: fontFamily.heading,                       // CormorantGaramond-Regular
+    fontSize: moderateScale(fontSize.xl),                 // 24px — Figma: font/size/XL
+    fontWeight: '400',
+    lineHeight: fontSize['2xl'],                          // 28px — Figma: leading-[var(--font/size/2xl,28px)]
+    letterSpacing: 0,
+    color: palette.gold.subtlest,                         // #fdfdf9
     textAlign: 'center',
+    width: '100%',
   },
+
+  // Figma: node 286:1358 — gap-12px, px-16px
   formSection: {
     width: '100%',
-    gap: 12,
+    gap: verticalScale(12),
+    paddingHorizontal: scale(16),   // Figma: px-[16px] on form section
   },
+
+  // Figma: gap-8px between label and field
   fieldContainer: {
     width: '100%',
-    gap: 8,
+    gap: verticalScale(8),
   },
+
+  // Figma: Heading/Heading XS Italic — Cormorant Italic L (20px), lh:24px, #fdfdf9
   fieldLabel: {
-    ...theme.typography.styles.label,
-    fontSize: 20,
-    lineHeight: 26,
-    color: palette.gold.subtlest,
-    paddingLeft: 2,
+    fontFamily: fontFamily.headingItalic,                 // CormorantGaramond-Italic
+    fontStyle: 'italic',                                  // Required on iOS
+    fontSize: moderateScale(fontSize.l),                  // 20px — Figma: font/size/L
+    lineHeight: lineHeight.m,                             // 24px
+    letterSpacing: 0,
+    color: palette.gold.subtlest,                         // #fdfdf9
+    paddingLeft: scale(2),
   },
+
+  // Figma: Input/Input M — Inter Regular 16px, lh:24, #60739f (text/inverse-paragraph-1)
+  // Passed as placeholderStyle override to TextInputField to override the default
+  // Cormorant/gold inputPlaceholder style used on the Login screen.
+  inputPlaceholder: {
+    fontFamily: fontFamily.body,                          // Inter18pt-Regular
+    fontSize: moderateScale(fontSize.s, 0.3),             // 16px
+    lineHeight: lineHeight.m,                             // 24px
+    color: palette.navy.medium,                           // #60739f
+    textShadowColor: 'transparent',                       // Remove warmGlow shadow
+    textShadowRadius: 0,
+  },
+
   errorText: {
-    ...theme.typography.styles.bodySmall,
-    color: palette.status.errorHover,
-    marginTop: -4,
-    paddingLeft: 2,
+    fontFamily: fontFamily.body,
+    fontSize: moderateScale(fontSize.xs),                 // 14px
+    lineHeight: moderateScale(fontSize.xs) * 1.4,
+    color: palette.status.error,                          // #f83b3d (NOT errorHover)
+    marginTop: -verticalScale(4),
+    paddingLeft: scale(2),
   },
+
+  // Figma: node 1286:1443 — row gap-16px, stars 20×20
   continueButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
+    gap: scale(16),
     justifyContent: 'center',
-    paddingVertical: 4,
   },
+
+  // Figma: Heading/Heading M — Cormorant Regular 2XL (28px), lh:32 (XL), #f2e2b1
+  // Shadow: 0 0 24px rgba(242,226,177,0.5)
   continueText: {
-    ...theme.typography.styles.title,
-    fontSize: 28,
-    lineHeight: 36,
-    color: palette.gold.DEFAULT,
-    textShadowColor: 'rgba(242, 226, 177, 0.5)',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 24,
+    fontFamily: fontFamily.heading,                       // CormorantGaramond-Regular
+    fontSize: moderateScale(fontSize['2xl']),              // 28px — Figma: font/size/2XL
+    fontWeight: '400',
+    lineHeight: lineHeight.xl,                            // 32px — Figma: font/line-height/XL
+    letterSpacing: 0,
+    color: palette.gold.DEFAULT,                          // #f2e2b1
+    textShadowColor: textShadow.warmGlow.color,           // rgba(229,214,176,0.5)
+    textShadowOffset: textShadow.warmGlow.offset,
+    textShadowRadius: 24,                                 // Figma: 24px (larger than warmGlow token 9)
   },
 });
 

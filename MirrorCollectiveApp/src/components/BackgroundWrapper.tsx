@@ -5,6 +5,12 @@ interface BackgroundWrapperProps {
   children: React.ReactNode;
   style?: StyleProp<ViewStyle>;
   imageStyle?: StyleProp<ImageStyle>;
+  /**
+   * Set true on screens with no text inputs (e.g. Terms & Conditions).
+   * Skips the TouchableWithoutFeedback wrapper so it cannot intercept
+   * scroll gestures on the ScrollView inside.
+   */
+  scrollable?: boolean;
 }
 
 /**
@@ -13,10 +19,11 @@ interface BackgroundWrapperProps {
  * Wraps screen content with the dark shimmer background image.
  * Used across all screens for consistent background styling.
  */
-const BackgroundWrapper: React.FC<BackgroundWrapperProps> = ({ 
-  children, 
+const BackgroundWrapper: React.FC<BackgroundWrapperProps> = ({
+  children,
   style,
-  imageStyle 
+  imageStyle,
+  scrollable = false,
 }) => {
   return (
     <ImageBackground
@@ -25,11 +32,15 @@ const BackgroundWrapper: React.FC<BackgroundWrapperProps> = ({
       imageStyle={imageStyle}
       resizeMode="cover"
     >
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-        <View style={styles.inner}>
-          {children}
-        </View>
-      </TouchableWithoutFeedback>
+      {scrollable ? (
+        // No TouchableWithoutFeedback — avoids stealing the initial touch
+        // responder from nested ScrollViews (no keyboard to dismiss anyway)
+        <View style={styles.inner}>{children}</View>
+      ) : (
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+          <View style={styles.inner}>{children}</View>
+        </TouchableWithoutFeedback>
+      )}
     </ImageBackground>
   );
 };

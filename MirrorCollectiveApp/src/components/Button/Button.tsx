@@ -1,3 +1,4 @@
+import { moderateScale, scaleCap, useTheme, palette } from '@theme';
 import React from 'react';
 import {
   TouchableOpacity,
@@ -9,7 +10,6 @@ import {
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 
-import { moderateScale, scaleCap, useTheme, palette } from '@theme';
 
 // ---------------------------------------------------------------------------
 // Types

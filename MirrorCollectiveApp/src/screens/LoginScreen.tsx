@@ -15,7 +15,6 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   TouchableWithoutFeedback,
@@ -160,9 +159,9 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                   {errorMessage && (
                     <View style={styles.errorRow}>
                       <Svg width={20} height={20} viewBox="0 0 20 20" fill="none">
-                        <Circle cx="10" cy="10" r="9" stroke="#f83b3d" strokeWidth="1.5" />
-                        <Path d="M10 6v5" stroke="#f83b3d" strokeWidth="1.5" strokeLinecap="round" />
-                        <Circle cx="10" cy="13.5" r="0.75" fill="#f83b3d" />
+                        <Circle cx="10" cy="10" r="9" stroke={palette.status.error} strokeWidth="1.5" />
+                        <Path d="M10 6v5" stroke={palette.status.error} strokeWidth="1.5" strokeLinecap="round" />
+                        <Circle cx="10" cy="13.5" r="0.75" fill={palette.status.error} />
                       </Svg>
                       <Text style={styles.errorText}>{errorMessage}</Text>
                     </View>
