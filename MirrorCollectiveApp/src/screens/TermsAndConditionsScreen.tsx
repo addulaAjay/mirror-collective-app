@@ -353,7 +353,7 @@ const styles = StyleSheet.create<{
         marginVertical: 0.25,
         borderRadius: radius.s - 0.25,
         overflow: 'hidden',
-        backgroundColor: '#191A23',
+        backgroundColor: '#191B24',
     },
     // flex:1 fills cardClip — NO overflow, NO backgroundColor (cardClip provides it)
     cardScroll: {

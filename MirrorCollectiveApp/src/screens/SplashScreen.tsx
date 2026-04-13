@@ -1,28 +1,29 @@
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
-  fontFamily,
-  fontSize,
-  moderateScale,
   palette,
   scaleCap,
+  scale,
   spacing,
 } from '@theme';
 import type { RootStackParamList } from '@types';
 import React, { useCallback, useEffect } from 'react';
 import {
   Dimensions,
-  Image,
   StyleSheet,
-  Text,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
+import CircularLogoMark from '@components/CircularLogoMark';
+import HeaderTextSvg from '@components/HeaderTextSvg';
 
 const { width: screenWidth } = Dimensions.get('screen');
 
-const LOGO_SIZE = Math.max(120, scaleCap(screenWidth * 0.35, 175));
+// Logo mark sized to ~40% of screen width, capped at 160px
+const LOGO_MARK_SIZE = Math.max(120, scaleCap(screenWidth * 0.4, 160));
+// Text SVG maintains its 93:45 aspect ratio; scaled proportionally to logo mark
+const HEADER_TEXT_WIDTH = scaleCap(screenWidth * 0.55, 210);
 
 type SplashProps = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'Splash'>;
@@ -46,12 +47,11 @@ const SplashScreen: React.FC<SplashProps> = ({ navigation }) => {
     <BackgroundWrapper style={styles.bg}>
       <SafeAreaView style={styles.safe}>
         <View style={styles.logoContainer}>
-          <Image
-            source={require('@assets/Mirror_Collective_Logo_RGB.png')}
-            style={styles.logo}
-            resizeMode="contain"
+          <CircularLogoMark size={LOGO_MARK_SIZE} />
+          <HeaderTextSvg
+            width={HEADER_TEXT_WIDTH}
+            color={palette.neutral.white}
           />
-          <Text style={styles.title}>The MIRROR COLLECTIVE</Text>
         </View>
       </SafeAreaView>
     </BackgroundWrapper>
@@ -67,31 +67,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: spacing.xl, // 24
+    paddingHorizontal: spacing.xl,
   },
   logoContainer: {
     alignItems: 'center',
-    gap: spacing.xl, // 24
-  },
-  logo: {
-    width: LOGO_SIZE,
-    height: LOGO_SIZE,
-    shadowColor: palette.gold.warm,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.86,
-    shadowRadius: moderateScale(20, 0.3),
-    elevation: 8,
-  },
-  title: {
-    fontFamily: fontFamily.headingLight,  // CormorantGaramond-Light
-    fontWeight: '300',
-    fontSize: moderateScale(fontSize['2xl'], 0.3), // 28 base
-    lineHeight: moderateScale(fontSize['2xl'] * 1.3, 0.3),
-    textAlign: 'center',
-    color: palette.gold.warm,
-    textShadowColor: 'rgba(0, 0, 0, 0.25)',
-    textShadowOffset: { width: 0, height: 4 },
-    textShadowRadius: 9,
+    gap: scale(20),
   },
 });
 
