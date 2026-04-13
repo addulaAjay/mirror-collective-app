@@ -6,6 +6,7 @@ import {
   palette,
   radius,
   spacing,
+  textShadow,
   theme,
 } from '@theme';
 import React, { useState } from 'react';
@@ -62,6 +63,7 @@ interface Props {
   onTogglePassword?: () => void;
   // Layout overrides (preserved from previous API)
   placeholderAlign?: 'center' | 'left' | 'right';
+  textAlign?: 'center' | 'left' | 'right';
   placeholderStyle?: TextStyle;
   /** @deprecated kept for API compat — no longer applied */
   placeholderFontFamily?: string;
@@ -88,6 +90,7 @@ const TextInputField = ({
   isPasswordVisible = false,
   onTogglePassword,
   placeholderAlign,
+  textAlign = 'left',
   placeholderStyle,
   inputTextStyle,
   size,
@@ -153,6 +156,7 @@ const TextInputField = ({
           multiline={isMultiline}
           style={[
             styles.input,
+            { textAlign },
             isFocused ? styles.inputActive : styles.inputInactive,
             inputTextStyle === 'gold-regular' && styles.inputGoldRegular,
             isMultiline && styles.inputMultiline,
@@ -241,7 +245,7 @@ const styles = StyleSheet.create({
 
   // ── Field container ────────────────────────────────────────────────
   field: {
-    borderRadius: radius.s,      // 12 — Figma confirmed
+    borderRadius: radius.m,      // 16 — Figma: var(--radius/m,16px)
     borderWidth: 0.5,
     paddingHorizontal: spacing.m, // 16
     paddingVertical: spacing.xs,  // 8
@@ -265,14 +269,17 @@ const styles = StyleSheet.create({
   },
 
   // ── Custom placeholder overlay ─────────────────────────────────────
+  // Figma: Cormorant Garamond Medium 20px, #fdfdf9, warmGlow shadow
   placeholder: {
     position: 'absolute',
     left: 0,
     right: 0,
     ...theme.typography.styles.inputPlaceholder,
     zIndex: 1,
-    color: 'rgba(232, 241, 242, 0.50)',
     pointerEvents: 'none',
+    textShadowColor: textShadow.warmGlow.color,   // rgba(229,214,176,0.5)
+    textShadowOffset: textShadow.warmGlow.offset,
+    textShadowRadius: textShadow.warmGlow.radius, // 9
   },
   placeholderCenter: {
     textAlign: 'center',
@@ -283,12 +290,14 @@ const styles = StyleSheet.create({
   },
 
   // ── Text input ─────────────────────────────────────────────────────
-  // Figma: Inter Regular 16px / lh:24
+  // Figma: Inter Regular 16px
+  // NOTE: lineHeight intentionally omitted — setting lineHeight on TextInput
+  // causes vertical text clipping on iOS (known RN bug). Use minHeight on the
+  // field container to control height instead.
   input: {
     flex: 1,
     fontFamily: fontFamily.body,                  // Inter-Regular
     fontSize: moderateScale(fontSize.s, 0.3),     // 16 base
-    lineHeight: lineHeight.m,                      // 24
     fontWeight: '400',
     textAlign: 'left',
     textAlignVertical: 'center',

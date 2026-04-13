@@ -249,11 +249,10 @@ export const semantic = {
         color: palette.neutral.offWhite,
       },
       inputPlaceholder: {
-        fontFamily: fontFamily.bodyItalic,
-        fontStyle: 'italic' as const,
-        fontSize: moderateScale(fontSize.l, 0.3),        // 20 base
-        lineHeight: lineHeight.s,                        // 20
-        color: '#E8F1F2',
+        fontFamily: fontFamily.headingMedium,            // Figma: Cormorant Garamond Medium
+        fontSize: moderateScale(fontSize.l, 0.3),        // 20 base — Figma: font/size/L
+        lineHeight: lineHeight.m,                        // 24
+        color: palette.gold.subtlest,                   // Figma: text/paragraph-2 (#fdfdf9)
       },
       link: {
         fontFamily: fontFamily.body,
