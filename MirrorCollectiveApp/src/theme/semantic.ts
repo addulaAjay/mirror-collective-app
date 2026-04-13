@@ -180,6 +180,7 @@ export const semantic = {
       // --- Heading family (Cormorant Garamond) ---
       headline: {
         fontFamily: fontFamily.headingMediumItalic,
+        fontStyle: 'italic' as const,  // Required on iOS: fontFamily alone doesn't trigger italic rendering
         fontSize: moderateScale(fontSize['3xl'], 0.3),   // 32 base
         lineHeight: lineHeight['3xl'],                   // 48
         color: palette.gold.DEFAULT,
@@ -236,6 +237,7 @@ export const semantic = {
       },
       bodyItalic: {
         fontFamily: fontFamily.bodyItalic,
+        fontStyle: 'italic' as const,  // Required on iOS: fontFamily alone doesn't trigger italic rendering
         fontSize: moderateScale(fontSize.s, 0.3),        // 16 base
         lineHeight: lineHeight.m,                        // 24
         color: palette.neutral.cream,
@@ -248,6 +250,7 @@ export const semantic = {
       },
       inputPlaceholder: {
         fontFamily: fontFamily.bodyItalic,
+        fontStyle: 'italic' as const,
         fontSize: moderateScale(fontSize.l, 0.3),        // 20 base
         lineHeight: lineHeight.s,                        // 20
         color: '#E8F1F2',
@@ -275,6 +278,7 @@ export const semantic = {
       },
       label: {
         fontFamily: fontFamily.bodyItalic,
+        fontStyle: 'italic' as const,
         fontSize: moderateScale(fontSize.xs, 0.3),       // 14 base
         lineHeight: lineHeight.s,                        // 20
         color: palette.neutral.offWhite,

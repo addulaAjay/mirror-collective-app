@@ -1,26 +1,68 @@
+import { palette } from '@theme';
 import React from 'react';
-import { Image, StyleSheet, View } from 'react-native';
-
-const mirrorSource = require('@assets/oval-mirror-golden-frame.png');
+import Svg, {
+  Path,
+  Defs,
+  LinearGradient,
+  Stop,
+} from 'react-native-svg';
 
 const MirrorSymbol = () => (
-  <View style={styles.container}>
-    <Image source={mirrorSource} style={styles.image} resizeMode="contain" />
-  </View>
+  <Svg width={54} height={80} viewBox="0 0 54 80" fill="none">
+    <Defs>
+      <LinearGradient
+        id="mirror_paint0"
+        x1="26.7281"
+        y1="1.39648"
+        x2="26.7281"
+        y2="78.604"
+        gradientUnits="userSpaceOnUse"
+      >
+        <Stop stopColor={palette.gold.dark} />
+        <Stop offset="1" stopColor={palette.navy.DEFAULT} />
+      </LinearGradient>
+      <LinearGradient
+        id="mirror_paint1"
+        x1="26.7298"
+        y1="0"
+        x2="26.7298"
+        y2="80"
+        gradientUnits="userSpaceOnUse"
+      >
+        <Stop stopColor={palette.gold.dark} />
+        <Stop offset="1" stopColor={palette.navy.DEFAULT} />
+      </LinearGradient>
+      <LinearGradient
+        id="mirror_paint2"
+        x1="52.0634"
+        y1="40.0003"
+        x2="1.39624"
+        y2="40.0003"
+        gradientUnits="userSpaceOnUse"
+      >
+        <Stop stopColor={palette.navy.DEFAULT} />
+        <Stop offset="1" stopColor={palette.gold.dark} />
+      </LinearGradient>
+    </Defs>
+
+    {/* Inner mirror ellipse */}
+    <Path
+      d="M26.7281 78.604C40.7194 78.604 52.0617 61.3205 52.0617 40.0003C52.0617 18.68 40.7194 1.39648 26.7281 1.39648C12.7368 1.39648 1.39453 18.68 1.39453 40.0003C1.39453 61.3205 12.7368 78.604 26.7281 78.604Z"
+      fill="url(#mirror_paint0)"
+    />
+
+    {/* Outer border ring */}
+    <Path
+      d="M51.4183 24.6003C50.1036 19.8637 48.217 15.6036 45.8111 11.9371C43.3766 8.22764 40.5294 5.30731 37.3477 3.25654C33.9951 1.09575 30.4225 0 26.7298 0C23.0371 0 19.465 1.09575 16.1124 3.25654C12.9307 5.30731 10.0829 8.22764 7.64905 11.9371C5.24308 15.6036 3.35651 19.8637 2.04183 24.6003C0.68694 29.4809 0 34.6625 0 40C0 45.3375 0.68694 50.5191 2.04183 55.3997C3.35651 60.1363 5.24308 64.3964 7.64905 68.0629C10.0835 71.7724 12.9307 74.6927 16.1124 76.7435C19.465 78.9043 23.0371 80 26.7298 80C30.4225 80 33.9946 78.9043 37.3472 76.7435C40.5289 74.6927 43.3766 71.7724 45.8105 68.0629C48.2165 64.3964 50.103 60.1363 51.4177 55.3997C52.7726 50.5191 53.4596 45.3375 53.4596 40C53.4596 34.6625 52.7726 29.4809 51.4177 24.6003H51.4183ZM26.7298 78.6038C12.7385 78.6038 1.39622 61.3203 1.39622 40C1.39622 18.6797 12.7385 1.39622 26.7298 1.39622C40.721 1.39622 52.0633 18.6797 52.0633 40C52.0633 61.3203 40.721 78.6038 26.7298 78.6038Z"
+      fill="url(#mirror_paint1)"
+    />
+
+    {/* Middle layer with horizontal gradient */}
+    <Path
+      d="M26.7298 1.39648C12.7386 1.39648 1.39624 18.68 1.39624 40.0003C1.39624 61.3205 12.7386 78.604 26.7298 78.604C40.721 78.604 52.0634 61.3205 52.0634 40.0003C52.0634 18.68 40.7216 1.39648 26.7298 1.39648ZM43.4761 66.5312C41.2572 69.9123 38.6859 72.559 35.8343 74.397C32.9402 76.2623 29.8769 77.2078 26.7298 77.2078C23.5827 77.2078 20.5194 76.2623 17.6253 74.397C14.7737 72.559 12.2024 69.9129 9.98355 66.5312C7.73619 63.1071 5.9697 59.1106 4.73209 54.6533C3.44477 50.0156 2.7919 45.0859 2.7919 40.0003C2.7919 34.9147 3.44477 29.9849 4.73209 25.3472C5.96914 20.8899 7.73619 16.8934 9.98355 13.4693C12.2024 10.0882 14.7737 7.44156 17.6253 5.60357C20.5194 3.73822 23.5827 2.7927 26.7298 2.7927C29.8769 2.7927 32.9402 3.73822 35.8343 5.60357C38.6859 7.44156 41.2572 10.0877 43.4761 13.4693C45.7234 16.8934 47.4899 20.8899 48.7275 25.3472C50.0148 29.9849 50.6677 34.9147 50.6677 40.0003C50.6677 45.0859 50.0148 50.0156 48.7275 54.6533C47.4905 59.1106 45.7234 63.1071 43.4761 66.5312Z"
+      fill="url(#mirror_paint2)"
+    />
+  </Svg>
 );
 
 export default MirrorSymbol;
-
-const styles = StyleSheet.create({
-  container: {
-    width: 50.121,
-    height: 77.209,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  image: {
-    width: '100%',
-    height: '100%',
-    transform: [],
-  },
-});

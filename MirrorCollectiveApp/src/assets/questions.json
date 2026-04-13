@@ -14,28 +14,28 @@
       "id": "Seeker",
       "name": "Seeker",
       "title": "THE SEEKER",
-      "description": "Motivated by understanding, you want clarity before you move. Asking thoughtful questions, looking for patterns, and trying to make sense of what’s really going on beneath the surface is integral part of your nature. \n\n Growth comes for you through insight, experimentation, and learning what actually works for you.",
+      "description": "Driven by understanding, you seek clarity before acting. You ask thoughtful questions, spot patterns, and look beneath the surface. \n\n Growth comes through insight, experimentation, and discovering what truly works for you.",
       "imagePath": "seeker-archetype.png"
     },
     "guardian": {
       "id": "Guardian",
       "name": "Guardian",
       "title": "THE GUARDIAN",
-      "description": "True to your name, you are oriented toward responsibility, stability, and care — for people, systems, and outcomes. You naturally hold things together, set boundaries, and make sure what matters stays protected. \n\n Your growth edge is learning when support is shared — not carried alone.",
+      "description": "Grounded in responsibility and care, you protect people, systems, and outcomes. You hold things together, set boundaries, and safeguard what matters. \n\n Growth lies in learning to share support, not carry it alone.",
       "imagePath": "guardian-archetype.png"
     },
     "flamebearer": {
       "id": "Flamebearer",
       "name": "Flamebearer",
       "title": "THE FLAMEBEARER",
-      "description": "You are driven by conviction and momentum — when something matters, you act. You bring energy, courage, and a push toward change, often motivating others just by moving first. \n\n Your growth comes from learning how to channel intensity into sustainable progress, not burnout.",
+      "description": "Fueled by conviction, you act when something matters. You bring energy, courage, and spark change, often leading by example. \n\n Growth comes from channeling your intensity into steady, sustainable progress.",
       "imagePath": "flamebearer-archetype.png"
     },
     "weaver": {
       "id": "Weaver",
       "name": "Weaver",
       "title": "THE WEAVER",
-      "description": "You naturally see connections — between people, ideas, and patterns others miss. You integrate perspectives, translate complexity, and help things work together more smoothly. \n\n Growth for you comes from simplifying focus and choosing the one thread that matters right now.",
+      "description": "You see connections others miss—between people, ideas, and patterns bringing harmony, translating complexity, and making things work together. \n\n Growth comes from focusing your energy on what matters most right now.",
       "imagePath": "weaver-archetype.png"
     }
   },

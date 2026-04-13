@@ -1,6 +1,18 @@
-import { palette, spacing, radius } from '@theme';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import {
+  palette,
+  radius,
+  borderWidth,
+  textShadow,
+  glassGradient,
+  fontFamily,
+  fontSize,
+  fontWeight,
+  scale,
+  verticalScale,
+  moderateScale,
+} from '@theme';
 import type { RootStackParamList } from '@types';
 import type { QuizSubmissionRequest } from '@types';
 import type { QuizQuestion } from '@types';
@@ -9,9 +21,8 @@ import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
-  FlatList,
+  ScrollView,
   StyleSheet,
-  Dimensions,
   Alert,
   ActivityIndicator,
   StatusBar,
@@ -41,8 +52,6 @@ type QuizQuestionsScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
   'QuizQuestions'
 >;
-
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 const QuizQuestionsScreen = () => {
   const { t } = useTranslation();
@@ -257,36 +266,6 @@ const QuizQuestionsScreen = () => {
     setSelected(null);
   };
 
-  const renderItem = ({ item, index }: { item: any; index: number }) => {
-    if (currentQuestion.type === 'text') {
-      return (
-        <OptionButton
-          label={item.text}
-          selected={selected === item.text}
-          onPress={() => setSelected(item.text)}
-          style={styles.optionButton}
-        />
-      );
-    } else if (currentQuestion.type === 'image') {
-      return (
-        <ImageOptionButton
-          symbolType={symbolSequence[index % symbolSequence.length]}
-          selected={selected === item.label}
-          onPress={() => setSelected(item.label)}
-        />
-      );
-    }
-    return null;
-  };
-
-  const keyExtractor = (item: any, index: number) => {
-    if (currentQuestion.type === 'text') {
-      return item.text;
-    } else {
-      return item.label || index.toString();
-    }
-  };
-
   return (
     <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage}>
       <SafeAreaView style={styles.safe}>
@@ -310,15 +289,23 @@ const QuizQuestionsScreen = () => {
         <View style={styles.contentArea}>
           <View style={styles.optionsContainer}>
             {currentQuestion.type === 'text' ? (
-              <FlatList
-                data={currentQuestion.options}
-                keyExtractor={keyExtractor}
-                renderItem={renderItem}
-                scrollEnabled
-                contentContainerStyle={styles.list}
+              <ScrollView
+                style={styles.textOptionsScroll}
+                contentContainerStyle={styles.textOptionsList}
                 showsVerticalScrollIndicator={false}
-                style={styles.listViewport}
-              />
+                scrollEnabled={true}
+                bounces={false}
+              >
+                {currentQuestion.options.map((item: any) => (
+                  <OptionButton
+                    key={item.text}
+                    label={item.text}
+                    selected={selected === item.text}
+                    onPress={() => setSelected(item.text)}
+                    style={styles.optionButton}
+                  />
+                ))}
+              </ScrollView>
             ) : (
               <View style={styles.imageGrid}>
                 {currentQuestion.options.map((item: any, index: number) => (
@@ -347,8 +334,8 @@ const QuizQuestionsScreen = () => {
               contentStyle={styles.glassButtonContent}
               textStyle={styles.glassButtonText}
               gradientColors={[
-                'rgba(253, 253, 249, 0.04)',
-                'rgba(253, 253, 249, 0.01)',
+                glassGradient.button.start,
+                glassGradient.button.end,
               ]}
             />
           </View>
@@ -367,37 +354,36 @@ const styles = StyleSheet.create({
   },
   safe: {
     flex: 1,
-    backgroundColor: 'transparent',
+    backgroundColor: palette.neutral.transparent,
   },
   loadingContainer: {
-     flex: 1,
-     alignItems: 'center',
-     paddingTop: Math.max(40, screenHeight * 0.047),
+    flex: 1,
+    alignItems: 'center',
+    paddingTop: verticalScale(40),
   },
   loadingContent: {
-     flex: 1,
-     justifyContent: 'center',
-     alignItems: 'center',
-     width: '100%',
-     marginBottom: Math.max(40, screenHeight * 0.047), // Balance the paddingTop for vertical center
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+    marginBottom: verticalScale(40),
   },
   loadingText: {
-    marginTop: 20,
+    marginTop: verticalScale(20),
     color: palette.gold.warm,
-    fontSize: 16,
-    fontFamily: 'CormorantGaramond-Regular',
+    fontSize: moderateScale(fontSize.s),
+    fontFamily: fontFamily.heading,
   },
   bgImage: {
     resizeMode: 'cover',
   },
   scrim: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.25)',
+    backgroundColor: palette.neutral.overlay,
   },
-
   container: {
-    paddingHorizontal: Math.max(40, screenWidth * 0.102), // Match Figma padding
-    paddingBottom: Math.max(30, screenHeight * 0.035),
+    paddingHorizontal: scale(40),  // Figma: 40px left/right margin
+    paddingBottom: verticalScale(20),  // Reduced from 30px to match Figma spacing
     alignItems: 'center',
     flex: 1,
   },
@@ -406,92 +392,90 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'space-evenly',
     alignItems: 'center',
-    rowGap: Math.max(30, screenHeight * 0.035),
-    columnGap: Math.max(30, screenWidth * 0.08),
-    paddingVertical: Math.max(30, screenHeight * 0.035),
-    // paddingHorizontal: Math.max(20, screenWidth * 0.05),
+    rowGap: verticalScale(30),
+    columnGap: scale(30),
+    paddingVertical: verticalScale(30),
     width: '100%',
   },
-
   question: {
-    fontFamily: 'CormorantGaramond-Regular', // Match Figma typography
-    fontSize: Math.min(screenWidth * 0.061, 24), // Proportional to text size in Figma
-    fontWeight: '300',
-    lineHeight: Math.min(screenWidth * 0.072, 28), // Tight line height
-    color: palette.gold.warm, // Exact fill1 color from Figma
-    width: Math.min(screenWidth * 0.796, 313), // Match header width
+    fontFamily: fontFamily.heading,        // Figma: Cormorant Garamond
+    fontSize: moderateScale(fontSize.xl),  // Figma: 24px
+    fontWeight: fontWeight.regular,        // Figma: 400 (not 300!)
+    lineHeight: moderateScale(fontSize.xl) * 1.3,  // Figma: 31.2px (24 × 1.3)
+    letterSpacing: 0,
+    color: palette.gold.DEFAULT,           // Figma: #f2e2b1 rgb(242, 226, 177)
+    width: scale(313),
     textAlign: 'center',
-    marginTop: Math.max(20, screenHeight * 0.025),
-    marginBottom: Math.max(20, screenHeight * 0.025),
-    textShadowColor: palette.gold.warm, // Exact effect5 glow shadow
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 8,
+    marginBottom: verticalScale(60),  // Figma: 60px gap to options
+    // Figma: DROP_SHADOW 16px blur, palette.gold.glow at 60% opacity
+    textShadowColor: textShadow.glow.color,
+    textShadowOffset: textShadow.glow.offset,
+    textShadowRadius: textShadow.glow.radius,
   },
-
-  list: {
+  textOptionsScroll: {
     width: '100%',
-    paddingTop: Math.max(8, screenHeight * 0.01),
-    paddingBottom: Math.max(12, screenHeight * 0.015),
-    alignItems: 'center',
     flexGrow: 0,
   },
-  optionButton: {
-    marginBottom: Math.max(12, screenHeight * 0.014),
-    width: Math.min(screenWidth * 0.765, 313),
-    marginHorizontal: 8,
+  textOptionsList: {
+    alignItems: 'center',
+    gap: verticalScale(16), // Figma: gap-16px between options
   },
-
+  optionButton: {
+    width: scale(313),
+  },
   contentArea: {
     flex: 1,
     width: '100%',
     justifyContent: 'space-between',
     alignItems: 'center',
-    minHeight: screenHeight * 0.5,
   },
   optionsContainer: {
     width: '100%',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: Math.max(16, screenHeight * 0.02),
-    flex: 1,
-  },
-  listViewport: {
-    width: '100%',
-    minHeight: 0,
   },
   nextWrap: {
     width: '100%',
     alignItems: 'center',
-    marginTop: 'auto',
-    paddingBottom: Math.max(20, screenHeight * 0.025),
   },
   progressWrap: {
-    width: Math.min(screenWidth * 0.796, 313), // Match header and question width
+    width: scale(313),
     alignItems: 'center',
-    marginTop: 80,
-    marginBottom: Math.max(20, screenHeight * 0.025),
+    // iOS safe area top (~47px) vs Figma Android status bar (24px) = 23px extra consumed.
+    // Reducing from verticalScale(48) to verticalScale(25) lands the progress bar at the
+    // correct Figma position (148px from top) and frees space for the 60px button gap.
+    marginTop: verticalScale(25),
+    marginBottom: verticalScale(60),
   },
   nextButton: {
-    // Remove conflicting size constraints - let GradientButton handle responsive sizing
+    // GradientButton handles responsive sizing
   },
   glassButtonWrapper: {
-    backgroundColor: 'transparent',
+    backgroundColor: palette.neutral.transparent,
     shadowOpacity: 0,
     shadowRadius: 0,
     elevation: 0,
-    borderRadius: radius.s,
+    borderRadius: radius.m,  // Match BEGIN button (16px)
   },
   glassButtonContainer: {
-    borderWidth: 0.5,
-    borderRadius: radius.s,
+    borderWidth: borderWidth.thin,
+    borderColor: palette.navy.light,
+    borderRadius: radius.m,  // Match BEGIN button (16px)
   },
   glassButtonContent: {
-    paddingVertical: spacing.s,
-    paddingHorizontal: spacing.xl,
+    paddingVertical: verticalScale(12),
+    paddingHorizontal: scale(16),  // Match BEGIN button
     minWidth: 0,
   },
   glassButtonText: {
-    color: palette.gold.warm,
-    fontSize: Math.min(screenWidth * 0.05, 18),
+    fontFamily: fontFamily.heading,        // Figma: Cormorant Garamond
+    fontSize: moderateScale(fontSize.xl),  // Figma: 24px
+    fontWeight: fontWeight.regular,        // Figma: 400
+    lineHeight: moderateScale(fontSize.xl) * 1.3,  // Figma: 31.2px
+    letterSpacing: 0,
+    color: palette.gold.DEFAULT,           // Figma: #f2e2b1
+    textShadowColor: textShadow.warmGlow.color,
+    textShadowOffset: textShadow.warmGlow.offset,
+    textShadowRadius: textShadow.warmGlow.radius,
   },
 });

@@ -1,4 +1,15 @@
-import { palette, scaleCap, moderateScale } from '@theme';
+import {
+  palette,
+  radius,
+  fontFamily,
+  fontSize,
+  fontWeight,
+  textShadow,
+  scale,
+  scaleCap,
+  moderateScale,
+  verticalScale,
+} from '@theme';
 import React from 'react';
 import {
   Text,
@@ -35,75 +46,64 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 8,
-    gap: 16,
+    paddingVertical: verticalScale(8),    // Figma: py spacing/xs = 8px
+    paddingHorizontal: scale(12),         // Figma: px spacing/s = 12px
     width: scaleCap(313, 313),
-    minHeight: 64,
-    backgroundColor: 'var(--Bg-Surface, rgba(163, 179, 204, 0.05))',
-    borderWidth: 0.25,
-    borderColor: palette.navy.muted,
-    borderRadius: 13,
+    minHeight: verticalScale(72),         // Figma: h-72px
+    backgroundColor: palette.surface.DEFAULT, // Figma: rgba(163,179,204,0.05)
+    borderWidth: 0.25,                    // Figma: 0.25px hairline
+    borderColor: palette.navy.border,     // Figma: #808fb2 border/bold
+    borderRadius: radius.s,               // Figma: rounded-12px
     shadowColor: palette.neutral.black,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 19,
-    // Additional shadow for the second effect
-    elevation: 0, // Remove elevation to rely on shadowColor
+    elevation: 0,
   },
 
   buttonSelected: {
-    // Exact gradient background from selected Figma: linear-gradient(360deg, rgba(253, 253, 249, 0.2485) 0%, rgba(253, 253, 249, 0.035) 100%)
-    backgroundColor: 'rgba(253, 253, 249, 0.14)', // Average of gradient as fallback
+    backgroundColor: 'rgba(253, 253, 249, 0.14)',
     borderColor: palette.navy.light,
     borderWidth: 0.25,
-    paddingHorizontal: 16, // Selected state has padding: 8px 16px from Figma CSS
-    // Exact dual shadow from selected Figma: 0px 4px 19px 4px rgba(0, 0, 0, 0.1), 1px 4px 38px 2px rgba(229, 214, 176, 0.23)
-    shadowColor: palette.neutral.black,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 19,
-    boxShadow: '0 0 7px 4px rgba(242, 226, 177, 0.50)',
-    //elevation: 15, // Higher elevation for selected state
+    paddingHorizontal: verticalScale(16),
+    // Golden glow shadow for selected state
+    shadowColor: palette.gold.DEFAULT,  // #f2e2b1 golden glow
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6,
+    shadowRadius: 20,
+    elevation: 8,
   },
 
   label: {
-    fontFamily: 'CormorantGaramond-Light', // Match Figma typography
-    fontSize: moderateScale(20), // Exact 20px from Figma CSS
-    fontWeight: '300', // Exact font-weight: 300 from Figma
-    lineHeight: moderateScale(24), // Exact line-height: 24px from Figma
-    color: palette.gold.subtle, // Exact color from Figma
-    textAlign: 'center', // Exact text-align: center from Figma CSS
-    // Exact text-shadow: 0px 0px 8px palette.gold.warm from Figma
-    textShadowColor: palette.gold.warm,
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 8,
-    // width: 313, // Exact width: 313px from non-selected Figma CSS
-    // height: 72, // Exact height: 72px      from Figma
-    // minHeight: 72,
-    flex: 1, // flex-grow: 1 from Figma CSS
+    fontFamily: fontFamily.body,                        // Figma: Inter Regular
+    fontSize: moderateScale(fontSize.s),                // Figma: font/size/S = 16px
+    fontWeight: fontWeight.regular,                     // Figma: 400
+    lineHeight: moderateScale(fontSize.s * 1.5),        // Figma: lineHeight 1.5
+    letterSpacing: 0,
+    color: palette.gold.subtlest,                       // Figma: text/paragraph-2 = #fdfdf9
+    textAlign: 'center',
+    // Same warmGlow values used on NEXT button — proven visible without boxy artifacts
+    textShadowColor: textShadow.warmGlow.color,         // rgba(229,214,176,0.5)
+    textShadowOffset: textShadow.warmGlow.offset,       // {0,0}
+    textShadowRadius: textShadow.warmGlow.radius,       // 9
+    flex: 1,
     flexShrink: 1,
-    paddingHorizontal: 8, // Padding to prevent text clipping
-    // paddingVertical: 8,
     textAlignVertical: 'center',
   },
 
   labelSelected: {
-    // Selected text uses exact styling from selected state Figma CSS
-    fontFamily: 'CormorantGaramond-Light',
-    fontSize: moderateScale(20), // Exact 20px
-    lineHeight: moderateScale(24), // Exact 24px
-    color: palette.gold.subtle,
-    textAlign: 'center', // Center align for selected state
-    textShadowColor: palette.gold.warm,
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 8, // Exact 8px from Figma
-    // width: 297, // Exact width: 313px from selected Figma CSS
-    // minHeight: 72,
+    fontFamily: fontFamily.body,
+    fontSize: moderateScale(fontSize.s),
+    fontWeight: fontWeight.regular,
+    lineHeight: moderateScale(fontSize.s * 1.5),
+    letterSpacing: 0,
+    color: palette.gold.subtlest,
+    textAlign: 'center',
+    textShadowColor: textShadow.warmGlow.color,
+    textShadowOffset: textShadow.warmGlow.offset,
+    textShadowRadius: textShadow.warmGlow.radius,
     flex: 1,
     flexShrink: 1,
-    paddingHorizontal: 8,
-    // paddinxgVertical: 8,
     textAlignVertical: 'center',
   },
 });

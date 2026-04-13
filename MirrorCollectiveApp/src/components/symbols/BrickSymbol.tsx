@@ -12,55 +12,103 @@ import Svg, {
 
 const BrickSymbol = () => (
   <Svg width={80} height={69} viewBox="0 0 80 69" fill="none">
-    <G clipPath="url(#clip0_349_1399)">
-      <Path
-        d="M54.2974 0L80 52.5227L60.5464 59.5714L32.0286 0H54.2974Z"
-        fill={palette.secondary['secondary-color-3']}
-      />
-      <Path
-        d="M30.79 0.841309L59.092 60.2627L48.3164 68.8554L21.3684 13.891L30.79 0.841309Z"
-        fill="url(#paint0_linear_349_1399)"
-      />
-      <Path
-        d="M0 40.5303L24.13 47.8173C24.3142 54.8646 23.8524 61.9399 23.917 68.9998L0 60.0242V40.5303Z"
-        fill={palette.secondary['secondary-color-3']}
-      />
-      <Path
-        d="M42.7466 61.2808L25.4319 68.8596L25.7687 47.8174L34.7779 44.7993L42.7466 61.2808Z"
-        fill="url(#paint1_linear_349_1399)"
-      />
-      <Path
-        d="M29.1281 33.1074L34.0904 43.334L25.1623 46.3591C17.5084 44.3185 9.97689 41.7955 2.33813 39.6877L29.1294 33.1074H29.1281Z"
-        fill={palette.secondary['secondary-color-3']}
-      />
-    </G>
     <Defs>
       <LinearGradient
-        id="paint0_linear_349_1399"
+        id="brick_paint0"
+        x1="56.0143"
+        y1="0"
+        x2="56.0143"
+        y2="59.5714"
+        gradientUnits="userSpaceOnUse"
+      >
+        <Stop stopColor={palette.gold.dark} />
+        <Stop offset="1" stopColor={palette.navy.DEFAULT} />
+      </LinearGradient>
+      <LinearGradient
+        id="brick_paint1"
         x1="40.2302"
         y1="0.841309"
         x2="40.2302"
         y2="68.8554"
         gradientUnits="userSpaceOnUse"
       >
-        <Stop stopColor={palette.navy.deep} />
+        <Stop stopColor={palette.navy.DEFAULT} />
+        <Stop offset="1" stopColor={palette.gold.dark} />
+      </LinearGradient>
+      <LinearGradient
+        id="brick_paint2"
+        x1="12.0869"
+        y1="40.5303"
+        x2="12.0869"
+        y2="68.9998"
+        gradientUnits="userSpaceOnUse"
+      >
+        <Stop stopColor={palette.gold.dark} />
         <Stop offset="1" stopColor={palette.navy.DEFAULT} />
       </LinearGradient>
       <LinearGradient
-        id="paint1_linear_349_1399"
-        x1="40.6155"
-        y1="56.6782"
-        x2="15.3846"
-        y2="57.9076"
+        id="brick_paint3"
+        x1="42.7466"
+        y1="56.8294"
+        x2="25.4319"
+        y2="56.8294"
         gradientUnits="userSpaceOnUse"
       >
         <Stop stopColor={palette.navy.DEFAULT} />
-        <Stop offset="0.5" stopColor={palette.secondary['secondary-color-3']} />
+        <Stop offset="1" stopColor={palette.gold.dark} />
       </LinearGradient>
-      <ClipPath id="clip0_349_1399">
+      <LinearGradient
+        id="brick_paint4"
+        x1="18.2143"
+        y1="33.1074"
+        x2="18.2143"
+        y2="46.3591"
+        gradientUnits="userSpaceOnUse"
+      >
+        <Stop stopColor={palette.navy.DEFAULT} />
+        <Stop offset="1" stopColor={palette.gold.dark} />
+      </LinearGradient>
+      <LinearGradient
+        id="brick_paint5"
+        x1="64.7446"
+        y1="55.3979"
+        x2="64.7446"
+        y2="67.5964"
+        gradientUnits="userSpaceOnUse"
+      >
+        <Stop stopColor={palette.navy.DEFAULT} />
+        <Stop offset="1" stopColor={palette.gold.dark} />
+      </LinearGradient>
+      <ClipPath id="brick_clip">
         <Rect width="80" height="69" fill="white" />
       </ClipPath>
     </Defs>
+    <G clipPath="url(#brick_clip)">
+      <Path
+        d="M54.2974 0L80 52.5227L60.5464 59.5714L32.0286 0H54.2974Z"
+        fill="url(#brick_paint0)"
+      />
+      <Path
+        d="M30.79 0.841309L59.092 60.2627L48.3164 68.8554L21.3684 13.891L30.79 0.841309Z"
+        fill="url(#brick_paint1)"
+      />
+      <Path
+        d="M0 40.5303L24.13 47.8173C24.3142 54.8646 23.8524 61.9399 23.917 68.9998L0 60.0242V40.5303Z"
+        fill="url(#brick_paint2)"
+      />
+      <Path
+        d="M42.7466 61.2808L25.4319 68.8596L25.7687 47.8174L34.7779 44.7993L42.7466 61.2808Z"
+        fill="url(#brick_paint3)"
+      />
+      <Path
+        d="M29.1281 33.1074L34.0904 43.334L25.1623 46.3591C17.5084 44.3185 9.97689 41.7955 2.33813 39.6877L29.1294 33.1074H29.1281Z"
+        fill="url(#brick_paint4)"
+      />
+      <Path
+        d="M76.9787 55.3979L69.7894 61.4551L52.5105 67.5964L60.5891 61.1844C66.0574 59.2757 71.4678 57.1692 76.9787 55.3979Z"
+        fill="url(#brick_paint5)"
+      />
+    </G>
   </Svg>
 );
 

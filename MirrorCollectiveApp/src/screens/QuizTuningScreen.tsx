@@ -1,26 +1,31 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import {
+  palette,
+  fontFamily,
+  fontSize,
+  fontWeight,
+  textShadow,
+  scale,
+  verticalScale,
+  moderateScale,
+} from '@theme';
 import type { RootStackParamList } from '@types';
 import React, { useEffect } from 'react';
-import { palette } from '@theme';
 import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
   StyleSheet,
-  Dimensions,
-  Image,
   StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
+import MCLogo from '@components/MCLogo';
 
 type QuizTuningScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'QuizTuning'>;
-
-const { width: screenWidth, height: screenHeight } = Dimensions.get('screen');
-
 
 const QuizTuningScreen = () => {
   const { t } = useTranslation();
@@ -50,27 +55,20 @@ const QuizTuningScreen = () => {
           translucent
           backgroundColor="transparent"
         />
-          <LogoHeader />
-          <View style={styles.container}>
+        <LogoHeader />
+        <View style={styles.container}>
+          <View style={styles.titleContainer}>
+            <Text style={styles.title}>{t('quiz.quizTuning.title')}</Text>
+          </View>
 
-        <View style={styles.titleContainer}>
-          <Text style={styles.title}>{t('quiz.quizTuning.title')}</Text>
-        </View>
+          <View style={styles.mirrorContainer}>
+            <MCLogo width={scale(245)} height={verticalScale(381)} />
+          </View>
 
-        <View style={styles.mirrorContainer}>
-          <Image
-            source={require('@assets/oval-mirror-golden-frame.png')}
-            style={styles.mirrorImage}
-            resizeMode="contain"
-          />
-        </View>
-
-        <View style={styles.messageContainer}>
-          <Text style={styles.message}>{t('quiz.quizTuning.message')}</Text>
-          <Text style={styles.subMessage}>
-            {t('quiz.quizTuning.subMessage')}
-          </Text>
-        </View>
+          <View style={styles.messageContainer}>
+            <Text style={styles.message}>{t('quiz.quizTuning.message')}</Text>
+            <Text style={styles.subMessage}>{t('quiz.quizTuning.subMessage')}</Text>
+          </View>
         </View>
       </SafeAreaView>
     </BackgroundWrapper>
@@ -78,75 +76,65 @@ const QuizTuningScreen = () => {
 };
 
 export default QuizTuningScreen;
+
 const styles = StyleSheet.create({
   bg: {
     flex: 1,
   },
   safe: {
     flex: 1,
-    backgroundColor: 'transparent',
+    backgroundColor: palette.neutral.transparent,
   },
   container: {
     flex: 1,
-    paddingHorizontal: Math.max(40, screenWidth * 0.102),
-    paddingBottom: Math.max(30, screenHeight * 0.035),
+    paddingHorizontal: scale(40),
+    paddingBottom: verticalScale(24),
     alignItems: 'center',
+    justifyContent: 'center',
   },
   bgImage: {
     resizeMode: 'cover',
   },
   titleContainer: {
     alignItems: 'center',
-    marginTop: 80,
+    marginTop: verticalScale(72),
   },
   title: {
-    fontFamily: 'CormorantGaramond-Light',
-    fontSize: Math.min(screenWidth * 0.082, 32),
-    fontWeight: '300',
-    lineHeight: Math.min(screenWidth * 0.082, 32),
+    fontFamily: fontFamily.heading,
+    fontSize: moderateScale(fontSize['3xl']),
+    fontWeight: fontWeight.regular,
+    lineHeight: moderateScale(fontSize['3xl'] * 1.3),
+    letterSpacing: 0,
     color: palette.gold.warm,
     textAlign: 'center',
-    textShadowColor: palette.gold.warm,
-    textShadowRadius: 8,
+    textShadowColor: textShadow.glow.color,
+    textShadowOffset: textShadow.glow.offset,
+    textShadowRadius: textShadow.glow.radius,
   },
   mirrorContainer: {
-    flex: 1,
-    width: '100%',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: Math.max(20, screenHeight * 0.08),
-  },
-  mirrorImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'contain',
-    maxWidth: 275,
-    maxHeight: 400,
-    shadowColor: palette.gold.warm,
-    shadowOffset: { width: 0, height: 0 },
-    // shadowOpacity: 0.3,
-    shadowRadius: 40,
+    marginTop: verticalScale(28),
   },
   messageContainer: {
     alignItems: 'center',
-    marginBottom: Math.max(10, screenHeight * 0.02),
+    marginTop: verticalScale(28),
+    marginBottom: verticalScale(8),
   },
   message: {
-    fontFamily: 'Inter',
-    fontStyle: 'normal',
-    fontSize: Math.min(screenWidth * 0.051, 16),
-    fontWeight: '400',
+    fontFamily: fontFamily.body,
+    fontSize: moderateScale(fontSize.s),
+    fontWeight: fontWeight.regular,
+    lineHeight: moderateScale(fontSize.s * 1.5),
     color: palette.gold.subtlest,
     textAlign: 'center',
-    // marginBottom: Math.max(10, screenHeight * 0.025),
   },
   subMessage: {
-    fontFamily: 'Inter',
-    fontStyle: 'normal',
-    fontSize: Math.min(screenWidth * 0.051, 16),
-    fontWeight: '400',
+    fontFamily: fontFamily.body,
+    fontSize: moderateScale(fontSize.s),
+    fontWeight: fontWeight.regular,
+    lineHeight: moderateScale(fontSize.s * 1.5),
     color: palette.gold.subtlest,
     textAlign: 'center',
-    marginBottom: Math.max(10, screenHeight * 0.025),
   },
 });

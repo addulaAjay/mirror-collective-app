@@ -75,6 +75,9 @@ export const palette = {
     caption: '#C0C0C0',
     inputBg: '#d9d9d9',
     chatContainer: 'rgba(155, 170, 194, 0.15)',
+    overlay: 'rgba(0, 0, 0, 0.25)',        // 25% black overlay/scrim
+    overlayLight: 'rgba(0, 0, 0, 0.15)',   // 15% light overlay
+    overlayHeavy: 'rgba(0, 0, 0, 0.40)',   // 40% heavy overlay
     black: '#000000',
     transparent: 'transparent',
   },
@@ -115,11 +118,64 @@ export const radius = {
 } as const;
 
 // ---------------------------------------------------------------------------
+// Border width (from Figma Design System)
+// ---------------------------------------------------------------------------
+
+export const borderWidth = {
+  hairline: 0.25,
+  thin: 0.5,
+  regular: 1,
+  medium: 1.5,
+  thick: 2,
+} as const;
+
+// ---------------------------------------------------------------------------
+// Text shadows (from Figma Design System - Quiz screens)
+// Note: React Native Text doesn't support separate shadow opacity,
+// so colors must include opacity in rgba() format
+// ---------------------------------------------------------------------------
+
+export const textShadow = {
+  glow: {
+    color: 'rgba(240, 212, 168, 0.6)',    // palette.gold.glow (#f0d4a8) @ 60%
+    offset: { width: 0, height: 0 },
+    radius: 16,
+  },
+  glowSubtle: {
+    color: 'rgba(240, 212, 168, 0.3)',    // palette.gold.glow (#f0d4a8) @ 30%
+    offset: { width: 0, height: 0 },
+    radius: 8,
+  },
+  warmGlow: {
+    color: 'rgba(229, 214, 176, 0.5)',    // palette.gold.warm (#e5d6b0) @ 50%
+    offset: { width: 0, height: 0 },
+    radius: 9,
+  },
+} as const;
+
+// ---------------------------------------------------------------------------
+// Glass morphism gradients (from Figma Design System)
+// Used for glass button and card effects
+// ---------------------------------------------------------------------------
+
+export const glassGradient = {
+  button: {
+    start: 'rgba(253, 253, 249, 0.04)',  // palette.gold.subtlest (#fdfdf9) @ 4%
+    end: 'rgba(253, 253, 249, 0.01)',    // palette.gold.subtlest (#fdfdf9) @ 1%
+  },
+  card: {
+    start: 'rgba(253, 253, 249, 0.08)',  // palette.gold.subtlest (#fdfdf9) @ 8%
+    end: 'rgba(253, 253, 249, 0.02)',    // palette.gold.subtlest (#fdfdf9) @ 2%
+  },
+} as const;
+
+// ---------------------------------------------------------------------------
 // Typography primitives (from Figma Typography collection)
 // ---------------------------------------------------------------------------
 
 export const fontFamily = {
   // Cormorant Garamond — Figma: Heading family
+  // PostScript names verified via fc-query 2026-04-12
   heading: 'CormorantGaramond-Regular',
   headingLight: 'CormorantGaramond-Light',
   headingLightItalic: 'CormorantGaramond-LightItalic',
@@ -127,6 +183,9 @@ export const fontFamily = {
   headingMediumItalic: 'CormorantGaramond-MediumItalic',
   headingItalic: 'CormorantGaramond-Italic',
   headingSemiBold: 'CormorantGaramond-SemiBold',
+  headingSemiBoldItalic: 'CormorantGaramond-SemiBoldItalic',
+  headingBold: 'CormorantGaramond-Bold',
+  headingBoldItalic: 'CormorantGaramond-BoldItalic',
   headingFallback: 'Georgia',
   // Playfair Display — Figma: Title family
   title: 'PlayfairDisplay-Regular',
@@ -137,13 +196,14 @@ export const fontFamily = {
   titleItalic: 'PlayfairDisplay-Italic',
   titleFallback: 'Georgia',
   // Inter — Figma: Body family
-  body: 'Inter-Regular',
-  bodyLight: 'Inter-Light',
-  bodyMedium: 'Inter-Medium',
-  bodySemiBold: 'Inter-SemiBold',
-  bodyBold: 'Inter-Bold',
-  bodyItalic: 'Inter-Italic',
-  bodyMediumItalic: 'Inter-MediumItalic',
+  // PostScript names from font files (fc-query verified 2026-04-12): Inter18pt-*
+  body: 'Inter18pt-Regular',
+  bodyLight: 'Inter18pt-Light',
+  bodyMedium: 'Inter18pt-Medium',
+  bodySemiBold: 'Inter18pt-SemiBold',
+  bodyBold: 'Inter18pt-Bold',
+  bodyItalic: 'Inter18pt-Italic',
+  bodyMediumItalic: 'Inter18pt-MediumItalic',
   bodyFallback: 'System',
 } as const;
 
@@ -180,43 +240,60 @@ export const fontWeight = {
 } as const;
 
 // ---------------------------------------------------------------------------
-// Shadows (code-defined — not yet in Figma, see Phase 8 follow-up)
+// Elevation System (from Figma Design System - node 266:680)
+// Extracted from Figma API on 2026-04-12
+// Note: React Native doesn't support spread on shadows, so these values
+// are flattened into individual properties
 // ---------------------------------------------------------------------------
 
-export const shadows = {
-  LIGHT: {
-    shadowColor: 'rgba(0, 0, 0, 0.1)',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 1 as const,
-    shadowRadius: 4,
-    elevation: 4,
-  },
-  MEDIUM: {
-    shadowColor: 'rgba(0, 0, 0, 0.21)',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 1 as const,
-    shadowRadius: 12,
-    elevation: 12,
-  },
-  HEAVY: {
-    shadowColor: 'rgba(0, 0, 0, 0.25)',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 1 as const,
-    shadowRadius: 19,
-    elevation: 19,
-  },
-  CONTAINER: {
-    shadowColor: 'rgba(0, 0, 0, 0.25)',
-    shadowOffset: { width: -1, height: 5 },
-    shadowOpacity: 1 as const,
-    shadowRadius: 26,
-    elevation: 26,
-  },
-  GLOW: {
-    shadowColor: palette.gold.warm,
+export const elevation = {
+  // Surface/Default - Subtle black shadow for base elevation
+  // Figma: rgba(0, 0, 0, 0.29) blur:20 spread:3
+  surfaceDefault: {
+    shadowColor: '#000000',
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 1 as const,
-    shadowRadius: 4,
-    elevation: 4,
+    shadowOpacity: 0.29,
+    shadowRadius: 20,
+    // Android elevation approximation
+    elevation: 8,
   },
+
+  // Surface/Raised - Gold glow for elevated/focused elements
+  // Figma: rgba(0.95, 0.89, 0.69, 0.50) = #F2E2B1 50% blur:24 spread:8
+  surfaceRaised: {
+    shadowColor: palette.gold.DEFAULT,  // #F2E2B1
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 24,
+    // Android elevation approximation
+    elevation: 16,
+  },
+
+  // Surface/Overlay - No shadow (transparent overlay)
+  surfaceOverlay: {
+    shadowColor: 'transparent',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
+  },
+
+  // Shadow/Overlay - No shadow (for overlay backgrounds)
+  shadowOverlay: {
+    shadowColor: 'transparent',
+    shadowOffset: { width: 0, height: 0 },
+shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
+  },
+} as const;
+
+// Legacy shadows kept for backward compatibility
+// TODO: Migrate all usages to elevation.* and remove this
+export const shadows = {
+  LIGHT: elevation.surfaceDefault,
+  MEDIUM: elevation.surfaceDefault,
+  HEAVY: elevation.surfaceRaised,
+  CONTAINER: elevation.surfaceRaised,
+  GLOW: elevation.surfaceRaised,
 } as const;
