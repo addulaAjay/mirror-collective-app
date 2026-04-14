@@ -8,6 +8,7 @@ import {
   verticalScale,
 } from '@theme';
 import type { LoginScreenProps } from '@types';
+
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -23,6 +24,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path, Circle } from 'react-native-svg';
+import { Mask, Rect, G } from 'react-native-svg';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';

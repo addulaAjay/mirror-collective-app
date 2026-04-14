@@ -1,3 +1,4 @@
+import { useNavigation } from '@react-navigation/native';
 import { theme, palette, spacing, shadows } from '@theme';
 import React, { useEffect } from 'react';
 import {
@@ -11,14 +12,13 @@ import {
   Keyboard,
   Dimensions,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import AuthenticatedRoute from '@components/AuthenticatedRoute';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
 import { MessageBubble, ChatInput, LoadingIndicator } from '@components/ui';
-import { useNavigation } from '@react-navigation/native';
 import { useChat } from '@hooks/useChat';
 
 const { height: screenHeight } = Dimensions.get('window');

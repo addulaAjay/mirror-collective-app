@@ -133,7 +133,9 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     fontWeight: '400',
     maxHeight: 100,
-    paddingBottom: 10,
+    paddingTop: 4,
+    paddingBottom: 4,
+    textAlignVertical: 'center',
   },
 
   sendButton: {

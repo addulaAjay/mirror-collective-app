@@ -2,13 +2,18 @@
 import { palette } from '@theme';
 import React from 'react';
 import { TouchableOpacity, StyleSheet, View } from 'react-native';
+import { SvgXml } from 'react-native-svg';
 
-import BrickSymbol from './symbols/BrickSymbol';
-import MirrorSymbol from './symbols/MirrorSymbol';
-import SpiralSymbol from './symbols/SpiralSymbol';
-import { StarSymbol } from './symbols/StarSymbol';
+import { MOTIF_SVG } from '@assets/motifs-icons/MotifIconAssets';
 
 export type ImageOptionSymbol = 'star' | 'brick' | 'spiral' | 'mirror';
+
+const SYMBOL_MOTIF_MAP: Record<ImageOptionSymbol, string> = {
+  star: 'radiant-burst',
+  brick: 'blocks',
+  spiral: 'waves',
+  mirror: 'mirror',
+};
 
 interface Props {
   symbolType: ImageOptionSymbol;
@@ -17,18 +22,10 @@ interface Props {
 }
 
 const renderSymbol = (symbolType: ImageOptionSymbol) => {
-  switch (symbolType) {
-    case 'star':
-      return <StarSymbol />;
-    case 'brick':
-      return <BrickSymbol />;
-    case 'spiral':
-      return <SpiralSymbol />;
-    case 'mirror':
-      return <MirrorSymbol />;
-    default:
-      return null;
-  }
+  const motifKey = SYMBOL_MOTIF_MAP[symbolType];
+  const svg = MOTIF_SVG[motifKey];
+  if (!svg) return null;
+  return <SvgXml xml={svg} width="80%" height="80%" />;
 };
 
 const ImageOptionButton = ({ symbolType, selected, onPress }: Props) => (

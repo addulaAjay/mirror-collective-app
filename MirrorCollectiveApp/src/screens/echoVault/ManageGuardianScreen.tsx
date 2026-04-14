@@ -59,7 +59,9 @@ const ManageGuardianScreen: React.FC<Props> = ({ navigation }) => {
 
   useEffect(() => {
     fetchGuardians();
-  }, [fetchGuardians]);
+    const unsubscribe = navigation.addListener('focus', fetchGuardians);
+    return unsubscribe;
+  }, [navigation, fetchGuardians]);
 
   const handleRemoveGuardian = async (id: string) => {
     Alert.alert(

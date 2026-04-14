@@ -36,7 +36,7 @@ const LogoHeader = ({
   const { user } = useUser();
   const { state } = useSession();
   const { isAuthenticated } = state;
-  const displayName = user?.fullName || 'Guest';
+  const displayName = user?.fullName ? user.fullName.split(' ')[0] : 'Guest';
 
   // If onMenuPress is provided, use it. Otherwise, use internal drawer state.
   const handleMenuPress = () => {

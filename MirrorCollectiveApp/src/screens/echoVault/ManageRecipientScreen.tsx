@@ -59,11 +59,11 @@ const ManageRecipientScreen: React.FC<Props> = ({ navigation }) => {
     }
   }, []);
 
-  useFocusEffect(
-    useCallback(() => {
-      fetchRecipients();
-    }, [fetchRecipients])
-  );
+  useEffect(() => {
+    fetchRecipients();
+    const unsubscribe = navigation.addListener('focus', fetchRecipients);
+    return unsubscribe;
+  }, [navigation, fetchRecipients]);
 
   const handleRemoveRecipient = async (id: string) => {
     Alert.alert(
