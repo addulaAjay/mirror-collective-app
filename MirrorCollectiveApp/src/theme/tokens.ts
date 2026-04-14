@@ -28,12 +28,16 @@ export const palette = {
     amber: '#e2ae5a',    // Code-defined: amber gold gradient stop (add to Figma — Phase 8 follow-up)
     chat: '#D8C278',     // Chat bubble gold (existing app)
     bronze: '#9F8B61',   // MC logo SVG fill — used in MCLogo component
+    // TODO: confirm with designer — card gradient border end colour (no Figma token yet)
+    border: '#C79E48',   // Code-defined: glass card gradient border end stop
     // NOTE: #F5E6B8 (old accent) replaced by palette.gold.DEFAULT (#f2e2b1) — Figma Colour.Text.Paragraph-1
   },
   navy: {
     DEFAULT: '#1a2238',  // Colour.Text.Inverse
     deep: '#0b0f1c',     // Code-defined: deepest dark background (add to Figma — Phase 8 follow-up)
     card: '#1a1f2e',     // Code-defined: popup/card background dark navy (add to Figma — Phase 8 follow-up)
+    // TODO: confirm with designer — glass card inner background (no Figma token yet); consolidating #191A23/#191B24 variants
+    cardInner: '#191A23',  // Code-defined: glass card inner fill (slightly darker than navy.card)
     medium: '#60739f',   // Colour.Text.Inverse-Paragraph-1
     muted: '#9baac2',    // Code-defined: muted border/icon blue (add to Figma — Phase 8 follow-up)
     border: '#808fb2',   // Code-defined: toggle/UI border blue (add to Figma — Phase 8 follow-up)
@@ -166,6 +170,12 @@ export const glassGradient = {
   card: {
     start: 'rgba(253, 253, 249, 0.08)',  // palette.gold.subtlest (#fdfdf9) @ 8%
     end: 'rgba(253, 253, 249, 0.02)',    // palette.gold.subtlest (#fdfdf9) @ 2%
+  },
+  // TODO: confirm exact gradient stops with designer — border glow treatment
+  border: {
+    start: '#ffffff',   // palette.neutral.white — gradient border start
+    end: '#C79E48',     // palette.gold.border — gradient border end
+    shadowColor: 'rgba(242, 226, 177, 0.6)',  // palette.gold.DEFAULT (#f2e2b1) @ 60%
   },
 } as const;
 

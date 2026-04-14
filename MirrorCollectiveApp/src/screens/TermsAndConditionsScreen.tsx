@@ -105,7 +105,7 @@ const TermsAndConditionsScreen = () => {
                     */}
                     <View style={styles.cardGradientBorder}>
                         <LinearGradient
-                            colors={['#FFFFFF', '#C79E48']}
+                            colors={[glassGradient.border.start, glassGradient.border.end]}
                             start={{ x: 0, y: 0 }}
                             end={{ x: 1, y: 1 }}
                             style={StyleSheet.absoluteFill}
@@ -328,7 +328,7 @@ const styles = StyleSheet.create<{
         width: scale(313),
         borderRadius: radius.s,
         // iOS shadow (overflow must stay visible)
-        shadowColor: 'rgba(242, 226, 177, 0.6)',
+        shadowColor: glassGradient.border.shadowColor,
         shadowOffset: { width: 0, height: 0 },
         shadowOpacity: 1,
         shadowRadius: moderateScale(16),
@@ -353,7 +353,7 @@ const styles = StyleSheet.create<{
         marginVertical: 0.25,
         borderRadius: radius.s - 0.25,
         overflow: 'hidden',
-        backgroundColor: '#191B24',
+        backgroundColor: palette.navy.cardInner,
     },
     // flex:1 fills cardClip — NO overflow, NO backgroundColor (cardClip provides it)
     cardScroll: {

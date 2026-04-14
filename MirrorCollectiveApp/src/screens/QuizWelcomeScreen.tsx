@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { palette, radius, fontFamily, fontSize, fontWeight, elevation, scale, verticalScale, moderateScale } from '@theme';
+import { palette, radius, fontFamily, fontSize, fontWeight, elevation, glassGradient, scale, verticalScale, moderateScale } from '@theme';
 import type { RootStackParamList } from '@types';
 import React from 'react';
 import { useEffect } from 'react';
@@ -15,6 +15,7 @@ import {
   Alert,
   StatusBar,
 } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 
@@ -108,19 +109,29 @@ const QuizWelcomeScreen = () => {
             </View>
           </View>
 
-          {/* Card with border and content - transparent background */}
-          <View style={styles.card}>
-            <Text style={styles.description}>
-              <Text style={styles.regularText}>A few quick reflections to reveal your</Text>
-              <Text style={styles.italicHighlight}> starting role.</Text>
-              {'\n\n'}
-              <Text style={styles.regularText}>No judgment. No labels. </Text>
-              {'\n'}
-              <Text style={styles.italicHighlight}>Just insight.</Text>
-              {'\n\n'}
-              <Text style={styles.regularText}>This is where </Text>
-              <Text style={styles.italicHighlight}>change begins.</Text>
-            </Text>
+          {/* Card — gradient border glow (same three-layer pattern as TermsAndConditionsScreen) */}
+          <View style={styles.cardShadow}>
+            <View style={styles.cardGradientBorder}>
+              <LinearGradient
+                colors={[glassGradient.border.start, glassGradient.border.end]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={StyleSheet.absoluteFill}
+              />
+              <View style={styles.cardClip}>
+                <Text style={styles.description}>
+                  <Text style={styles.regularText}>A few quick reflections to reveal your</Text>
+                  <Text style={styles.italicHighlight}> starting role.</Text>
+                  {'\n\n'}
+                  <Text style={styles.regularText}>No judgment. No labels. </Text>
+                  {'\n'}
+                  <Text style={styles.italicHighlight}>Just insight.</Text>
+                  {'\n\n'}
+                  <Text style={styles.regularText}>This is where </Text>
+                  <Text style={styles.italicHighlight}>change begins.</Text>
+                </Text>
+              </View>
+            </View>
           </View>
 
           {/* BEGIN button — inline in gap:60 column, matches Figma */}
@@ -161,7 +172,9 @@ const styles = StyleSheet.create<{
   logoWelcomeGroup: ViewStyle;
   welcomeContainer: ViewStyle;
   welcome: TextStyle;
-  card: ViewStyle;
+  cardShadow: ViewStyle;
+  cardGradientBorder: ViewStyle;
+  cardClip: ViewStyle;
   description: TextStyle;
   regularText: TextStyle;
   italicHighlight: TextStyle;
@@ -210,25 +223,34 @@ const styles = StyleSheet.create<{
     textShadowRadius: 10,
     textTransform: 'uppercase',
   },
-  // Responsive card matching Figma proportions (313px on 393px design)
-  card: {
-    width: scale(313),                  // Exact Figma width, scaled
-    minHeight: verticalScale(251),      // Figma height, scaled
+  // Three-layer gradient border pattern (matches TermsAndConditionsScreen)
+  cardShadow: {
+    alignSelf: 'center',
+    width: scale(313),
+    borderRadius: radius.s,
+    shadowColor: glassGradient.border.shadowColor,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 1,
+    shadowRadius: moderateScale(16),
+    elevation: 12,
+  },
+  // overflow:hidden clips to border radius; paddingHorizontal:0.5 = left+right gradient border
+  cardGradientBorder: {
+    borderRadius: radius.s,
+    overflow: 'hidden',
+    paddingHorizontal: 0.5,
+  },
+  // marginVertical:0.25 = top+bottom gradient border; dark background for content
+  cardClip: {
+    marginVertical: 0.25,
+    borderRadius: radius.s - 0.25,
+    overflow: 'hidden',
+    backgroundColor: palette.navy.cardInner,
+    minHeight: verticalScale(251),
     paddingVertical: verticalScale(20),
     paddingHorizontal: scale(16),
-    borderRadius: radius.xl,
-    borderWidth: 0.25,
-    borderColor: palette.navy.light,
-    backgroundColor: palette.neutral.transparent,
     alignItems: 'center',
     justifyContent: 'center',
-    alignSelf: 'center',
-    // Figma shadow (won't render on transparent bg, saved for future implementation)
-    shadowColor: palette.gold.DEFAULT,
-    shadowOffset: { width: 2, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 32,
-    elevation: 16,
   },
   description: {
     fontSize: moderateScale(fontSize.xl),  // fontSize.xl = 24px
@@ -276,7 +298,7 @@ const styles = StyleSheet.create<{
     textShadowRadius: 9,
   },
   devClearCache: {
-    color: 'rgba(242, 226, 177, 0.5)',
+    color: glassGradient.border.shadowColor,  // gold.DEFAULT @ ~50% — dev only
     fontSize: 12,
     textDecorationLine: 'underline',
   },

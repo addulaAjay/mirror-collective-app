@@ -10,13 +10,14 @@ import {
   Pressable,
   StatusBar,
   ScrollView,
-  Image,
-  ImageSourcePropType,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { palette } from '@/theme';
+import CircularLogoMark from '@components/CircularLogoMark';
+
+import { palette, scale } from '@/theme';
+
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const DRAWER_WIDTH = Math.round(SCREEN_WIDTH * 0.78); 
@@ -26,7 +27,6 @@ type MirrorSideMenuProps = {
   userName?: string;
   onClose: () => void;
   onNavigate: (route: string) => void;
-  logoSource?: ImageSourcePropType;
 };
 
 const GOLD = palette.gold.warm;
@@ -114,11 +114,7 @@ const MirrorSideMenu: React.FC<MirrorSideMenuProps> = ({
 
           {/* User */}
           <View style={styles.userRow}>
-            <Image
-              source={require('@assets/Mirror_Collective_Logo_RGB.png')}
-              style={[styles.logo]}
-              resizeMode="contain"
-            />
+            <CircularLogoMark size={scale(38)} />
             <Text style={styles.userName}>{userName}</Text>
           </View>
 
@@ -232,11 +228,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingTop: 18,
     paddingBottom: 18,
-  },
-
-  logo: {
-    width: 38,
-    height: 38,
   },
 
   userName: {
