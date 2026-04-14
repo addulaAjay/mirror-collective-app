@@ -175,7 +175,9 @@ export const glassGradient = {
   border: {
     start: '#ffffff',   // palette.neutral.white — gradient border start
     end: '#C79E48',     // palette.gold.border — gradient border end
-    shadowColor: 'rgba(242, 226, 177, 0.6)',  // palette.gold.DEFAULT (#f2e2b1) @ 60%
+    // Figma "Glow Drop Shadow" variable: #F0D4A899 = palette.gold.glow (#f0d4a8) @ 60%
+    // Previously used palette.gold.DEFAULT (#f2e2b1) — corrected to match Figma spec exactly
+    shadowColor: 'rgba(240, 212, 168, 0.6)',  // palette.gold.glow (#f0d4a8) @ 60%
   },
 } as const;
 

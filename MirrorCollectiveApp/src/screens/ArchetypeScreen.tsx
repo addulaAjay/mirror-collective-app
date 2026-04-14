@@ -20,6 +20,7 @@ import {
   Image,
   StatusBar,
   Alert,
+  ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -96,49 +97,55 @@ const ArchetypeScreen: React.FC<ArchetypeScreenProps> = ({ route }) => {
         />
         <LogoHeader />
 
-        <TouchableOpacity
-          testID="archetype-container"
-          style={styles.container}
-          onPress={handleContinue}
-          activeOpacity={1}
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
         >
-          {/* Content column — gap-[24px] between all sections, Figma: node 205:457 */}
-          <View style={styles.content}>
+          <TouchableOpacity
+            testID="archetype-container"
+            style={styles.container}
+            onPress={handleContinue}
+            activeOpacity={1}
+          >
+            {/* Content column — gap-[24px] between all sections, Figma: node 205:457 */}
+            <View style={styles.content}>
 
-            {/* Title */}
-            <View style={styles.titleContainer}>
-              <Text testID="archetype-title" style={styles.title}>
-                {archetype.title}
+              {/* Title */}
+              <View style={styles.titleContainer}>
+                <Text testID="archetype-title" style={styles.title}>
+                  {archetype.title}
+                </Text>
+              </View>
+
+              {/* Archetype Image — 240×240 square with shadow wrapper */}
+              <View style={styles.imageShadowWrapper}>
+                <Image
+                  testID="archetype-image"
+                  source={archetype.image}
+                  style={styles.archetypeImage}
+                  resizeMode="cover"
+                />
+              </View>
+
+              {/* Description paragraphs */}
+              <View style={styles.descriptionContainer}>
+                <Text testID="archetype-description" style={styles.descriptionLight}>
+                  {para1}
+                </Text>
+                {para2 ? (
+                  <Text style={styles.descriptionItalic}>{para2}</Text>
+                ) : null}
+              </View>
+
+              {/* "Click anywhere to continue" — Figma: node 205:462 */}
+              <Text style={styles.hintText}>
+                Click anywhere to continue
               </Text>
+
             </View>
-
-            {/* Archetype Image — 240×240 square with shadow wrapper */}
-            <View style={styles.imageShadowWrapper}>
-              <Image
-                testID="archetype-image"
-                source={archetype.image}
-                style={styles.archetypeImage}
-                resizeMode="cover"
-              />
-            </View>
-
-            {/* Description paragraphs */}
-            <View style={styles.descriptionContainer}>
-              <Text testID="archetype-description" style={styles.descriptionLight}>
-                {para1}
-              </Text>
-              {para2 ? (
-                <Text style={styles.descriptionItalic}>{para2}</Text>
-              ) : null}
-            </View>
-
-            {/* "Click anywhere to continue" — Figma: node 205:462 */}
-            <Text style={styles.hintText}>
-              Click anywhere to continue
-            </Text>
-
-          </View>
-        </TouchableOpacity>
+          </TouchableOpacity>
+        </ScrollView>
 
         {/* Dev-only retake button — not in Figma, hidden in production */}
         {__DEV__ && (
@@ -167,11 +174,18 @@ const styles = StyleSheet.create({
     resizeMode: 'cover',
   },
 
-  // Figma: outer container left-[24px] w-[351px] gap-[40px] from LogoHeader
-  container: {
+  scrollView: {
     flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingTop: verticalScale(40),
+    paddingBottom: verticalScale(40),
+  },
+
+  // Figma: outer container left-[24px] w-[351px]
+  container: {
     paddingHorizontal: scale(24),
-    marginTop: verticalScale(40),
     alignItems: 'center',
   },
 

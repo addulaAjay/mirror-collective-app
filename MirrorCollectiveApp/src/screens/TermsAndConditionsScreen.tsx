@@ -282,7 +282,7 @@ const styles = StyleSheet.create<{
         backgroundColor: 'transparent',
         paddingHorizontal: scale(24),
         paddingBottom: verticalScale(24),
-        gap: verticalScale(16),
+        gap: verticalScale(24),
     },
 
     // ── Header row ──────────────────────────────────────────────────────────
@@ -322,11 +322,15 @@ const styles = StyleSheet.create<{
     // ── Scrollable card ──────────────────────────────────────────────────────
     // flex:1 — fills all height between headerRow and footer. Bounded because
     // its siblings have concrete natural heights (no nested flex chains).
+    // backgroundColor gives iOS CALayer a concrete shape to render the gold
+    // glow shadow from. Without it, shadowOpacity has no effect on iOS.
+    // palette.navy.deep matches the app background — no visible corner bleed.
     cardShadow: {
         flex: 1,
         alignSelf: 'center',
         width: scale(313),
         borderRadius: radius.s,
+        backgroundColor: palette.navy.deep,
         // iOS shadow (overflow must stay visible)
         shadowColor: glassGradient.border.shadowColor,
         shadowOffset: { width: 0, height: 0 },
@@ -353,7 +357,7 @@ const styles = StyleSheet.create<{
         marginVertical: 0.25,
         borderRadius: radius.s - 0.25,
         overflow: 'hidden',
-        backgroundColor: palette.navy.cardInner,
+        backgroundColor: palette.navy.deep,
     },
     // flex:1 fills cardClip — NO overflow, NO backgroundColor (cardClip provides it)
     cardScroll: {

@@ -10,7 +10,7 @@ import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
 
 const VIDEO_URL =
-  'https://mirror-app-video.s3.us-east-1.amazonaws.com/%21%20MIRROR%20EXPLAINER.MP4';
+  'https://mirror-app-video.s3.us-east-1.amazonaws.com/Mirror+App+Explainer+Video.mp4';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('screen');
 

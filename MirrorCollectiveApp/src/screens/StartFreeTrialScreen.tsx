@@ -1,25 +1,39 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { scale, scaleMin, scaleCap, palette } from '@theme';
-import type { RootStackParamList } from '@types';
-import React, { useMemo, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Image,
-  Alert,
-  ActivityIndicator,
-  ScrollView,
-  type ViewStyle,
-  type TextStyle,
-  type ImageStyle,
+    palette,
+    fontFamily,
+    fontSize,
+    fontWeight,
+    lineHeight,
+    radius,
+    borderWidth,
+    textShadow,
+    glassGradient,
+    semantic,
+    scale,
+    verticalScale,
+    moderateScale,
+} from '@theme';
+import type { RootStackParamList } from '@types';
+import React, { useState } from 'react';
+import {
+    View,
+    Text,
+    StyleSheet,
+    TouchableOpacity,
+    Image,
+    Alert,
+    ScrollView,
+    type ViewStyle,
+    type TextStyle,
+    type ImageStyle,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
+import Button from '@components/Button/Button';
 import LogoHeader from '@components/LogoHeader';
 import StarIcon from '@components/StarIcon';
 
@@ -30,591 +44,527 @@ import { subscriptionApiService } from '@/services/api/subscriptionApi';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'StartFreeTrial'>;
 
-const outerContainerPaddingHorizontal = scaleMin(24, 24);
-const outerContainerPaddingBottom = scaleMin(53, 53);
-
-const outerBoxWidth = scale(345);
-const sectionGap = scaleMin(16, 16);
-
-const cardMaxWidth = 313;
-const cardWidth = scaleCap(345, cardMaxWidth);
-const innerBoxSidePadding = Math.max(0, (outerBoxWidth - cardWidth) / 2);
-
 const StartFreeTrialScreen = () => {
-  const navigation = useNavigation<NavigationProp>();
-  const canGoBack = navigation.canGoBack();
-  const { hasUsedTrial, hasActiveSubscription, refreshSubscriptionStatus } = useSubscription();
-  const { setAuthenticated } = useSession();
-  const { purchaseSubscription, purchasing, PRODUCT_IDS } = useInAppPurchase();
-  const [loading, setLoading] = useState(false);
-  const [selectedPeriod] = useState<'monthly' | 'yearly'>('monthly');
+    const navigation = useNavigation<NavigationProp>();
+    const canGoBack = navigation.canGoBack();
+    const { hasUsedTrial, hasActiveSubscription, refreshSubscriptionStatus } = useSubscription();
+    const { setAuthenticated } = useSession();
+    const { purchaseSubscription, purchasing, PRODUCT_IDS } = useInAppPurchase();
+    const [loading, setLoading] = useState(false);
+    const [selectedPeriod] = useState<'monthly' | 'yearly'>('monthly');
 
-  const cardGradient = useMemo(
-    () => ['rgba(255, 255, 255, 0.05)', 'rgba(153, 153, 153, 0.05)'],
-    [],
-  );
+    const isTrialMode = !hasUsedTrial && !hasActiveSubscription;
+    const buttonText = isTrialMode ? 'START FREE TRIAL' : 'SUBSCRIBE NOW';
 
-  // Determine button mode: trial or subscribe
-  const isTrialMode = !hasUsedTrial && !hasActiveSubscription;
-  const buttonText = isTrialMode ? 'START FREE TRIAL' : 'SUBSCRIBE NOW';
-
-  const handleButtonPress = async () => {
-    if (hasActiveSubscription) {
-      Alert.alert('Already Subscribed', 'You already have an active subscription.');
-      return;
-    }
-
-    if (isTrialMode) {
-      // Start trial (no payment)
-      try {
-        setLoading(true);
-        const response = await subscriptionApiService.startTrial();
-
-        if (response.success) {
-          await refreshSubscriptionStatus();
-          // Setting authenticated will remount NavigationContainer with new key
-          // This automatically navigates to EnterMirror (initialRouteName)
-          setAuthenticated();
-        } else {
-          throw new Error(response.message || 'Failed to start trial');
+    const handleButtonPress = async () => {
+        if (hasActiveSubscription) {
+            Alert.alert('Already Subscribed', 'You already have an active subscription.');
+            return;
         }
-      } catch (error: any) {
-        Alert.alert('Error', error.message || 'Failed to start trial');
-      } finally {
-        setLoading(false);
-      }
-    } else {
-      // Purchase subscription
-      const productId = selectedPeriod === 'monthly'
-        ? PRODUCT_IDS.CORE_MONTHLY
-        : PRODUCT_IDS.CORE_YEARLY;
 
-      try {
-        await purchaseSubscription(productId);
-        await refreshSubscriptionStatus();
-        // NavigationContainer will remount when auth state changes
-      } catch (error: any) {
-        Alert.alert('Purchase Failed', error.message || 'Unable to complete purchase');
-      }
-    }
-  };
+        if (isTrialMode) {
+            try {
+                setLoading(true);
+                const response = await subscriptionApiService.startTrial();
+                if (response.success) {
+                    await refreshSubscriptionStatus();
+                    setAuthenticated();
+                } else {
+                    throw new Error(response.message || 'Failed to start trial');
+                }
+            } catch (error: any) {
+                Alert.alert('Error', error.message || 'Failed to start trial');
+            } finally {
+                setLoading(false);
+            }
+        } else {
+            const productId = selectedPeriod === 'monthly'
+                ? PRODUCT_IDS.CORE_MONTHLY
+                : PRODUCT_IDS.CORE_YEARLY;
+            try {
+                await purchaseSubscription(productId);
+                await refreshSubscriptionStatus();
+            } catch (error: any) {
+                Alert.alert('Purchase Failed', error.message || 'Unable to complete purchase');
+            }
+        }
+    };
 
-  return (
-    <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage}>
-      <SafeAreaView style={styles.safe}>
-        <View style={styles.outerBoxContainer}>
-          <LogoHeader />
+    return (
+        /*
+          FLAT layout — SafeAreaView is the sole flex container.
+          Header, card (flex:1), and footer are DIRECT children so iOS Yoga
+          computes a concrete, stable card height in a single pass.
+          Chained flex:1 wrappers cause height collapse during scroll on iOS.
+        */
+        <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage} scrollable>
+            <SafeAreaView style={styles.safe}>
 
-          <View style={styles.outerBox}>
-            <View style={styles.headerRow}>
-              {canGoBack && (
-                <TouchableOpacity
-                  accessibilityRole="button"
-                  onPress={() => navigation.goBack()}
-                  style={styles.backButton}
-                >
-                  <Image
-                    source={require('../assets/back-arrow.png')}
-                    style={styles.backArrow}
-                    accessibilityIgnoresInvertColors
-                  />
-                </TouchableOpacity>
-              )}
+                {/* ── Logo ────────────────────────────────────────────────── */}
+                <LogoHeader />
 
-              <View style={styles.titleContainer}>
-                <Text style={styles.title}>Start your{`\n`}14 Day free trial</Text>
-                <Text style={styles.subtitle}>
-                  Reflect, remember, and track what’s changing in real time.
-                </Text>
-              </View>
-            </View>
-
-            <View style={styles.innerBox}>
-              <View style={styles.cardWrapper}>
-                <LinearGradient
-                  colors={cardGradient}
-                  start={{ x: 0.5, y: 0 }}
-                  end={{ x: 0.5, y: 1 }}
-                  style={styles.cardGradient}
-                  pointerEvents="none"
-                />
-                <ScrollView
-                  style={styles.cardScroll}
-                  contentContainerStyle={styles.cardContent}
-                  showsVerticalScrollIndicator={false}
-                >
-                  <Text style={styles.cardTitle}>Mirror Core</Text>
-                  <Text style={styles.cardSubtitle}>Your daily reflective companion.</Text>
-
-                  <View style={styles.starDividerRow}>
-                    <LinearGradient
-                      colors={[palette.gold.DEFAULT, palette.gold.rich]}
-                      start={{ x: 0, y: 0.5 }}
-                      end={{ x: 1, y: 0.5 }}
-                      style={styles.starDividerLine}
-                    />
-                    <StarIcon width={18} height={18} color={palette.gold.DEFAULT} />
-                    <LinearGradient
-                      colors={[palette.gold.rich, palette.gold.DEFAULT]}
-                      start={{ x: 0, y: 0.5 }}
-                      end={{ x: 1, y: 0.5 }}
-                      style={styles.starDividerLine}
-                    />
-                  </View>
-
-                  <View style={styles.bullets}>
-                    <View style={styles.bulletRow}>
-                      <Text style={styles.bulletMarker}>•</Text>
-                      <Text style={styles.bulletLine}>
-                        <Text style={styles.bulletLead}>MirrorGPT</Text> — reflect, process, and gain clarity
-                      </Text>
-                    </View>
-                    <View style={styles.bulletRow}>
-                      <Text style={styles.bulletMarker}>•</Text>
-                      <Text style={styles.bulletLine}>
-                        <Text style={styles.bulletLead}>Echo Map + micro-practices</Text> — see patterns and shift them
-                      </Text>
-                    </View>
-                    <View style={styles.bulletRow}>
-                      <Text style={styles.bulletMarker}>•</Text>
-                      <Text style={styles.bulletLine}>
-                        <Text style={styles.bulletLead}>Private Echo Vault (50 GB)</Text> — your memories, your story
-                      </Text>
-                    </View>
-                  </View>
-
-                  <LinearGradient
-                      colors={[palette.gold.DEFAULT, palette.gold.rich]}
-                      start={{ x: 0, y: 0.5 }}
-                      end={{ x: 1, y: 0.5 }}
-                      style={styles.DividerLine}
-                    />
-
-                  <View style={styles.priceLine}>
-                    <Text style={styles.priceAmount}>$15.99</Text>
-                    <Text style={styles.pricePerMonth}> /month </Text>
-                    <View style={styles.priceOrContainer}>
-                      <Text style={styles.priceOr}> or </Text>
-                    </View>
-                    <Text style={styles.priceYearAmount}> $139</Text>
-                    <Text style={styles.priceYearSuffix}> /year</Text>
-                  </View>
-
-                  <TouchableOpacity
-                    accessibilityRole="button"
-                    activeOpacity={0.85}
-                    onPress={handleButtonPress}
-                    disabled={loading || purchasing || hasActiveSubscription}
-                    style={styles.ctaButton}
-                  >
-                    {(loading || purchasing) ? (
-                      <ActivityIndicator color={palette.gold.DEFAULT} />
-                    ) : (
-                      <Text style={styles.ctaButtonText}>{buttonText}</Text>
+                {/* ── Back + Title ─────────────────────────────────────────── */}
+                {/* Single-element header — matches TermsAndConditionsScreen's
+                    headerRow pattern exactly (back button absolute + centred text).
+                    Subtitle is inside the card so this view stays shallow. */}
+                <View style={styles.headerRow}>
+                    {canGoBack && (
+                        <TouchableOpacity
+                            accessibilityRole="button"
+                            onPress={() => navigation.goBack()}
+                            style={styles.backButton}
+                        >
+                            <Image
+                                source={require('../assets/back-arrow.png')}
+                                style={styles.backArrow}
+                                accessibilityIgnoresInvertColors
+                            />
+                        </TouchableOpacity>
                     )}
-                  </TouchableOpacity>
+                    <Text style={styles.title}>Start your{'\n'}14 Day free trial</Text>
+                </View>
 
-                  <Text style={styles.cancelText}>Cancel anytime.</Text>
-                </ScrollView>
-              </View>
-            </View>
+                {/*
+                  ── Scrollable card ─────────────────────────────────────────
+                  Three-layer gradient border pattern (same as TermsAndConditionsScreen):
+                    1. cardShadow  — gold glow, overflow visible
+                    2. cardGradientBorder — overflow:hidden + LinearGradient absoluteFill
+                       paddingHorizontal:0.5 = left+right gradient border (cross-axis padding
+                       reliably constrains child width on iOS)
+                    3. cardClip — marginVertical:0.25 = top+bottom gradient border
+                       (main-axis margin always respected); dark background; ScrollView inside
+                */}
+                {/* ── Subtitle — direct sibling of headerRow and card in safe's gap column */}
+                <Text style={styles.subtitle}>
+                    Reflect, remember, and track what's changing in real time.
+                </Text>
 
-            <View style={styles.footerLinksRow}>
-              <Text style={styles.footerLinkText}>Terms</Text>
-              <Text style={styles.footerLinkText}>•</Text>
-              <Text style={styles.footerLinkText}>Privacy</Text>
-              <Text style={styles.footerLinkText}>•</Text>
-              <Text style={styles.footerLinkText}>Restore Purchase</Text>
-            </View>
-          </View>
-        </View>
-      </SafeAreaView>
-    </BackgroundWrapper>
-  );
+                <View style={styles.cardShadow}>
+                    <View style={styles.cardGradientBorder}>
+                        <LinearGradient
+                            colors={[glassGradient.border.start, glassGradient.border.end]}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 1 }}
+                            style={StyleSheet.absoluteFill}
+                        />
+                        <View style={styles.cardClip}>
+                            <ScrollView
+                                style={styles.cardScroll}
+                                contentContainerStyle={styles.cardContent}
+                                showsVerticalScrollIndicator={true}
+                                scrollIndicatorInsets={{ right: 1 }}
+                                bounces={true}
+                            >
+                                {/* Card heading */}
+                                <Text style={styles.cardTitle}>Mirror Core</Text>
+                                <Text style={styles.cardSubtitle}>Your daily reflective companion.</Text>
+
+                                {/* Star divider */}
+                                <View style={styles.starDividerRow}>
+                                    <LinearGradient
+                                        colors={[palette.gold.DEFAULT, palette.gold.rich]}
+                                        start={{ x: 0, y: 0.5 }}
+                                        end={{ x: 1, y: 0.5 }}
+                                        style={styles.starDividerLine}
+                                    />
+                                    <StarIcon width={scale(18)} height={scale(18)} color={palette.gold.DEFAULT} />
+                                    <LinearGradient
+                                        colors={[palette.gold.rich, palette.gold.DEFAULT]}
+                                        start={{ x: 0, y: 0.5 }}
+                                        end={{ x: 1, y: 0.5 }}
+                                        style={styles.starDividerLine}
+                                    />
+                                </View>
+
+                                {/* Feature bullets */}
+                                <View style={styles.bullets}>
+                                    <View style={styles.bulletRow}>
+                                        <Text style={styles.bulletMarker}>•</Text>
+                                        <Text style={styles.bulletLine}>
+                                            <Text style={styles.bulletLead}>MirrorGPT</Text>
+                                            {' — reflect, process, and gain clarity'}
+                                        </Text>
+                                    </View>
+                                    <View style={styles.bulletRow}>
+                                        <Text style={styles.bulletMarker}>•</Text>
+                                        <Text style={styles.bulletLine}>
+                                            <Text style={styles.bulletLead}>Echo Map + micro-practices</Text>
+                                            {' — see patterns and shift them'}
+                                        </Text>
+                                    </View>
+                                    <View style={styles.bulletRow}>
+                                        <Text style={styles.bulletMarker}>•</Text>
+                                        <Text style={styles.bulletLine}>
+                                            <Text style={styles.bulletLead}>Private Echo Vault (50 GB)</Text>
+                                            {' — your memories, your story'}
+                                        </Text>
+                                    </View>
+                                </View>
+
+                                {/* Gold divider */}
+                                <LinearGradient
+                                    colors={[palette.gold.DEFAULT, palette.gold.rich]}
+                                    start={{ x: 0, y: 0.5 }}
+                                    end={{ x: 1, y: 0.5 }}
+                                    style={styles.dividerLine}
+                                />
+
+                                {/* Pricing */}
+                                <View style={styles.priceLine}>
+                                    <Text style={styles.priceAmount}>$15.99</Text>
+                                    <Text style={styles.pricePerMonth}> /month </Text>
+                                    <View style={styles.priceOrContainer}>
+                                        <Text style={styles.priceOr}> or </Text>
+                                    </View>
+                                    <Text style={styles.priceYearAmount}> $139</Text>
+                                    <Text style={styles.priceYearSuffix}> /year</Text>
+                                </View>
+
+                                {/* CTA button — standard Button component, gradient variant */}
+                                <Button
+                                    variant="gradient"
+                                    title={loading || purchasing ? 'LOADING...' : buttonText}
+                                    onPress={handleButtonPress}
+                                    disabled={loading || purchasing || hasActiveSubscription}
+                                    style={styles.ctaButtonWrapper}
+                                    containerStyle={styles.ctaButtonContainer}
+                                    contentStyle={styles.ctaButtonContent}
+                                    textStyle={styles.ctaButtonText}
+                                    gradientColors={[glassGradient.button.start, glassGradient.button.end]}
+                                />
+
+                                <Text style={styles.cancelText}>Cancel anytime.</Text>
+                            </ScrollView>
+                        </View>
+                    </View>
+                </View>
+
+                {/* ── Footer ───────────────────────────────────────────────── */}
+                <View style={styles.footerLinksRow}>
+                    <Text style={styles.footerLinkText}>Terms</Text>
+                    <Text style={styles.footerLinkText}>•</Text>
+                    <Text style={styles.footerLinkText}>Privacy</Text>
+                    <Text style={styles.footerLinkText}>•</Text>
+                    <Text style={styles.footerLinkText}>Restore Purchase</Text>
+                </View>
+
+            </SafeAreaView>
+        </BackgroundWrapper>
+    );
 };
 
 export default StartFreeTrialScreen;
 
 const styles = StyleSheet.create<{
-  bg: ViewStyle;
-  bgImage: ImageStyle;
-  safe: ViewStyle;
-  outerBoxContainer: ViewStyle;
-  outerBox: ViewStyle;
-  headerRow: ViewStyle;
-  backButton: ViewStyle;
-  backArrow: ImageStyle;
-  titleContainer: ViewStyle;
-  title: TextStyle;
-  subtitle: TextStyle;
-  innerBox: ViewStyle;
-  cardWrapper: ViewStyle;
-  cardGradient: ViewStyle;
-  cardScroll: ViewStyle;
-  cardContent: ViewStyle;
-  cardTitle: TextStyle;
-  cardSubtitle: TextStyle;
-  starDividerRow: ViewStyle;
-  starDividerLine: ViewStyle;
-  DividerLine: ViewStyle;
-  bullets: ViewStyle;
-  bulletRow: ViewStyle;
-  bulletMarker: TextStyle;
-  bulletLine: TextStyle;
-  bulletLead: TextStyle;
-  priceLine: ViewStyle;
-  priceAmount: TextStyle;
-  pricePerMonth: TextStyle;
-  priceOrContainer: ViewStyle;
-  priceOr: TextStyle;
-  priceYearAmount: TextStyle;
-  priceYearSuffix: TextStyle;
-  priceRemainder: TextStyle;
-  ctaButtonTouchable: ViewStyle;
-  ctaButton: ViewStyle;
-  ctaButtonText: TextStyle;
-  cancelText: TextStyle;
-  footerLinksRow: ViewStyle;
-  footerLinkText: TextStyle;
-}>(
-  {
+    bg: ViewStyle;
+    bgImage: ImageStyle;
+    safe: ViewStyle;
+    headerRow: ViewStyle;
+    backButton: ViewStyle;
+    backArrow: ImageStyle;
+    title: TextStyle;
+    subtitle: TextStyle;
+    cardShadow: ViewStyle;
+    cardGradientBorder: ViewStyle;
+    cardClip: ViewStyle;
+    cardScroll: ViewStyle;
+    cardContent: ViewStyle;
+    cardTitle: TextStyle;
+    cardSubtitle: TextStyle;
+    starDividerRow: ViewStyle;
+    starDividerLine: ViewStyle;
+    dividerLine: ViewStyle;
+    bullets: ViewStyle;
+    bulletRow: ViewStyle;
+    bulletMarker: TextStyle;
+    bulletLine: TextStyle;
+    bulletLead: TextStyle;
+    priceLine: ViewStyle;
+    priceAmount: TextStyle;
+    pricePerMonth: TextStyle;
+    priceOrContainer: ViewStyle;
+    priceOr: TextStyle;
+    priceYearAmount: TextStyle;
+    priceYearSuffix: TextStyle;
+    ctaButtonWrapper: ViewStyle;
+    ctaButtonContainer: ViewStyle;
+    ctaButtonContent: ViewStyle;
+    ctaButtonText: TextStyle;
+    cancelText: TextStyle;
+    footerLinksRow: ViewStyle;
+    footerLinkText: TextStyle;
+}>({
     bg: {
-      flex: 1,
-      backgroundColor: palette.navy.deep,
+        flex: 1,
+        backgroundColor: palette.navy.deep,
     },
     bgImage: {
-      resizeMode: 'cover',
+        resizeMode: 'cover',
     },
+
+    // SafeAreaView — sole flex container, all children are direct siblings.
+    // gap and paddingBottom match TermsAndConditionsScreen exactly so the
+    // flex:1 card gets the same concrete bounded height.
     safe: {
-      flex: 1,
-      backgroundColor: 'transparent',
-    },
-    outerBoxContainer: {
-      flex: 1,
-      paddingHorizontal: outerContainerPaddingHorizontal,
-      paddingTop: 20,
-      paddingBottom: outerContainerPaddingBottom,
-      alignItems: 'center',
+        flex: 1,
+        backgroundColor: 'transparent',
+        paddingHorizontal: scale(24),
+        paddingBottom: verticalScale(24),
+        gap: verticalScale(16),
     },
 
-    outerBox: {
-      width: outerBoxWidth,
-      flex: 1,
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      marginTop: 20,
-    },
-
+    // ── Header row — matches TermsAndConditionsScreen pattern exactly ─────────
+    // back button is absolute so the title Text is the sole layout child
+    // → headerRow height = title natural height (concrete, stable).
     headerRow: {
-      width: '100%',
-      alignItems: 'center',
-      justifyContent: 'center',
-      position: 'relative',
+        width: '100%',
+        alignItems: 'center',
+        justifyContent: 'center',
+        position: 'relative',
     },
     backButton: {
-      position: 'absolute',
-      left: 0,
-      top: 15,
-      width: 40,
-      height: 40,
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 10,
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        width: scale(40),
+        height: verticalScale(40),
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     backArrow: {
-      width: 20,
-      height: 20,
-      resizeMode: 'contain',
-      tintColor: palette.gold.warm,
-    },
-
-    titleContainer: {
-      alignItems: 'center',
-      paddingTop: 14,
+        width: scale(20),
+        height: verticalScale(20),
+        resizeMode: 'contain',
+        tintColor: palette.gold.warm,
     },
     title: {
-      alignSelf: 'stretch',
-      color: palette.gold.DEFAULT,
-      textAlign: 'center',
-      textShadowColor: palette.gold.glow,
-      textShadowOffset: { width: 0, height: 0 },
-      textShadowRadius: 16,
-      fontFamily: 'CormorantGaramond-Regular',
-      fontSize: 32,
-      fontStyle: 'normal',
-      fontWeight: '400',
-      lineHeight: 41.6,
-      includeFontPadding: false,
+        fontFamily: fontFamily.heading,
+        fontSize: moderateScale(fontSize['3xl']),
+        fontWeight: fontWeight.regular,
+        lineHeight: lineHeight.xxl,
+        color: palette.gold.warm,
+        textAlign: 'center',
+        textShadowColor: textShadow.glow.color,
+        textShadowOffset: textShadow.glow.offset,
+        textShadowRadius: textShadow.glow.radius,
     },
+    // Screen subtitle — semantic.typography.styles.body with gold.subtlest colour override
     subtitle: {
-      marginTop: 16,
-      width: 335,
-      maxWidth: '100%',
-      alignSelf: 'center',
-      fontFamily: 'Inter',
-      fontSize: 16,
-      fontStyle: 'normal',
-      fontWeight: '400',
-      lineHeight: 24,
-      color: palette.gold.subtlest,
-      textAlign: 'center',
+        ...semantic.typography.styles.body,
+        color: palette.gold.subtlest,
+        textAlign: 'center',
     },
 
-    innerBox: {
-      flexDirection: 'column',
-      alignItems: 'center',
-      gap: sectionGap,
-      alignSelf: 'stretch',
-      paddingHorizontal: innerBoxSidePadding,
-      flex: 1,
+    // ── Card — three-layer gradient border pattern ────────────────────────────
+    // flex:1 is concrete because siblings (header + footer) have natural heights.
+    // backgroundColor is required for iOS CALayer to compute a shadow shape —
+    // without it the gold glow will not render even with shadowOpacity:1.
+    // palette.navy.deep matches the app background image tone (darkest layer),
+    // so any corner bleed is invisible against the screen background.
+    cardShadow: {
+        flex: 1,
+        alignSelf: 'center',
+        width: scale(313),
+        borderRadius: radius.s,
+        backgroundColor: palette.navy.deep,
+        shadowColor: glassGradient.border.shadowColor,
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 1,
+        shadowRadius: moderateScale(16),
+        elevation: 12,
     },
-
-    cardWrapper: {
-      width: cardWidth,
-      alignSelf: 'center',
-      flex: 1,
-      padding: 20,
-      borderRadius: 13,
-      borderWidth: 0.25,
-      borderColor: palette.navy.muted,
-      backgroundColor: 'transparent',
-      overflow: 'hidden',
-      shadowColor: 'rgba(163, 179, 204, 0.30)',
-      shadowOffset: { width: 0, height: 0 },
-      shadowOpacity: 1,
-      shadowRadius: 25,
+    // paddingHorizontal:0.5 = left+right gradient border (cross-axis padding)
+    cardGradientBorder: {
+        flex: 1,
+        borderRadius: radius.s,
+        overflow: 'hidden',
+        paddingHorizontal: 0.5,
     },
-    cardGradient: {
-      ...StyleSheet.absoluteFillObject,
-      borderRadius: 13,
+    // marginVertical:0.25 = top+bottom gradient border (main-axis margin)
+    cardClip: {
+        flex: 1,
+        marginVertical: 0.25,
+        borderRadius: radius.s - 0.25,
+        overflow: 'hidden',
+        backgroundColor: palette.navy.deep,
     },
     cardScroll: {
-      flex: 1,
-      width: '100%',
+        flex: 1,
     },
     cardContent: {
-      alignItems: 'center',
-      gap: 8,
-      paddingBottom: 8,
+        alignItems: 'center',
+        gap: verticalScale(10),
+        paddingHorizontal: scale(20),
+        paddingTop: verticalScale(20),
+        paddingBottom: verticalScale(20),
     },
 
+    // ── Card content ──────────────────────────────────────────────────────────
     cardTitle: {
-      fontFamily: 'CormorantGaramond-Regular',
-      width: 194,
-      maxWidth: '100%',
-      alignSelf: 'center',
-      fontSize: 32,
-      fontWeight: '400',
-      lineHeight: 41.6,
-      color: palette.gold.DEFAULT,
-      textAlign: 'center',
-      includeFontPadding: false,
+        fontFamily: fontFamily.heading,
+        fontSize: moderateScale(fontSize['3xl']),
+        fontWeight: fontWeight.regular,
+        lineHeight: moderateScale(fontSize['3xl']) * 1.3,
+        color: palette.gold.DEFAULT,
+        textAlign: 'center',
     },
     cardSubtitle: {
-      alignSelf: 'stretch',
-      color: palette.gold.subtlest,
-      textAlign: 'center',
-      fontFamily: 'CormorantGaramond-Regular',
-      fontSize: 20,
-      fontStyle: 'normal',
-      fontWeight: '400',
-      lineHeight: 26,
-      includeFontPadding: false,
+        fontFamily: fontFamily.heading,
+        fontSize: moderateScale(fontSize.l),
+        fontWeight: fontWeight.regular,
+        lineHeight: moderateScale(fontSize.l) * 1.3,
+        color: palette.gold.subtlest,
+        textAlign: 'center',
     },
-
     starDividerRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 12,
-      marginTop: 2,
-      marginBottom: 2,
-      alignSelf: 'stretch',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: scale(12),
+        alignSelf: 'stretch',
     },
     starDividerLine: {
-      width: 73,
-      height: 0.5,
-      borderRadius: 1,
+        flex: 1,
+        height: 0.5,
+        borderRadius: 1,
     },
-
-    DividerLine: {
-      width: 235,
-      height: 0.5,
-      borderRadius: 1,
+    dividerLine: {
+        width: scale(235),
+        height: 0.5,
+        borderRadius: 1,
     },
-
     bullets: {
-      alignSelf: 'stretch',
-      gap: 6,
+        alignSelf: 'stretch',
+        gap: verticalScale(6),
     },
     bulletRow: {
-      flexDirection: 'row',
-      alignItems: 'flex-start',
-      alignSelf: 'stretch',
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        alignSelf: 'stretch',
     },
     bulletMarker: {
-      fontFamily: 'Inter',
-      fontSize: 16,
-      fontStyle: 'normal',
-      fontWeight: '300',
-      lineHeight: 24,
-      color: palette.gold.subtlest,
-      includeFontPadding: false,
-      marginRight: 10,
+        fontFamily: fontFamily.body,
+        fontSize: moderateScale(fontSize.s),
+        fontWeight: fontWeight.light,
+        lineHeight: moderateScale(fontSize.s) * 1.5,
+        color: palette.gold.subtlest,
+        marginRight: scale(10),
     },
     bulletLine: {
-      fontFamily: 'Inter',
-      fontSize: 16,
-      fontStyle: 'normal',
-      fontWeight: '300',
-      lineHeight: 24,
-      color: palette.gold.subtlest,
-      textAlign: 'left',
-      flex: 1,
-      includeFontPadding: false,
+        fontFamily: fontFamily.body,
+        fontSize: moderateScale(fontSize.s),
+        fontWeight: fontWeight.light,
+        lineHeight: moderateScale(fontSize.s) * 1.5,
+        color: palette.gold.subtlest,
+        flex: 1,
     },
     bulletLead: {
-      fontWeight: '400',
-      color: palette.gold.subtlest,
+        fontWeight: fontWeight.regular,
+        color: palette.gold.subtlest,
     },
 
+    // ── Pricing ───────────────────────────────────────────────────────────────
     priceLine: {
-      flexDirection: 'row',
-      justifyContent: 'center',
-      alignItems: 'flex-end',
-      marginTop: 4,
-      marginBottom: 2,
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'flex-end',
     },
     priceAmount: {
-      color: palette.gold.subtlest,
-      textAlign: 'center',
-      fontFamily: 'CormorantGaramond-Regular',
-      fontSize: 24,
-      fontStyle: 'normal',
-      fontWeight: '400',
-      lineHeight: 31.2,
-      includeFontPadding: false,
+        fontFamily: fontFamily.heading,
+        fontSize: moderateScale(fontSize.xl),
+        fontWeight: fontWeight.regular,
+        lineHeight: moderateScale(fontSize.xl) * 1.3,
+        color: palette.gold.subtlest,
+        textAlign: 'center',
     },
     pricePerMonth: {
-      width: 65,
-      color: palette.gold.subtlest,
-      textAlign: 'center',
-      fontFamily: 'CormorantGaramond-Regular',
-      fontSize: 20,
-      fontStyle: 'normal',
-      fontWeight: '400',
-      lineHeight: 26,
-      includeFontPadding: false,
+        fontFamily: fontFamily.heading,
+        fontSize: moderateScale(fontSize.l),
+        fontWeight: fontWeight.regular,
+        lineHeight: moderateScale(fontSize.l) * 1.3,
+        color: palette.gold.subtlest,
+        textAlign: 'center',
     },
     priceOrContainer: {
-      display: 'flex',
-      width: 19,
-      height: 30,
-      flexDirection: 'column',
-      justifyContent: 'flex-end',
-      flexShrink: 0,
-      alignItems: 'center',
+        justifyContent: 'flex-end',
+        alignItems: 'center',
     },
     priceOr: {
-      color: palette.gold.subtlest,
-      textAlign: 'center',
-      fontFamily: 'Inter',
-      fontSize: 16,
-      fontStyle: 'normal',
-      fontWeight: '300',
-      lineHeight: 24,
-      includeFontPadding: false,
+        fontFamily: fontFamily.body,
+        fontSize: moderateScale(fontSize.s),
+        fontWeight: fontWeight.light,
+        lineHeight: moderateScale(fontSize.s) * 1.5,
+        color: palette.gold.subtlest,
+        textAlign: 'center',
     },
     priceYearAmount: {
-      color: palette.gold.DEFAULT,
-      textAlign: 'center',
-      fontFamily: 'CormorantGaramond-Regular',
-      fontSize: 24,
-      fontStyle: 'normal',
-      fontWeight: '400',
-      lineHeight: 31.2,
-      includeFontPadding: false,
+        fontFamily: fontFamily.heading,
+        fontSize: moderateScale(fontSize.xl),
+        fontWeight: fontWeight.regular,
+        lineHeight: moderateScale(fontSize.xl) * 1.3,
+        color: palette.gold.DEFAULT,
+        textAlign: 'center',
     },
     priceYearSuffix: {
-      color: palette.gold.DEFAULT,
-      textAlign: 'center',
-      fontFamily: 'CormorantGaramond-Italic',
-      fontSize: 20,
-      fontWeight: '400',
-      lineHeight: 26,
-      includeFontPadding: false,
-    },
-    priceRemainder: {
-      fontFamily: 'Inter',
-      fontSize: 12,
-      fontWeight: '300',
-      lineHeight: 16,
-      color: palette.gold.subtlest,
-      opacity: 0.9,
-      includeFontPadding: false,
+        fontFamily: fontFamily.headingItalic,
+        fontSize: moderateScale(fontSize.l),
+        fontWeight: fontWeight.regular,
+        lineHeight: moderateScale(fontSize.l) * 1.3,
+        color: palette.gold.DEFAULT,
+        textAlign: 'center',
     },
 
-    ctaButtonTouchable: {
-      alignSelf: 'stretch',
+    // ── CTA button — overrides for standard Button (gradient variant) ─────────
+    ctaButtonWrapper: {
+        alignSelf: 'stretch',
+        backgroundColor: palette.neutral.transparent,
+        shadowOpacity: 0,
+        elevation: 0,
+        borderRadius: radius.m,
     },
-    ctaButton: {
-      flexDirection: 'row',
-      justifyContent: 'center',
-      alignItems: 'center',
-      alignSelf: 'stretch',
-      borderRadius: 12,
-      borderWidth: 1,
-      borderColor: 'rgba(229, 214, 176, 0.4)',
-      backgroundColor: 'rgba(58, 74, 92, 0.3)',
-      height: 44,
-      shadowColor: palette.gold.DEFAULT,
-      shadowOffset: { width: 0, height: 0 },
-      shadowOpacity: 0.25,
-      shadowRadius: 16,
+    ctaButtonContainer: {
+        borderWidth: borderWidth.thin,
+        borderColor: palette.navy.light,
+        borderRadius: radius.m,
+    },
+    ctaButtonContent: {
+        paddingVertical: verticalScale(10),
+        paddingHorizontal: scale(16),
+        minWidth: 0,
     },
     ctaButtonText: {
-      fontFamily: 'CormorantGaramond-Regular',
-      fontSize: 24,
-      fontStyle: 'normal',
-      fontWeight: '400',
-      lineHeight: 31.2,
-      color: palette.gold.DEFAULT,
-      textAlign: 'center',
-      textShadowColor: 'rgba(229, 214, 176, 0.50)',
-      textShadowOffset: { width: 0, height: 0 },
-      textShadowRadius: 9,
-      includeFontPadding: false,
+        fontFamily: fontFamily.heading,
+        fontSize: moderateScale(fontSize.xl),
+        fontWeight: fontWeight.regular,
+        lineHeight: lineHeight.l,
+        letterSpacing: 0,
+        color: palette.gold.DEFAULT,
+        textShadowColor: textShadow.warmGlow.color,
+        textShadowOffset: textShadow.warmGlow.offset,
+        textShadowRadius: textShadow.warmGlow.radius,
+        textTransform: 'none',
     },
+    // semantic.typography.styles.label — italic Inter 14px — with gold.subtlest colour override
     cancelText: {
-      fontFamily: 'Inter',
-      fontSize: 14,
-      fontStyle: 'italic',
-      fontWeight: '400',
-      lineHeight: 19.6,
-      color: palette.gold.subtlest,
-      textAlign: 'center',
-      opacity: 0.85,
-      marginTop: 2,
-      includeFontPadding: false,
+        ...semantic.typography.styles.label,
+        color: palette.gold.subtlest,
+        textAlign: 'center',
+        opacity: 0.85,
     },
 
+    // ── Footer ────────────────────────────────────────────────────────────────
     footerLinksRow: {
-      flexDirection: 'row',
-      justifyContent: 'center',
-      alignItems: 'center',
-      gap: 6,
-      marginTop: 16,
-      paddingBottom: 4,
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: scale(6),
     },
     footerLinkText: {
-      fontFamily: 'Inter',
-      fontSize: 14,
-      fontWeight: '300',
-      lineHeight: 19.6,
-      color: palette.navy.light,
-      textAlign: 'center',
-      includeFontPadding: false,
+        fontFamily: fontFamily.body,
+        fontSize: moderateScale(fontSize.xs),
+        fontWeight: fontWeight.light,
+        lineHeight: moderateScale(fontSize.xs) * 1.4,
+        color: palette.navy.light,
+        textAlign: 'center',
     },
-  },
-);
+});

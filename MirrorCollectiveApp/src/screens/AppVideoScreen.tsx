@@ -1,17 +1,18 @@
 import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import React, { useCallback, useRef, useState } from 'react';
 import { palette } from '@theme';
+import type { RootStackParamList } from '@types';
+import React, { useCallback, useRef, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Video from 'react-native-video';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
-import type { RootStackParamList } from '@types';
+
 
 const VIDEO_URL =
-  'https://mirror-app-video.s3.us-east-1.amazonaws.com/%21%20MIRROR%20EXPLAINER.MP4';
+  'https://mirror-app-video.s3.us-east-1.amazonaws.com/Mirror+App+Explainer+Video.mp4';
 
 interface Props {
   navigation: NativeStackNavigationProp<RootStackParamList, 'AppVideo'>;

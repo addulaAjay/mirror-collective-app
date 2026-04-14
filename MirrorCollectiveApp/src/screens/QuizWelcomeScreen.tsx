@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { palette, radius, fontFamily, fontSize, fontWeight, elevation, glassGradient, scale, verticalScale, moderateScale } from '@theme';
+import { palette, radius, fontFamily, fontSize, fontWeight, glassGradient, scale, verticalScale, moderateScale } from '@theme';
 import type { RootStackParamList } from '@types';
 import React from 'react';
 import { useEffect } from 'react';
@@ -224,10 +224,13 @@ const styles = StyleSheet.create<{
     textTransform: 'uppercase',
   },
   // Three-layer gradient border pattern (matches TermsAndConditionsScreen)
+  // backgroundColor gives iOS CALayer a concrete shape to render the gold
+  // glow shadow from. palette.navy.deep matches the app background tone.
   cardShadow: {
     alignSelf: 'center',
     width: scale(313),
     borderRadius: radius.s,
+    backgroundColor: palette.navy.deep,
     shadowColor: glassGradient.border.shadowColor,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 1,
@@ -245,7 +248,7 @@ const styles = StyleSheet.create<{
     marginVertical: 0.25,
     borderRadius: radius.s - 0.25,
     overflow: 'hidden',
-    backgroundColor: palette.navy.cardInner,
+    backgroundColor: palette.navy.deep,
     minHeight: verticalScale(251),
     paddingVertical: verticalScale(20),
     paddingHorizontal: scale(16),
