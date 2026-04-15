@@ -353,7 +353,7 @@ const styles = StyleSheet.create<{
     textAlign: 'center',
     textShadowColor: palette.gold.warm,
     textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: moderateScale(20),
+    textShadowRadius: 8,
   },
 
   // 44pt minimum touch target
