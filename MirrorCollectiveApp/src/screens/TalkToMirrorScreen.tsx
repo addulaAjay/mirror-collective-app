@@ -1,4 +1,5 @@
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { OnboardingService } from '@services';
 import {
   palette,
   fontFamily,
@@ -14,7 +15,7 @@ import {
   moderateScale,
 } from '@theme';
 import type { RootStackParamList } from '@types';
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   Image,
   ScrollView,
@@ -51,6 +52,15 @@ const MENU_OPTIONS = [
 const TalkToMirrorScreen: React.FC<Props> = ({ navigation }) => {
   const { user } = useUser();
   const firstName = user?.fullName ? user.fullName.split(' ')[0] : 'Friend';
+
+  // Mark onboarding as complete when this screen first mounts
+  useEffect(() => {
+    const markOnboardingComplete = async () => {
+      await OnboardingService.markOnboardingComplete();
+    };
+
+    markOnboardingComplete();
+  }, []);
 
   const handleTalkPress = () => {
     navigation.navigate('MirrorChat');

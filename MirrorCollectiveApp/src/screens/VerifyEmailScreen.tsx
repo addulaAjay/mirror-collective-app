@@ -332,12 +332,15 @@ const styles = StyleSheet.create({
     gap: verticalScale(24),
     alignSelf: 'stretch',
   },
+  // Input placeholder style matching Login/SignUp screens
+  // Inter Regular 16px, lh:24, #fdfdf9 (text/paragraph-2)
   inputPlaceholder: {
-    fontFamily: 'CormorantGaramond-MediumItalic',
-    fontSize: moderateScale(fontSize.xl),
-    fontStyle: 'italic',
-    fontWeight: fontWeight.medium,
-    lineHeight: moderateScale(fontSize.xl) * 1.3,
+    fontFamily: fontFamily.body,                          // Inter18pt-Regular
+    fontSize: moderateScale(fontSize.s, 0.3),             // 16px
+    lineHeight: lineHeight.m,                             // 24px
+    color: palette.gold.subtlest,                         // #fdfdf9 (text/paragraph-2)
+    textShadowColor: 'transparent',                       // No shadow
+    textShadowRadius: 0,
   },
   buttonWrapper: {
     backgroundColor: palette.neutral.transparent,
