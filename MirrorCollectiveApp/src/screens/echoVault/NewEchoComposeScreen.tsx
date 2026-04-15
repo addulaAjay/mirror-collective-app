@@ -1,4 +1,4 @@
-import { palette } from '@theme';
+﻿import { palette } from '@theme';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '@types';
 import React, { useState, useMemo } from 'react';
@@ -25,6 +25,7 @@ import { launchImageLibrary } from 'react-native-image-picker';
 import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Camera, useCameraDevice, useCameraPermission, useMicrophonePermission } from 'react-native-vision-camera';
+import Video from 'react-native-video';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
@@ -56,6 +57,14 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
   const [isPicking, setIsPicking] = useState(false);
   const [pendingPicker, setPendingPicker] = useState<'audio' | 'video' | 'text' | null>(null);
 
+  // Audio Playback
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const [audioPosition, setAudioPosition] = useState(0);
+  const [audioDuration, setAudioDuration] = useState(0);
+
+  // Video Playback
+  const [videoPaused, setVideoPaused] = useState(true);
+
   // Audio Recorder
   const audioRecorderPlayer = React.useRef(AudioRecorderPlayer).current;
 
@@ -72,18 +81,64 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
     return 'NEW ECHO';
   }, [recipientName]);
 
+  // Request camera + mic permissions when in video mode
+  React.useEffect(() => {
+    if (mode === 'video') {
+      (async () => {
+        if (!hasCamPermission) await requestCamPermission();
+        if (!hasMicPermission) await requestMicPermission();
+      })();
+    }
+  }, [mode, hasCamPermission, hasMicPermission]);
+
   // Cleanup on unmount
   React.useEffect(() => {
     return () => {
-      // Stop audio
       audioRecorderPlayer.stopRecorder().catch(() => {});
       audioRecorderPlayer.removeRecordBackListener();
-      // Stop video
-      if (camera.current) {
-        camera.current.stopRecording().catch(() => {});
-      }
+      audioRecorderPlayer.stopPlayer().catch(() => {});
+      audioRecorderPlayer.removePlayBackListener();
+      const cam = camera.current;
+      if (cam) cam.stopRecording().catch(() => {});
     };
   }, []);
+
+  const formatDuration = (secs: number): string => {
+    const m = Math.floor(secs / 60);
+    const s = Math.floor(secs % 60);
+    return `${m}:${s.toString().padStart(2, '0')}`;
+  };
+
+  const toggleAudioPlayback = async () => {
+    if (!mediaUri) return;
+    if (isPlayingAudio) {
+      await audioRecorderPlayer.stopPlayer();
+      audioRecorderPlayer.removePlayBackListener();
+      setIsPlayingAudio(false);
+      setAudioPosition(0);
+    } else {
+      await audioRecorderPlayer.startPlayer(mediaUri);
+      audioRecorderPlayer.addPlayBackListener((e: any) => {
+        setAudioPosition(Math.floor(e.currentPosition / 1000));
+        setAudioDuration(Math.floor(e.duration / 1000));
+        if (e.currentPosition >= e.duration) {
+          audioRecorderPlayer.stopPlayer().catch(() => {});
+          audioRecorderPlayer.removePlayBackListener();
+          setIsPlayingAudio(false);
+          setAudioPosition(0);
+        }
+      });
+      setIsPlayingAudio(true);
+    }
+  };
+
+  const stopAudioPlayback = async () => {
+    await audioRecorderPlayer.stopPlayer().catch(() => {});
+    audioRecorderPlayer.removePlayBackListener();
+    setIsPlayingAudio(false);
+    setAudioPosition(0);
+    setAudioDuration(0);
+  };
 
   /* ---------- Logic ---------- */
 
@@ -235,6 +290,7 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
     }
 
     setIsSaving(true);
+    let echoId: string | null = null;
     try {
        // 1. Create Echo Metadata
        const createResponse = await echoApiService.createEcho({
@@ -249,36 +305,38 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
        });
 
        if (!createResponse.success || !createResponse.data) {
-         throw new Error('Failed to create echo');
+         throw new Error('Failed to create echo. Please check your connection and try again.');
        }
-       const echoId = createResponse.data.echo_id;
+       echoId = createResponse.data.echo_id;
 
         // 2. Upload Media if applicable
-        if (mode !== 'text' && mediaUri) {
-          // Use picked file type if available, otherwise default to mp4
+        if (mode !== 'text' && mediaUri && echoId) {
           const contentType = mediaFile?.type || (mode === 'audio' ? 'audio/mp4' : 'video/mp4');
           
           const uploadUrlResponse = await echoApiService.getUploadUrl(contentType, echoId);
-          if (uploadUrlResponse.success && uploadUrlResponse.data) {
-             await echoApiService.uploadMedia(
-               uploadUrlResponse.data.upload_url,
-               mediaUri,
-               contentType
-             );
-             // Update echo with media URL
-             await echoApiService.updateEcho(echoId, {
-                media_url: uploadUrlResponse.data.media_url,
-             });
+          if (!uploadUrlResponse.success || !uploadUrlResponse.data) {
+            throw new Error('Could not get upload URL. Please try again.');
           }
+
+          await echoApiService.uploadMedia(
+            uploadUrlResponse.data.upload_url,
+            mediaUri,
+            contentType
+          );
+
+          await echoApiService.updateEcho(echoId, {
+            media_url: uploadUrlResponse.data.media_url,
+          });
         }
 
        Alert.alert('Success', 'Echo saved to vault!', [
          { text: 'OK', onPress: () => navigation.navigate('MirrorEchoVaultLibrary' as any) }
        ]);
 
-    } catch (error) {
+    } catch (error: any) {
        console.error('Save failed:', error);
-       Alert.alert('Error', 'Failed to save echo.');
+       const errMsg = error?.message || 'Failed to save echo. Please try again.';
+       Alert.alert('Error', errMsg);
     } finally {
        setIsSaving(false);
     }
@@ -293,6 +351,8 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
    * presenting the system picker, otherwise it can hang or stay transparent.
    */
   const handleModalDismissed = () => {
+    // Only used on iOS; Android triggers pickers directly from handle* functions
+    if (Platform.OS === 'android') return;
     if (!pendingPicker) return;
     
     const type = pendingPicker;
@@ -313,13 +373,20 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
     }
     setPendingPicker('audio');
     setShowUploadSheet(false);
+    // On Android, Modal onDismiss doesn't fire, so trigger directly
+    if (Platform.OS === 'android') {
+      setTimeout(() => executePickAudio(), 300);
+    }
   };
 
   const executePickAudio = async () => {
     try {
       setIsPicking(true);
       const res = await DocumentPicker.pickSingle({
-         type: [DocumentPicker.types.audio],
+        // Restrict to common audio formats only
+        type: [
+          DocumentPicker.types.audio, // audio/* — covers mp3, m4a, wav, aac, ogg, flac, etc.
+        ],
       });
       if (res) {
         setMediaUri(res.uri);
@@ -343,6 +410,10 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
     }
     setPendingPicker('video');
     setShowUploadSheet(false);
+    // On Android, Modal onDismiss doesn't fire, so trigger directly
+    if (Platform.OS === 'android') {
+      setTimeout(() => executePickVideo(), 300);
+    }
   };
 
   const executePickVideo = async () => {
@@ -368,14 +439,24 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
     if (isPicking) return;
     setPendingPicker('text');
     setShowUploadSheet(false);
+    // On Android, Modal onDismiss doesn't fire, so trigger directly
+    if (Platform.OS === 'android') {
+      setTimeout(() => executePickText(), 300);
+    }
   };
 
   const executePickText = async () => {
     try {
       setIsPicking(true);
       const res = await DocumentPicker.pickSingle({
-         type: [DocumentPicker.types.plainText, DocumentPicker.types.allFiles],
-       });
+        // Restrict to text-related formats only (txt, pdf, doc, docx)
+        type: [
+          DocumentPicker.types.plainText,
+          DocumentPicker.types.pdf,
+          DocumentPicker.types.doc,
+          DocumentPicker.types.docx,
+        ],
+      });
       if (res && res.uri) {
          setMediaFile({ name: res.name || 'document.txt', type: res.type || 'text/plain' });
          const response = await fetch(res.uri);
@@ -475,39 +556,75 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
 
           {mode === 'audio' && (
             <>
-              <View style={styles.audioWaveWrap}>
-                {mediaUri && mediaFile ? (
-                  <View style={styles.pickedMediaContainer}>
-                    <Text style={styles.pickedMediaIcon}>ðŸ“„</Text>
-                    <Text style={styles.pickedMediaName} numberOfLines={1}>
+              {mediaUri && mediaFile ? (
+                <View style={styles.audioPreviewCard}>
+                  {/* Remove */}
+                  <TouchableOpacity
+                    style={styles.audioRemoveBtn}
+                    onPress={() => {
+                      stopAudioPlayback();
+                      setMediaUri(null);
+                      setMediaFile(null);
+                    }}
+                  >
+                    <Text style={styles.audioRemoveBtnText}>&#x2715;</Text>
+                  </TouchableOpacity>
+
+                  {/* File info */}
+                  <View style={styles.audioFileInfoRow}>
+                    <View style={styles.audioTypeBadge}>
+                      <Text style={styles.audioTypeBadgeText}>
+                        {(mediaFile.type.split('/')[1] || 'AUDIO').toUpperCase()}
+                      </Text>
+                    </View>
+                    <Text style={styles.audioPreviewFileName} numberOfLines={2}>
                       {mediaFile.name}
                     </Text>
-                    <TouchableOpacity
-                      onPress={() => {
-                        setMediaUri(null);
-                        setMediaFile(null);
-                      }}
-                    >
-                      <Text style={styles.removeMediaText}>Remove</Text>
+                  </View>
+
+                  {/* Waveform */}
+                  <View style={styles.audioPreviewWaveWrap}>
+                    <Waveform />
+                  </View>
+
+                  {/* Playback controls */}
+                  <View style={styles.audioPlaybackRow}>
+                    <Text style={styles.audioTimerText}>{formatDuration(audioPosition)}</Text>
+                    <TouchableOpacity style={styles.audioPlayPauseBtn} onPress={toggleAudioPlayback}>
+                      <Image
+                        source={
+                          isPlayingAudio
+                            ? require('@assets/pause_circle.png')
+                            : require('@assets/play_circle.png')
+                        }
+                        style={styles.audioPlayPauseBtnIcon}
+                        resizeMode="contain"
+                      />
+                    </TouchableOpacity>
+                    <Text style={styles.audioTimerText}>
+                      {audioDuration > 0 ? formatDuration(audioDuration) : '--:--'}
+                    </Text>
+                  </View>
+                </View>
+              ) : (
+                <>
+                  <View style={styles.audioWaveWrap}>
+                    <Waveform />
+                  </View>
+                  <View style={styles.centerIconWrap}>
+                    <TouchableOpacity onPress={toggleAudioRecording}>
+                      <CircleIcon
+                        icon={
+                          isRecording
+                            ? require('@assets/pause_circle.png')
+                            : require('@assets/mic2.png')
+                        }
+                        fullSize={isRecording}
+                      />
                     </TouchableOpacity>
                   </View>
-                ) : (
-                  <Waveform />
-                )}
-              </View>
-
-              <View style={styles.centerIconWrap}>
-                <TouchableOpacity onPress={toggleAudioRecording}>
-                  <CircleIcon
-                    icon={
-                      isRecording
-                        ? require('@assets/pause_circle.png')
-                        : require('@assets/mic2.png')
-                    }
-                    fullSize={isRecording}
-                  />
-                </TouchableOpacity>
-              </View>
+                </>
+              )}
 
               <View style={styles.bottomButtonsRow}>
                 <SmallPillButton label="Upload File" onPress={onUpload} />
@@ -534,7 +651,6 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
               </View>
             </>
           )}
-
           {mode === 'video' && (
             <>
               <LinearGradient
@@ -545,59 +661,100 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
               >
                 <View style={[styles.bigBoxInnerBorder, styles.videoBigBox]}>
                   {mediaUri && mediaFile ? (
-                    <View
-                      style={[
-                        styles.videoPreviewPlaceholder,
-                        { backgroundColor: 'transparent' },
-                      ]}
-                    >
-                      <Text style={styles.pickedMediaIcon}>ðŸŽ¬</Text>
-                      <Text style={styles.pickedMediaName} numberOfLines={1}>
-                        {mediaFile.name}
-                      </Text>
-                      <TouchableOpacity
-                        onPress={() => {
-                          setMediaUri(null);
-                          setMediaFile(null);
-                        }}
+                    <>
+                      <Video
+                        source={{ uri: mediaUri }}
+                        style={StyleSheet.absoluteFill}
+                        resizeMode="contain"
+                        paused={videoPaused}
+                        controls={false}
+                        repeat={false}
+                        onEnd={() => setVideoPaused(true)}
+                      />
+                      {/* Top scrim: filename + remove */}
+                      <LinearGradient
+                        colors={['rgba(0,0,0,0.65)', 'transparent']}
+                        style={styles.videoTopScrim}
                       >
-                        <Text style={styles.removeMediaText}>Remove</Text>
+                        <Text style={styles.videoPickedName} numberOfLines={1}>
+                          {mediaFile.name}
+                        </Text>
+                        <TouchableOpacity
+                          style={styles.videoRemoveBtn}
+                          onPress={() => {
+                            setVideoPaused(true);
+                            setMediaUri(null);
+                            setMediaFile(null);
+                          }}
+                        >
+                          <Text style={styles.videoRemoveBtnText}>&#x2715;</Text>
+                        </TouchableOpacity>
+                      </LinearGradient>
+                      {/* Center tap to play/pause */}
+                      <TouchableOpacity
+                        style={styles.videoCenterPlayBtn}
+                        activeOpacity={0.8}
+                        onPress={() => setVideoPaused(p => !p)}
+                      >
+                        {videoPaused && (
+                          <Image
+                            source={require('@assets/play_circle.png')}
+                            style={styles.videoPlayIconImg}
+                            resizeMode="contain"
+                          />
+                        )}
                       </TouchableOpacity>
-                    </View>
-                  ) : device ? (
+                    </>
+                  ) : device && hasCamPermission ? (
                     <Camera
                       ref={camera}
                       style={StyleSheet.absoluteFill}
                       device={device}
                       isActive={true}
                       video={true}
-                      audio={true}
+                      audio={hasMicPermission}
                     />
                   ) : (
                     <View style={styles.videoPreviewPlaceholder}>
-                      <Text style={styles.previewHint}>No Camera Device</Text>
+                      <Text style={styles.previewHint}>
+                        {!hasCamPermission ? 'Camera Permission Required' : 'No Camera Device'}
+                      </Text>
+                      {!hasCamPermission && (
+                        <TouchableOpacity
+                          onPress={async () => {
+                            const granted = await requestCamPermission();
+                            if (!granted) Linking.openSettings();
+                          }}
+                          style={styles.grantPermissionBtn}
+                        >
+                          <Text style={styles.removeMediaText}>Grant Permission</Text>
+                        </TouchableOpacity>
+                      )}
                     </View>
                   )}
 
-                  {/* Record button overlay */}
-                  <TouchableOpacity
-                    style={styles.videoOverlayBtn}
-                    activeOpacity={0.8}
-                    onPress={toggleVideoRecording}
-                  >
-                    <CircleIcon
-                      icon={
-                        isRecording
-                          ? require('@assets/pause_circle.png')
-                          : require('@assets/videocam_2.png')
-                      }
-                      fullSize={isRecording}
-                    />
-                  </TouchableOpacity>
+                  {/* Record button — hidden when media is picked */}
+                  {!mediaUri && (
+                    <TouchableOpacity
+                      style={styles.videoOverlayBtn}
+                      activeOpacity={0.8}
+                      onPress={toggleVideoRecording}
+                    >
+                      <CircleIcon
+                        icon={
+                          isRecording
+                            ? require('@assets/pause_circle.png')
+                            : require('@assets/videocam_2.png')
+                        }
+                        fullSize={isRecording}
+                      />
+                    </TouchableOpacity>
+                  )}
                 </View>
               </LinearGradient>
 
               <View style={styles.bottomButtonsRow}>
+                <SmallPillButton label="Upload File" onPress={onUpload} />
                 <TouchableOpacity
                   activeOpacity={0.85}
                   style={[styles.saveWrap, isSaving && styles.disabled]}
@@ -1039,6 +1196,175 @@ const styles = StyleSheet.create({
   previewHint: {
     color: 'rgba(253,253,249,0.55)',
     fontSize: 14,
+  },
+  grantPermissionBtn: {
+    marginTop: 12,
+  },
+
+  // ── Video picked preview ──
+  videoTopScrim: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingTop: 10,
+    paddingBottom: 28,
+    zIndex: 5,
+  },
+  videoPickedName: {
+    flex: 1,
+    color: OFFWHITE,
+    fontSize: 13,
+    marginRight: 8,
+    letterSpacing: 0.3,
+  },
+  videoRemoveBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  videoRemoveBtnText: {
+    color: OFFWHITE,
+    fontSize: 14,
+    lineHeight: 18,
+  },
+  videoCenterPlayBtn: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 3,
+  },
+  videoPlayIconCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.7)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  videoPlayIconImg: {
+    width: 72,
+    height: 72,
+    tintColor: OFFWHITE,
+  },
+
+  // ── Audio picked preview ──
+  audioPreviewCard: {
+    flex: 1,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(215,192,138,0.2)',
+    backgroundColor: 'rgba(7,9,14,0.55)',
+    overflow: 'hidden',
+    paddingHorizontal: 16,
+    paddingTop: 44,
+    paddingBottom: 16,
+    marginTop: 14,
+    gap: 12,
+  },
+  audioRemoveBtn: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderWidth: 0.5,
+    borderColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1,
+  },
+  audioRemoveBtnText: {
+    color: OFFWHITE,
+    fontSize: 14,
+  },
+  audioFileInfoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingRight: 8,
+  },
+  audioTypeBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    backgroundColor: 'rgba(215,192,138,0.12)',
+    borderWidth: 0.5,
+    borderColor: 'rgba(215,192,138,0.4)',
+  },
+  audioTypeBadgeText: {
+    color: GOLD,
+    fontSize: 10,
+    letterSpacing: 1.5,
+    fontWeight: '600',
+  },
+  audioPreviewFileName: {
+    flex: 1,
+    color: OFFWHITE,
+    fontSize: 14,
+    lineHeight: 18,
+  },
+  audioPreviewWaveWrap: {
+    flex: 1,
+    minHeight: 80,
+    opacity: 0.55,
+  },
+  audioPlaybackRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 4,
+  },
+  audioTimerText: {
+    color: 'rgba(253,253,249,0.45)',
+    fontSize: 13,
+    minWidth: 40,
+    textAlign: 'center',
+  },
+  audioPlayPauseBtn: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(215,192,138,0.10)',
+    borderWidth: 1,
+    borderColor: 'rgba(215,192,138,0.4)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...Platform.select({
+      ios: {
+        shadowColor: GOLD,
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.45,
+        shadowRadius: 14,
+      },
+      android: {
+        boxShadow: '0px 0px 14px 4px rgba(215,192,138,0.35)',
+      },
+    }),
+  },
+  audioPlayPauseBtnText: {
+    color: GOLD,
+    fontSize: 22,
+    marginLeft: 3,
+  },
+  audioPlayPauseBtnIcon: {
+    width: 36,
+    height: 36,
+    tintColor: GOLD,
   },
 
   modalBackdrop: {

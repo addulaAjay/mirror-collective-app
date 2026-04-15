@@ -142,49 +142,31 @@ export class EchoApiService extends BaseApiService {
     return ApiErrorHandler.handleApiResponse(response, 'Upload URL retrieved');
   }
 
-  async uploadMedia(uploadUrl: string, fileUri: string, contentType: string): Promise<Response> {
-    // For React Native, we need to read the file and upload as blob
-    // The file URI comes from the audio recorder (e.g., file:///path/to/recording.m4a)
-    
+  async uploadMedia(uploadUrl: string, fileUri: string, contentType: string): Promise<void> {
+    // Step 1: Read the local file into a blob
+    let blob: Blob;
     try {
-      // Use XMLHttpRequest for React Native file uploads to S3
-      // This is more reliable than fetch for binary uploads
-      return new Promise((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.open('PUT', uploadUrl);
-        xhr.setRequestHeader('Content-Type', contentType);
-        
-        xhr.onload = () => {
-          if (xhr.status >= 200 && xhr.status < 300) {
-            resolve(new Response(null, { status: xhr.status, statusText: xhr.statusText }));
-          } else {
-            reject(new Error(`Upload failed: ${xhr.status} ${xhr.statusText}`));
-          }
-        };
-        
-        xhr.onerror = () => {
-          reject(new Error('Network error during upload'));
-        };
-        
-        // For React Native, we can use the file URI directly with XHR
-        // React Native's XHR implementation handles file:// URIs
-        fetch(fileUri)
-          .then(res => res.blob())
-          .then(blob => {
-            xhr.send(blob);
-          })
-          .catch(_err => {
-            // Fallback: try direct URI upload (works on some RN versions)
-            try {
-              xhr.send({ uri: fileUri, type: contentType, name: 'media' } as any);
-            } catch (error) {
-              reject(new Error('Failed to upload media using fallback method'));
-            }
-          });
-      });
-    } catch (error) {
-      console.error('Upload error:', error);
-      throw error;
+      const fileResponse = await fetch(fileUri);
+      if (!fileResponse.ok) {
+        throw new Error(`Failed to read local file: ${fileResponse.status}`);
+      }
+      blob = await fileResponse.blob();
+    } catch (error: any) {
+      console.error('Failed to read media file:', error);
+      throw new Error(`Cannot read media file: ${error.message}`);
+    }
+
+    // Step 2: PUT the blob to the presigned S3 URL
+    const uploadResponse = await fetch(uploadUrl, {
+      method: 'PUT',
+      headers: { 'Content-Type': contentType },
+      body: blob,
+    });
+
+    if (!uploadResponse.ok) {
+      const body = await uploadResponse.text().catch(() => '');
+      console.error('S3 upload failed:', uploadResponse.status, body);
+      throw new Error(`Media upload failed (${uploadResponse.status})`);
     }
   }
 
