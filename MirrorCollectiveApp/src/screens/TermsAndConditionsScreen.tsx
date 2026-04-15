@@ -45,12 +45,7 @@ type ScreenRouteProp = RouteProp<RootStackParamList, 'TermsAndConditions'>;
 const TermsAndConditionsScreen = () => {
     const navigation = useNavigation<NavigationProp>();
     const route = useRoute<ScreenRouteProp>();
-    const { fullName, email, password, phoneNumber } = {
-      fullName: '',
-      email: '',
-      password: '',
-      phoneNumber: '',
-    };
+    const { fullName, email, password, phoneNumber } = route.params;
     const { signUp } = useSession();
     const { t } = useTranslation();
     const [agreed, setAgreed] = useState(false);
