@@ -324,7 +324,6 @@ const styles = StyleSheet.create({
   // ── Password toggle ────────────────────────────────────────────────
   eyeIcon: {
     paddingLeft: spacing.xs, // 8 — space between input text and icon
-    padding: 5,
   },
 
   // ── Helper text ────────────────────────────────────────────────────
