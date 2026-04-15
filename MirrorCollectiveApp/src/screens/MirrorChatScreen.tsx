@@ -64,10 +64,10 @@ export function MirrorChatContent() {
       style={styles.keyboardContainer}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={
-        Platform.OS === 'ios' ? (StatusBar.currentHeight || 0) : -70
+        Platform.OS === 'ios' ? StatusBar.currentHeight || 0 : -70
       }
     >
-      <BackgroundWrapper style={styles.background}>
+      <BackgroundWrapper style={styles.background} scrollable>
         <SafeAreaView style={styles.safeArea}>
           <LogoHeader navigation={navigation} />
 
@@ -84,24 +84,29 @@ export function MirrorChatContent() {
               {/* Chat "card" */}
               <View style={styles.chatContainer}>
                 <Text style={styles.chatTitle}>MirrorGPT</Text>
-              <Text style={styles.headerText}>
-                What are you grateful for today?
-              </Text>
-                <ScrollView
-                  ref={scrollViewRef}
-                  style={styles.messagesWrapper}
-                  contentContainerStyle={styles.messagesContent}
-                  keyboardShouldPersistTaps="handled"
-                  showsVerticalScrollIndicator={false}
-                  onContentSizeChange={() =>
-                    scrollViewRef.current?.scrollToEnd({ animated: true })
-                  }
-                >
-                  {messages.map(message => (
-                    <MessageBubble key={message.id} message={message} />
-                  ))}
-                  {loading && <LoadingIndicator />}
-                </ScrollView>
+                <Text style={styles.headerText}>
+                  What are you grateful for today?
+                </Text>
+
+                {/* Bounded wrapper gives ScrollView a fixed constraint */}
+                <View style={styles.messagesWrapper}>
+                  <ScrollView
+                    ref={scrollViewRef}
+                    contentContainerStyle={styles.messagesContent}
+                    keyboardShouldPersistTaps="handled"
+                    keyboardDismissMode="on-drag"
+                    showsVerticalScrollIndicator={false}
+                    onContentSizeChange={() =>
+                      scrollViewRef.current?.scrollToEnd({ animated: true })
+                    }
+                  >
+                    {messages.map(message => (
+                      <MessageBubble key={message.id} message={message} />
+                    ))}
+                    {loading && <LoadingIndicator />}
+                  </ScrollView>
+                </View>
+
                 <ChatInput
                   value={draft}
                   onChangeText={setDraft}
@@ -172,15 +177,10 @@ const styles = StyleSheet.create({
 
   chatContainer: {
     flex: 1,
-
     width: '100%',
-    height: screenHeight * 0.72,
     borderRadius: spacing.m,
     paddingHorizontal: spacing.s,
-    // marginBottom: spacing.xs,
     alignSelf: 'center',
-    justifyContent: 'space-between',
-
     ...shadows.LIGHT,
   },
 
