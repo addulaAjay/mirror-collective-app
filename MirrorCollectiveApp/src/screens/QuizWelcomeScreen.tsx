@@ -1,6 +1,17 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { palette, radius, fontFamily, fontSize, fontWeight, glassGradient, scale, verticalScale, moderateScale } from '@theme';
+import {
+  palette,
+  radius,
+  fontFamily,
+  fontSize,
+  fontWeight,
+  glassGradient,
+  scale,
+  verticalScale,
+  moderateScale,
+  modalColors,
+} from '@theme';
 import type { RootStackParamList } from '@types';
 import React from 'react';
 import { useEffect } from 'react';
@@ -112,12 +123,6 @@ const QuizWelcomeScreen = () => {
           {/* Card — gradient border glow (same three-layer pattern as TermsAndConditionsScreen) */}
           <View style={styles.cardShadow}>
             <View style={styles.cardGradientBorder}>
-              <LinearGradient
-                colors={[glassGradient.border.start, glassGradient.border.end]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={StyleSheet.absoluteFill}
-              />
               <View style={styles.cardClip}>
                 <Text style={styles.description}>
                   <Text style={styles.regularText}>
@@ -202,11 +207,11 @@ const styles = StyleSheet.create<{
     resizeMode: 'cover',
   },
   scrollContent: {
-    paddingHorizontal: scale(40),      // Figma left:40 scaled
-    paddingTop: verticalScale(90),      // Reduced from 114 to fit content
-    paddingBottom: verticalScale(80),   // Extra bottom space for button
+    paddingHorizontal: scale(40), // Figma left:40 scaled
+    paddingTop: verticalScale(90), // Reduced from 114 to fit content
+    paddingBottom: verticalScale(80), // Extra bottom space for button
     alignItems: 'center',
-    gap: verticalScale(50),             // Slightly reduced gap to fit content
+    gap: verticalScale(50), // Slightly reduced gap to fit content
   },
   logoWelcomeGroup: {
     alignItems: 'center',
@@ -220,7 +225,7 @@ const styles = StyleSheet.create<{
   },
   welcome: {
     fontFamily: fontFamily.heading,
-    fontSize: moderateScale(40),
+    fontSize: fontSize['3xl'],
     fontWeight: fontWeight.regular,
     letterSpacing: 0,
     color: palette.gold.DEFAULT,
@@ -238,11 +243,12 @@ const styles = StyleSheet.create<{
     width: scale(313),
     borderRadius: radius.s,
     backgroundColor: palette.navy.deep,
-    shadowColor: glassGradient.border.shadowColor,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 1,
+
+    shadowColor: modalColors.textGoldMuted,
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 0.5,
     shadowRadius: moderateScale(16),
-    elevation: 12,
+    elevation: 8,
   },
   // overflow:hidden clips to border radius; paddingHorizontal:0.5 = left+right gradient border
   cardGradientBorder: {
@@ -255,7 +261,7 @@ const styles = StyleSheet.create<{
     marginVertical: 0.25,
     borderRadius: radius.s - 0.25,
     overflow: 'hidden',
-    backgroundColor: palette.navy.deep,
+    backgroundColor: palette.navy.card,
     minHeight: verticalScale(251),
     paddingVertical: verticalScale(20),
     paddingHorizontal: scale(16),
@@ -263,7 +269,7 @@ const styles = StyleSheet.create<{
     justifyContent: 'center',
   },
   description: {
-    fontSize: moderateScale(fontSize.xl),  // fontSize.xl = 24px
+    fontSize: moderateScale(fontSize.xl), // fontSize.xl = 24px
     textAlign: 'center',
     lineHeight: moderateScale(fontSize.xl) * 1.3,
   },
@@ -274,7 +280,7 @@ const styles = StyleSheet.create<{
   },
   italicHighlight: {
     fontFamily: fontFamily.headingItalic,
-    fontStyle: 'italic',              // Required on iOS alongside fontFamily to trigger italic rendering
+    fontStyle: 'italic', // Required on iOS alongside fontFamily to trigger italic rendering
     fontWeight: fontWeight.regular,
     color: palette.gold.DEFAULT,
   },
@@ -298,9 +304,9 @@ const styles = StyleSheet.create<{
   },
   glassButtonText: {
     fontFamily: fontFamily.heading,
-    fontSize: moderateScale(fontSize.xl),  // 24px
-    fontWeight: fontWeight.regular,        // 400
-    lineHeight: moderateScale(fontSize.xl) * 1.3,  // 31.2px
+    fontSize: moderateScale(fontSize.xl), // 24px
+    fontWeight: fontWeight.regular, // 400
+    lineHeight: moderateScale(fontSize.xl) * 1.3, // 31.2px
     letterSpacing: 0,
     color: palette.gold.DEFAULT,
     textShadowColor: 'rgba(229, 214, 176, 0.5)',
@@ -308,7 +314,7 @@ const styles = StyleSheet.create<{
     textShadowRadius: 9,
   },
   devClearCache: {
-    color: glassGradient.border.shadowColor,  // gold.DEFAULT @ ~50% — dev only
+    color: glassGradient.border.shadowColor, // gold.DEFAULT @ ~50% — dev only
     fontSize: 12,
     textDecorationLine: 'underline',
   },
