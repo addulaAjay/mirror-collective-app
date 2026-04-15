@@ -120,10 +120,14 @@ const QuizWelcomeScreen = () => {
               />
               <View style={styles.cardClip}>
                 <Text style={styles.description}>
-                  <Text style={styles.regularText}>A few quick reflections to reveal your</Text>
+                  <Text style={styles.regularText}>
+                    A few quick reflections to reveal your
+                  </Text>
                   <Text style={styles.italicHighlight}> starting role.</Text>
                   {'\n\n'}
-                  <Text style={styles.regularText}>No judgment. No labels. </Text>
+                  <Text style={styles.regularText}>
+                    No judgment. No labels.{' '}
+                  </Text>
                   {'\n'}
                   <Text style={styles.italicHighlight}>Just insight.</Text>
                   {'\n\n'}
@@ -142,7 +146,10 @@ const QuizWelcomeScreen = () => {
             containerStyle={styles.glassButtonContainer}
             contentStyle={styles.glassButtonContent}
             textStyle={styles.glassButtonText}
-            gradientColors={['rgba(253, 253, 249, 0.04)', 'rgba(253, 253, 249, 0.01)']}
+            gradientColors={[
+              'rgba(253, 253, 249, 0.01)',
+              'rgba(253, 253, 249, 0.00)',
+            ]}
           />
 
           {__DEV__ && (
