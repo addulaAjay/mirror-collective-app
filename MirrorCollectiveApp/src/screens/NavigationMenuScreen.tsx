@@ -51,7 +51,7 @@ type MirrorSideMenuProps = {
 // ── Nav item definitions ────────────────────────────────────────────────────
 // Figma node 2336:3805 — primary items with dividers between each
 const PRIMARY_ITEMS = [
-  { label: 'MirrorGPT',       route: 'TalkToMirror' },
+  { label: 'MirrorGPT',       route: 'MirrorChat' },
   { label: 'Echo Vault',      route: 'MirrorEchoVaultHome' },
   { label: 'Reflection Room', route: 'ReflectionRoom' },
   { label: 'Code Library',    route: 'MirrorCodeLibrary' },
