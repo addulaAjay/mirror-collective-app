@@ -171,6 +171,15 @@ export const glassGradient = {
     start: 'rgba(253, 253, 249, 0.08)',  // palette.gold.subtlest (#fdfdf9) @ 8%
     end: 'rgba(253, 253, 249, 0.02)',    // palette.gold.subtlest (#fdfdf9) @ 2%
   },
+  // Figma node 767:2849 — Echo Vault home CTA buttons (exact Figma stops)
+  echoPrimary: {
+    start: 'rgba(253, 253, 249, 0.03)', // palette.gold.subtlest @ 3%
+    end:   'rgba(253, 253, 249, 0.20)', // palette.gold.subtlest @ 20%
+  },
+  echoSecondary: {
+    start: 'rgba(253, 253, 249, 0.01)', // palette.gold.subtlest @ 1%
+    end:   'rgba(253, 253, 249, 0)',    // transparent
+  },
   // TODO: confirm exact gradient stops with designer — border glow treatment
   border: {
     start: '#ffffff',   // palette.neutral.white — gradient border start
@@ -179,6 +188,28 @@ export const glassGradient = {
     // Previously used palette.gold.DEFAULT (#f2e2b1) — corrected to match Figma spec exactly
     shadowColor: 'rgba(240, 212, 168, 0.6)',  // palette.gold.glow (#f0d4a8) @ 60%
   },
+} as const;
+
+// ---------------------------------------------------------------------------
+// Modal / overlay colours
+// Opacity variants of palette colours used for modal backgrounds and cards.
+// Defined here so screens don't contain inline rgba literals.
+// ---------------------------------------------------------------------------
+export const modalColors = {
+  // Full-screen backdrop — palette.navy.deep @ 92%
+  backdrop: 'rgba(11, 15, 28, 0.92)',
+  // Modal card background — palette.navy.card @ 95%
+  card: 'rgba(26, 31, 46, 0.95)',
+  // Edge-blend mid-stop for image gradients — palette.navy.deep @ 60%
+  navyDeep60: 'rgba(11, 15, 28, 0.6)',
+  // Close button background — palette.gold.subtlest @ 8% (same as glassGradient.card.start)
+  closeButtonBg: 'rgba(253, 253, 249, 0.08)',
+  // Border/divider colours derived from palette.gold.warm (#e5d6b0)
+  borderSubtle: 'rgba(229, 214, 176, 0.15)',  // @ 15% — section dividers
+  borderDefault: 'rgba(229, 214, 176, 0.25)', // @ 25% — card/button borders
+  // Text at reduced opacity
+  textGoldMuted: 'rgba(242, 226, 177, 0.85)', // palette.gold.DEFAULT @ 85%
+  textWhiteMuted: 'rgba(253, 253, 249, 0.85)', // palette.gold.subtlest @ 85%
 } as const;
 
 // ---------------------------------------------------------------------------

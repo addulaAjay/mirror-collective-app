@@ -415,9 +415,9 @@ const styles = StyleSheet.create({
     lineHeight: lineHeight.xxl,                           // 40px — Figma: font/line-height/XXL
     letterSpacing: 0,
     color: palette.gold.DEFAULT,                          // #f2e2b1
-    textShadowColor: textShadow.glow.color,               // rgba(240,212,168,0.6)
-    textShadowOffset: textShadow.glow.offset,
-    textShadowRadius: textShadow.glow.radius,             // 16px
+    textShadowColor: palette.gold.warm,
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 8,
     textAlign: 'center',
     flex: 1,
   },

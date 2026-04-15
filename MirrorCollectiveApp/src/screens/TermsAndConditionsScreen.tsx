@@ -314,9 +314,9 @@ const styles = StyleSheet.create<{
         lineHeight: lineHeight.xxl,
         color: palette.gold.warm,
         textAlign: 'center',
-        textShadowColor: textShadow.glow.color,
-        textShadowOffset: textShadow.glow.offset,
-        textShadowRadius: textShadow.glow.radius,
+        textShadowColor: palette.gold.warm,
+        textShadowOffset: { width: 0, height: 0 },
+        textShadowRadius: 8,
     },
 
     // ── Scrollable card ──────────────────────────────────────────────────────

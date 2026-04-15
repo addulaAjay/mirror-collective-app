@@ -407,10 +407,9 @@ const styles = StyleSheet.create({
     width: scale(313),
     textAlign: 'center',
     marginBottom: verticalScale(60),  // Figma: 60px gap to options
-    // Figma: DROP_SHADOW 16px blur, palette.gold.glow at 60% opacity
-    textShadowColor: textShadow.glow.color,
-    textShadowOffset: textShadow.glow.offset,
-    textShadowRadius: textShadow.glow.radius,
+    textShadowColor: palette.gold.warm,
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 8,
   },
   textOptionsScroll: {
     width: '100%',

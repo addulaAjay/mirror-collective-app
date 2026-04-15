@@ -107,9 +107,9 @@ const styles = StyleSheet.create({
     letterSpacing: 0,
     color: palette.gold.warm,
     textAlign: 'center',
-    textShadowColor: textShadow.glow.color,
-    textShadowOffset: textShadow.glow.offset,
-    textShadowRadius: textShadow.glow.radius,
+    textShadowColor: palette.gold.warm,
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 8,
   },
   mirrorContainer: {
     justifyContent: 'center',

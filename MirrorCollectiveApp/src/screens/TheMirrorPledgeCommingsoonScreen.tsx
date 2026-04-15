@@ -1,49 +1,63 @@
-import { palette } from '@theme';
-
-import { Dimensions, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import {
+  palette,
+  fontFamily,
+  fontSize,
+  fontWeight,
+  lineHeight,
+  scale,
+  verticalScale,
+  moderateScale,
+} from '@theme';
+import {
+  StyleSheet,
+  Text,
+  View,
+  Image,
+  type ViewStyle,
+  type TextStyle,
+  type ImageStyle,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
 import StarIcon from '@components/StarIcon';
 
-const { width: screenWidth, height: screenHeight } = Dimensions.get('screen');
-
 const TheMirrorPledgeCommingsoonScreen: React.FC = () => {
-  const navigation = useNavigation();
   return (
     <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage}>
       <SafeAreaView style={styles.safe}>
-        <View style={styles.container}>
-          <LogoHeader />
+        <LogoHeader />
 
-          {/* Title Row */}
-          <View style={styles.titleRow}>
-            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-              <Text style={styles.backArrow}>←</Text>
-            </TouchableOpacity>
-            <Text style={styles.title}>THE MIRROR PLEDGE</Text>
-            <View style={{ width: 30 }} />
-          </View>
+        {/* Content */}
+        <View style={styles.content}>
+          {/* Title */}
+          <Text style={styles.title}>THE MIRROR PLEDGE</Text>
 
           {/* Illustration Placeholder */}
           <View style={styles.imageContainer}>
-            {/* Placeholder for future illustration */}
+            <Image
+              source={require('@assets/mirror-pledge-illustration.png')}
+              style={styles.image}
+              resizeMode="contain"
+              accessibilityIgnoresInvertColors
+            />
           </View>
 
           {/* Description */}
           <View style={styles.descriptionContainer}>
             <Text style={styles.description}>
-              2% of your subscription is added to the {'\n'} Mirror Giving Pool. Each quarter, the {'\n'} collective votes on causes to support— and {'\n'} we show you exactly where it goes.
+              2% of your subscription is added to the Mirror Giving Pool. Each quarter, the collective votes on causes to support— and we show you exactly where it goes.
             </Text>
           </View>
 
+          <View style={styles.spacer} />
+
           {/* Coming soon footer */}
           <View style={styles.footerContainer}>
-            <StarIcon width={24} height={24} />
+            <StarIcon width={20} height={20} />
             <Text style={styles.footerText}>COMING SOON</Text>
-            <StarIcon width={24} height={24} />
+            <StarIcon width={20} height={20} />
           </View>
         </View>
       </SafeAreaView>
@@ -53,7 +67,20 @@ const TheMirrorPledgeCommingsoonScreen: React.FC = () => {
 
 export default TheMirrorPledgeCommingsoonScreen;
 
-const styles = StyleSheet.create({
+const styles = StyleSheet.create<{
+  bg: ViewStyle;
+  bgImage: ImageStyle;
+  safe: ViewStyle;
+  content: ViewStyle;
+  title: TextStyle;
+  imageContainer: ViewStyle;
+  image: ImageStyle;
+  descriptionContainer: ViewStyle;
+  description: TextStyle;
+  spacer: ViewStyle;
+  footerContainer: ViewStyle;
+  footerText: TextStyle;
+}>({
   bg: {
     flex: 1,
     backgroundColor: palette.navy.deep,
@@ -63,86 +90,72 @@ const styles = StyleSheet.create({
   },
   safe: {
     flex: 1,
-    backgroundColor: 'transparent',
+    backgroundColor: palette.neutral.transparent,
     width: '100%',
   },
-  container: {
+  content: {
     flex: 1,
-    paddingHorizontal: Math.max(20, screenWidth * 0.051),
-    paddingTop: 20,
-    paddingBottom: Math.max(30, screenHeight * 0.035),
-    alignItems: 'center',
-  },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     width: '100%',
-    paddingHorizontal: 20,
-    marginTop: Math.max(40, screenHeight * 0.05),
-    marginBottom: Math.max(48, screenHeight * 0.06),
-  },
-  backBtn: {
-    width: 30,
-    height: 30,
-    justifyContent: 'center',
-  },
-  backArrow: {
-    fontSize: 24,
-    color: palette.gold.DEFAULT,
-    fontWeight: '300',
+    maxWidth: scale(345),
+    alignSelf: 'center',
+    paddingHorizontal: scale(24),
+    paddingTop: verticalScale(40),
+    paddingBottom: verticalScale(40),
+    alignItems: 'center',
+    gap: verticalScale(40),
   },
   title: {
-    fontFamily: 'CormorantGaramond-Light',
-    fontSize: Math.min(screenWidth * 0.06, 24), // Reduced size to fit in row
-    fontWeight: '400',
+    fontFamily: fontFamily.heading,
+    fontSize: moderateScale(fontSize['2xl']),
+    fontWeight: fontWeight.regular,
     color: palette.gold.DEFAULT,
     textAlign: 'center',
+    lineHeight: lineHeight.xl,
     textShadowColor: palette.gold.warm,
     textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 10,
-    letterSpacing: 2,
+    textShadowRadius: 8,
   },
   imageContainer: {
-    width: 317,
-    height: 300,
+    width: scale(207),
+    height: verticalScale(200),
     justifyContent: 'center',
     alignItems: 'center',
-    position: 'relative',
-    aspectRatio: 56 / 53,
+  },
+  image: {
+    width: '100%',
+    height: '100%',
   },
   descriptionContainer: {
-    width: Math.min(screenWidth * 0.95, 370),
+    width: '100%',
+    maxWidth: scale(345),
     alignItems: 'center',
-    marginTop: Math.max(48, screenHeight * 0.06),
   },
   description: {
-    fontFamily: 'Inter',
-    fontSize: Math.min(screenWidth * 0.041, 16),
-    fontWeight: '300',
-    lineHeight: 24,
-    color: palette.gold.subtlest,
+    fontFamily: fontFamily.body,
+    fontSize: moderateScale(fontSize.s),
+    fontWeight: fontWeight.regular,
+    lineHeight: lineHeight.m,
+    color: palette.neutral.white,
     textAlign: 'center',
   },
+  spacer: {
+    flex: 1,
+  },
   footerContainer: {
-    position: 'absolute',
-    bottom: Math.max(80, screenHeight * 0.11),
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    columnGap: 16,
-    alignSelf: 'center',
+    gap: scale(16),
   },
   footerText: {
-    fontFamily: 'CormorantGaramond-Regular',
-    fontSize: Math.min(screenWidth * 0.082, 32),
-    fontWeight: '400',
+    fontFamily: fontFamily.heading,
+    fontSize: moderateScale(fontSize.xl),
+    fontWeight: fontWeight.regular,
     color: palette.gold.DEFAULT,
     textAlign: 'center',
-    lineHeight: Math.min(screenWidth * 0.082 * 1.3, 41.6),
-    textShadowColor: 'rgba(229, 214, 176, 0.5)',
+    lineHeight: lineHeight.l,
+    textShadowColor: palette.gold.warm,
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 4,
-    marginHorizontal: 12,
   },
 });

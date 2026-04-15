@@ -150,9 +150,9 @@ const styles = StyleSheet.create<{
     lineHeight: lineHeight.xxl,                           // 40px
     color: palette.gold.DEFAULT,                          // Text/Paragraph-1 (#f2e2b1)
     textAlign: 'center',
-    textShadowColor: textShadow.glow.color,               // Glow Drop Shadow: rgba(240,212,168,0.6)
-    textShadowOffset: textShadow.glow.offset,
-    textShadowRadius: textShadow.glow.radius,             // 16px
+    textShadowColor: palette.gold.warm,
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 8,
   },
 
   // ── Body paragraphs ───────────────────────────────────────────────────────
