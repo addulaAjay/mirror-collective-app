@@ -14,7 +14,6 @@ import {
   Modal,
   Pressable,
   Alert,
-  ActivityIndicator,
   PermissionsAndroid,
   Linking,
   Image,

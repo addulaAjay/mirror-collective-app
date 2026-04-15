@@ -35,6 +35,7 @@ import Svg, { Path, Circle } from 'react-native-svg';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import Button from '@components/Button/Button';
 import LogoHeader from '@components/LogoHeader';
+import StarIcon from '@components/StarIcon';
 
 type MirrorEchoNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -215,52 +216,37 @@ export function MirrorEchoContent() {
         >
           <View style={styles.modalOverlay}>
             <View style={styles.infoCard}>
-              <View style={styles.infoHeader}>
-                <Text style={styles.infoTitle}>MIRROR ECHO</Text>
+              {/* Close button container */}
+              <View style={styles.closeContainer}>
                 <TouchableOpacity
                   onPress={() => setShowInfo(false)}
                   style={styles.closeButton}
                   accessibilityRole="button"
                   accessibilityLabel="Close"
                 >
-                  <Text style={styles.closeText}>✕</Text>
+                  <Svg width={20} height={20} viewBox="0 0 20 20">
+                    <Path
+                      d="M15.8334 5.34175L14.6584 4.16675L10.0001 8.82508L5.34175 4.16675L4.16675 5.34175L8.82508 10.0001L4.16675 14.6584L5.34175 15.8334L10.0001 11.1751L14.6584 15.8334L15.8334 14.6584L11.1751 10.0001L15.8334 5.34175Z"
+                      fill={palette.gold.DEFAULT}
+                    />
+                  </Svg>
                 </TouchableOpacity>
               </View>
 
-              <ScrollView
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={styles.infoScrollContent}
-              >
-                <Text style={styles.infoSectionTitle}>What is Mirror Echo?</Text>
-                <Text style={styles.infoBody}>
-                  Mirror Echo is a secure digital vault where you can preserve your most meaningful memories,
-                  reflections, and messages for the future. Create echoes in text, audio, or video format.
-                </Text>
+              <Text style={styles.infoTitle}>WELCOME TO MIRROR ECHO</Text>
 
-                <Text style={styles.infoSectionTitle}>Key Features</Text>
-                <Text style={styles.infoBody}>
-                  {'• '}<Text style={styles.infoBold}>Personal Vault:</Text>{' Keep echoes private for your own reflection\n• '}
-                  <Text style={styles.infoBold}>Recipients:</Text>{' Designate trusted people to receive your echoes\n• '}
-                  <Text style={styles.infoBold}>Guardians:</Text>{' Assign someone to manage when echoes are released\n• '}
-                  <Text style={styles.infoBold}>Lock Dates:</Text>{' Schedule echoes to unlock at specific times\n• '}
-                  <Text style={styles.infoBold}>Legacy Mode:</Text>{' Preserve messages to be delivered after you pass'}
-                </Text>
+              <Text style={styles.infoSubtitle}>A space to see yourself clearly</Text>
 
-                <Text style={styles.infoSectionTitle}>Privacy & Security</Text>
-                <Text style={styles.infoBody}>
-                  All echoes are encrypted and stored securely. Only you and your designated recipients
-                  can access the content. Guardians can manage release timing but cannot view echo content
-                  unless they are also listed as recipients.
-                </Text>
+              {/* Decorative star icon */}
+              <StarIcon width={28} height={28} />
 
-                <Text style={styles.infoSectionTitle}>Getting Started</Text>
-                <Text style={styles.infoBody}>
-                  {'1. Tap \u201cSTART ECHO\u201d to create your first echo\n'}
-                  {'2. Choose a category and type (text, audio, or video)\n'}
-                  {'3. Optionally select a recipient and guardian\n'}
-                  {'4. Compose your echo and save it to your vault'}
-                </Text>
-              </ScrollView>
+              <Text style={styles.infoBody}>
+                Each day, you'll receive your Echo Signature—a gentle snapshot of the emotional patterns, metaphors, and themes moving through you now.
+              </Text>
+
+              <Text style={styles.infoQuote}>
+                "These are the patterns shaping your becoming."
+              </Text>
             </View>
           </View>
         </Modal>
@@ -291,14 +277,12 @@ const styles = StyleSheet.create<{
   // Modal
   modalOverlay: ViewStyle;
   infoCard: ViewStyle;
-  infoHeader: ViewStyle;
-  infoTitle: TextStyle;
+  closeContainer: ViewStyle;
   closeButton: ViewStyle;
-  closeText: TextStyle;
-  infoScrollContent: ViewStyle;
-  infoSectionTitle: TextStyle;
+  infoTitle: TextStyle;
+  infoSubtitle: TextStyle;
   infoBody: TextStyle;
-  infoBold: TextStyle;
+  infoQuote: TextStyle;
 }>({
   bg: {
     flex: 1,
@@ -397,66 +381,69 @@ const styles = StyleSheet.create<{
   },
   infoCard: {
     width: '100%',
-    maxWidth: scale(440),
-    maxHeight: '80%',
-    backgroundColor: 'rgba(21,28,47,0.95)',
-    borderRadius: radius.m,
+    maxWidth: scale(329),
+    backgroundColor: 'rgba(253,253,249,0.01)',
+    borderRadius: scale(13),
     borderWidth: borderWidth.hairline,
-    borderColor: 'rgba(229,214,176,0.25)',
-    padding: scale(spacing.xl),
-  },
-  infoHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    borderColor: 'rgba(163,179,204,1)',
+    padding: scale(spacing.xl),         // 24px all sides
+    gap: verticalScale(spacing.m),      // 16px between items
     alignItems: 'center',
-    marginBottom: verticalScale(spacing.m),
-    paddingBottom: verticalScale(spacing.s),
-    borderBottomWidth: borderWidth.hairline,
-    borderBottomColor: 'rgba(229,214,176,0.15)',
+    shadowColor: palette.gold.warm,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 15,
+    elevation: 15,
+  },
+  closeContainer: {
+    width: '100%',
+    alignItems: 'flex-end',
+  },
+  closeButton: {
+    width: scale(20),
+    height: scale(20),
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   infoTitle: {
     fontFamily: fontFamily.heading,
     fontSize: moderateScale(fontSize.xl),
     fontWeight: fontWeight.regular,
+    lineHeight: moderateScale(28),
     color: palette.gold.DEFAULT,
+    textAlign: 'center',
+    letterSpacing: 0,
+    textShadowColor: palette.gold.warm,
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 8,
   },
-  closeButton: {
-    width: scale(32),
-    height: scale(32),
-    borderRadius: scale(16),
-    backgroundColor: 'rgba(253,253,249,0.08)',
-    borderWidth: borderWidth.hairline,
-    borderColor: 'rgba(229,214,176,0.25)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  closeText: {
-    fontFamily: fontFamily.heading,
-    fontSize: moderateScale(fontSize.m),
-    color: 'rgba(242,226,177,0.85)',
-    lineHeight: moderateScale(fontSize.m) * 1.2,
-  },
-  infoScrollContent: {
-    paddingBottom: verticalScale(spacing.s),
-  },
-  infoSectionTitle: {
-    fontFamily: fontFamily.heading,
-    fontSize: moderateScale(fontSize.m),
-    fontWeight: fontWeight.medium,
-    color: palette.gold.mid,
-    marginTop: verticalScale(spacing.m),
-    marginBottom: verticalScale(spacing.xs),
+  infoSubtitle: {
+    fontFamily: fontFamily.headingItalic,
+    fontSize: moderateScale(fontSize.xl),
+    fontWeight: fontWeight.regular,
+    fontStyle: 'italic',
+    lineHeight: moderateScale(31.2),
+    color: palette.neutral.white,
+    textAlign: 'center',
+    letterSpacing: 0,
   },
   infoBody: {
     fontFamily: fontFamily.body,
-    fontSize: moderateScale(fontSize.xs),
-    fontWeight: fontWeight.light,
-    color: 'rgba(253,253,249,0.85)',
-    lineHeight: moderateScale(fontSize.xs) * 1.5,
-    marginBottom: verticalScale(spacing.xs),
+    fontSize: moderateScale(fontSize.s),
+    fontWeight: fontWeight.regular,
+    lineHeight: moderateScale(24),
+    color: palette.neutral.white,
+    textAlign: 'center',
+    letterSpacing: 0,
   },
-  infoBold: {
-    fontFamily: fontFamily.bodyMedium,
-    color: palette.gold.mid,
+  infoQuote: {
+    fontFamily: fontFamily.bodyItalic,
+    fontSize: moderateScale(fontSize.xs),
+    fontWeight: fontWeight.regular,
+    fontStyle: 'italic',
+    lineHeight: moderateScale(20),
+    color: palette.gold.warm,
+    textAlign: 'center',
+    letterSpacing: 0,
   },
 });

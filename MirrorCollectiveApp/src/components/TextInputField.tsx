@@ -272,7 +272,7 @@ const styles = StyleSheet.create({
   },
 
   // ── Custom placeholder overlay ─────────────────────────────────────
-  // Figma: Cormorant Garamond Medium 20px, #fdfdf9, warmGlow shadow
+  // Figma: Inter Regular 16px, #fdfdf9, no shadow
   placeholder: {
     position: 'absolute',
     left: 0,
@@ -280,9 +280,6 @@ const styles = StyleSheet.create({
     ...theme.typography.styles.inputPlaceholder,
     zIndex: 1,
     pointerEvents: 'none',
-    textShadowColor: textShadow.warmGlow.color,   // rgba(229,214,176,0.5)
-    textShadowOffset: textShadow.warmGlow.offset,
-    textShadowRadius: textShadow.warmGlow.radius, // 9
   },
   placeholderCenter: {
     textAlign: 'center',

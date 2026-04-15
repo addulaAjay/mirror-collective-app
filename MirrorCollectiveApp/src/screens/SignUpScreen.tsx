@@ -458,15 +458,14 @@ const styles = StyleSheet.create({
     paddingLeft: scale(2),
   },
 
-  // Figma: Input/Input M — Inter Regular 16px, lh:24, #60739f (text/inverse-paragraph-1)
-  // Passed as placeholderStyle override to TextInputField to override the default
-  // Cormorant/gold inputPlaceholder style used on the Login screen.
+  // Figma: Input/Input M — Inter Regular 16px, lh:24, #fdfdf9 (text/paragraph-2)
+  // Passed as placeholderStyle override to TextInputField to match auth flow
   inputPlaceholder: {
     fontFamily: fontFamily.body,                          // Inter18pt-Regular
     fontSize: moderateScale(fontSize.s, 0.3),             // 16px
     lineHeight: lineHeight.m,                             // 24px
-    color: palette.navy.medium,                           // #60739f
-    textShadowColor: 'transparent',                       // Remove warmGlow shadow
+    color: palette.gold.subtlest,                         // #fdfdf9 (text/paragraph-2)
+    textShadowColor: 'transparent',                       // No shadow
     textShadowRadius: 0,
   },
 
