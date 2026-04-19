@@ -1,7 +1,10 @@
+import { render, waitFor } from '@testing-library/react-native';
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
-import QuizQuestionsScreen from './QuizQuestionsScreen';
+
 import { QuizStorageService } from '@services/quizStorageService';
+
+import QuizQuestionsScreen from './QuizQuestionsScreen';
+
 
 // Mocks
 jest.mock('@components/LogoHeader', () => 'LogoHeader');
@@ -44,36 +47,6 @@ jest.mock('@services/quizStorageService', () => ({
   QuizStorageService: {
     resetQuizState: jest.fn(),
     storePendingQuizResults: jest.fn(),
-  },
-}));
-
-// Mock questions.json
-jest.mock('@assets/questions.json', () => ({
-  questions: [
-    {
-      id: 1,
-      question: 'Test Question 1',
-      type: 'text',
-      options: [
-        { text: 'Option A', archetype: 'seeker' },
-        { text: 'Option B', archetype: 'guardian' },
-      ],
-    },
-    {
-      id: 2,
-      question: 'Test Question 2',
-      type: 'text',
-      options: [
-        { text: 'Option C', archetype: 'flamebearer' },
-        { text: 'Option D', archetype: 'weaver' },
-      ],
-    },
-  ],
-  archetypes: {
-    seeker: { id: 'seeker', name: 'Seeker', title: 'The Seeker', imagePath: 'seeker-archetype.png' },
-    guardian: { id: 'guardian', name: 'Guardian', title: 'The Guardian', imagePath: 'guardian-archetype.png' },
-    flamebearer: { id: 'flamebearer', name: 'Flamebearer', title: 'The Flamebearer', imagePath: 'flamebearer-archetype.png' },
-    weaver: { id: 'weaver', name: 'Weaver', title: 'The Weaver', imagePath: 'weaver-archetype.png' },
   },
 }));
 

@@ -28,13 +28,10 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-
-import questionsData from '@assets/questions.json';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import CircularLogoMark from '@components/CircularLogoMark';
 import GradientButton from '@components/GradientButton';
 import { QuizStorageService } from '@services/quizStorageService';
-import type { QuizData } from '@utils/archetypeScoring';
 
 type QuizWelcomeScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -52,36 +49,34 @@ const archetypeImages = {
 const QuizWelcomeScreen = () => {
   const navigation = useNavigation<QuizWelcomeScreenNavigationProp>();
 
-
-  const quizData = questionsData as QuizData;
-
   useEffect(() => {
     const checkPendingResults = async () => {
       try {
         const pendingResults = await QuizStorageService.getPendingQuizResults();
-        if (pendingResults && pendingResults.archetypeResult && pendingResults.detailedResult) {
+        if (pendingResults?.backendResult) {
           console.log('Found pending quiz results, redirecting to Archetype screen');
 
-          const archetypeKey = pendingResults.archetypeResult.name.toLowerCase();
-          const archetypeData = quizData.archetypes[archetypeKey];
+          const archetypeDetails = pendingResults.backendResult.archetype_details;
 
-          if (archetypeData) {
-            const archetypeWithImage = {
-              ...archetypeData,
-              image: archetypeImages[archetypeData.imagePath as keyof typeof archetypeImages],
-            };
+          const archetypeWithImage = {
+            ...archetypeDetails,
+            image: archetypeImages[archetypeDetails.imagePath as keyof typeof archetypeImages],
+          };
 
-            navigation.reset({
-              index: 0,
-              routes: [{
-                name: 'Archetype',
-                params: {
-                  archetype: archetypeWithImage,
-                  quizResult: pendingResults.detailedResult
+          navigation.reset({
+            index: 0,
+            routes: [{
+              name: 'Archetype',
+              params: {
+                archetype: archetypeWithImage,
+                quizResult: {
+                  finalArchetype: pendingResults.backendResult.final_archetype,
+                  assignmentReason: pendingResults.backendResult.assignment_reason,
+                  totalScores: pendingResults.backendResult.total_scores,
                 }
-              }]
-            });
-          }
+              }
+            }]
+          });
         }
       } catch (error) {
         console.error('Error checking pending quiz results:', error);
@@ -89,7 +84,7 @@ const QuizWelcomeScreen = () => {
     };
 
     checkPendingResults();
-  }, [navigation, quizData.archetypes]);
+  }, [navigation]);
 
   // const route = useRoute<QuizWelcomeScreenRouteProp>();
   return (

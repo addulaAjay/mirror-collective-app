@@ -52,10 +52,8 @@ const MirrorAnimationScreen: React.FC<Props> = ({ navigation }) => {
       if (hasCompletedQuiz) {
         const pendingQuiz = await QuizStorageService.getPendingQuizResults();
 
-        if (pendingQuiz && pendingQuiz.archetypeResult) {
-          const { default: questionsData } = await import('@assets/questions.json');
-          const archetypeKey = pendingQuiz.archetypeResult.name.toLowerCase();
-          const archetypeData = questionsData.archetypes[archetypeKey as keyof typeof questionsData.archetypes];
+        if (pendingQuiz?.backendResult) {
+          const archetypeDetails = pendingQuiz.backendResult.archetype_details;
 
           const archetypeImages = {
             'seeker-archetype.png': require('@assets/seeker-archetype.png'),
@@ -65,8 +63,8 @@ const MirrorAnimationScreen: React.FC<Props> = ({ navigation }) => {
           };
 
           const archetypeWithImage = {
-            ...archetypeData,
-            image: archetypeImages[archetypeData.imagePath as keyof typeof archetypeImages],
+            ...archetypeDetails,
+            image: archetypeImages[archetypeDetails.imagePath as keyof typeof archetypeImages],
           };
 
           navigation.replace('Archetype', { archetype: archetypeWithImage });

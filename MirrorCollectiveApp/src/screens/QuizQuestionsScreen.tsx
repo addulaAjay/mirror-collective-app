@@ -29,7 +29,6 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import questionsData from '@assets/questions.json';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import GradientButton from '@components/GradientButton';
 import ImageOptionButton, {
@@ -40,13 +39,12 @@ import OptionButton from '@components/OptionsButton';
 import ProgressBar from '@components/ProgressBar';
 import { quizApiService } from '@services/api/quiz';
 import { QuizStorageService } from '@services/quizStorageService';
-import {
-  calculateQuizResult,
-  createUserAnswer,
-  type QuizData,
-  type UserAnswer,
-} from '@utils/archetypeScoring';
-// Typography styles are now defined directly in component styles
+
+// Simple answer tracking for UI state
+interface SimpleAnswer {
+  questionId: number;
+  answerText: string;
+}
 
 type QuizQuestionsScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -58,12 +56,9 @@ const QuizQuestionsScreen = () => {
   const navigation = useNavigation<QuizQuestionsScreenNavigationProp>();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selected, setSelected] = useState<string | { icon: any } | null>(null);
-  const [answers, setAnswers] = useState<UserAnswer[]>([]);
+  const [answers, setAnswers] = useState<SimpleAnswer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
-
-  // Extract static data for fallback/archetype mapping
-  const quizData = questionsData as QuizData;
 
   // Reset state and fetch questions
   useEffect(() => {
@@ -80,12 +75,20 @@ const QuizQuestionsScreen = () => {
            console.log('Using questions from API');
            setQuestions(response.data);
         } else {
-           console.log('Using local questions (API response empty or invalid)');
-           setQuestions(quizData.questions);
+           console.error('Failed to load questions from API');
+           Alert.alert(
+             'Error',
+             'Unable to load quiz questions. Please check your connection and try again.',
+             [{ text: 'OK', onPress: () => navigation.goBack() }]
+           );
         }
       } catch (error) {
-        console.error('Failed to fetch questions, using fallback:', error);
-        setQuestions(quizData.questions);
+        console.error('Failed to fetch questions:', error);
+        Alert.alert(
+          'Error',
+          'Unable to load quiz questions. Please check your connection and try again.',
+          [{ text: 'OK', onPress: () => navigation.goBack() }]
+        );
       } finally {
         setIsLoading(false);
       }
@@ -145,7 +148,7 @@ const QuizQuestionsScreen = () => {
   const handleNext = async () => {
     if (!selected) return;
 
-    // Find the selected option to get archetype and other details
+    // Find the selected option
     const selectedOption = currentQuestion.options.find(option => {
       if (currentQuestion.type === 'text') {
         return option.text === selected;
@@ -156,108 +159,78 @@ const QuizQuestionsScreen = () => {
 
     if (!selectedOption) return;
 
-    // Find the option index
-    const optionIndex = currentQuestion.options.findIndex(option => {
-      if (currentQuestion.type === 'text') {
-        return option.text === selected;
-      } else {
-        return option.label === selected;
-      }
-    });
+    const answerText = selectedOption.text || selectedOption.label || '';
 
-    // Create proper UserAnswer object
-    const userAnswer = createUserAnswer(
-      currentQuestion.id,
-      currentQuestion.question,
-      selectedOption as any, // Cast to any to avoid type mismatch between API QuizOption and internal QuestionOption
-      optionIndex,
-    );
-
-    const newAnswers = [...answers, userAnswer];
+    // Store simple answer for backend submission
+    const newAnswers = [
+      ...answers,
+      {
+        questionId: currentQuestion.id,
+        answerText,
+      },
+    ];
     setAnswers(newAnswers);
     setSelected(null);
 
     if (isLast) {
-      // Use new scoring system to calculate quiz result
-      const quizResult = calculateQuizResult(newAnswers, quizData);
-
-      // Map archetype name to full archetype object from questions.json
-      const archetypeKey = quizResult.finalArchetype.toLowerCase();
-      const archetypeData = quizData.archetypes[archetypeKey];
-
-      // Static image mapping for React Native (dynamic require not supported)
-      const archetypeImages = {
-        'seeker-archetype.png': require('@assets/seeker-archetype.png'),
-        'guardian-archetype.png': require('@assets/guardian-archetype.png'),
-        'flamebearer-archetype.png': require('@assets/flamebearer-archetype.png'),
-        'weaver-archetype.png': require('@assets/weaver-archetype.png'),
-      };
-
-      const archetypeWithImage = {
-        ...archetypeData,
-        image:
-          archetypeImages[
-            archetypeData.imagePath as keyof typeof archetypeImages
-          ],
-      };
-
-      // Store quiz results temporarily until user registration
+      // Submit raw answers to backend for calculation
       try {
         const quizSubmission: QuizSubmissionRequest = {
+          quizType: 'archetype', // Quiz identifier for multi-quiz support
           answers: newAnswers.map(answer => ({
             questionId: answer.questionId,
-            question: answer.question,
-            answer:
-              answer.selectedOption.text || answer.selectedOption.label || '',
+            question: questions.find(q => q.id === answer.questionId)?.question || '',
+            answer: answer.answerText,
             answeredAt: new Date().toISOString(),
             type: questions.find(q => q.id === answer.questionId)?.type as
               | 'text'
               | 'image',
           })),
           completedAt: new Date().toISOString(),
-          archetypeResult: {
-            id: archetypeWithImage.id,
-            name: archetypeWithImage.name,
-            title: archetypeWithImage.title,
-          },
           quizVersion: '1.0',
-          // Transform the quiz result to match backend schema
-          detailedResult: {
-            primaryArchetype: quizResult.finalArchetype,
-            scores: quizResult.totalScores,
-            confidence: 0.85, // Default confidence for quiz-based results
-            analysis: {
-              strengths: [],
-              challenges: [],
-              recommendations: [],
-            },
-          },
         };
 
-        // Submit immediately (or queue for offline retry)
+        // Submit to backend (backend calculates the result)
         await QuizStorageService.submitAnonymousQuiz(quizSubmission);
+        
+        // Backend calculated and stored the result
+        // Fetch from storage which was set during submission
+        const storedQuiz = await QuizStorageService.getPendingQuizResults();
+        
+        if (storedQuiz?.backendResult) {
+          const { final_archetype, assignment_reason, total_scores, archetype_details } = storedQuiz.backendResult;
+          
+          // Static image mapping for React Native (dynamic require not supported)
+          const archetypeImages = {
+            'seeker-archetype.png': require('@assets/seeker-archetype.png'),
+            'guardian-archetype.png': require('@assets/guardian-archetype.png'),
+            'flamebearer-archetype.png': require('@assets/flamebearer-archetype.png'),
+            'weaver-archetype.png': require('@assets/weaver-archetype.png'),
+          };
 
-        // Navigate to tuning screen first, then Archetype
-        navigation.navigate('QuizTuning', {
-          archetype: archetypeWithImage,
-          quizResult, // Pass the full calculated result
-        });
+          const archetypeWithImage = {
+            ...archetype_details,
+            image: archetypeImages[archetype_details.imagePath as keyof typeof archetypeImages],
+          };
+
+          // Navigate with backend-calculated result
+          navigation.navigate('QuizTuning', {
+            archetype: archetypeWithImage,
+            quizResult: {
+              finalArchetype: final_archetype,
+              assignmentReason: assignment_reason,
+              totalScores: total_scores,
+            },
+          });
+        } else {
+          throw new Error('No backend result received');
+        }
       } catch (error) {
-        console.error('Failed to store quiz results temporarily:', error);
-        // Show error but still allow navigation
+        console.error('Failed to submit quiz results:', error);
+        // Show error - don't navigate to avoid showing incomplete data
         Alert.alert(
           t('quiz.quizQuestions.storageErrorTitle'),
           t('quiz.quizQuestions.storageErrorMessage'),
-          [
-            {
-              text: t('quiz.quizQuestions.continueButton'),
-              onPress: () =>
-                navigation.navigate('QuizTuning', {
-                  archetype: archetypeWithImage,
-                  quizResult,
-                }),
-            },
-          ],
         );
       }
     } else {

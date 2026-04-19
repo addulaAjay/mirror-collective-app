@@ -81,7 +81,7 @@ const ArchetypeScreen: React.FC<ArchetypeScreenProps> = ({ route }) => {
     );
   };
 
-  // Content from src/assets/questions.json → archetypes[key].description
+  // Archetype description from backend (via backendResult.archetype_details.description)
   // Format: "Para 1 text\n\n Para 2 text" — trim() removes leading space on para 2
   const descParts = archetype.description.split('\n\n');
   const para1 = descParts[0]?.trim() ?? archetype.description;
