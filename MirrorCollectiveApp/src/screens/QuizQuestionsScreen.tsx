@@ -2,10 +2,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
   palette,
-  radius,
-  borderWidth,
   textShadow,
-  glassGradient,
   fontFamily,
   fontSize,
   fontWeight,
@@ -30,7 +27,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
-import GradientButton from '@components/GradientButton';
+import Button from '@components/Button';
 import ImageOptionButton, {
   type ImageOptionSymbol,
 } from '@components/ImageOptionButton';
@@ -294,22 +291,13 @@ const QuizQuestionsScreen = () => {
           </View>
 
           <View style={styles.nextWrap}>
-            <GradientButton
-              title={
-                isLast
-                  ? t('quiz.quizQuestions.finishButton')
-                  : t('quiz.quizQuestions.nextButton')
-              }
+            <Button
+              variant="primary"
+              size="L"
+              active={!!selected}
+              title={isLast ? t('quiz.quizQuestions.finishButton') : t('quiz.quizQuestions.nextButton')}
               onPress={handleNext}
               disabled={!selected}
-              style={styles.glassButtonWrapper}
-              containerStyle={styles.glassButtonContainer}
-              contentStyle={styles.glassButtonContent}
-              textStyle={styles.glassButtonText}
-              gradientColors={[
-                glassGradient.button.start,
-                glassGradient.button.end,
-              ]}
             />
           </View>
         </View>
@@ -418,36 +406,5 @@ const styles = StyleSheet.create({
     // correct Figma position (148px from top) and frees space for the 60px button gap.
     marginTop: verticalScale(25),
     marginBottom: verticalScale(60),
-  },
-  nextButton: {
-    // GradientButton handles responsive sizing
-  },
-  glassButtonWrapper: {
-    backgroundColor: palette.neutral.transparent,
-    shadowOpacity: 0,
-    shadowRadius: 0,
-    elevation: 0,
-    borderRadius: radius.m,  // Match BEGIN button (16px)
-  },
-  glassButtonContainer: {
-    borderWidth: borderWidth.thin,
-    borderColor: palette.navy.light,
-    borderRadius: radius.m,  // Match BEGIN button (16px)
-  },
-  glassButtonContent: {
-    paddingVertical: verticalScale(12),
-    paddingHorizontal: scale(16),  // Match BEGIN button
-    minWidth: 0,
-  },
-  glassButtonText: {
-    fontFamily: fontFamily.heading,        // Figma: Cormorant Garamond
-    fontSize: moderateScale(fontSize.xl),  // Figma: 24px
-    fontWeight: fontWeight.regular,        // Figma: 400
-    lineHeight: moderateScale(fontSize.xl) * 1.3,  // Figma: 31.2px
-    letterSpacing: 0,
-    color: palette.gold.DEFAULT,           // Figma: #f2e2b1
-    textShadowColor: textShadow.warmGlow.color,
-    textShadowOffset: textShadow.warmGlow.offset,
-    textShadowRadius: textShadow.warmGlow.radius,
   },
 });

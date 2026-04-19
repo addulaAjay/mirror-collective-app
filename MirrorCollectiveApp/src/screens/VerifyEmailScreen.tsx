@@ -3,10 +3,7 @@ import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
   palette,
-  radius,
-  borderWidth,
   textShadow,
-  glassGradient,
   fontFamily,
   fontSize,
   fontWeight,
@@ -219,18 +216,12 @@ const VerifyEmailScreen = () => {
               />
 
               <Button
-                variant="gradient"
+                variant="primary"
+                size="L"
+                active={!isVerifying && verificationCode.trim().length === VERIFICATION_CODE_LENGTH}
                 title={isVerifying ? 'Verifying...' : 'Verify'}
                 onPress={handleVerifyCode}
                 disabled={isVerifying || verificationCode.trim().length !== VERIFICATION_CODE_LENGTH}
-                style={styles.buttonWrapper}
-                containerStyle={styles.buttonContainer}
-                contentStyle={styles.buttonContent}
-                textStyle={styles.buttonText}
-                gradientColors={[
-                  glassGradient.button.start,
-                  glassGradient.button.end,
-                ]}
               />
             </View>
 
@@ -241,7 +232,9 @@ const VerifyEmailScreen = () => {
               </Text>
 
               <Button
-                variant="gradient"
+                variant="primary"
+                size="L"
+                active={countdown === 0 && !isResending}
                 title={
                   countdown > 0
                     ? `Resend (${countdown}s)`
@@ -251,14 +244,6 @@ const VerifyEmailScreen = () => {
                 }
                 onPress={handleResendEmail}
                 disabled={countdown > 0 || isResending}
-                style={styles.buttonWrapper}
-                containerStyle={styles.buttonContainer}
-                contentStyle={styles.buttonContent}
-                textStyle={styles.buttonText}
-                gradientColors={[
-                  glassGradient.button.start,
-                  glassGradient.button.end,
-                ]}
               />
             </View>
 
@@ -344,35 +329,6 @@ const styles = StyleSheet.create({
     color: palette.gold.subtlest,                         // #fdfdf9 (text/paragraph-2)
     textShadowColor: 'transparent',                       // No shadow
     textShadowRadius: 0,
-  },
-  buttonWrapper: {
-    backgroundColor: palette.neutral.transparent,
-    shadowOpacity: 0,
-    shadowRadius: 0,
-    elevation: 0,
-    borderRadius: radius.m,
-  },
-  buttonContainer: {
-    borderWidth: borderWidth.thin,
-    borderColor: palette.navy.light,
-    borderRadius: radius.m,
-  },
-  buttonContent: {
-    paddingVertical: verticalScale(12),
-    paddingHorizontal: scale(16),
-    minWidth: 0,
-  },
-  buttonText: {
-    fontFamily: fontFamily.heading,
-    fontSize: moderateScale(fontSize.xl),
-    fontWeight: fontWeight.regular,
-    lineHeight: moderateScale(fontSize.xl) * 1.3,
-    letterSpacing: 0,
-    color: palette.gold.DEFAULT,
-    textShadowColor: textShadow.warmGlow.color,
-    textShadowOffset: textShadow.warmGlow.offset,
-    textShadowRadius: textShadow.warmGlow.radius,
-    textTransform: 'none',
   },
   resendSection: {
     alignItems: 'center',

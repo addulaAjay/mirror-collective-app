@@ -6,7 +6,6 @@ import {
   fontFamily,
   fontSize,
   fontWeight,
-  glassGradient,
   scale,
   verticalScale,
   moderateScale,
@@ -31,8 +30,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
+import Button from '@components/Button';
 import CircularLogoMark from '@components/CircularLogoMark';
-import GradientButton from '@components/GradientButton';
 import { QuizStorageService } from '@services/quizStorageService';
 
 type QuizWelcomeScreenNavigationProp = NativeStackNavigationProp<
@@ -143,18 +142,14 @@ const QuizWelcomeScreen = () => {
             </Text>
           </View>
 
-          {/* BEGIN button — inline in gap:60 column, matches Figma */}
-          <GradientButton
+          {/* BEGIN button — always active: primary CTA */}
+          <Button
+            variant="primary"
+            size="L"
+            active
             title="BEGIN"
             onPress={() => navigation.navigate('QuizQuestions')}
-            style={styles.glassButtonWrapper}
-            containerStyle={styles.glassButtonContainer}
-            contentStyle={styles.glassButtonContent}
-            textStyle={styles.glassButtonText}
-            gradientColors={[
-              glassGradient.echoSecondary.start,
-              glassGradient.echoSecondary.end,
-            ]}
+            style={styles.beginButton}
           />
 
           {__DEV__ && (
@@ -188,10 +183,7 @@ const styles = StyleSheet.create<{
   description: TextStyle;
   regularText: TextStyle;
   italicHighlight: TextStyle;
-  glassButtonWrapper: ViewStyle;
-  glassButtonContainer: ViewStyle;
-  glassButtonContent: ViewStyle;
-  glassButtonText: TextStyle;
+  beginButton: ViewStyle;
   devClearCache: TextStyle;
 }>({
   bg: {
@@ -271,26 +263,9 @@ const styles = StyleSheet.create<{
     fontWeight: fontWeight.regular,
     color: palette.gold.DEFAULT,
   },
-  // Figma BEGIN button: border:0.5px #a3b3cc, rounded-m (16px), gradient 0.04→0.01
-  glassButtonWrapper: {
-    backgroundColor: palette.neutral.transparent,
-    shadowOpacity: 0,
-    shadowRadius: 0,
-    elevation: 0,
-    borderRadius: radius.m,
-  },
-  glassButtonContainer: {
-    borderWidth: borderWidth.thin,
-    borderColor: palette.navy.light,
-    borderRadius: radius.m,
-  },
-  glassButtonContent: {
-    paddingVertical: verticalScale(12),
-    paddingHorizontal: scale(16),
-    minWidth: 0,
-  },
-  glassButtonText: {
-    color: palette.gold.DEFAULT, // Override default theme color
+  beginButton: {
+    alignSelf: 'center',
+    minWidth: scale(155),
   },
   devClearCache: {
     color: palette.gold.mid, // Muted gold for dev-only text
