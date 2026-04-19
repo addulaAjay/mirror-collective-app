@@ -250,9 +250,9 @@ export const semantic = {
       },
       inputPlaceholder: {
         fontFamily: fontFamily.body,                     // Inter Regular (Body)
-        fontSize: moderateScale(fontSize.s, 0.3),        // 16 base — Figma: font/size/S
+        fontSize: moderateScale(fontSize.s, 0.3),        // 16 base — Figma: Input/Size M
         lineHeight: lineHeight.m,                        // 24 — Figma: font/line-height/M
-        color: palette.gold.subtlest,                    // Figma: text/paragraph-2 (#fdfdf9)
+        color: palette.navy.light,                       // Figma: Text/Inverse Paragraph-2 (#a3b3cc)
       },
       link: {
         fontFamily: fontFamily.body,

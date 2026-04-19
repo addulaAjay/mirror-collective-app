@@ -317,6 +317,9 @@ const styles = StyleSheet.create({
     fontWeight: fontWeight.regular,
     lineHeight: lineHeight.xl,
     textAlign: 'center',
+    textShadowColor: textShadow.glow.color,                // Glow: #F0D4A8 · 30%
+    textShadowOffset: textShadow.glow.offset,              // X:0 Y:0
+    textShadowRadius: textShadow.glow.radius,              // Blur:10
   },
   subtitle: {
     alignSelf: 'stretch',

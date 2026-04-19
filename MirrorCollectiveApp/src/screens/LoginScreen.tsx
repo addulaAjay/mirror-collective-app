@@ -130,7 +130,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                 {/* Form — inputs + error row. Figma: gap-12px, node 1886:2347 */}
                 <View style={styles.formContainer}>
                   <TextInputField
-                    size="normal"
+                    size="M"
                     placeholder={t('auth.login.usernamePlaceholder')}
                     value={email}
                     onChangeText={setEmail}
@@ -141,7 +141,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                   />
 
                   <TextInputField
-                    size="normal"
+                    size="M"
                     placeholder={t('auth.login.passwordPlaceholder')}
                     value={password}
                     onChangeText={setPassword}
@@ -246,7 +246,7 @@ const styles = StyleSheet.create({
     gap: verticalScale(40),            // Figma: gap-40px between sections
   },
 
-  // Figma: Heading/Heading L — Cormorant Regular 3XL (32px), #f2e2b1
+  // Figma: Heading/Heading L — Cormorant Regular 3XL (32px), #f2e2b1, glow shadow
   title: {
     fontFamily: fontFamily.heading,                       // CormorantGaramond-Regular (NOT Light)
     fontSize: moderateScale(fontSize['3xl']),              // 32px — Figma: font/size/3XL
@@ -255,6 +255,9 @@ const styles = StyleSheet.create({
     letterSpacing: 0,
     color: palette.gold.DEFAULT,                           // Figma: text/paragraph-1 (#f2e2b1)
     textAlign: 'center',
+    textShadowColor: textShadow.glow.color,                // Glow: #F0D4A8 · 30%
+    textShadowOffset: textShadow.glow.offset,              // X:0 Y:0
+    textShadowRadius: textShadow.glow.radius,              // Blur:10
   },
 
   // Figma: node 1259:1264 — flex col gap-12px
@@ -301,17 +304,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 
-  // Figma: Heading/Heading M — Cormorant Regular 2XL (28px), #f2e2b1, shadow 0 0 4px warmGlow
+  // Figma: Heading/Heading S — Cormorant Regular XL (24px), lh:2XL (28px), #f2e2b1, shadow 0 0 4px warmGlow
   enterText: {
     fontFamily: fontFamily.heading,                        // CormorantGaramond-Regular
-    fontSize: moderateScale(fontSize['2xl']),               // 28px — Figma: font/size/2XL
-    fontWeight: fontWeight.regular,                         // 400
-    lineHeight: moderateScale(fontSize['2xl']) * 1.3,
+    fontSize: moderateScale(fontSize.xl),                  // 24px — Figma: font/size/XL
+    fontWeight: fontWeight.regular,                        // 400
+    lineHeight: fontSize['2xl'],                           // 28px — Figma: font/size/2XL
     letterSpacing: 0,
-    color: palette.gold.DEFAULT,                            // Figma: #f2e2b1 (NOT .warm)
-    textShadowColor: textShadow.warmGlow.color,
+    color: palette.gold.DEFAULT,                           // Figma: #f2e2b1 text/paragraph-1
+    textShadowColor: textShadow.warmGlow.color,            // #E5D6B0 · 50%
     textShadowOffset: textShadow.warmGlow.offset,
-    textShadowRadius: 4,                                    // Figma: 4px (smaller than warmGlow token 9)
+    textShadowRadius: 4,                                   // Figma: Blur 4px
   },
 
   // Figma: node 203:2820 — flex col gap-8px, items center

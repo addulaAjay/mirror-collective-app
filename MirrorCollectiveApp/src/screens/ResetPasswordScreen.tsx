@@ -335,9 +335,9 @@ const styles = StyleSheet.create({
   },
   enterText: {
     ...theme.typography.styles.button,
-    textShadowColor: textShadow.glowSubtle.color,
-    textShadowOffset: textShadow.glowSubtle.offset,
-    textShadowRadius: textShadow.glowSubtle.radius,
+    textShadowColor: textShadow.glow.color,                // Glow: #F0D4A8 · 30%
+    textShadowOffset: textShadow.glow.offset,              // X:0 Y:0
+    textShadowRadius: textShadow.glow.radius,              // Blur:10
   },
   backLink: {
     marginTop: 20,
