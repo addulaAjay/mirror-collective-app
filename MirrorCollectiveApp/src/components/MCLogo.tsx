@@ -1,0 +1,80 @@
+// MC.svg inlined as a React Native SVG component.
+// Original asset: assets/MC.svg — viewBox 0 0 313 487
+// ViewBox expanded by 65px L/R and 63px T/B so the radial glow bleeds outside the logo boundary.
+// Full rendered area: 443×613 (logo content: 313×487, centered).
+import { palette } from '@theme';
+import React from 'react';
+import Svg, { ClipPath, Defs, Ellipse, G, Path, RadialGradient, Rect, Stop } from 'react-native-svg';
+
+interface Props {
+  width?: number;
+  height?: number;
+}
+
+const MCLogo: React.FC<Props> = ({ width = 443, height = 613 }) => (
+  <Svg
+    width={width}
+    height={height}
+    viewBox="-65 -63 443 613"
+    fill="none"
+  >
+    <Defs>
+      {/* Soft warm glow around the logo — matches Figma drop shadow + blur effect */}
+      <RadialGradient
+        id="mc_glow"
+        cx={156.5}
+        cy={243.5}
+        rx={220}
+        ry={305}
+        gradientUnits="userSpaceOnUse"
+      >
+        <Stop offset="0"   stopColor={palette.gold.glow}  stopOpacity="0.08" />
+        <Stop offset="0.5" stopColor={palette.gold.glow}  stopOpacity="0.04" />
+        <Stop offset="1"   stopColor={palette.gold.glow}  stopOpacity="0" />
+      </RadialGradient>
+
+      {/* Clip path keeps logo paths within original 313×487 boundary */}
+      <ClipPath id="mc_clip">
+        <Rect width={313} height={486.23} />
+      </ClipPath>
+    </Defs>
+
+    {/* Glow — rendered outside clip so it extends beyond the logo edges */}
+    <Ellipse cx={156.5} cy={243.5} rx={220} ry={305} fill="url(#mc_glow)" />
+
+    {/* Logo paths — clipped to original 313×487 */}
+    <G clipPath="url(#mc_clip)">
+      {/* M letterform */}
+      <Path
+        d="M137.118 168.16V321.137H129.5V180.848H128.824L101.721 282.243H98.2497L67.4541 192.859H66.7781L69.248 321.137H61.6304L64.4252 165.105H66.6611L101.942 267.372H102.618L129.045 168.16H137.105H137.118Z"
+        fill={palette.gold.bronze}
+      />
+      {/* C letterform */}
+      <Path
+        d="M251.383 300.807L250.707 314.131C248.614 315.886 246.079 317.407 243.089 318.72C240.099 320.033 237.083 321.008 234.016 321.671C230.948 322.321 228.231 322.659 225.839 322.659C219.794 322.659 214.191 320.657 209.044 316.653C203.896 312.649 199.398 307.072 195.55 299.936C191.702 292.799 188.7 284.388 186.529 274.691C184.358 265.006 183.279 254.477 183.279 243.115C183.279 231.754 184.358 221.224 186.529 211.54C188.687 201.855 191.702 193.444 195.55 186.295C199.398 179.158 203.896 173.581 209.044 169.578C214.191 165.574 219.794 163.572 225.839 163.572C228.309 163.572 231.065 163.936 234.133 164.664C237.187 165.392 240.177 166.38 243.089 167.615C246.001 168.85 248.471 170.279 250.486 171.878L249.927 184.111H249.251C246.482 179.158 243.011 175.375 238.838 172.749C234.652 170.123 230.324 168.811 225.852 168.811C219.131 168.811 213.216 171.904 208.095 178.105C202.973 184.293 198.982 192.963 196.109 204.104C193.236 215.244 191.793 228.257 191.793 243.115C191.793 257.974 193.236 271.168 196.109 282.23C198.982 293.306 202.96 301.938 208.043 308.125C213.125 314.313 219.053 317.42 225.852 317.42C230.935 317.42 235.653 315.821 240.021 312.61C244.389 309.412 247.951 305.473 250.72 300.807H251.396H251.383Z"
+        fill={palette.gold.bronze}
+      />
+      {/* Outer oval */}
+      <Path
+        d="M156.5 484.28C241.855 484.28 311.05 376.307 311.05 243.115C311.05 109.923 241.855 1.94971 156.5 1.94971C71.1441 1.94971 1.94971 109.923 1.94971 243.115C1.94971 376.307 71.1441 484.28 156.5 484.28Z"
+        stroke={palette.gold.bronze}
+        strokeWidth={5}
+        strokeMiterlimit={10}
+      />
+      {/* Inner oval */}
+      <Path
+        d="M156.5 467.94C234.417 467.94 297.582 367.282 297.582 243.115C297.582 118.948 234.417 18.29 156.5 18.29C78.5819 18.29 15.417 118.948 15.417 243.115C15.417 367.282 78.5819 467.94 156.5 467.94Z"
+        stroke={palette.gold.bronze}
+        strokeWidth={3.5}
+        strokeMiterlimit={10}
+      />
+      {/* Vertical divider */}
+      <Path
+        d="M160.4 108.792C160.3 113.376 160.205 117.959 160.115 122.543C159.305 163.795 158.9 205.047 158.9 246.3C158.9 287.552 159.305 328.805 160.115 370.057C160.205 374.641 160.3 379.224 160.4 383.808C160.5 379.224 160.595 374.641 160.685 370.057C161.495 328.805 161.9 287.552 161.9 246.3C161.9 205.047 161.495 163.795 160.685 122.543C160.595 117.959 160.5 113.376 160.4 108.792Z"
+        fill={palette.gold.bronze}
+      />
+    </G>
+  </Svg>
+);
+
+export default MCLogo;

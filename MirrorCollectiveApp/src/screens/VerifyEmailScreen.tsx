@@ -1,7 +1,20 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { theme } from '@theme';
+import {
+  palette,
+  radius,
+  borderWidth,
+  textShadow,
+  glassGradient,
+  fontFamily,
+  fontSize,
+  fontWeight,
+  lineHeight,
+  scale,
+  verticalScale,
+  moderateScale,
+} from '@theme';
 import type { RootStackParamList } from '@types';
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -11,12 +24,13 @@ import {
   StyleSheet,
   TouchableOpacity,
   Alert,
-  TextInput,
 } from 'react-native';
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
+import Button from '@components/Button/Button';
 import LogoHeader from '@components/LogoHeader';
+import TextInputField from '@components/TextInputField';
 import { authApiService } from '@services/api';
 import { QuizStorageService } from '@services/quizStorageService';
 import { getApiErrorMessage } from '@utils/apiErrorUtils';
@@ -27,6 +41,9 @@ type VerifyEmailScreenNavigationProp = NativeStackNavigationProp<
 >;
 
 type VerifyEmailScreenRouteProp = RouteProp<RootStackParamList, 'VerifyEmail'>;
+
+const VERIFICATION_CODE_LENGTH = 6;
+const RESEND_COOLDOWN_SECONDS = 60;
 
 const VerifyEmailScreen = () => {
   const { t } = useTranslation();
@@ -63,8 +80,8 @@ const VerifyEmailScreen = () => {
       return;
     }
 
-    if (trimmedCode.length !== 6) {
-      Alert.alert(t('common.error'), 'Verification code must be 6 digits');
+    if (trimmedCode.length !== VERIFICATION_CODE_LENGTH) {
+      Alert.alert(t('common.error'), `Verification code must be ${VERIFICATION_CODE_LENGTH} digits`);
       return;
     }
 
@@ -127,7 +144,7 @@ const VerifyEmailScreen = () => {
           getApiErrorMessage(response, t),
         );
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Verification error:', error);
       Alert.alert(
         t('auth.verifyEmail.failedTitle'),
@@ -154,7 +171,7 @@ const VerifyEmailScreen = () => {
       const response = await authApiService.resendVerificationCode(normalizedEmail);
 
       if (response.success) {
-        setCountdown(60); // 60 second cooldown
+        setCountdown(RESEND_COOLDOWN_SECONDS);
         Alert.alert(
           t('auth.forgotPassword.successTitle'),
           t('auth.verifyEmail.title'),
@@ -162,7 +179,7 @@ const VerifyEmailScreen = () => {
       } else {
         Alert.alert(t('common.error'), getApiErrorMessage(response, t));
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Resend error:', error);
       Alert.alert(t('common.error'), getApiErrorMessage(error, t));
     } finally {
@@ -180,93 +197,81 @@ const VerifyEmailScreen = () => {
           <View style={styles.messageContainer}>
             {/* Header */}
             <View style={styles.headerSection}>
-              <Text style={styles.title}>{t('auth.verifyEmail.title')}</Text>
+              <Text style={styles.title}>We've sent a whisper to your inbox</Text>
               <Text style={styles.subtitle}>
-                {t('auth.verifyEmail.subtitle')}
+                Please enter the 6-digit verification code from your email to confirm your entry.
               </Text>
             </View>
 
             {/* Verification Code Input */}
             <View style={styles.codeSection}>
-              <View style={styles.codeInputWrapper}>
-                <TextInput
-                  testID="verification-code-input"
-                  style={styles.codeInput}
-                  placeholder={t('auth.verifyEmail.codePlaceholder')}
-                  placeholderTextColor="rgba(229, 214, 176, 0.5)"
-                  value={verificationCode}
-                  onChangeText={setVerificationCode}
-                  keyboardType="numeric"
-                  maxLength={6}
-                  autoFocus
-                  textAlign="center"
-                />
-              </View>
+              <TextInputField
+                testID="verification-code-input"
+                placeholder="Enter 6-digit code"
+                placeholderAlign="center"
+                textAlign="center"
+                value={verificationCode}
+                onChangeText={setVerificationCode}
+                keyboardType="numeric"
+                autoCapitalize="none"
+                maxLength={VERIFICATION_CODE_LENGTH}
+                placeholderStyle={styles.inputPlaceholder}
+              />
 
-              <TouchableOpacity
-                testID="verify-button"
-                style={[
-                  styles.verifyButton,
-                  (isVerifying || verificationCode.trim().length !== 6) &&
-                    styles.verifyButtonDisabled,
-                ]}
+              <Button
+                variant="gradient"
+                title={isVerifying ? 'Verifying...' : 'Verify'}
                 onPress={handleVerifyCode}
-                disabled={isVerifying || verificationCode.trim().length !== 6}
-              >
-                <Text
-                  style={[
-                    styles.verifyButtonText,
-                    (isVerifying || verificationCode.trim().length !== 6) &&
-                      styles.verifyButtonTextDisabled,
-                  ]}
-                >
-                  {isVerifying
-                    ? t('auth.verifyEmail.verifyingButton')
-                    : t('auth.verifyEmail.verifyButton')}
-                </Text>
-              </TouchableOpacity>
+                disabled={isVerifying || verificationCode.trim().length !== VERIFICATION_CODE_LENGTH}
+                style={styles.buttonWrapper}
+                containerStyle={styles.buttonContainer}
+                contentStyle={styles.buttonContent}
+                textStyle={styles.buttonText}
+                gradientColors={[
+                  glassGradient.button.start,
+                  glassGradient.button.end,
+                ]}
+              />
             </View>
 
             {/* Resend Section */}
             <View style={styles.resendSection}>
               <Text style={styles.resendText}>
-                {t('auth.verifyEmail.resendPrompt')}
+                Didn't get an email?
               </Text>
 
-              <TouchableOpacity
-                testID="resend-button"
-                style={[
-                  styles.resendButton,
-                  (countdown > 0 || isResending) && styles.resendButtonDisabled,
-                ]}
+              <Button
+                variant="gradient"
+                title={
+                  countdown > 0
+                    ? `Resend (${countdown}s)`
+                    : isResending
+                    ? 'Sending...'
+                    : 'Resend'
+                }
                 onPress={handleResendEmail}
                 disabled={countdown > 0 || isResending}
-              >
-                <Text
-                  style={[
-                    styles.resendButtonText,
-                    (countdown > 0 || isResending) &&
-                      styles.resendButtonTextDisabled,
-                  ]}
-                >
-                  {countdown > 0
-                    ? t('auth.verifyEmail.resendButtonWithTimer', {
-                        count: countdown,
-                      })
-                    : isResending
-                    ? t('auth.verifyEmail.sendingButton')
-                    : t('auth.verifyEmail.resendButton')}
-                </Text>
-              </TouchableOpacity>
+                style={styles.buttonWrapper}
+                containerStyle={styles.buttonContainer}
+                contentStyle={styles.buttonContent}
+                textStyle={styles.buttonText}
+                gradientColors={[
+                  glassGradient.button.start,
+                  glassGradient.button.end,
+                ]}
+              />
             </View>
 
             {/* Back to Sign Up */}
             <TouchableOpacity
               onPress={() => navigation.goBack()}
               style={styles.backButton}
+              accessibilityRole="button"
+              accessibilityLabel="Back to Sign up"
+              accessibilityHint="Returns to the sign up screen"
             >
               <Text style={styles.backButtonText}>
-                {t('auth.verifyEmail.backToSignUp')}
+                Back to Sign up
               </Text>
             </TouchableOpacity>
           </View>
@@ -279,14 +284,6 @@ const VerifyEmailScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    borderRadius: 15,
-    shadowColor: theme.shadows.container.color,
-    shadowOffset: theme.shadows.container.offset,
-    shadowOpacity: theme.shadows.container.opacity,
-    shadowRadius: theme.shadows.container.radius,
-    elevation: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   safe: {
     flex: 1,
@@ -297,168 +294,111 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
     alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingTop: 20, 
-    gap: 60,
+    paddingHorizontal: scale(24),
+    justifyContent: 'center',
   },
   messageContainer: {
     alignItems: 'center',
-    gap: 0,
+    gap: verticalScale(48),
     width: '100%',
-    maxWidth: 360,
-    flex: 1,
-    justifyContent: 'center',
+    maxWidth: scale(360),
+    paddingHorizontal: scale(12),
   },
   headerSection: {
     alignItems: 'center',
-    gap: 24,
-    marginBottom: 24,
+    gap: verticalScale(24),
+    alignSelf: 'stretch',
   },
   title: {
-    ...theme.typography.styles.title,
     alignSelf: 'stretch',
-    color: '#F2E2B1',
-    fontFamily: 'CormorantGaramond-Regular',
-    fontSize: 28,
-    fontStyle: 'normal',
+    color: palette.gold.DEFAULT,
+    fontFamily: fontFamily.heading,
+    fontSize: moderateScale(fontSize['2xl']),
+    fontWeight: fontWeight.regular,
+    lineHeight: lineHeight.xl,
     textAlign: 'center',
-    fontWeight: '400',
-    lineHeight: 36.4,
   },
   subtitle: {
-    ...theme.typography.styles.body,
     alignSelf: 'stretch',
-    color: '#FDFDF9',
-    fontFamily: 'Inter',
-    fontSize: 18,
-    fontStyle: 'normal',
+    color: palette.gold.subtlest,
+    fontFamily: fontFamily.bodyLight,
+    fontSize: moderateScale(fontSize.m),
+    fontWeight: fontWeight.light,
+    lineHeight: lineHeight.m,
     textAlign: 'center',
-    fontWeight: '300',
-    lineHeight: 27,
   },
   codeSection: {
     alignItems: 'center',
-    gap: 24,
+    gap: verticalScale(24),
     alignSelf: 'stretch',
-    marginBottom: 48,
   },
-  codeInputWrapper: {
-    width: 313,
-    height: 44,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(229, 214, 176, 0.4)',
-    backgroundColor: 'rgba(58, 74, 92, 0.3)',
-    paddingHorizontal: 16,
-    justifyContent: 'center',
-    alignSelf: 'center',
+  // Input placeholder style matching Login/SignUp screens
+  // Inter Regular 16px, lh:24, #fdfdf9 (text/paragraph-2)
+  inputPlaceholder: {
+    fontFamily: fontFamily.body,                          // Inter18pt-Regular
+    fontSize: moderateScale(fontSize.s, 0.3),             // 16px
+    lineHeight: lineHeight.m,                             // 24px
+    color: palette.gold.subtlest,                         // #fdfdf9 (text/paragraph-2)
+    textShadowColor: 'transparent',                       // No shadow
+    textShadowRadius: 0,
   },
-  codeInput: {
-    flex: 1,
-    backgroundColor: 'transparent',
-    fontFamily: 'CormorantGaramond-Regular',
-    fontSize: 24,
-    color: '#E5D6B0',
-    textAlign: 'center',
-    includeFontPadding: false,
-    textAlignVertical: 'center',
-    borderWidth: 0,
+  buttonWrapper: {
+    backgroundColor: palette.neutral.transparent,
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
+    borderRadius: radius.m,
   },
-
-  verifyButton: {
-    width: 313,
-    height: 44,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(229, 214, 176, 0.4)',
-    backgroundColor: 'rgba(58, 74, 92, 0.3)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    alignSelf: 'center',
+  buttonContainer: {
+    borderWidth: borderWidth.thin,
+    borderColor: palette.navy.light,
+    borderRadius: radius.m,
   },
-  verifyButtonDisabled: {
-    opacity: 0.5,
+  buttonContent: {
+    paddingVertical: verticalScale(12),
+    paddingHorizontal: scale(16),
+    minWidth: 0,
   },
-  verifyButtonText: {
-    ...theme.typography.styles.button,
-    textAlign: 'center',
-    fontFamily: 'CormorantGaramond-Light',
-    color: '#E5D6B0',
-    fontSize: 20,
-    fontWeight: '600',
-    lineHeight: 28,
+  buttonText: {
+    fontFamily: fontFamily.heading,
+    fontSize: moderateScale(fontSize.xl),
+    fontWeight: fontWeight.regular,
+    lineHeight: moderateScale(fontSize.xl) * 1.3,
+    letterSpacing: 0,
+    color: palette.gold.DEFAULT,
+    textShadowColor: textShadow.warmGlow.color,
+    textShadowOffset: textShadow.warmGlow.offset,
+    textShadowRadius: textShadow.warmGlow.radius,
     textTransform: 'none',
-    textShadowColor: 'rgba(229, 214, 176, 0.5)',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 8,
-  },
-  verifyButtonTextDisabled: {
-    color: '#E5D6B0',
-    fontSize: 20,
-    fontWeight: '600',
   },
   resendSection: {
     alignItems: 'center',
-    gap: 20,
-    width: '100%',
+    alignSelf: 'stretch',
+    gap: verticalScale(20),
   },
   resendText: {
     alignSelf: 'stretch',
-    color: '#A3B3CC',
-    textAlign: 'center',
-    fontFamily: 'Inter',
-    fontSize: 16,
+    color: palette.navy.light,
+    fontFamily: fontFamily.bodyItalic,
+    fontSize: moderateScale(fontSize.s),
+    fontWeight: fontWeight.regular,
     fontStyle: 'italic',
-    fontWeight: '400',
-    lineHeight: 24,
-    flexShrink: 1,
-    includeFontPadding: false,
-  },
-  resendButton: {
-    width: 313,
-    height: 44,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(229, 214, 176, 0.4)',
-    backgroundColor: 'rgba(58, 74, 92, 0.3)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    alignSelf: 'center',
-  },
-  resendButtonDisabled: {
-    opacity: 0.5,
-  },
-  resendButtonText: {
-    ...theme.typography.styles.button,
+    lineHeight: lineHeight.m,
     textAlign: 'center',
-    fontFamily: 'CormorantGaramond-Italic',
-    color: '#E5D6B0',
-    fontSize: 20,
-    fontWeight: '600',
-    lineHeight: 28,
-    textTransform: 'none',
-    textShadowColor: 'rgba(229, 214, 176, 0.5)',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 8,
-  },
-  resendButtonTextDisabled: {
-    width: '100%',
   },
   backButton: {
-    marginTop: 24,
-    padding: 12,
+    padding: moderateScale(12),
     alignSelf: 'stretch',
     alignItems: 'center',
   },
   backButtonText: {
-    color: '#A3B3CC',
-    textAlign: 'center',
-    fontFamily: 'Inter',
-    fontSize: 16,
+    color: palette.navy.light,
+    fontFamily: fontFamily.bodyItalic,
+    fontSize: moderateScale(fontSize.s),
+    fontWeight: fontWeight.regular,
     fontStyle: 'italic',
-    fontWeight: '400',
-    lineHeight: 24,
-    includeFontPadding: false,
+    lineHeight: lineHeight.m,
+    textAlign: 'center',
   },
 });
 

@@ -1,105 +1,114 @@
+import { palette } from '@theme';
 import React from 'react';
-import Svg, { Path, Defs, LinearGradient, Stop } from 'react-native-svg';
+import Svg, {
+  G,
+  Path,
+  Defs,
+  LinearGradient,
+  Stop,
+  ClipPath,
+  Rect,
+} from 'react-native-svg';
 
 const SpiralSymbol = () => (
   <Svg width={80} height={80} viewBox="0 0 80 80" fill="none">
-    <Path
-      d="M79.9431 40.5072L78.5489 33.9165C70.9451 5.2424 34.5214 -4.79354 14.4727 17.9209C-4.63935 39.5764 8.35376 73.4135 35.8111 79.024L40.5062 79.945C22.1416 80.9468 5.63445 68.1519 1.239 50.4899C-6.06112 21.1532 20.0395 -5.56068 49.5417 1.00242C67.6401 5.02942 80.9921 21.7941 79.9431 40.5053V40.5072Z"
-      fill="url(#paint0_linear_349_1453)"
-    />
-    <Path
-      d="M28.1075 0.0279111L23.7278 1.0672C5.94683 5.75682 -2.01192 27.8185 10.2595 42.2305C25.1417 59.7072 53.0722 49.265 55.125 27.2407C55.4701 27.1954 55.3104 27.6884 55.3203 27.927C55.7639 38.807 48.9884 48.9041 39.0853 53.1066C27.2162 58.1433 13.1365 54.3313 5.54455 43.9837C-8.0855 25.4086 4.92733 -0.942355 28.1055 0.0259386L28.1075 0.0279111Z"
-      fill="url(#paint1_linear_349_1454)"
-      transform="translate(12 12)"
-    />
-    <Path
-      d="M17.9447 36.023L22.417 34.678C49.6633 19.2859 16.7654 -13.6677 1.34486 13.6043L0 18.077V14.823C0 10.4056 4.96732 4.46565 8.67259 2.39496C24.7577 -6.58986 42.6649 11.4587 33.5565 27.4779C31.551 31.006 25.6155 36.023 21.3955 36.023H17.9447Z"
-      fill="url(#paint2_linear_349_1455)"
-      transform="translate(21.5 21.5)"
-    />
-    <Path
-      d="M0.00798262 10.2635L1.35285 13.549C10.4218 26.3202 26.3235 10.1136 13.4191 1.2846L10.2621 0.00865668C19.0313 -0.342375 23.409 10.0623 17.9467 16.6649C11.9698 23.8886 -0.40021 19.8557 0.00995347 10.2615L0.00798262 10.2635Z"
-      fill="url(#paint3_linear_349_1456)"
-      transform="translate(29.5 29.5)"
-    />
-    <Path
-      d="M10.3779 4.86645L9.20261 2.79182C4.52911 -2.18178 -2.23267 4.70868 2.88254 9.30956L4.85843 10.3883C0.315076 10.2502 -1.62531 4.63966 1.59684 1.50799C4.79729 -1.60199 10.2182 0.381929 10.3779 4.86842V4.86645Z"
-      fill="url(#paint4_linear_349_1457)"
-      transform="translate(34.5 34.5)"
-    />
-    <Path
-      d="M0.952447 0.109803C3.94585 -0.78158 3.94585 4.0737 0.952447 3.18231C-0.317482 2.80367 -0.317482 0.488444 0.952447 0.109803Z"
-      fill="url(#paint5_linear_349_1458)"
-      transform="translate(38 38)"
-    />
     <Defs>
       <LinearGradient
-        id="paint0_linear_349_1453"
-        x1="40.0004"
-        y1="0"
-        x2="40.0004"
-        y2="80"
+        id="spiral_paint0"
+        x1="39.9989"
+        y1="-0.000976563"
+        x2="39.9989"
+        y2="79.9974"
         gradientUnits="userSpaceOnUse"
       >
-        <Stop stopColor="#5D78A2" />
-        <Stop offset="1" stopColor="white" />
+        <Stop stopColor={palette.gold.dark} />
+        <Stop offset="1" stopColor={palette.navy.DEFAULT} />
       </LinearGradient>
       <LinearGradient
-        id="paint1_linear_349_1454"
-        x1="27.6744"
-        y1="0"
-        x2="27.6744"
-        y2="55.3133"
+        id="spiral_paint1"
+        x1="40.2688"
+        y1="14.646"
+        x2="40.2688"
+        y2="69.9582"
         gradientUnits="userSpaceOnUse"
       >
-        <Stop stopColor="#5D78A2" />
-        <Stop offset="1" stopColor="white" />
+        <Stop stopColor={palette.gold.dark} />
+        <Stop offset="1" stopColor={palette.navy.DEFAULT} />
       </LinearGradient>
       <LinearGradient
-        id="paint2_linear_349_1455"
-        x1="18.0104"
-        y1="0"
-        x2="18.0104"
-        y2="36.023"
+        id="spiral_paint2"
+        x1="42.148"
+        y1="22.4292"
+        x2="42.148"
+        y2="58.4514"
         gradientUnits="userSpaceOnUse"
       >
-        <Stop stopColor="#5D78A2" />
-        <Stop offset="1" stopColor="white" />
+        <Stop stopColor={palette.gold.dark} />
+        <Stop offset="1" stopColor={palette.navy.DEFAULT} />
       </LinearGradient>
       <LinearGradient
-        id="paint3_linear_349_1456"
-        x1="10.1766"
-        y1="0"
-        x2="10.1766"
-        y2="20.3573"
+        id="spiral_paint3"
+        x1="41.8017"
+        y1="31.625"
+        x2="41.8017"
+        y2="51.9819"
         gradientUnits="userSpaceOnUse"
       >
-        <Stop stopColor="#5D78A2" />
-        <Stop offset="1" stopColor="white" />
+        <Stop stopColor={palette.gold.dark} />
+        <Stop offset="1" stopColor={palette.navy.DEFAULT} />
       </LinearGradient>
       <LinearGradient
-        id="paint4_linear_349_1457"
-        x1="5.18894"
-        y1="0"
-        x2="5.18894"
-        y2="10.3883"
+        id="spiral_paint4"
+        x1="41.0326"
+        y1="35.8364"
+        x2="41.0326"
+        y2="46.2245"
         gradientUnits="userSpaceOnUse"
       >
-        <Stop stopColor="#5D78A2" />
-        <Stop offset="1" stopColor="white" />
+        <Stop stopColor={palette.gold.dark} />
+        <Stop offset="1" stopColor={palette.navy.DEFAULT} />
       </LinearGradient>
       <LinearGradient
-        id="paint5_linear_349_1458"
-        x1="1.59875"
-        y1="0"
-        x2="1.59875"
-        y2="3.29212"
+        id="spiral_paint5"
+        x1="41.2911"
+        y1="39.6484"
+        x2="41.2911"
+        y2="42.9405"
         gradientUnits="userSpaceOnUse"
       >
-        <Stop stopColor="#5D78A2" />
-        <Stop offset="1" stopColor="white" />
+        <Stop stopColor={palette.gold.dark} />
+        <Stop offset="1" stopColor={palette.navy.DEFAULT} />
       </LinearGradient>
+      <ClipPath id="spiral_clip">
+        <Rect width="80" height="80" fill="white" />
+      </ClipPath>
     </Defs>
+    <G clipPath="url(#spiral_clip)">
+      <Path
+        d="M79.9407 40.5054L78.5466 33.9149C70.9429 5.24132 34.52 -4.79442 14.4717 17.9196C-4.63999 39.5746 8.35286 73.411 35.8096 79.0215L40.5047 79.9424C22.1404 80.9442 5.63361 68.1496 1.23824 50.4879C-6.06173 21.1518 20.0383 -5.56155 49.5399 1.00142C67.638 5.02834 80.9898 21.7927 79.9407 40.5035V40.5054Z"
+        fill="url(#spiral_paint0)"
+      />
+      <Path
+        d="M40.7019 14.6739L36.3223 15.7132C18.5417 20.4027 10.5831 42.464 22.8542 56.8757C37.7362 74.352 65.6662 63.91 67.7189 41.8862C68.064 41.8408 67.9043 42.3338 67.9141 42.5724C68.3578 53.4522 61.5823 63.5491 51.6795 67.7515C39.8106 72.7881 25.7312 68.9762 18.1394 58.6288C4.50963 40.0541 17.5222 13.7037 40.6999 14.6719L40.7019 14.6739Z"
+        fill="url(#spiral_paint1)"
+      />
+      <Path
+        d="M42.0822 58.4514L46.5545 57.1065C73.8003 41.7147 40.903 8.7618 25.4828 36.0332L24.1379 40.5058V37.2519C24.1379 32.8346 29.1052 26.8948 32.8104 24.8241C48.8951 15.8395 66.802 33.8876 57.6938 49.9066C55.6883 53.4346 49.7529 58.4514 45.5331 58.4514H42.0822Z"
+        fill="url(#spiral_paint2)"
+      />
+      <Path
+        d="M31.6332 41.8883L32.9781 45.1737C42.0468 57.9447 57.9482 41.7384 45.0441 32.9096L41.8871 31.6337C50.6562 31.2826 55.0338 41.6871 49.5716 48.2896C43.5948 55.5132 31.225 51.4803 31.6352 41.8863L31.6332 41.8883Z"
+        fill="url(#spiral_paint3)"
+      />
+      <Path
+        d="M46.2214 40.7028L45.0462 38.6282C40.3728 33.6547 33.6111 40.545 38.7262 45.1458L40.7021 46.2245C36.1588 46.0865 34.2185 40.476 37.4406 37.3444C40.6409 34.2345 46.0617 36.2183 46.2214 40.7048V40.7028Z"
+        fill="url(#spiral_paint4)"
+      />
+      <Path
+        d="M40.6448 39.7582C43.6382 38.8669 43.6382 43.7221 40.6448 42.8307C39.3749 42.4521 39.3749 40.1369 40.6448 39.7582Z"
+        fill="url(#spiral_paint5)"
+      />
+    </G>
   </Svg>
 );
 

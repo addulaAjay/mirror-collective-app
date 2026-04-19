@@ -1,4 +1,5 @@
 // components/ProgressBar.tsx
+import { palette } from '@theme';
 import React from 'react';
 import { View, StyleSheet, Dimensions } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
@@ -13,8 +14,8 @@ const POINTER_RING_HEIGHT = 16;
 const POINTER_STROKE_WIDTH = 3;
 const POINTER_CORE_WIDTH = POINTER_RING_WIDTH - POINTER_STROKE_WIDTH * 2; // ≈14px
 const POINTER_CORE_HEIGHT = POINTER_RING_HEIGHT - POINTER_STROKE_WIDTH * 2; // ≈16px
-const trackGradient = ['#C59D5F', '#D5BA88', '#E5D6B0'];
-const pointerGradient = ['#E5D6B0', '#D5BA88', '#C59D5F'];
+const trackGradient = [palette.gold.dark, palette.gold.warm, palette.gold.warm];
+const pointerGradient = [palette.gold.warm, palette.gold.warm, palette.gold.dark];
 
 interface ProgressBarProps {
   progress?: number;
@@ -104,6 +105,6 @@ const styles = StyleSheet.create({
     width: POINTER_CORE_WIDTH,
     height: POINTER_CORE_HEIGHT,
     borderRadius: POINTER_CORE_HEIGHT / 2,
-    backgroundColor: '#C59D5F',
+    backgroundColor: palette.gold.dark,
   },
 });

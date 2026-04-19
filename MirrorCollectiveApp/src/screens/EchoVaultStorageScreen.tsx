@@ -18,6 +18,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
 import StarIcon from '@components/StarIcon';
+import { palette } from '@theme';
 import { RootStackParamList } from '@/types';
 
 type NavigationProp = NativeStackNavigationProp<
@@ -129,7 +130,7 @@ const EchoVaultStorageScreen = () => {
                       <LinearGradient
                         colors={
                           selectedOption === 'add'
-                            ? ['#F2E2B1', '#CFA64F']
+                            ? [palette.gold.DEFAULT, palette.gold.rich]
                             : ['rgba(253, 253, 249, 0.03)', 'rgba(253, 253, 249, 0.20)']
                         }
                         start={{ x: 0.5, y: 0 }}
@@ -163,7 +164,7 @@ const EchoVaultStorageScreen = () => {
                       <LinearGradient
                         colors={
                           selectedOption === 'notNow'
-                            ? ['#F2E2B1', '#CFA64F']
+                            ? [palette.gold.DEFAULT, palette.gold.rich]
                             : ['rgba(253, 253, 249, 0.04)', 'rgba(253, 253, 249, 0.01)']
                         }
                         start={{ x: 0.5, y: 0 }}
@@ -187,14 +188,14 @@ const EchoVaultStorageScreen = () => {
 
                   <View style={styles.starDividerRow}>
                     <LinearGradient
-                      colors={['#F2E2B1', '#CFA64F']}
+                      colors={[palette.gold.DEFAULT, palette.gold.rich]}
                       start={{ x: 0, y: 0.5 }}
                       end={{ x: 1, y: 0.5 }}
                       style={styles.starDividerLine}
                     />
-                    <StarIcon width={18} height={18} color="#F2E2B1" />
+                    <StarIcon width={18} height={18} color={palette.gold.DEFAULT} />
                     <LinearGradient
-                      colors={['#CFA64F', '#F2E2B1']}
+                      colors={[palette.gold.rich, palette.gold.DEFAULT]}
                       start={{ x: 0, y: 0.5 }}
                       end={{ x: 1, y: 0.5 }}
                       style={styles.starDividerLine}
@@ -286,7 +287,7 @@ const styles = StyleSheet.create<{
   {
     bg: {
       flex: 1,
-      backgroundColor: '#0B0F1C',
+      backgroundColor: palette.navy.deep,
     },
     bgImage: {
       resizeMode: 'cover',
@@ -332,7 +333,7 @@ const styles = StyleSheet.create<{
       width: 20,
       height: 20,
       resizeMode: 'contain',
-      tintColor: '#E5D6B0',
+      tintColor: palette.gold.warm,
     },
     headerRightSpacer: {
       width: figmaHeaderSideWidth,
@@ -347,9 +348,9 @@ const styles = StyleSheet.create<{
       gap: 19,
     },
     optionalLabel: {
-      color: '#F2E2B1',
+      color: palette.gold.DEFAULT,
       textAlign: 'center',
-      textShadowColor: '#F0D4A8',
+      textShadowColor: palette.gold.glow,
       textShadowOffset: { width: 0, height: 0 },
       textShadowRadius: 16,
       fontFamily: 'CormorantGaramond-Italic',
@@ -360,9 +361,9 @@ const styles = StyleSheet.create<{
     },
     title: {
       alignSelf: 'stretch',
-      color: '#F2E2B1',
+      color: palette.gold.DEFAULT,
       textAlign: 'center',
-      textShadowColor: '#F0D4A8',
+      textShadowColor: palette.gold.glow,
       textShadowOffset: { width: 0, height: 0 },
       textShadowRadius: 16,
       fontFamily: 'CormorantGaramond-Regular',
@@ -381,7 +382,7 @@ const styles = StyleSheet.create<{
       fontStyle: 'normal',
       fontWeight: '400',
       lineHeight: 24,
-      color: '#FDFDF9',
+      color: palette.gold.subtlest,
       textAlign: 'center',
       includeFontPadding: false,
     },
@@ -408,7 +409,7 @@ const styles = StyleSheet.create<{
       paddingHorizontal: 16,
       borderRadius: 12,
       borderWidth: 0.3,
-      borderColor: '#FFFFFF',
+      borderColor: palette.neutral.white,
       backgroundColor: 'rgba(197, 158, 95, 0.05)',
       overflow: 'hidden',
       shadowColor: 'rgba(163, 179, 204, 0.30)',
@@ -429,7 +430,7 @@ const styles = StyleSheet.create<{
       fontStyle: 'normal',
       fontWeight: '400',
       lineHeight: 41.6,
-      color: '#F2E2B1',
+      color: palette.gold.DEFAULT,
       textAlign: 'center',
       includeFontPadding: false,
     },
@@ -446,7 +447,7 @@ const styles = StyleSheet.create<{
       includeFontPadding: false,
     },
     priceAmount: {
-      color: '#FDFDF9',
+      color: palette.gold.subtlest,
       textAlign: 'center',
       fontFamily: 'CormorantGaramond-Regular',
       fontSize: 24,
@@ -456,7 +457,7 @@ const styles = StyleSheet.create<{
       includeFontPadding: false,
     },
     pricePerMonth: {
-      color: '#FDFDF9',
+      color: palette.gold.subtlest,
       textAlign: 'center',
       fontFamily: 'CormorantGaramond-Regular',
       fontSize: 20,
@@ -471,7 +472,7 @@ const styles = StyleSheet.create<{
       justifyContent: 'center',
     },
     priceOr: {
-      color: '#FDFDF9',
+      color: palette.gold.subtlest,
       textAlign: 'center',
       fontFamily: 'Inter',
       fontSize: 16,
@@ -481,7 +482,7 @@ const styles = StyleSheet.create<{
       includeFontPadding: false,
     },
     priceYearAmount: {
-      color: '#F2E2B1',
+      color: palette.gold.DEFAULT,
       textAlign: 'center',
       fontFamily: 'CormorantGaramond-Regular',
       fontSize: 24,
@@ -491,7 +492,7 @@ const styles = StyleSheet.create<{
       includeFontPadding: false,
     },
     priceYearSuffix: {
-      color: '#F2E2B1',
+      color: palette.gold.DEFAULT,
       textAlign: 'center',
       fontFamily: 'CormorantGaramond-Italic',
       fontSize: 20,
@@ -518,25 +519,25 @@ const styles = StyleSheet.create<{
       borderTopLeftRadius: 8,
       borderBottomLeftRadius: 8,
       borderWidth: 0.5,
-      borderColor: '#F2E2B1',
+      borderColor: palette.gold.DEFAULT,
       borderRightWidth: 0,
       alignItems: 'center',
       justifyContent: 'center',
     },
     segmentLeftSelected: {
-      borderColor: '#F2E2B1',
+      borderColor: palette.gold.DEFAULT,
     },
     segmentLeftText: {
       fontFamily: 'Inter',
       fontSize: 14,
       fontWeight: '400',
       lineHeight: 21,
-      color: '#F2E2B1',
+      color: palette.gold.DEFAULT,
       textAlign: 'center',
       includeFontPadding: false,
     },
     segmentLeftTextSelected: {
-      color: '#0B0F1C',
+      color: palette.navy.deep,
     },
     segmentRight: {
       flex: 1,
@@ -546,24 +547,24 @@ const styles = StyleSheet.create<{
       borderTopRightRadius: 8,
       borderBottomRightRadius: 8,
       borderWidth: 0.5,
-      borderColor: '#F2E2B1',
+      borderColor: palette.gold.DEFAULT,
       alignItems: 'center',
       justifyContent: 'center',
     },
     segmentRightSelected: {
-      borderColor: '#F2E2B1',
+      borderColor: palette.gold.DEFAULT,
     },
     segmentRightText: {
       fontFamily: 'Inter',
       fontSize: 14,
       fontWeight: '400',
       lineHeight: 21,
-      color: '#FDFDF9',
+      color: palette.gold.subtlest,
       textAlign: 'center',
       includeFontPadding: false,
     },
     segmentRightTextSelected: {
-      color: '#0B0F1C',
+      color: palette.navy.deep,
     },
 
     starDividerRow: {
@@ -592,12 +593,12 @@ const styles = StyleSheet.create<{
       gap: 8,
       borderRadius: 12,
       borderWidth: 0.5,
-      borderColor: '#A3B3CC',
+      borderColor: palette.navy.light,
       paddingVertical: 12,
       paddingHorizontal: 16,
       width: '100%',
       height: 55,
-      shadowColor: '#F2E2B1',
+      shadowColor: palette.gold.DEFAULT,
       shadowOffset: { width: 0, height: 0 },
       shadowOpacity: 0.25,
       shadowRadius: 16,
@@ -608,7 +609,7 @@ const styles = StyleSheet.create<{
       fontStyle: 'normal',
       fontWeight: '400',
       lineHeight: 31.2,
-      color: '#F2E2B1',
+      color: palette.gold.DEFAULT,
       textAlign: 'center',
       textShadowColor: 'rgba(229, 214, 176, 0.50)',
       textShadowOffset: { width: 0, height: 0 },
@@ -623,7 +624,7 @@ const styles = StyleSheet.create<{
       fontStyle: 'italic',
       fontWeight: '200',
       lineHeight: 19.6,
-      color: '#FDFDF9',
+      color: palette.gold.subtlest,
       textAlign: 'center',
       includeFontPadding: false,
     },
@@ -632,7 +633,7 @@ const styles = StyleSheet.create<{
       fontSize: 12,
       fontWeight: '300',
       lineHeight: 13.2,
-      color: '#A3B3CC',
+      color: palette.navy.light,
       textAlign: 'center',
       includeFontPadding: false,
     },

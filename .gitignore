@@ -398,3 +398,7 @@ patches/
 # Local configuration
 config.local.js
 config.local.ts
+
+**/.env.figma
+**/design/figma-components/raw/
+**/design/figma-components/generated/

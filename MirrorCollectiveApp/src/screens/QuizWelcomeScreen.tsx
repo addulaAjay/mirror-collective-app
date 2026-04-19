@@ -1,7 +1,17 @@
-import { BORDER_RADIUS, COLORS, SPACING } from '@constants';
 import { useNavigation } from '@react-navigation/native';
-import LogoHeader from '@components/LogoHeader';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import {
+  palette,
+  radius,
+  fontFamily,
+  fontSize,
+  fontWeight,
+  glassGradient,
+  scale,
+  verticalScale,
+  moderateScale,
+  modalColors,
+} from '@theme';
 import type { RootStackParamList } from '@types';
 import React from 'react';
 import { useEffect } from 'react';
@@ -9,8 +19,7 @@ import {
   View,
   Text,
   StyleSheet,
-  Image,
-  Dimensions,
+  ScrollView,
   type ViewStyle,
   type TextStyle,
   type ImageStyle,
@@ -18,34 +27,16 @@ import {
   StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import LinearGradient from 'react-native-linear-gradient';
 
-import questionsData from '@assets/questions.json';
 import BackgroundWrapper from '@components/BackgroundWrapper';
+import CircularLogoMark from '@components/CircularLogoMark';
 import GradientButton from '@components/GradientButton';
+import { QuizStorageService } from '@services/quizStorageService';
 
 type QuizWelcomeScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
   'QuizWelcome'
 >;
-
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
-
-// Responsive font size helper - scales with screen but has min/max bounds
-const responsiveFontSize = (baseSize: number, minSize: number, maxSize: number) => {
-  const widthScale = screenWidth / 375; // Base on iPhone 11 width
-  const heightScale = screenHeight / 812; // Base on iPhone 11 height
-  const scale = Math.min(widthScale, heightScale);
-  const size = baseSize * scale;
-  return Math.max(minSize, Math.min(maxSize, size));
-};
-
-// Check if device is a tablet (width > 600)
-const isTablet = screenWidth >= 600;
-
-
-import { QuizStorageService } from '@services/quizStorageService';
-import type { QuizData } from '@utils/archetypeScoring';
 
 // Static image mapping (centralize this if used in multiple places)
 const archetypeImages = {
@@ -57,40 +48,35 @@ const archetypeImages = {
 
 const QuizWelcomeScreen = () => {
   const navigation = useNavigation<QuizWelcomeScreenNavigationProp>();
-  const cardGradient = [
-    'rgba(253, 253, 249, 0.04)',
-    'rgba(253, 253, 249, 0.01)',
-  ];
-
-  const quizData = questionsData as QuizData;
 
   useEffect(() => {
     const checkPendingResults = async () => {
       try {
         const pendingResults = await QuizStorageService.getPendingQuizResults();
-        if (pendingResults && pendingResults.archetypeResult && pendingResults.detailedResult) {
+        if (pendingResults?.backendResult) {
           console.log('Found pending quiz results, redirecting to Archetype screen');
 
-          const archetypeKey = pendingResults.archetypeResult.name.toLowerCase();
-          const archetypeData = quizData.archetypes[archetypeKey];
+          const archetypeDetails = pendingResults.backendResult.archetype_details;
 
-          if (archetypeData) {
-            const archetypeWithImage = {
-              ...archetypeData,
-              image: archetypeImages[archetypeData.imagePath as keyof typeof archetypeImages],
-            };
+          const archetypeWithImage = {
+            ...archetypeDetails,
+            image: archetypeImages[archetypeDetails.imagePath as keyof typeof archetypeImages],
+          };
 
-            navigation.reset({
-              index: 0,
-              routes: [{
-                name: 'Archetype',
-                params: {
-                  archetype: archetypeWithImage,
-                  quizResult: pendingResults.detailedResult
+          navigation.reset({
+            index: 0,
+            routes: [{
+              name: 'Archetype',
+              params: {
+                archetype: archetypeWithImage,
+                quizResult: {
+                  finalArchetype: pendingResults.backendResult.final_archetype,
+                  assignmentReason: pendingResults.backendResult.assignment_reason,
+                  totalScores: pendingResults.backendResult.total_scores,
                 }
-              }]
-            });
-          }
+              }
+            }]
+          });
         }
       } catch (error) {
         console.error('Error checking pending quiz results:', error);
@@ -109,40 +95,49 @@ const QuizWelcomeScreen = () => {
           translucent
           backgroundColor="transparent"
         />
-        <LogoHeader />
-        <View style={styles.container}>
-        <View style={styles.topContent}>
-
-          <View style={styles.welcomeContainer}>
-            <Text style={styles.welcome}>WELCOME</Text>
-          </View>
-
-          <View style={styles.cardWrapper}>
-            <LinearGradient
-              colors={cardGradient}
-              start={{ x: 0.5, y: 0 }}
-              end={{ x: 0.5, y: 1 }}
-              style={styles.cardGradient}
-              pointerEvents="none"
-            />
-            <View style={styles.cardContent}>
-              <Text style={styles.description}>
-                <Text style={styles.regularText}>A few quick reflections to {'\n'} reveal your<Text style={styles.italicHighlight}> starting role.</Text></Text>
-                {'\n\n'}
-                <Text style={styles.regularText}> No judgment. No labels.  </Text>
-                {'\n'}
-                <Text style={styles.italicHighlight}>Just insight.</Text>
-                {'\n\n'}
-                <Text style={styles.regularText}>
-                  This is where 
-                </Text>
-                <Text style={styles.italicHighlight}> change begins.</Text>
-              </Text>
+        {/* Figma: node 203:2413 — QuizWelcome layout
+            Outer column: left:40, top:114, width:313, gap:60
+            Child 1: logoWelcomeGroup (gap:32) → logo + WELCOME
+            Child 2: card (h:251)
+            Child 3: BEGIN button
+        */}
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          bounces={false}
+        >
+          {/* Group 1: logo + WELCOME — gap:32 between them */}
+          <View style={styles.logoWelcomeGroup}>
+            <CircularLogoMark size={100} />
+            <View style={styles.welcomeContainer}>
+              <Text style={styles.welcome}>WELCOME</Text>
             </View>
           </View>
-        </View>
 
-        <View style={styles.buttonContainer}>
+          {/* Card — gradient border glow (same three-layer pattern as TermsAndConditionsScreen) */}
+          <View style={styles.cardShadow}>
+            <View style={styles.cardGradientBorder}>
+              <View style={styles.cardClip}>
+                <Text style={styles.description}>
+                  <Text style={styles.regularText}>
+                    A few quick reflections to reveal your
+                  </Text>
+                  <Text style={styles.italicHighlight}> starting role.</Text>
+                  {'\n\n'}
+                  <Text style={styles.regularText}>
+                    No judgment. No labels.{' '}
+                  </Text>
+                  {'\n'}
+                  <Text style={styles.italicHighlight}>Just insight.</Text>
+                  {'\n\n'}
+                  <Text style={styles.regularText}>This is where </Text>
+                  <Text style={styles.italicHighlight}>change begins.</Text>
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          {/* BEGIN button — inline in gap:60 column, matches Figma */}
           <GradientButton
             title="BEGIN"
             onPress={() => navigation.navigate('QuizQuestions')}
@@ -150,16 +145,15 @@ const QuizWelcomeScreen = () => {
             containerStyle={styles.glassButtonContainer}
             contentStyle={styles.glassButtonContent}
             textStyle={styles.glassButtonText}
-            gradientColors={['rgba(253, 253, 249, 0.04)', 'rgba(253, 253, 249, 0.01)']}
+            gradientColors={[
+              'rgba(253, 253, 249, 0.01)',
+              'rgba(253, 253, 249, 0.00)',
+            ]}
           />
+
           {__DEV__ && (
             <Text
-              style={{
-                marginTop: 20,
-                color: 'rgba(242, 226, 177, 0.5)',
-                fontSize: 12,
-                textDecorationLine: 'underline',
-              }}
+              style={styles.devClearCache}
               onPress={async () => {
                 await QuizStorageService.resetEverything();
                 Alert.alert('Success', 'Cache Cleared!');
@@ -168,8 +162,7 @@ const QuizWelcomeScreen = () => {
               [DEV] Clear Quiz Cache
             </Text>
           )}
-        </View>
-        </View>
+        </ScrollView>
       </SafeAreaView>
     </BackgroundWrapper>
   );
@@ -181,167 +174,142 @@ const styles = StyleSheet.create<{
   bg: ViewStyle;
   safe: ViewStyle;
   bgImage: ImageStyle;
-  container: ViewStyle;
-  topContent: ViewStyle;
-  logoContainer: ViewStyle;
-  logo: ImageStyle;
+  scrollContent: ViewStyle;
+  logoWelcomeGroup: ViewStyle;
   welcomeContainer: ViewStyle;
   welcome: TextStyle;
-  cardWrapper: ViewStyle;
-  cardGradient: ViewStyle;
-  cardContent: ViewStyle;
-  descriptionMaxWidth: TextStyle;
+  cardShadow: ViewStyle;
+  cardGradientBorder: ViewStyle;
+  cardClip: ViewStyle;
   description: TextStyle;
   regularText: TextStyle;
   italicHighlight: TextStyle;
-  mediumItalicHighlight: TextStyle;
-  emphasis: TextStyle;
-  emphasisText: TextStyle;
-  mirrorHighlight: TextStyle;
-  buttonContainer: ViewStyle;
   glassButtonWrapper: ViewStyle;
   glassButtonContainer: ViewStyle;
   glassButtonContent: ViewStyle;
   glassButtonText: TextStyle;
+  devClearCache: TextStyle;
 }>({
   bg: {
     flex: 1,
   },
   safe: {
     flex: 1,
-    backgroundColor: 'transparent',
+    backgroundColor: palette.neutral.transparent,
   },
   bgImage: {
     resizeMode: 'cover',
   },
-  container: {
-    flex: 1,
-    paddingHorizontal: isTablet ? '10%' : '8%', // Flexible horizontal padding
-    paddingBottom: screenHeight * 0.05, // 5% of screen height
+  scrollContent: {
+    paddingHorizontal: scale(40), // Figma left:40 scaled
+    paddingTop: verticalScale(90), // Reduced from 114 to fit content
+    paddingBottom: verticalScale(80), // Extra bottom space for button
     alignItems: 'center',
-    justifyContent: 'flex-start',
+    gap: verticalScale(50), // Slightly reduced gap to fit content
   },
-  topContent: {
-    flex: 0,
+  logoWelcomeGroup: {
     alignItems: 'center',
-    justifyContent: 'flex-start',
     width: '100%',
-  },
-  logoContainer: {
-    display: 'none',
-  },
-  logo: {
-    display: 'none',
+    gap: verticalScale(32),
   },
   welcomeContainer: {
     alignItems: 'center',
-    marginBottom: screenHeight * 0.04,
+    width: '100%',
+    minHeight: verticalScale(52),
   },
   welcome: {
-    fontFamily: 'CormorantGaramond-Light',
-    fontSize: responsiveFontSize(32, 24, 40),
-    fontWeight: '300',
-    letterSpacing: 2,
-    color: '#E5D6B0',
+    fontFamily: fontFamily.heading,
+    fontSize: fontSize['3xl'],
+    fontWeight: fontWeight.regular,
+    letterSpacing: 0,
+    color: palette.gold.DEFAULT,
     textAlign: 'center',
-    textShadowColor: '#E5D6B0',
+    textShadowColor: palette.gold.warm,
     textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 8,
+    textShadowRadius: 10,
     textTransform: 'uppercase',
   },
-  cardWrapper: {
-    // Match Figma layout: fixed 313px card width
-    width: 313,
+  // Three-layer gradient border pattern (matches TermsAndConditionsScreen)
+  // backgroundColor gives iOS CALayer a concrete shape to render the gold
+  // glow shadow from. palette.navy.deep matches the app background tone.
+  cardShadow: {
     alignSelf: 'center',
-    marginTop: screenHeight * 0.04,
-    padding: 20,
-    borderRadius: 20,
-    borderWidth: 0.25,
-    borderColor: '#1A2238',
-    backgroundColor: 'transparent',
-    // Figma: box-shadow: 0 0 24px 8px rgba(242, 226, 177, 0.50)
-    shadowColor: 'rgba(242, 226, 177, 0.5)',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 1,
-    shadowRadius: 24,
-    boxShadow: '0 0 24px 8px rgba(242, 226, 177, 0.50)',
+    width: scale(313),
+    borderRadius: radius.s,
+    backgroundColor: palette.navy.deep,
+
+    shadowColor: modalColors.textGoldMuted,
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 0.5,
+    shadowRadius: moderateScale(16),
+    elevation: 8,
   },
-  cardGradient: {
-    ...StyleSheet.absoluteFillObject,
-    borderRadius: 20,
+  // overflow:hidden clips to border radius; paddingHorizontal:0.5 = left+right gradient border
+  cardGradientBorder: {
+    borderRadius: radius.s,
+    overflow: 'hidden',
+    paddingHorizontal: 0.5,
   },
-  cardContent: {
+  // marginVertical:0.25 = top+bottom gradient border; dark background for content
+  cardClip: {
+    marginVertical: 0.25,
+    borderRadius: radius.s - 0.25,
+    overflow: 'hidden',
+    backgroundColor: palette.navy.card,
+    minHeight: verticalScale(251),
+    paddingVertical: verticalScale(20),
+    paddingHorizontal: scale(16),
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 32,
-  },
-  descriptionMaxWidth: {
-    width: '100%',
   },
   description: {
-    fontSize: responsiveFontSize(22, 18, 26),
+    fontSize: moderateScale(fontSize.xl), // fontSize.xl = 24px
     textAlign: 'center',
-    lineHeight: responsiveFontSize(28, 24, 32),
-    width: '100%',
+    lineHeight: moderateScale(fontSize.xl) * 1.3,
   },
   regularText: {
-    fontFamily: 'CormorantGaramond-Light',
-    fontWeight: '300',
-    color: '#FDFDF9',
+    fontFamily: fontFamily.heading,
+    fontWeight: fontWeight.regular,
+    color: palette.gold.subtlest,
   },
   italicHighlight: {
-    fontFamily: 'CormorantGaramond-MediumItalic',
-    fontWeight: '300',
-    color: '#F2E2B1',
+    fontFamily: fontFamily.headingItalic,
+    fontStyle: 'italic', // Required on iOS alongside fontFamily to trigger italic rendering
+    fontWeight: fontWeight.regular,
+    color: palette.gold.DEFAULT,
   },
-  mediumItalicHighlight: {
-    fontFamily: 'CormorantGaramond-MediumItalic',
-    fontWeight: '500',
-    color: '#F2E2B1',
-  },
-  emphasis: {
-    fontSize: responsiveFontSize(26, 22, 32),
-    textAlign: 'center',
-    lineHeight: responsiveFontSize(32, 28, 38),
-    textShadowColor: 'rgba(0, 0, 0, 0.25)',
-    textShadowOffset: { width: 0, height: 4 },
-    textShadowRadius: 4,
-  },
-  emphasisText: {
-    fontFamily: 'CormorantGaramond-MediumItalic',
-    fontWeight: '500',
-    color: '#F2E2B1',
-  },
-  mirrorHighlight: {
-    fontFamily: 'CormorantGaramond-SemiBoldItalic',
-    fontWeight: '600',
-    color: '#F2E2B1',
-  },
-  buttonContainer: {
-    width: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingTop: screenHeight * 0.08,
-  },
+  // Figma BEGIN button: border:0.5px #a3b3cc, rounded-m (16px), gradient 0.04→0.01
   glassButtonWrapper: {
-    // Override GradientButton's default outer glow to match the smaller outlined style
-    backgroundColor: 'transparent',
+    backgroundColor: palette.neutral.transparent,
     shadowOpacity: 0,
     shadowRadius: 0,
     elevation: 0,
-    borderRadius: BORDER_RADIUS.MD,
+    borderRadius: radius.m,
   },
   glassButtonContainer: {
     borderWidth: 0.5,
-    borderRadius: BORDER_RADIUS.MD,
+    borderColor: palette.navy.light,
+    borderRadius: radius.m,
   },
   glassButtonContent: {
-    paddingVertical: SPACING.MD,
-    paddingHorizontal: SPACING.XXL,
+    paddingVertical: verticalScale(12),
+    paddingHorizontal: scale(16),
     minWidth: 0,
   },
   glassButtonText: {
-    color: COLORS.PRIMARY.GOLD,
-    fontSize: responsiveFontSize(18, 16, 20),
+    fontFamily: fontFamily.heading,
+    fontSize: moderateScale(fontSize.xl), // 24px
+    fontWeight: fontWeight.regular, // 400
+    lineHeight: moderateScale(fontSize.xl) * 1.3, // 31.2px
+    letterSpacing: 0,
+    color: palette.gold.DEFAULT,
+    textShadowColor: 'rgba(229, 214, 176, 0.5)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 9,
+  },
+  devClearCache: {
+    color: glassGradient.border.shadowColor, // gold.DEFAULT @ ~50% — dev only
+    fontSize: 12,
+    textDecorationLine: 'underline',
   },
 });

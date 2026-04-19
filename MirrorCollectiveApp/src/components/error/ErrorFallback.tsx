@@ -1,8 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 
-import { COLORS, SPACING } from '@constants';
-import { theme } from '@theme';
+import { theme, palette, spacing } from '@theme';
 
 interface ErrorFallbackProps {
   error: Error;
@@ -29,34 +28,34 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: SPACING.XL,
-    backgroundColor: COLORS.BACKGROUND.PRIMARY,
+    padding: spacing.l,
+    backgroundColor: palette.neutral.black,
   },
-  
+
   title: {
     ...theme.typography.styles.title,
-    color: COLORS.STATUS.ERROR,
-    marginBottom: SPACING.LG,
+    color: palette.status.error,
+    marginBottom: spacing.m,
     textAlign: 'center',
   },
-  
+
   message: {
     ...theme.typography.styles.body,
-    color: COLORS.TEXT.WHITE,
-    marginBottom: SPACING.XL,
+    color: palette.neutral.white,
+    marginBottom: spacing.l,
     textAlign: 'center',
     lineHeight: 24,
   },
-  
+
   button: {
-    backgroundColor: COLORS.PRIMARY.GOLD,
-    paddingHorizontal: SPACING.XL,
-    paddingVertical: SPACING.MD,
-    borderRadius: SPACING.SM,
+    backgroundColor: palette.gold.warm,
+    paddingHorizontal: spacing.l,
+    paddingVertical: spacing.s,
+    borderRadius: spacing.xs,
   },
-  
+
   buttonText: {
     ...theme.typography.styles.button,
-    color: COLORS.TEXT.PRIMARY,
+    color: palette.navy.DEFAULT,
   },
 });

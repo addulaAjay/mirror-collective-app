@@ -3,6 +3,7 @@ import { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ScrollView } from 'react-native';
 
+import { useUser } from '@context/UserContext';
 import { chatApiService, sessionApiService } from '@services/api';
 import { SessionManager } from '@services/sessionManager';
 import { getApiErrorMessage } from '@utils/apiErrorUtils';
@@ -19,6 +20,7 @@ const createMessage = (text: string, sender: 'user' | 'system'): Message => ({
 
 export const useChat = () => {
   const { t } = useTranslation();
+  const { user } = useUser();
   const [messages, setMessages] = useState<Message[]>([]);
   const [draft, setDraft] = useState('');
   const [loading, setLoading] = useState(false);
@@ -41,10 +43,16 @@ export const useChat = () => {
       const response = await sessionApiService.getGreeting();
 
       if (response.success && response.data?.greeting_message) {
-        const greetingMessage = createMessage(
-          response.data.greeting_message,
-          'system',
-        );
+        // Replace any occurrence of the full name with just the first name
+        let greetingText = response.data.greeting_message;
+        if (user?.fullName) {
+          const firstName = user.fullName.trim().split(' ')[0];
+          const fullName = user.fullName.trim();
+          if (fullName !== firstName) {
+            greetingText = greetingText.split(fullName).join(firstName);
+          }
+        }
+        const greetingMessage = createMessage(greetingText, 'system');
         setMessages([greetingMessage]);
         setGreetingLoaded(true);
       } else {

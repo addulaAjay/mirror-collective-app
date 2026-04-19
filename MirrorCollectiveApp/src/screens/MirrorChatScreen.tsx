@@ -1,11 +1,5 @@
-import {
-  COLORS,
-  SHADOWS,
-  SPACING,
-  SCREEN_DIMENSIONS,
-  PLATFORM_SPECIFIC,
-} from '@constants';
-import { theme } from '@theme';
+import { useNavigation } from '@react-navigation/native';
+import { theme, palette, spacing, shadows } from '@theme';
 import React, { useEffect } from 'react';
 import {
   View,
@@ -16,16 +10,18 @@ import {
   KeyboardAvoidingView,
   Platform,
   Keyboard,
+  Dimensions,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import AuthenticatedRoute from '@components/AuthenticatedRoute';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
 import { MessageBubble, ChatInput, LoadingIndicator } from '@components/ui';
-import { useNavigation } from '@react-navigation/native';
 import { useChat } from '@hooks/useChat';
+
+const { height: screenHeight } = Dimensions.get('window');
 
 // Export content component for testing
 export function MirrorChatContent() {
@@ -68,10 +64,10 @@ export function MirrorChatContent() {
       style={styles.keyboardContainer}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={
-        Platform.OS === 'ios' ? PLATFORM_SPECIFIC.STATUS_BAR_HEIGHT : -70
+        Platform.OS === 'ios' ? StatusBar.currentHeight || 0 : -70
       }
     >
-      <BackgroundWrapper style={styles.background}>
+      <BackgroundWrapper style={styles.background} scrollable>
         <SafeAreaView style={styles.safeArea}>
           <LogoHeader navigation={navigation} />
 
@@ -88,24 +84,29 @@ export function MirrorChatContent() {
               {/* Chat "card" */}
               <View style={styles.chatContainer}>
                 <Text style={styles.chatTitle}>MirrorGPT</Text>
-              <Text style={styles.headerText}>
-                What are you grateful for today?
-              </Text>
-                <ScrollView
-                  ref={scrollViewRef}
-                  style={styles.messagesWrapper}
-                  contentContainerStyle={styles.messagesContent}
-                  keyboardShouldPersistTaps="handled"
-                  showsVerticalScrollIndicator={false}
-                  onContentSizeChange={() =>
-                    scrollViewRef.current?.scrollToEnd({ animated: true })
-                  }
-                >
-                  {messages.map(message => (
-                    <MessageBubble key={message.id} message={message} />
-                  ))}
-                  {loading && <LoadingIndicator />}
-                </ScrollView>
+                <Text style={styles.headerText}>
+                  What are you grateful for today?
+                </Text>
+
+                {/* Bounded wrapper gives ScrollView a fixed constraint */}
+                <View style={styles.messagesWrapper}>
+                  <ScrollView
+                    ref={scrollViewRef}
+                    contentContainerStyle={styles.messagesContent}
+                    keyboardShouldPersistTaps="handled"
+                    keyboardDismissMode="on-drag"
+                    showsVerticalScrollIndicator={false}
+                    onContentSizeChange={() =>
+                      scrollViewRef.current?.scrollToEnd({ animated: true })
+                    }
+                  >
+                    {messages.map(message => (
+                      <MessageBubble key={message.id} message={message} />
+                    ))}
+                    {loading && <LoadingIndicator />}
+                  </ScrollView>
+                </View>
+
                 <ChatInput
                   value={draft}
                   onChangeText={setDraft}
@@ -149,14 +150,14 @@ const styles = StyleSheet.create({
   chatWrapper: {
     flex: 1,
     width: '100%',
-    paddingHorizontal: SPACING.XL,
+    paddingHorizontal: spacing.l,
   },
 
   footerText: {
     fontFamily: 'CormorantGaramond-Regular',
     fontSize: 20,
     lineHeight: 28,
-    color: COLORS.TEXT.SYSTEM_MESSAGE,
+    color: palette.gold.chat,
     paddingBottom: 15,
     textAlign: 'center',
   },
@@ -166,7 +167,7 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: 'thin',
     lineHeight: 28,
-    color: COLORS.TEXT.SYSTEM_MESSAGE,
+    color: palette.gold.chat,
     paddingTop: 24,
     textAlign: 'center',
     textShadowColor: 'rgba(230, 211, 163, 0.8)',
@@ -176,16 +177,11 @@ const styles = StyleSheet.create({
 
   chatContainer: {
     flex: 1,
-
     width: '100%',
-    height: SCREEN_DIMENSIONS.HEIGHT * 0.72,
-    borderRadius: SPACING.LG,
-    paddingHorizontal: SPACING.MD,
-    // marginBottom: SPACING.SM,
+    borderRadius: spacing.m,
+    paddingHorizontal: spacing.s,
     alignSelf: 'center',
-    justifyContent: 'space-between',
-
-    ...SHADOWS.LIGHT,
+    ...shadows.LIGHT,
   },
 
   chatTitle: {
@@ -194,25 +190,25 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: '300',
     lineHeight: 28,
-    color: COLORS.TEXT.TITLE,
+    color: palette.gold.subtlest,
     textAlign: 'center',
     paddingTop: 30,
   },
 
   messagesWrapper: {
     flex: 1,
-    borderRadius: SPACING.LG,
+    borderRadius: spacing.m,
   },
 
   GradientWrapper: {
     flex: 1,
-    borderRadius: SPACING.XL,
+    borderRadius: spacing.l,
   },
 
   messagesContent: {
     flexGrow: 1,
     justifyContent: 'flex-end',
-    paddingVertical: SPACING.SM,
-    paddingHorizontal: SPACING.SM,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.xs,
   },
 });

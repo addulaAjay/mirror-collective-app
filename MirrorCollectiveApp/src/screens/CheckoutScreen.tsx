@@ -1,6 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React from 'react';
+import { palette } from '@theme';
 import {
   View,
   Text,
@@ -28,12 +29,12 @@ const rs = (size: number) => Math.round(size * scale);
 
 // Figma design tokens
 const CHECKOUT_COLORS = {
-  gold: '#F2E2B1',
-  goldGlow: '#F0D4A8',
-  white: '#FDFDF9',
-  borderSubtle: '#A3B3CC',
+  gold: palette.gold.DEFAULT,
+  goldGlow: palette.gold.glow,
+  white: palette.gold.subtlest,
+  borderSubtle: palette.navy.light,
   surfaceBg: 'rgba(163, 179, 204, 0.05)',
-  iconSubtle: '#A3B3CC',
+  iconSubtle: palette.navy.light,
 } as const;
 
 const CARD_GRADIENT = [

@@ -1,0 +1,50 @@
+{
+  "$schema": "./figma-config.schema.json",
+  "files": [
+    {
+      "id": "qhHkoRlenVWZ03nkGi9LEp",
+      "name": "MC-Component-Library",
+      "pages": ["Components", "Primitives", "Mobile"],
+      "namespace": "mobile",
+      "notes": "Main component library - contains all Mobile UI components"
+    }
+  ],
+  "componentFilter": {
+    "includePages": [],
+    "excludePatterns": ["_draft", "_deprecated", "deprecated", "DO NOT USE"],
+    "componentTypes": ["COMPONENT", "COMPONENT_SET"]
+  },
+  "tokenMapping": {
+    "tokensFile": "design/figma-tokens/tokens.json",
+    "generatedTokensFile": "src/theme/generated/tokens.ts",
+    "paletteFile": "src/theme/tokens.ts",
+    "fallbackStrategy": "warn",
+    "colorMatchTolerance": 0.01
+  },
+  "extraction": {
+    "batchSize": 50,
+    "rateLimit": {
+      "requestsPerMinute": 60,
+      "retryStrategy": "exponential",
+      "maxRetries": 3
+    },
+    "cache": {
+      "enabled": true,
+      "ttl": 3600,
+      "directory": "design/figma-components/raw"
+    }
+  },
+  "generation": {
+    "outputDirectory": "design/figma-components/generated",
+    "specDirectory": "design/figma-components/specs",
+    "templateDirectory": "scripts/figma-api/templates",
+    "preserveCustomLogic": true,
+    "addFileHeader": true
+  },
+  "ci": {
+    "schedule": "0 2 * * *",
+    "branchPrefix": "figma-sync",
+    "prLabels": ["design-system", "automated-pr", "figma-sync"],
+    "requireApproval": true
+  }
+}

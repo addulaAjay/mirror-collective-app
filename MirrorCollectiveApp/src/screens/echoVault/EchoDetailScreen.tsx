@@ -2,6 +2,7 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '@types';
 import React, { useMemo, useState, useEffect } from 'react';
+import { palette } from '@theme';
 import {
   View,
   Text,
@@ -29,7 +30,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'EchoDetailScreen'>;
 
 const { width: W, height: H } = Dimensions.get('window');
 
-const GOLD = '#D7C08A';
+const GOLD = palette.gold.mid;
 const OFFWHITE = 'rgba(253,253,249,0.92)';
 const SUBTEXT = 'rgba(253,253,249,0.70)';
 const BORDER = 'rgba(253,253,249,0.16)';
@@ -269,7 +270,7 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: 'transparent', alignItems: 'center' },
   loadingContainer: {
     flex: 1,
-    backgroundColor: '#05060A',
+    backgroundColor: palette.navy.deep,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -315,7 +316,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
     borderRadius: 8,
     borderWidth: 0.2,
-    borderColor: '#9BAAC2',
+    borderColor: palette.navy.muted,
     padding: 16,
     ...Platform.select({
       ios: {
@@ -350,7 +351,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 12,
     borderWidth: 0.5,
-    borderColor: '#A3B3CC',
+    borderColor: palette.navy.light,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -365,7 +366,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 12,
     borderWidth: 0.5,
-    borderColor: '#A3B3CC',
+    borderColor: palette.navy.light,
     alignItems: 'center',
     justifyContent: 'center',
   },

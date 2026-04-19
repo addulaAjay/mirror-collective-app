@@ -1,6 +1,8 @@
 import React from 'react';
 import Svg, { Path } from 'react-native-svg';
 
+import { palette } from '@theme';
+
 interface HomeIconProps {
   width?: number;
   height?: number;
@@ -10,7 +12,7 @@ interface HomeIconProps {
 const HomeIcon: React.FC<HomeIconProps> = ({
   width = 24,
   height = 24,
-  color = '#E5D6B0',
+  color = palette.gold.warm,
 }) => {
   return (
     <Svg

@@ -1,6 +1,8 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { palette, theme } from '@theme';
+import type { RootStackParamList } from '@types';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -22,8 +24,6 @@ import LogoHeader from '@components/LogoHeader';
 import StarIcon from '@components/StarIcon';
 import TextInputField from '@components/TextInputField';
 import { useSession } from '@context/SessionContext';
-import { theme } from '@theme';
-import type { RootStackParamList } from '@types';
 import { getApiErrorMessage } from '@utils/apiErrorUtils';
 
 type ResetPasswordScreenNavigationProp = NativeStackNavigationProp<
@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
   },
   container: {
     borderRadius: 15,
-    shadowColor: '#000',
+    shadowColor: palette.neutral.black,
     shadowOffset: { width: -1, height: 5 },
     shadowOpacity: 0.25,
     shadowRadius: 26,
@@ -321,7 +321,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     ...theme.typography.styles.bodySmall,
-    color: '#FF6B6B',
+    color: palette.status.errorHover,
     textAlign: 'center',
     marginTop: 10,
     marginBottom: 10,

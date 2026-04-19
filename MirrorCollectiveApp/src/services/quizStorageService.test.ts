@@ -22,8 +22,12 @@ const mockQuizData = {
     { questionId: 1, question: 'Test?', answer: 'A', answeredAt: '2024-01-01', type: 'text' as const },
   ],
   completedAt: '2024-01-01T00:00:00Z',
-  archetypeResult: { id: 'seeker', name: 'Seeker', title: 'The Seeker' },
   quizVersion: '1.0',
+  backendResult: {
+    final_archetype: 'Seeker',
+    assignment_reason: 'highest_score',
+    total_scores: { Seeker: 8, Guardian: 2, Flamebearer: 1, Weaver: 0 },
+  },
 };
 
 describe('QuizStorageService', () => {

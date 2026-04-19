@@ -13,6 +13,8 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
+
+import { palette } from '@theme';
 import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Video, { VideoRef } from 'react-native-video';
@@ -26,7 +28,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'EchoVideoPlaybackScreen
 
 const { width: W, height: H } = Dimensions.get('window');
 
-const GOLD = '#D7C08A';
+const GOLD = palette.gold.mid;
 const OFFWHITE = 'rgba(253,253,249,0.92)';
 const BORDER = 'rgba(253,253,249,0.16)';
 const BORDER_SOFT = 'rgba(253,253,249,0.08)';
@@ -325,7 +327,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 12,
     borderWidth: 0.5,
-    borderColor: '#A3B3CC',
+    borderColor: palette.navy.light,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -336,7 +338,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 12,
     borderWidth: 0.5,
-    borderColor: '#A3B3CC',
+    borderColor: palette.navy.light,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -360,6 +362,7 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     justifyContent: 'center',
     alignItems: 'center',
+    // eslint-disable-next-line no-restricted-syntax -- true black required for video player background
     backgroundColor: '#000',
   },
   errorText: {

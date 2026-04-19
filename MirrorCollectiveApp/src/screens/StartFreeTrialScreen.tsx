@@ -1,25 +1,40 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '@types';
-import React, { useMemo, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  Dimensions,
-  TouchableOpacity,
-  Image,
-  Alert,
-  ActivityIndicator,
-  ScrollView,
-  type ViewStyle,
-  type TextStyle,
-  type ImageStyle,
+  palette,
+  fontFamily,
+  fontSize,
+  fontWeight,
+  lineHeight,
+  radius,
+  borderWidth,
+  textShadow,
+  glassGradient,
+  semantic,
+  scale,
+  verticalScale,
+  moderateScale,
+  modalColors,
+} from '@theme';
+import type { RootStackParamList } from '@types';
+import React, { useState } from 'react';
+import {
+    View,
+    Text,
+    StyleSheet,
+    TouchableOpacity,
+    Image,
+    Alert,
+    ScrollView,
+    type ViewStyle,
+    type TextStyle,
+    type ImageStyle,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
+import Button from '@components/Button/Button';
 import LogoHeader from '@components/LogoHeader';
 import StarIcon from '@components/StarIcon';
 
@@ -30,171 +45,179 @@ import { subscriptionApiService } from '@/services/api/subscriptionApi';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'StartFreeTrial'>;
 
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
-
-const DESIGN_WIDTH = 393;
-const DESIGN_HEIGHT = 852;
-
-const outerContainerPaddingHorizontal = Math.max(24, (24 * screenWidth) / DESIGN_WIDTH);
-const outerContainerPaddingBottom = Math.max(53, (53 * screenHeight) / DESIGN_HEIGHT);
-
-const outerBoxWidth = (345 * screenWidth) / DESIGN_WIDTH;
-const sectionGap = Math.max(16, (16 * screenHeight) / DESIGN_HEIGHT);
-
-const cardMaxWidth = 313;
-const cardWidth = Math.min(cardMaxWidth, outerBoxWidth);
-const innerBoxSidePadding = Math.max(0, (outerBoxWidth - cardWidth) / 2);
-
 const StartFreeTrialScreen = () => {
-  const navigation = useNavigation<NavigationProp>();
-  const canGoBack = navigation.canGoBack();
-  const { hasUsedTrial, hasActiveSubscription, refreshSubscriptionStatus } = useSubscription();
-  const { setAuthenticated } = useSession();
-  const { purchaseSubscription, purchasing, PRODUCT_IDS } = useInAppPurchase();
-  const [loading, setLoading] = useState(false);
-  const [selectedPeriod] = useState<'monthly' | 'yearly'>('monthly');
+    const navigation = useNavigation<NavigationProp>();
+    const canGoBack = navigation.canGoBack();
+    const { hasUsedTrial, hasActiveSubscription, refreshSubscriptionStatus } = useSubscription();
+    const { setAuthenticated } = useSession();
+    const { purchaseSubscription, purchasing, PRODUCT_IDS } = useInAppPurchase();
+    const [loading, setLoading] = useState(false);
+    const [selectedPeriod] = useState<'monthly' | 'yearly'>('monthly');
 
-  const cardGradient = useMemo(
-    () => ['rgba(255, 255, 255, 0.05)', 'rgba(153, 153, 153, 0.05)'],
-    [],
-  );
+    const isTrialMode = !hasUsedTrial && !hasActiveSubscription;
+    const buttonText = isTrialMode ? 'START FREE TRIAL' : 'SUBSCRIBE NOW';
 
-  // Determine button mode: trial or subscribe
-  const isTrialMode = !hasUsedTrial && !hasActiveSubscription;
-  const buttonText = isTrialMode ? 'START FREE TRIAL' : 'SUBSCRIBE NOW';
-
-  const handleButtonPress = async () => {
-    if (hasActiveSubscription) {
-      Alert.alert('Already Subscribed', 'You already have an active subscription.');
-      return;
-    }
-
-    if (isTrialMode) {
-      // Start trial (no payment)
-      try {
-        setLoading(true);
-        const response = await subscriptionApiService.startTrial();
-
-        if (response.success) {
-          await refreshSubscriptionStatus();
-          // Setting authenticated will remount NavigationContainer with new key
-          // This automatically navigates to EnterMirror (initialRouteName)
-          setAuthenticated();
-        } else {
-          throw new Error(response.message || 'Failed to start trial');
+    const handleButtonPress = async () => {
+        if (hasActiveSubscription) {
+            Alert.alert('Already Subscribed', 'You already have an active subscription.');
+            return;
         }
-      } catch (error: any) {
-        Alert.alert('Error', error.message || 'Failed to start trial');
-      } finally {
-        setLoading(false);
-      }
-    } else {
-      // Purchase subscription
-      const productId = selectedPeriod === 'monthly'
-        ? PRODUCT_IDS.CORE_MONTHLY
-        : PRODUCT_IDS.CORE_YEARLY;
 
-      try {
-        await purchaseSubscription(productId);
-        await refreshSubscriptionStatus();
-        // NavigationContainer will remount when auth state changes
-      } catch (error: any) {
-        Alert.alert('Purchase Failed', error.message || 'Unable to complete purchase');
-      }
-    }
-  };
+        if (isTrialMode) {
+            try {
+                setLoading(true);
+                const response = await subscriptionApiService.startTrial();
+                if (response.success) {
+                    await refreshSubscriptionStatus();
+                    setAuthenticated();
+                } else {
+                    throw new Error(response.message || 'Failed to start trial');
+                }
+            } catch (error: any) {
+                Alert.alert('Error', error.message || 'Failed to start trial');
+            } finally {
+                setLoading(false);
+            }
+        } else {
+            const productId = selectedPeriod === 'monthly'
+                ? PRODUCT_IDS.CORE_MONTHLY
+                : PRODUCT_IDS.CORE_YEARLY;
+            try {
+                await purchaseSubscription(productId);
+                await refreshSubscriptionStatus();
+            } catch (error: any) {
+                Alert.alert('Purchase Failed', error.message || 'Unable to complete purchase');
+            }
+        }
+    };
 
-  return (
-    <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage}>
-      <SafeAreaView style={styles.safe}>
-        <View style={styles.outerBoxContainer}>
+    return (
+      /*
+          FLAT layout — SafeAreaView is the sole flex container.
+          Header, card (flex:1), and footer are DIRECT children so iOS Yoga
+          computes a concrete, stable card height in a single pass.
+          Chained flex:1 wrappers cause height collapse during scroll on iOS.
+        */
+      <BackgroundWrapper
+        style={styles.bg}
+        imageStyle={styles.bgImage}
+        scrollable
+      >
+        <SafeAreaView style={styles.safe}>
+          {/* ── Logo ────────────────────────────────────────────────── */}
           <LogoHeader />
 
-          <View style={styles.outerBox}>
-            <View style={styles.headerRow}>
-              {canGoBack && (
-                <TouchableOpacity
-                  accessibilityRole="button"
-                  onPress={() => navigation.goBack()}
-                  style={styles.backButton}
-                >
-                  <Image
-                    source={require('../assets/back-arrow.png')}
-                    style={styles.backArrow}
-                    accessibilityIgnoresInvertColors
-                  />
-                </TouchableOpacity>
-              )}
-
-              <View style={styles.titleContainer}>
-                <Text style={styles.title}>Start your{`\n`}14 Day free trial</Text>
-                <Text style={styles.subtitle}>
-                  Reflect, remember, and track what’s changing in real time.
-                </Text>
-              </View>
-            </View>
-
-            <View style={styles.innerBox}>
-              <View style={styles.cardWrapper}>
-                <LinearGradient
-                  colors={cardGradient}
-                  start={{ x: 0.5, y: 0 }}
-                  end={{ x: 0.5, y: 1 }}
-                  style={styles.cardGradient}
-                  pointerEvents="none"
+          {/* ── Back + Title ─────────────────────────────────────────── */}
+          {/* Single-element header — matches TermsAndConditionsScreen's
+                    headerRow pattern exactly (back button absolute + centred text).
+                    Subtitle is inside the card so this view stays shallow. */}
+          <View style={styles.headerRow}>
+            {canGoBack && (
+              <TouchableOpacity
+                accessibilityRole="button"
+                onPress={() => navigation.goBack()}
+                style={styles.backButton}
+              >
+                <Image
+                  source={require('../assets/back-arrow.png')}
+                  style={styles.backArrow}
+                  accessibilityIgnoresInvertColors
                 />
+              </TouchableOpacity>
+            )}
+            <Text style={styles.title}>Start your{'\n'}14 Day free trial</Text>
+          </View>
+
+          {/*
+                  ── Scrollable card ─────────────────────────────────────────
+                  Three-layer gradient border pattern (same as TermsAndConditionsScreen):
+                    1. cardShadow  — gold glow, overflow visible
+                    2. cardGradientBorder — overflow:hidden + LinearGradient absoluteFill
+                       paddingHorizontal:0.5 = left+right gradient border (cross-axis padding
+                       reliably constrains child width on iOS)
+                    3. cardClip — marginVertical:0.25 = top+bottom gradient border
+                       (main-axis margin always respected); dark background; ScrollView inside
+                */}
+          {/* ── Subtitle — direct sibling of headerRow and card in safe's gap column */}
+          <Text style={styles.subtitle}>
+            Reflect, remember, and track what's changing in real time.
+          </Text>
+
+          <View style={styles.cardShadow}>
+            <View style={styles.cardGradientBorder}>
+              <View style={styles.cardClip}>
                 <ScrollView
                   style={styles.cardScroll}
                   contentContainerStyle={styles.cardContent}
-                  showsVerticalScrollIndicator={false}
+                  showsVerticalScrollIndicator={true}
+                  scrollIndicatorInsets={{ right: 1 }}
+                  bounces={true}
                 >
+                  {/* Card heading */}
                   <Text style={styles.cardTitle}>Mirror Core</Text>
-                  <Text style={styles.cardSubtitle}>Your daily reflective companion.</Text>
+                  <Text style={styles.cardSubtitle}>
+                    Your daily reflective companion.
+                  </Text>
 
+                  {/* Star divider */}
                   <View style={styles.starDividerRow}>
                     <LinearGradient
-                      colors={['#F2E2B1', '#CFA64F']}
+                      colors={[palette.gold.DEFAULT, palette.gold.rich]}
                       start={{ x: 0, y: 0.5 }}
                       end={{ x: 1, y: 0.5 }}
                       style={styles.starDividerLine}
                     />
-                    <StarIcon width={18} height={18} color="#F2E2B1" />
+                    <StarIcon
+                      width={scale(18)}
+                      height={scale(18)}
+                      color={palette.gold.DEFAULT}
+                    />
                     <LinearGradient
-                      colors={['#CFA64F', '#F2E2B1']}
+                      colors={[palette.gold.rich, palette.gold.DEFAULT]}
                       start={{ x: 0, y: 0.5 }}
                       end={{ x: 1, y: 0.5 }}
                       style={styles.starDividerLine}
                     />
                   </View>
 
+                  {/* Feature bullets */}
                   <View style={styles.bullets}>
                     <View style={styles.bulletRow}>
                       <Text style={styles.bulletMarker}>•</Text>
                       <Text style={styles.bulletLine}>
-                        <Text style={styles.bulletLead}>MirrorGPT</Text> — reflect, process, and gain clarity
+                        <Text style={styles.bulletLead}>MirrorGPT</Text>
+                        {' — reflect, process, and gain clarity'}
                       </Text>
                     </View>
                     <View style={styles.bulletRow}>
                       <Text style={styles.bulletMarker}>•</Text>
                       <Text style={styles.bulletLine}>
-                        <Text style={styles.bulletLead}>Echo Map + micro-practices</Text> — see patterns and shift them
+                        <Text style={styles.bulletLead}>
+                          Echo Map + micro-practices
+                        </Text>
+                        {' — see patterns and shift them'}
                       </Text>
                     </View>
                     <View style={styles.bulletRow}>
                       <Text style={styles.bulletMarker}>•</Text>
                       <Text style={styles.bulletLine}>
-                        <Text style={styles.bulletLead}>Private Echo Vault (50 GB)</Text> — your memories, your story
+                        <Text style={styles.bulletLead}>
+                          Private Echo Vault (50 GB)
+                        </Text>
+                        {' — your memories, your story'}
                       </Text>
                     </View>
                   </View>
 
+                  {/* Gold divider */}
                   <LinearGradient
-                      colors={['#F2E2B1', '#CFA64F']}
-                      start={{ x: 0, y: 0.5 }}
-                      end={{ x: 1, y: 0.5 }}
-                      style={styles.DividerLine}
-                    />
+                    colors={[palette.gold.DEFAULT, palette.gold.rich]}
+                    start={{ x: 0, y: 0.5 }}
+                    end={{ x: 1, y: 0.5 }}
+                    style={styles.dividerLine}
+                  />
 
+                  {/* Pricing */}
                   <View style={styles.priceLine}>
                     <Text style={styles.priceAmount}>$15.99</Text>
                     <Text style={styles.pricePerMonth}> /month </Text>
@@ -205,37 +228,39 @@ const StartFreeTrialScreen = () => {
                     <Text style={styles.priceYearSuffix}> /year</Text>
                   </View>
 
-                  <TouchableOpacity
-                    accessibilityRole="button"
-                    activeOpacity={0.85}
+                  {/* CTA button — standard Button component, gradient variant */}
+                  <Button
+                    variant="gradient"
+                    title={loading || purchasing ? 'LOADING...' : buttonText}
                     onPress={handleButtonPress}
                     disabled={loading || purchasing || hasActiveSubscription}
-                    style={styles.ctaButton}
-                  >
-                    {(loading || purchasing) ? (
-                      <ActivityIndicator color="#F2E2B1" />
-                    ) : (
-                      <Text style={styles.ctaButtonText}>{buttonText}</Text>
-                    )}
-                  </TouchableOpacity>
+                    style={styles.ctaButtonWrapper}
+                    containerStyle={styles.ctaButtonContainer}
+                    contentStyle={styles.ctaButtonContent}
+                    textStyle={styles.ctaButtonText}
+                    gradientColors={[
+                      glassGradient.button.start,
+                      glassGradient.button.end,
+                    ]}
+                  />
 
                   <Text style={styles.cancelText}>Cancel anytime.</Text>
                 </ScrollView>
               </View>
             </View>
-
-            <View style={styles.footerLinksRow}>
-              <Text style={styles.footerLinkText}>Terms</Text>
-              <Text style={styles.footerLinkText}>•</Text>
-              <Text style={styles.footerLinkText}>Privacy</Text>
-              <Text style={styles.footerLinkText}>•</Text>
-              <Text style={styles.footerLinkText}>Restore Purchase</Text>
-            </View>
           </View>
-        </View>
-      </SafeAreaView>
-    </BackgroundWrapper>
-  );
+
+          {/* ── Footer ───────────────────────────────────────────────── */}
+          <View style={styles.footerLinksRow}>
+            <Text style={styles.footerLinkText}>Terms</Text>
+            <Text style={styles.footerLinkText}>•</Text>
+            <Text style={styles.footerLinkText}>Privacy</Text>
+            <Text style={styles.footerLinkText}>•</Text>
+            <Text style={styles.footerLinkText}>Restore Purchase</Text>
+          </View>
+        </SafeAreaView>
+      </BackgroundWrapper>
+    );
 };
 
 export default StartFreeTrialScreen;
@@ -244,24 +269,21 @@ const styles = StyleSheet.create<{
   bg: ViewStyle;
   bgImage: ImageStyle;
   safe: ViewStyle;
-  outerBoxContainer: ViewStyle;
-  outerBox: ViewStyle;
   headerRow: ViewStyle;
   backButton: ViewStyle;
   backArrow: ImageStyle;
-  titleContainer: ViewStyle;
   title: TextStyle;
   subtitle: TextStyle;
-  innerBox: ViewStyle;
-  cardWrapper: ViewStyle;
-  cardGradient: ViewStyle;
+  cardShadow: ViewStyle;
+  cardGradientBorder: ViewStyle;
+  cardClip: ViewStyle;
   cardScroll: ViewStyle;
   cardContent: ViewStyle;
   cardTitle: TextStyle;
   cardSubtitle: TextStyle;
   starDividerRow: ViewStyle;
   starDividerLine: ViewStyle;
-  DividerLine: ViewStyle;
+  dividerLine: ViewStyle;
   bullets: ViewStyle;
   bulletRow: ViewStyle;
   bulletMarker: TextStyle;
@@ -274,352 +296,285 @@ const styles = StyleSheet.create<{
   priceOr: TextStyle;
   priceYearAmount: TextStyle;
   priceYearSuffix: TextStyle;
-  priceRemainder: TextStyle;
-  ctaButtonTouchable: ViewStyle;
-  ctaButton: ViewStyle;
+  ctaButtonWrapper: ViewStyle;
+  ctaButtonContainer: ViewStyle;
+  ctaButtonContent: ViewStyle;
   ctaButtonText: TextStyle;
   cancelText: TextStyle;
   footerLinksRow: ViewStyle;
   footerLinkText: TextStyle;
-}>(
-  {
-    bg: {
-      flex: 1,
-      backgroundColor: '#0B0F1C',
-    },
-    bgImage: {
-      resizeMode: 'cover',
-    },
-    safe: {
-      flex: 1,
-      backgroundColor: 'transparent',
-    },
-    outerBoxContainer: {
-      flex: 1,
-      paddingHorizontal: outerContainerPaddingHorizontal,
-      paddingTop: 20,
-      paddingBottom: outerContainerPaddingBottom,
-      alignItems: 'center',
-    },
-
-    outerBox: {
-      width: outerBoxWidth,
-      flex: 1,
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      marginTop: 20,
-    },
-
-    headerRow: {
-      width: '100%',
-      alignItems: 'center',
-      justifyContent: 'center',
-      position: 'relative',
-    },
-    backButton: {
-      position: 'absolute',
-      left: 0,
-      top: 15,
-      width: 40,
-      height: 40,
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 10,
-    },
-    backArrow: {
-      width: 20,
-      height: 20,
-      resizeMode: 'contain',
-      tintColor: '#E5D6B0',
-    },
-
-    titleContainer: {
-      alignItems: 'center',
-      paddingTop: 14,
-    },
-    title: {
-      alignSelf: 'stretch',
-      color: '#F2E2B1',
-      textAlign: 'center',
-      textShadowColor: '#F0D4A8',
-      textShadowOffset: { width: 0, height: 0 },
-      textShadowRadius: 16,
-      fontFamily: 'CormorantGaramond-Regular',
-      fontSize: 32,
-      fontStyle: 'normal',
-      fontWeight: '400',
-      lineHeight: 41.6,
-      includeFontPadding: false,
-    },
-    subtitle: {
-      marginTop: 16,
-      width: 335,
-      maxWidth: '100%',
-      alignSelf: 'center',
-      fontFamily: 'Inter',
-      fontSize: 16,
-      fontStyle: 'normal',
-      fontWeight: '400',
-      lineHeight: 24,
-      color: '#FDFDF9',
-      textAlign: 'center',
-    },
-
-    innerBox: {
-      flexDirection: 'column',
-      alignItems: 'center',
-      gap: sectionGap,
-      alignSelf: 'stretch',
-      paddingHorizontal: innerBoxSidePadding,
-      flex: 1,
-    },
-
-    cardWrapper: {
-      width: cardWidth,
-      alignSelf: 'center',
-      flex: 1,
-      padding: 20,
-      borderRadius: 13,
-      borderWidth: 0.25,
-      borderColor: '#9BAAC2',
-      backgroundColor: 'transparent',
-      overflow: 'hidden',
-      shadowColor: 'rgba(163, 179, 204, 0.30)',
-      shadowOffset: { width: 0, height: 0 },
-      shadowOpacity: 1,
-      shadowRadius: 25,
-    },
-    cardGradient: {
-      ...StyleSheet.absoluteFillObject,
-      borderRadius: 13,
-    },
-    cardScroll: {
-      flex: 1,
-      width: '100%',
-    },
-    cardContent: {
-      alignItems: 'center',
-      gap: 8,
-      paddingBottom: 8,
-    },
-
-    cardTitle: {
-      fontFamily: 'CormorantGaramond-Regular',
-      width: 194,
-      maxWidth: '100%',
-      alignSelf: 'center',
-      fontSize: 32,
-      fontWeight: '400',
-      lineHeight: 41.6,
-      color: '#F2E2B1',
-      textAlign: 'center',
-      includeFontPadding: false,
-    },
-    cardSubtitle: {
-      alignSelf: 'stretch',
-      color: '#FDFDF9',
-      textAlign: 'center',
-      fontFamily: 'CormorantGaramond-Regular',
-      fontSize: 20,
-      fontStyle: 'normal',
-      fontWeight: '400',
-      lineHeight: 26,
-      includeFontPadding: false,
-    },
-
-    starDividerRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 12,
-      marginTop: 2,
-      marginBottom: 2,
-      alignSelf: 'stretch',
-    },
-    starDividerLine: {
-      width: 73,
-      height: 0.5,
-      borderRadius: 1,
-    },
-
-    DividerLine: {
-      width: 235,
-      height: 0.5,
-      borderRadius: 1,
-    },
-
-    bullets: {
-      alignSelf: 'stretch',
-      gap: 6,
-    },
-    bulletRow: {
-      flexDirection: 'row',
-      alignItems: 'flex-start',
-      alignSelf: 'stretch',
-    },
-    bulletMarker: {
-      fontFamily: 'Inter',
-      fontSize: 16,
-      fontStyle: 'normal',
-      fontWeight: '300',
-      lineHeight: 24,
-      color: '#FDFDF9',
-      includeFontPadding: false,
-      marginRight: 10,
-    },
-    bulletLine: {
-      fontFamily: 'Inter',
-      fontSize: 16,
-      fontStyle: 'normal',
-      fontWeight: '300',
-      lineHeight: 24,
-      color: '#FDFDF9',
-      textAlign: 'left',
-      flex: 1,
-      includeFontPadding: false,
-    },
-    bulletLead: {
-      fontWeight: '400',
-      color: '#FDFDF9',
-    },
-
-    priceLine: {
-      flexDirection: 'row',
-      justifyContent: 'center',
-      alignItems: 'flex-end',
-      marginTop: 4,
-      marginBottom: 2,
-    },
-    priceAmount: {
-      color: '#FDFDF9',
-      textAlign: 'center',
-      fontFamily: 'CormorantGaramond-Regular',
-      fontSize: 24,
-      fontStyle: 'normal',
-      fontWeight: '400',
-      lineHeight: 31.2,
-      includeFontPadding: false,
-    },
-    pricePerMonth: {
-      width: 65,
-      color: '#FDFDF9',
-      textAlign: 'center',
-      fontFamily: 'CormorantGaramond-Regular',
-      fontSize: 20,
-      fontStyle: 'normal',
-      fontWeight: '400',
-      lineHeight: 26,
-      includeFontPadding: false,
-    },
-    priceOrContainer: {
-      display: 'flex',
-      width: 19,
-      height: 30,
-      flexDirection: 'column',
-      justifyContent: 'flex-end',
-      flexShrink: 0,
-      alignItems: 'center',
-    },
-    priceOr: {
-      color: '#FDFDF9',
-      textAlign: 'center',
-      fontFamily: 'Inter',
-      fontSize: 16,
-      fontStyle: 'normal',
-      fontWeight: '300',
-      lineHeight: 24,
-      includeFontPadding: false,
-    },
-    priceYearAmount: {
-      color: '#F2E2B1',
-      textAlign: 'center',
-      fontFamily: 'CormorantGaramond-Regular',
-      fontSize: 24,
-      fontStyle: 'normal',
-      fontWeight: '400',
-      lineHeight: 31.2,
-      includeFontPadding: false,
-    },
-    priceYearSuffix: {
-      color: '#F2E2B1',
-      textAlign: 'center',
-      fontFamily: 'CormorantGaramond-Italic',
-      fontSize: 20,
-      fontWeight: '400',
-      lineHeight: 26,
-      includeFontPadding: false,
-    },
-    priceRemainder: {
-      fontFamily: 'Inter',
-      fontSize: 12,
-      fontWeight: '300',
-      lineHeight: 16,
-      color: '#FDFDF9',
-      opacity: 0.9,
-      includeFontPadding: false,
-    },
-
-    ctaButtonTouchable: {
-      alignSelf: 'stretch',
-    },
-    ctaButton: {
-      flexDirection: 'row',
-      justifyContent: 'center',
-      alignItems: 'center',
-      alignSelf: 'stretch',
-      borderRadius: 12,
-      borderWidth: 1,
-      borderColor: 'rgba(229, 214, 176, 0.4)',
-      backgroundColor: 'rgba(58, 74, 92, 0.3)',
-      height: 44,
-      shadowColor: '#F2E2B1',
-      shadowOffset: { width: 0, height: 0 },
-      shadowOpacity: 0.25,
-      shadowRadius: 16,
-    },
-    ctaButtonText: {
-      fontFamily: 'CormorantGaramond-Regular',
-      fontSize: 24,
-      fontStyle: 'normal',
-      fontWeight: '400',
-      lineHeight: 31.2,
-      color: '#F2E2B1',
-      textAlign: 'center',
-      textShadowColor: 'rgba(229, 214, 176, 0.50)',
-      textShadowOffset: { width: 0, height: 0 },
-      textShadowRadius: 9,
-      includeFontPadding: false,
-    },
-    cancelText: {
-      fontFamily: 'Inter',
-      fontSize: 14,
-      fontStyle: 'italic',
-      fontWeight: '400',
-      lineHeight: 19.6,
-      color: '#FDFDF9',
-      textAlign: 'center',
-      opacity: 0.85,
-      marginTop: 2,
-      includeFontPadding: false,
-    },
-
-    footerLinksRow: {
-      flexDirection: 'row',
-      justifyContent: 'center',
-      alignItems: 'center',
-      gap: 6,
-      marginTop: 16,
-      paddingBottom: 4,
-    },
-    footerLinkText: {
-      fontFamily: 'Inter',
-      fontSize: 14,
-      fontWeight: '300',
-      lineHeight: 19.6,
-      color: '#A3B3CC',
-      textAlign: 'center',
-      includeFontPadding: false,
-    },
+}>({
+  bg: {
+    flex: 1,
+    backgroundColor: palette.navy.deep,
   },
-);
+  bgImage: {
+    resizeMode: 'cover',
+  },
+
+  // SafeAreaView — sole flex container, all children are direct siblings.
+  // gap and paddingBottom match TermsAndConditionsScreen exactly so the
+  // flex:1 card gets the same concrete bounded height.
+  safe: {
+    flex: 1,
+    backgroundColor: 'transparent',
+    paddingHorizontal: scale(24),
+    paddingBottom: verticalScale(24),
+    gap: verticalScale(16),
+  },
+
+  // ── Header row — matches TermsAndConditionsScreen pattern exactly ─────────
+  // back button is absolute so the title Text is the sole layout child
+  // → headerRow height = title natural height (concrete, stable).
+  headerRow: {
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  backButton: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    width: scale(40),
+    height: verticalScale(40),
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  backArrow: {
+    width: scale(20),
+    height: verticalScale(20),
+    resizeMode: 'contain',
+    tintColor: palette.gold.warm,
+  },
+  title: {
+    fontFamily: fontFamily.heading,
+    fontSize: moderateScale(fontSize['2xl']),
+    fontWeight: fontWeight.regular,
+    lineHeight: lineHeight.xl,
+    color: palette.gold.warm,
+    textAlign: 'center',
+    textShadowColor: textShadow.glow.color,
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 16,
+  },
+  // Screen subtitle — semantic.typography.styles.body with gold.subtlest colour override
+  subtitle: {
+    ...semantic.typography.styles.body,
+    color: palette.gold.subtlest,
+    textAlign: 'center',
+  },
+
+  // ── Card — three-layer gradient border pattern ────────────────────────────
+  // flex:1 is concrete because siblings (header + footer) have natural heights.
+  // backgroundColor is required for iOS CALayer to compute a shadow shape —
+  // without it the gold glow will not render even with shadowOpacity:1.
+  // palette.navy.deep matches the app background image tone (darkest layer),
+  // so any corner bleed is invisible against the screen background.
+  cardShadow: {
+    flex: 1,
+    alignSelf: 'center',
+    width: scale(313),
+    borderRadius: radius.s,
+    backgroundColor: palette.navy.deep,
+    shadowColor: modalColors.textGoldMuted,
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 0.5,
+    shadowRadius: moderateScale(16),
+    elevation: 12,
+  },
+  // paddingHorizontal:0.5 = left+right gradient border (cross-axis padding)
+  cardGradientBorder: {
+    flex: 1,
+    borderRadius: radius.s,
+    overflow: 'hidden',
+    paddingHorizontal: 0.5,
+  },
+  // marginVertical:0.25 = top+bottom gradient border (main-axis margin)
+  cardClip: {
+    flex: 1,
+    marginVertical: 0.25,
+    borderRadius: radius.s - 0.25,
+    overflow: 'hidden',
+    backgroundColor: palette.navy.card,
+  },
+  cardScroll: {
+    flex: 1,
+  },
+  cardContent: {
+    alignItems: 'center',
+    gap: verticalScale(10),
+    paddingHorizontal: scale(20),
+    paddingTop: verticalScale(20),
+    paddingBottom: verticalScale(20),
+  },
+
+  // ── Card content ──────────────────────────────────────────────────────────
+  cardTitle: {
+    fontFamily: fontFamily.heading,
+    fontSize: moderateScale(fontSize['3xl']),
+    fontWeight: fontWeight.regular,
+    lineHeight: moderateScale(fontSize['3xl']) * 1.3,
+    color: palette.gold.DEFAULT,
+    textAlign: 'center',
+  },
+  cardSubtitle: {
+    fontFamily: fontFamily.heading,
+    fontSize: moderateScale(fontSize.l),
+    fontWeight: fontWeight.regular,
+    lineHeight: moderateScale(fontSize.l) * 1.3,
+    color: palette.gold.subtlest,
+    textAlign: 'center',
+  },
+  starDividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: scale(12),
+    alignSelf: 'stretch',
+  },
+  starDividerLine: {
+    flex: 1,
+    height: 0.5,
+    borderRadius: 1,
+  },
+  dividerLine: {
+    width: scale(235),
+    height: 0.5,
+    borderRadius: 1,
+  },
+  bullets: {
+    alignSelf: 'stretch',
+    gap: verticalScale(6),
+  },
+  bulletRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    alignSelf: 'stretch',
+  },
+  bulletMarker: {
+    fontFamily: fontFamily.body,
+    fontSize: moderateScale(fontSize.s),
+    fontWeight: fontWeight.light,
+    lineHeight: moderateScale(fontSize.s) * 1.5,
+    color: palette.gold.subtlest,
+    marginRight: scale(10),
+  },
+  bulletLine: {
+    fontFamily: fontFamily.body,
+    fontSize: moderateScale(fontSize.s),
+    fontWeight: fontWeight.light,
+    lineHeight: moderateScale(fontSize.s) * 1.5,
+    color: palette.gold.subtlest,
+    flex: 1,
+  },
+  bulletLead: {
+    fontWeight: fontWeight.regular,
+    color: palette.gold.subtlest,
+  },
+
+  // ── Pricing ───────────────────────────────────────────────────────────────
+  priceLine: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'flex-end',
+  },
+  priceAmount: {
+    fontFamily: fontFamily.heading,
+    fontSize: moderateScale(fontSize.xl),
+    fontWeight: fontWeight.regular,
+    lineHeight: moderateScale(fontSize.xl) * 1.3,
+    color: palette.gold.subtlest,
+    textAlign: 'center',
+  },
+  pricePerMonth: {
+    fontFamily: fontFamily.heading,
+    fontSize: moderateScale(fontSize.l),
+    fontWeight: fontWeight.regular,
+    lineHeight: moderateScale(fontSize.l) * 1.3,
+    color: palette.gold.subtlest,
+    textAlign: 'center',
+  },
+  priceOrContainer: {
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+  },
+  priceOr: {
+    fontFamily: fontFamily.body,
+    fontSize: moderateScale(fontSize.s),
+    fontWeight: fontWeight.light,
+    lineHeight: moderateScale(fontSize.s) * 1.5,
+    color: palette.gold.subtlest,
+    textAlign: 'center',
+  },
+  priceYearAmount: {
+    fontFamily: fontFamily.heading,
+    fontSize: moderateScale(fontSize.xl),
+    fontWeight: fontWeight.regular,
+    lineHeight: moderateScale(fontSize.xl) * 1.3,
+    color: palette.gold.DEFAULT,
+    textAlign: 'center',
+  },
+  priceYearSuffix: {
+    fontFamily: fontFamily.headingItalic,
+    fontSize: moderateScale(fontSize.l),
+    fontWeight: fontWeight.regular,
+    lineHeight: moderateScale(fontSize.l) * 1.3,
+    color: palette.gold.DEFAULT,
+    textAlign: 'center',
+  },
+
+  // ── CTA button — overrides for standard Button (gradient variant) ─────────
+  ctaButtonWrapper: {
+    alignSelf: 'stretch',
+    backgroundColor: palette.neutral.transparent,
+    shadowOpacity: 0,
+    elevation: 0,
+    borderRadius: radius.m,
+  },
+  ctaButtonContainer: {
+    borderWidth: borderWidth.thin,
+    borderColor: palette.navy.light,
+    borderRadius: radius.m,
+  },
+  ctaButtonContent: {
+    paddingVertical: verticalScale(10),
+    paddingHorizontal: scale(16),
+    minWidth: 0,
+  },
+  ctaButtonText: {
+    fontFamily: fontFamily.heading,
+    fontSize: moderateScale(fontSize.xl),
+    fontWeight: fontWeight.regular,
+    lineHeight: lineHeight.l,
+    letterSpacing: 0,
+    color: palette.gold.DEFAULT,
+    textShadowColor: textShadow.warmGlow.color,
+    textShadowOffset: textShadow.warmGlow.offset,
+    textShadowRadius: textShadow.warmGlow.radius,
+    textTransform: 'none',
+  },
+  // semantic.typography.styles.label — italic Inter 14px — with gold.subtlest colour override
+  cancelText: {
+    ...semantic.typography.styles.label,
+    color: palette.gold.subtlest,
+    textAlign: 'center',
+    opacity: 0.85,
+  },
+
+  // ── Footer ────────────────────────────────────────────────────────────────
+  footerLinksRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: scale(6),
+  },
+  footerLinkText: {
+    fontFamily: fontFamily.body,
+    fontSize: moderateScale(fontSize.xs),
+    fontWeight: fontWeight.light,
+    lineHeight: moderateScale(fontSize.xs) * 1.4,
+    color: palette.navy.light,
+    textAlign: 'center',
+  },
+});

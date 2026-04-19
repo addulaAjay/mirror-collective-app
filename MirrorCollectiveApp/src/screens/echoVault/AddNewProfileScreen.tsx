@@ -1,6 +1,7 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '@types';
 import React, { useState } from 'react';
+import { palette } from '@theme';
 import {
   View,
   Text,
@@ -30,10 +31,10 @@ type Props = NativeStackScreenProps<RootStackParamList, 'AddNewProfileScreen'>;
 
 const { width } = Dimensions.get('window');
 
-const GOLD = '#D7C08A';
-const LIGHT_GOLD = '#f2e2b1';
-const OFFWHITE = '#fdfdf9';
-const BLUE_GREY = '#a3b3cc';
+const GOLD = palette.gold.mid;
+const LIGHT_GOLD = palette.gold.DEFAULT;
+const OFFWHITE = palette.gold.subtlest;
+const BLUE_GREY = palette.navy.light;
 const SUBTEXT = 'rgba(253,253,249,0.75)';
 
 const AddNewProfileScreen: React.FC<Props> = ({ navigation, route }) => {
@@ -240,7 +241,7 @@ const styles = StyleSheet.create({
       ios: 'CormorantGaramond-Regular',
       android: 'serif',
     }),
-    textShadowColor: '#f0d4a8',
+    textShadowColor: palette.gold.glow,
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 16,
   },
@@ -269,7 +270,7 @@ const styles = StyleSheet.create({
     height: 186,
     borderRadius: 93,
     borderWidth: 0.5,
-    borderColor: '#E5D6B0',
+    borderColor: palette.gold.warm,
     alignItems: 'center',
     justifyContent: 'center',
     ...Platform.select({

@@ -1,3 +1,4 @@
+import { palette } from '@theme';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '@types';
@@ -5,6 +6,7 @@ import React, { useState } from 'react';
 import {
   Dimensions,
   Image,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -108,22 +110,15 @@ const ReflectionRoomEchoSignatureScreen: React.FC = () => {
             onPress={() => navigation.navigate('ReflectionRoomEchoMap' as never)}
             activeOpacity={0.8}
           >
-            <LinearGradient
-              colors={['rgba(253, 253, 249, 0.02)', 'rgba(253, 253, 249, 0.00)']}
-              start={{ x: 0.5, y: 0 }}
-              end={{ x: 0.5, y: 1 }}
-              style={styles.ctaGradient}
-            >
-              <Text style={styles.ctaText}>OPEN ECHO MAP</Text>
-            </LinearGradient>
+            <Text style={styles.ctaText}>OPEN ECHO MAP</Text>
           </TouchableOpacity>
         </ScrollView>
       </SafeAreaView>
       {selectedCard && (
         <Pressable style={styles.popupOverlay} onPress={() => setSelectedCard(null)}>
-          <View style={styles.popupContent} onStartShouldSetResponder={() => true}>
+          <Pressable style={styles.popupContainer} onPress={e => e.stopPropagation()}>
             <LinearGradient
-              colors={['#F0D4A8', '#E2AE5A']}
+              colors={[palette.gold.glow, palette.gold.amber]}
               start={{ x: 0.5, y: 0 }}
               end={{ x: 0.5, y: 1 }}
               style={styles.popupCard}
@@ -138,21 +133,15 @@ const ReflectionRoomEchoSignatureScreen: React.FC = () => {
               </View>
               <Text style={styles.popupPractice}>{selectedCard.practice}</Text>
             </LinearGradient>
+            {/* <Text style={styles.popupSubtext}>{selectedCard.subtitle}</Text> */}
             <TouchableOpacity
               style={styles.doneButton}
               activeOpacity={0.8}
               onPress={() => setSelectedCard(null)}
             >
-              <LinearGradient
-                colors={['rgba(253, 253, 249, 0.02)', 'rgba(253, 253, 249, 0.00)']}
-                start={{ x: 0.5, y: 0 }}
-                end={{ x: 0.5, y: 1 }}
-                style={styles.doneGradient}
-              >
-                <Text style={styles.doneText}>DONE</Text>
-              </LinearGradient>
+              <Text style={styles.doneText}>DONE</Text>
             </TouchableOpacity>
-          </View>
+          </Pressable>
         </Pressable>
       )}
     </BackgroundWrapper>
@@ -164,7 +153,7 @@ export default ReflectionRoomEchoSignatureScreen;
 const styles = StyleSheet.create({
   bg: {
     flex: 1,
-    backgroundColor: '#0B0F1C',
+    backgroundColor: palette.navy.deep,
   },
   bgImage: {
     resizeMode: 'cover',
@@ -194,12 +183,12 @@ const styles = StyleSheet.create({
   backArrowImg: {
     width: 24,
     height: 24,
-    tintColor: '#F2E2B1',
+    tintColor: palette.gold.DEFAULT,
   },
   title: {
     fontFamily: 'CormorantGaramond-Regular',
     fontSize: 32,
-    color: '#F2E2B1',
+    color: palette.gold.DEFAULT,
     textAlign: 'center',
     letterSpacing: 1,
     flex: 1,
@@ -208,7 +197,7 @@ const styles = StyleSheet.create({
   subtitle: {
     fontFamily: 'Inter',
     fontSize: 16,
-    color: '#FDFDF9',
+    color: palette.gold.subtlest,
     textAlign: 'center',
     lineHeight: 24,
     marginBottom: Math.max(24, screenHeight * 0.03),
@@ -222,9 +211,9 @@ const styles = StyleSheet.create({
   practiceCard: {
     width: '100%',
     borderWidth: 0.5,
-    borderColor: '#A3B3CC',
+    borderColor: palette.navy.light,
     borderRadius: 13,
-    backgroundColor: '#1a2238',
+    backgroundColor: palette.navy.DEFAULT,
     flexDirection: 'column',
     alignItems: 'flex-start',
     paddingVertical: 20,
@@ -247,14 +236,14 @@ const styles = StyleSheet.create({
   cardLabel: {
     fontFamily: 'CormorantGaramond-Regular',
     fontSize: 24,
-    color: '#F2E2B1',
+    color: palette.gold.DEFAULT,
     letterSpacing: 1,
   },
   cardSubtitle: {
     fontFamily: 'Inter',
     fontSize: 15,
     fontStyle: 'italic',
-    color: '#FDFDF9',
+    color: palette.gold.subtlest,
     lineHeight: 22,
   },
   popupOverlay: {
@@ -264,28 +253,28 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     zIndex: 100,
   },
-  popupContent: {
+  popupContainer: {
+    width: Math.min(329, screenWidth * 0.9),
     alignItems: 'center',
     gap: 16,
-    width: '80%',
-    maxWidth: 320,
   },
   popupCard: {
     width: '100%',
-    padding: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
     borderRadius: 13,
     alignItems: 'center',
     gap: 8,
-    shadowColor: '#F2E2B1',
+    shadowColor: palette.gold.DEFAULT,
     shadowOffset: { width: 2, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 32,
-    elevation: 8,
+    elevation: 10,
   },
   popupTitle: {
     fontFamily: 'CormorantGaramond-Regular',
     fontSize: 22,
-    color: '#1A2238',
+    color: palette.navy.DEFAULT,
     letterSpacing: 1,
     textAlign: 'center',
   },
@@ -294,35 +283,47 @@ const styles = StyleSheet.create({
     height: 40,
   },
   popupPractice: {
-    fontFamily: 'Inter',
-    fontSize: 14,
-    fontStyle: 'italic',
-    color: '#1A2238',
+    fontFamily: 'CormorantGaramond-Italic',
+    fontSize: 18,
+    color: palette.navy.DEFAULT,
     textAlign: 'center',
-    lineHeight: 22,
+    lineHeight: 26,
+  },
+  popupSubtext: {
+    fontFamily: 'CormorantGaramond-Italic',
+    fontSize: 18,
+    color: '#FDFDF9',
+    textAlign: 'center',
+    lineHeight: 26,
   },
   doneButton: {
-    borderRadius: 12,
+    minWidth: 120,
+    maxWidth: 140,
+    height: 52,
+    backgroundColor: 'rgba(10, 18, 40, 0.7)',
     borderWidth: 0.5,
-    borderColor: '#A3B3CC',
-    overflow: 'hidden',
-  },
-  doneGradient: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    borderColor: palette.navy.light,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
+    alignSelf: 'center',
+    paddingHorizontal: 24,
+    ...(Platform.OS === 'ios'
+      ? { elevation: 12 }
+      : { boxShadow: '0 0 8px 2px #F0D4A8' }),
   },
   doneText: {
     fontFamily: 'CormorantGaramond-Regular',
-    fontSize: 20,
-    color: '#F2E2B1',
+    fontSize: 24,
+    color: palette.gold.DEFAULT,
     letterSpacing: 2,
   },
   ctaButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
     borderRadius: 12,
     borderWidth: 0.5,
-    borderColor: '#A3B3CC',
+    borderColor: palette.navy.light,
     overflow: 'hidden',
   },
   ctaGradient: {
@@ -331,12 +332,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 8,
+    backgroundColor: 'rgba(191, 199, 217, 0.05)',
+    ...(Platform.OS === 'ios'
+      ? { elevation: 12 }
+      : { boxShadow: '0 0 12px 4px #F0D4A8' }),
   },
   ctaText: {
     fontFamily: 'CormorantGaramond-Regular',
     fontSize: 24,
-    color: '#F2E2B1',
+    color: palette.gold.DEFAULT,
     letterSpacing: 2,
   },
 });

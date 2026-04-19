@@ -1,10 +1,4 @@
-import {
-  COLORS,
-  SHADOWS,
-  SPACING,
-  SCREEN_DIMENSIONS,
-  PLATFORM_SPECIFIC,
-} from '@constants';
+import { palette, spacing, shadows } from '@theme';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '@types';
@@ -35,7 +29,7 @@ type EchoLibraryNavigationProp = NativeStackNavigationProp<
   'MirrorEchoVaultLibrary'
 >;
 
-const GOLD = '#F2E2B1';
+const GOLD = palette.gold.DEFAULT;
 const SUBTEXT = 'rgba(253,253,249,0.92)';
 
 // Mock data or icons if needed. Using local assets for consistency if available, otherwise icons.
@@ -51,7 +45,7 @@ export function EchoLibraryContent() {
   const [viewMode, setViewMode] = useState<'LIBRARY' | 'INBOX'>('LIBRARY');
   const [activeTab, setActiveTab] = useState<'RECIPIENT' | 'CATEGORY'>('RECIPIENT');
 
-  const cardMaxWidth = Math.min(width - SPACING.XL * 2, 440);
+  const cardMaxWidth = Math.min(width - spacing.l * 2, 440);
 
   const fetchEchoes = useCallback(async () => {
     try {
@@ -339,7 +333,7 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     paddingTop: 0,
-    paddingHorizontal: SPACING.XL,
+    paddingHorizontal: spacing.l,
     paddingBottom: Platform.OS === 'ios' ? 18 : 12,
   },
   rowRight: {
@@ -373,7 +367,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 16,
     borderBottomWidth: 0.5,
-    borderBottomColor: '#A3B3CC',
+    borderBottomColor: palette.navy.light,
     gap: 12,
   },
   toggleButton: {
@@ -381,7 +375,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 20,
     borderWidth: 0.5,
-    borderColor: '#A3B3CC',
+    borderColor: palette.navy.light,
     minWidth: 120,
     alignItems: 'center',
     justifyContent: 'center',
@@ -393,7 +387,7 @@ const styles = StyleSheet.create({
   toggleText: {
     fontFamily: 'CormorantGaramond-Regular',
     fontSize: 18,
-    color: '#A3B3CC',
+    color: palette.navy.light,
   },
   toggleTextActive: {
     color: GOLD,
@@ -411,7 +405,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 16,
     borderBottomWidth: 0.5,
-    borderBottomColor: '#A3B3CC',
+    borderBottomColor: palette.navy.light,
     width: '100%',
     marginBottom: 0,
   },
@@ -440,7 +434,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     alignSelf: 'center',
     borderBottomWidth: 0.5,
-    borderBottomColor: '#F2E2B1',
+    borderBottomColor: palette.gold.DEFAULT,
   },
   echoInboxIcon: {
     width: 24,
@@ -454,7 +448,7 @@ const styles = StyleSheet.create({
     }),
     fontSize: 28,
     fontWeight: '400',
-    color: '#F2E2B1',
+    color: palette.gold.DEFAULT,
     textAlign: 'center',
     lineHeight: 36.4,
   },
@@ -463,11 +457,11 @@ const styles = StyleSheet.create({
   card: {
     width: '100%',
     borderRadius: 16,
-    // paddingHorizontal: SPACING.LG, // Moved padding to children if needed
+    // paddingHorizontal: spacing.m, // Moved padding to children if needed
     // paddingTop: 0,
-    // paddingBottom: SPACING.LG,
+    // paddingBottom: spacing.m,
     alignSelf: 'center',
-    ...SHADOWS.LIGHT,
+    ...shadows.LIGHT,
     // backgroundColor: 'rgba(12,17,31,0.65)', // Gradient used instead
     borderWidth: 0.5,
     borderColor: 'rgba(96, 115, 159, 1)', // border-inverse-1
@@ -493,13 +487,13 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   activeHeader: {
-    color: '#FDFDF9',
+    color: palette.gold.subtlest,
     borderBottomWidth: 1.5,
-    borderBottomColor: '#FDFDF9',
+    borderBottomColor: palette.gold.subtlest,
     paddingBottom: 2,
   },
   inactiveHeader: {
-    color: '#A3B3CC',
+    color: palette.navy.light,
   },
 
   // LIST ROWS
@@ -510,7 +504,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 16,
     borderBottomWidth: 0.25,
-    borderBottomColor: '#D9A766', // border-brand-active
+    borderBottomColor: palette.gold.active, // border-brand-active
   },
   rowLeft: {
     flexDirection: 'row',
@@ -527,7 +521,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     backgroundColor: 'rgba(197, 158, 95, 0.05)',
     borderWidth: 0.5,
-    borderColor: '#F2E2B1',
+    borderColor: palette.gold.DEFAULT,
     justifyContent: 'center',
     alignItems: 'center',
     // Shadow...
@@ -544,13 +538,13 @@ const styles = StyleSheet.create({
   rowTitle: {
     fontFamily: 'CormorantGaramond-Regular',
     fontSize: 20,
-    color: '#FFFFFF',
+    color: palette.neutral.white,
     lineHeight: 26,
   },
   rowSub: {
     fontFamily: 'Inter-LightItalic', // Assuming font
     fontSize: 14,
-    color: '#FFFFFF', // Italic text color
+    color: palette.neutral.white, // Italic text color
     opacity: 0.8,
   },
   recipientText: {
@@ -576,7 +570,7 @@ const styles = StyleSheet.create({
     width: 280,
     borderRadius: 12,
     borderWidth: 0.5,
-    borderColor: '#A3B3CC',
+    borderColor: palette.navy.light,
     overflow: 'hidden',
   },
   buttonGradient: {
@@ -610,7 +604,7 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   errorText: {
-    color: '#ff6b6b',
+    color: palette.status.errorHover,
     fontSize: 14,
     textAlign: 'center',
     marginBottom: 12,
@@ -649,14 +643,14 @@ const styles = StyleSheet.create({
     fontSize: 28,
     color: GOLD,
     textAlign: 'center',
-    textShadowColor: '#F0D4A8',
+    textShadowColor: palette.gold.glow,
     textShadowRadius: 16,
     letterSpacing: 2,
   },
   subtitle: {
     fontFamily: 'Inter-Light', // Assuming Inter-Light
     fontSize: 16,
-    color: '#FFFFFF',
+    color: palette.neutral.white,
     textAlign: 'center',
     lineHeight: 24,
   },

@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { QuizSubmissionRequest } from '@types';
+import type { QuizSubmissionRequest, CachedQuizResult } from '@types';
 import uuid from 'react-native-uuid';
 
 import { quizApiService } from './api';
@@ -58,16 +58,17 @@ class QuizStorageService {
    * This is only used if immediate submission fails.
    */
   static async storePendingQuizResults(
-    quizData: QuizSubmissionRequest,
+    quizData: QuizSubmissionRequest | CachedQuizResult,
   ): Promise<void> {
     try {
       const quizJson = JSON.stringify(quizData);
       await AsyncStorage.setItem(this.STORAGE_KEY, quizJson);
 
       if (__DEV__) {
+        const cachedQuiz = quizData as CachedQuizResult;
         console.log('Quiz results stored temporarily:', {
           answerCount: quizData.answers.length,
-          archetype: quizData.archetypeResult.name,
+          archetype: cachedQuiz.backendResult?.final_archetype || 'pending calculation',
           completedAt: quizData.completedAt,
         });
       }
@@ -80,19 +81,19 @@ class QuizStorageService {
   /**
    * Get stored pending quiz results
    */
-  static async getPendingQuizResults(): Promise<QuizSubmissionRequest | null> {
+  static async getPendingQuizResults(): Promise<CachedQuizResult | null> {
     try {
       const quizJson = await AsyncStorage.getItem(this.STORAGE_KEY);
       if (!quizJson) {
         return null;
       }
 
-      const quizData: QuizSubmissionRequest = JSON.parse(quizJson);
+      const quizData: CachedQuizResult = JSON.parse(quizJson);
 
       if (__DEV__) {
         console.log('Retrieved pending quiz results:', {
           answerCount: quizData.answers.length,
-          archetype: quizData.archetypeResult.name,
+          archetype: quizData.backendResult?.final_archetype || 'pending calculation',
         });
       }
 
@@ -102,10 +103,6 @@ class QuizStorageService {
       return null;
     }
   }
-
-  /**
-   * Submit pending quiz results to the backend and clear from storage
-   */
   /**
    * Submit quiz results immediately for an anonymous user
    * If network fails, it queues the data for later retry.
@@ -127,19 +124,36 @@ class QuizStorageService {
           console.log(`🔵 [MIRROR_DEBUG] ID: ${quizData.anonymousId}`);
           console.log('🔵 ===================================================\n');
         }
-        await quizApiService.submitQuizResults(quizData);
         
-        // Success! Store the quiz data locally so we can show the result on app relaunch
-        // AND set the submission flag so we know it was successfully submitted
-        await this.storePendingQuizResults(quizData);
-        await AsyncStorage.setItem(this.SUBMISSION_TRACKER_KEY, 'true');
+        // Submit to backend and capture calculated result
+        const response = await quizApiService.submitQuizResults(quizData);
         
-        if (__DEV__) {
-          console.log('\n🟢 ===================================================');
-          console.log('🟢 [MIRROR_DEBUG] Immediate anonymous submission SUCCESS!');
-          console.log('🟢 ===================================================\n');
+        if (response.success && response.data) {
+          // Store backend-calculated result along with quiz data
+          const quizWithResult = {
+            ...quizData,
+            backendResult: {
+              final_archetype: response.data.final_archetype,
+              assignment_reason: response.data.assignment_reason,
+              total_scores: response.data.total_scores,
+              archetype_details: response.data.archetype_details,
+            }
+          };
+          
+          await this.storePendingQuizResults(quizWithResult as any);
+          await AsyncStorage.setItem(this.SUBMISSION_TRACKER_KEY, 'true');
+          
+          if (__DEV__) {
+            console.log('\n🟢 ===================================================');
+            console.log('🟢 [MIRROR_DEBUG] Immediate anonymous submission SUCCESS!');
+            console.log(`🟢 [MIRROR_DEBUG] Archetype: ${response.data.final_archetype}`);
+            console.log(`🟢 [MIRROR_DEBUG] Reason: ${response.data.assignment_reason}`);
+            console.log('🟢 ===================================================\n');
+          }
+          return true;
+        } else {
+          throw new Error('Backend response missing data');
         }
-        return true;
 
       } catch (apiError: any) {
         console.warn('\n🔴 ===================================================');

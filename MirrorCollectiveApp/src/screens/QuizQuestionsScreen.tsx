@@ -1,6 +1,18 @@
-import { BORDER_RADIUS, COLORS, SPACING } from '@constants';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import {
+  palette,
+  radius,
+  borderWidth,
+  textShadow,
+  glassGradient,
+  fontFamily,
+  fontSize,
+  fontWeight,
+  scale,
+  verticalScale,
+  moderateScale,
+} from '@theme';
 import type { RootStackParamList } from '@types';
 import type { QuizSubmissionRequest } from '@types';
 import type { QuizQuestion } from '@types';
@@ -9,16 +21,14 @@ import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
-  FlatList,
+  ScrollView,
   StyleSheet,
-  Dimensions,
   Alert,
   ActivityIndicator,
   StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import questionsData from '@assets/questions.json';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import GradientButton from '@components/GradientButton';
 import ImageOptionButton, {
@@ -29,32 +39,26 @@ import OptionButton from '@components/OptionsButton';
 import ProgressBar from '@components/ProgressBar';
 import { quizApiService } from '@services/api/quiz';
 import { QuizStorageService } from '@services/quizStorageService';
-import {
-  calculateQuizResult,
-  createUserAnswer,
-  type QuizData,
-  type UserAnswer,
-} from '@utils/archetypeScoring';
-// Typography styles are now defined directly in component styles
+
+// Simple answer tracking for UI state
+interface SimpleAnswer {
+  questionId: number;
+  answerText: string;
+}
 
 type QuizQuestionsScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
   'QuizQuestions'
 >;
 
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
-
 const QuizQuestionsScreen = () => {
   const { t } = useTranslation();
   const navigation = useNavigation<QuizQuestionsScreenNavigationProp>();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selected, setSelected] = useState<string | { icon: any } | null>(null);
-  const [answers, setAnswers] = useState<UserAnswer[]>([]);
+  const [answers, setAnswers] = useState<SimpleAnswer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
-
-  // Extract static data for fallback/archetype mapping
-  const quizData = questionsData as QuizData;
 
   // Reset state and fetch questions
   useEffect(() => {
@@ -71,12 +75,20 @@ const QuizQuestionsScreen = () => {
            console.log('Using questions from API');
            setQuestions(response.data);
         } else {
-           console.log('Using local questions (API response empty or invalid)');
-           setQuestions(quizData.questions);
+           console.error('Failed to load questions from API');
+           Alert.alert(
+             'Error',
+             'Unable to load quiz questions. Please check your connection and try again.',
+             [{ text: 'OK', onPress: () => navigation.goBack() }]
+           );
         }
       } catch (error) {
-        console.error('Failed to fetch questions, using fallback:', error);
-        setQuestions(quizData.questions);
+        console.error('Failed to fetch questions:', error);
+        Alert.alert(
+          'Error',
+          'Unable to load quiz questions. Please check your connection and try again.',
+          [{ text: 'OK', onPress: () => navigation.goBack() }]
+        );
       } finally {
         setIsLoading(false);
       }
@@ -97,7 +109,7 @@ const QuizQuestionsScreen = () => {
           <LogoHeader />
           <View style={styles.loadingContainer}>
             <View style={styles.loadingContent}>
-              <ActivityIndicator size="large" color="#E5D6B0" />
+              <ActivityIndicator size="large" color={palette.gold.warm} />
               <Text style={styles.loadingText}>{t('quiz.quizQuestions.loading')}</Text>
             </View>
           </View>
@@ -136,7 +148,7 @@ const QuizQuestionsScreen = () => {
   const handleNext = async () => {
     if (!selected) return;
 
-    // Find the selected option to get archetype and other details
+    // Find the selected option
     const selectedOption = currentQuestion.options.find(option => {
       if (currentQuestion.type === 'text') {
         return option.text === selected;
@@ -147,144 +159,84 @@ const QuizQuestionsScreen = () => {
 
     if (!selectedOption) return;
 
-    // Find the option index
-    const optionIndex = currentQuestion.options.findIndex(option => {
-      if (currentQuestion.type === 'text') {
-        return option.text === selected;
-      } else {
-        return option.label === selected;
-      }
-    });
+    const answerText = selectedOption.text || selectedOption.label || '';
 
-    // Create proper UserAnswer object
-    const userAnswer = createUserAnswer(
-      currentQuestion.id,
-      currentQuestion.question,
-      selectedOption as any, // Cast to any to avoid type mismatch between API QuizOption and internal QuestionOption
-      optionIndex,
-    );
-
-    const newAnswers = [...answers, userAnswer];
+    // Store simple answer for backend submission
+    const newAnswers = [
+      ...answers,
+      {
+        questionId: currentQuestion.id,
+        answerText,
+      },
+    ];
     setAnswers(newAnswers);
     setSelected(null);
 
     if (isLast) {
-      // Use new scoring system to calculate quiz result
-      const quizResult = calculateQuizResult(newAnswers, quizData);
-
-      // Map archetype name to full archetype object from questions.json
-      const archetypeKey = quizResult.finalArchetype.toLowerCase();
-      const archetypeData = quizData.archetypes[archetypeKey];
-
-      // Static image mapping for React Native (dynamic require not supported)
-      const archetypeImages = {
-        'seeker-archetype.png': require('@assets/seeker-archetype.png'),
-        'guardian-archetype.png': require('@assets/guardian-archetype.png'),
-        'flamebearer-archetype.png': require('@assets/flamebearer-archetype.png'),
-        'weaver-archetype.png': require('@assets/weaver-archetype.png'),
-      };
-
-      const archetypeWithImage = {
-        ...archetypeData,
-        image:
-          archetypeImages[
-            archetypeData.imagePath as keyof typeof archetypeImages
-          ],
-      };
-
-      // Store quiz results temporarily until user registration
+      // Submit raw answers to backend for calculation
       try {
         const quizSubmission: QuizSubmissionRequest = {
+          quizType: 'archetype', // Quiz identifier for multi-quiz support
           answers: newAnswers.map(answer => ({
             questionId: answer.questionId,
-            question: answer.question,
-            answer:
-              answer.selectedOption.text || answer.selectedOption.label || '',
+            question: questions.find(q => q.id === answer.questionId)?.question || '',
+            answer: answer.answerText,
             answeredAt: new Date().toISOString(),
             type: questions.find(q => q.id === answer.questionId)?.type as
               | 'text'
               | 'image',
           })),
           completedAt: new Date().toISOString(),
-          archetypeResult: {
-            id: archetypeWithImage.id,
-            name: archetypeWithImage.name,
-            title: archetypeWithImage.title,
-          },
           quizVersion: '1.0',
-          // Transform the quiz result to match backend schema
-          detailedResult: {
-            primaryArchetype: quizResult.finalArchetype,
-            scores: quizResult.totalScores,
-            confidence: 0.85, // Default confidence for quiz-based results
-            analysis: {
-              strengths: [],
-              challenges: [],
-              recommendations: [],
-            },
-          },
         };
 
-        // Submit immediately (or queue for offline retry)
+        // Submit to backend (backend calculates the result)
         await QuizStorageService.submitAnonymousQuiz(quizSubmission);
+        
+        // Backend calculated and stored the result
+        // Fetch from storage which was set during submission
+        const storedQuiz = await QuizStorageService.getPendingQuizResults();
+        
+        if (storedQuiz?.backendResult) {
+          const { final_archetype, assignment_reason, total_scores, archetype_details } = storedQuiz.backendResult;
+          
+          // Static image mapping for React Native (dynamic require not supported)
+          const archetypeImages = {
+            'seeker-archetype.png': require('@assets/seeker-archetype.png'),
+            'guardian-archetype.png': require('@assets/guardian-archetype.png'),
+            'flamebearer-archetype.png': require('@assets/flamebearer-archetype.png'),
+            'weaver-archetype.png': require('@assets/weaver-archetype.png'),
+          };
 
-        // Navigate to tuning screen first, then Archetype
-        navigation.navigate('QuizTuning', {
-          archetype: archetypeWithImage,
-          quizResult, // Pass the full calculated result
-        });
+          const archetypeWithImage = {
+            ...archetype_details,
+            image: archetypeImages[archetype_details.imagePath as keyof typeof archetypeImages],
+          };
+
+          // Navigate with backend-calculated result
+          navigation.navigate('QuizTuning', {
+            archetype: archetypeWithImage,
+            quizResult: {
+              finalArchetype: final_archetype,
+              assignmentReason: assignment_reason,
+              totalScores: total_scores,
+            },
+          });
+        } else {
+          throw new Error('No backend result received');
+        }
       } catch (error) {
-        console.error('Failed to store quiz results temporarily:', error);
-        // Show error but still allow navigation
+        console.error('Failed to submit quiz results:', error);
+        // Show error - don't navigate to avoid showing incomplete data
         Alert.alert(
           t('quiz.quizQuestions.storageErrorTitle'),
           t('quiz.quizQuestions.storageErrorMessage'),
-          [
-            {
-              text: t('quiz.quizQuestions.continueButton'),
-              onPress: () =>
-                navigation.navigate('QuizTuning', {
-                  archetype: archetypeWithImage,
-                  quizResult,
-                }),
-            },
-          ],
         );
       }
     } else {
       setCurrentIndex(currentIndex + 1);
     }
     setSelected(null);
-  };
-
-  const renderItem = ({ item, index }: { item: any; index: number }) => {
-    if (currentQuestion.type === 'text') {
-      return (
-        <OptionButton
-          label={item.text}
-          selected={selected === item.text}
-          onPress={() => setSelected(item.text)}
-          style={styles.optionButton}
-        />
-      );
-    } else if (currentQuestion.type === 'image') {
-      return (
-        <ImageOptionButton
-          symbolType={symbolSequence[index % symbolSequence.length]}
-          selected={selected === item.label}
-          onPress={() => setSelected(item.label)}
-        />
-      );
-    }
-    return null;
-  };
-
-  const keyExtractor = (item: any, index: number) => {
-    if (currentQuestion.type === 'text') {
-      return item.text;
-    } else {
-      return item.label || index.toString();
-    }
   };
 
   return (
@@ -310,15 +262,23 @@ const QuizQuestionsScreen = () => {
         <View style={styles.contentArea}>
           <View style={styles.optionsContainer}>
             {currentQuestion.type === 'text' ? (
-              <FlatList
-                data={currentQuestion.options}
-                keyExtractor={keyExtractor}
-                renderItem={renderItem}
-                scrollEnabled
-                contentContainerStyle={styles.list}
+              <ScrollView
+                style={styles.textOptionsScroll}
+                contentContainerStyle={styles.textOptionsList}
                 showsVerticalScrollIndicator={false}
-                style={styles.listViewport}
-              />
+                scrollEnabled={true}
+                bounces={false}
+              >
+                {currentQuestion.options.map((item: any) => (
+                  <OptionButton
+                    key={item.text}
+                    label={item.text}
+                    selected={selected === item.text}
+                    onPress={() => setSelected(item.text)}
+                    style={styles.optionButton}
+                  />
+                ))}
+              </ScrollView>
             ) : (
               <View style={styles.imageGrid}>
                 {currentQuestion.options.map((item: any, index: number) => (
@@ -347,8 +307,8 @@ const QuizQuestionsScreen = () => {
               contentStyle={styles.glassButtonContent}
               textStyle={styles.glassButtonText}
               gradientColors={[
-                'rgba(253, 253, 249, 0.04)',
-                'rgba(253, 253, 249, 0.01)',
+                glassGradient.button.start,
+                glassGradient.button.end,
               ]}
             />
           </View>
@@ -367,37 +327,36 @@ const styles = StyleSheet.create({
   },
   safe: {
     flex: 1,
-    backgroundColor: 'transparent',
+    backgroundColor: palette.neutral.transparent,
   },
   loadingContainer: {
-     flex: 1,
-     alignItems: 'center',
-     paddingTop: Math.max(40, screenHeight * 0.047),
+    flex: 1,
+    alignItems: 'center',
+    paddingTop: verticalScale(40),
   },
   loadingContent: {
-     flex: 1,
-     justifyContent: 'center',
-     alignItems: 'center',
-     width: '100%',
-     marginBottom: Math.max(40, screenHeight * 0.047), // Balance the paddingTop for vertical center
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+    marginBottom: verticalScale(40),
   },
   loadingText: {
-    marginTop: 20,
-    color: '#E5D6B0',
-    fontSize: 16,
-    fontFamily: 'CormorantGaramond-Regular',
+    marginTop: verticalScale(20),
+    color: palette.gold.warm,
+    fontSize: moderateScale(fontSize.s),
+    fontFamily: fontFamily.heading,
   },
   bgImage: {
     resizeMode: 'cover',
   },
   scrim: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.25)',
+    backgroundColor: palette.neutral.overlay,
   },
-
   container: {
-    paddingHorizontal: Math.max(40, screenWidth * 0.102), // Match Figma padding
-    paddingBottom: Math.max(30, screenHeight * 0.035),
+    paddingHorizontal: scale(40),  // Figma: 40px left/right margin
+    paddingBottom: verticalScale(20),  // Reduced from 30px to match Figma spacing
     alignItems: 'center',
     flex: 1,
   },
@@ -406,92 +365,89 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'space-evenly',
     alignItems: 'center',
-    rowGap: Math.max(30, screenHeight * 0.035),
-    columnGap: Math.max(30, screenWidth * 0.08),
-    paddingVertical: Math.max(30, screenHeight * 0.035),
-    // paddingHorizontal: Math.max(20, screenWidth * 0.05),
+    rowGap: verticalScale(30),
+    columnGap: scale(30),
+    paddingVertical: verticalScale(30),
     width: '100%',
   },
-
   question: {
-    fontFamily: 'CormorantGaramond-Regular', // Match Figma typography
-    fontSize: Math.min(screenWidth * 0.061, 24), // Proportional to text size in Figma
-    fontWeight: '300',
-    lineHeight: Math.min(screenWidth * 0.072, 28), // Tight line height
-    color: '#E5D6B0', // Exact fill1 color from Figma
-    width: Math.min(screenWidth * 0.796, 313), // Match header width
+    fontFamily: fontFamily.heading,        // Figma: Cormorant Garamond
+    fontSize: moderateScale(fontSize.xl),  // Figma: 24px
+    fontWeight: fontWeight.regular,        // Figma: 400 (not 300!)
+    lineHeight: moderateScale(fontSize.xl) * 1.3,  // Figma: 31.2px (24 × 1.3)
+    letterSpacing: 0,
+    color: palette.gold.DEFAULT,           // Figma: #f2e2b1 rgb(242, 226, 177)
+    width: scale(313),
     textAlign: 'center',
-    marginTop: Math.max(20, screenHeight * 0.025),
-    marginBottom: Math.max(20, screenHeight * 0.025),
-    textShadowColor: '#E5D6B0', // Exact effect5 glow shadow
+    marginBottom: verticalScale(60),  // Figma: 60px gap to options
+    textShadowColor: palette.gold.warm,
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 8,
   },
-
-  list: {
+  textOptionsScroll: {
     width: '100%',
-    paddingTop: Math.max(8, screenHeight * 0.01),
-    paddingBottom: Math.max(12, screenHeight * 0.015),
-    alignItems: 'center',
     flexGrow: 0,
   },
-  optionButton: {
-    marginBottom: Math.max(12, screenHeight * 0.014),
-    width: Math.min(screenWidth * 0.765, 313),
-    marginHorizontal: 8,
+  textOptionsList: {
+    alignItems: 'center',
+    gap: verticalScale(16), // Figma: gap-16px between options
   },
-
+  optionButton: {
+    width: scale(313),
+  },
   contentArea: {
     flex: 1,
     width: '100%',
     justifyContent: 'space-between',
     alignItems: 'center',
-    minHeight: screenHeight * 0.5,
   },
   optionsContainer: {
     width: '100%',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: Math.max(16, screenHeight * 0.02),
-    flex: 1,
-  },
-  listViewport: {
-    width: '100%',
-    minHeight: 0,
   },
   nextWrap: {
     width: '100%',
     alignItems: 'center',
-    marginTop: 'auto',
-    paddingBottom: Math.max(20, screenHeight * 0.025),
   },
   progressWrap: {
-    width: Math.min(screenWidth * 0.796, 313), // Match header and question width
+    width: scale(313),
     alignItems: 'center',
-    marginTop: 80,
-    marginBottom: Math.max(20, screenHeight * 0.025),
+    // iOS safe area top (~47px) vs Figma Android status bar (24px) = 23px extra consumed.
+    // Reducing from verticalScale(48) to verticalScale(25) lands the progress bar at the
+    // correct Figma position (148px from top) and frees space for the 60px button gap.
+    marginTop: verticalScale(25),
+    marginBottom: verticalScale(60),
   },
   nextButton: {
-    // Remove conflicting size constraints - let GradientButton handle responsive sizing
+    // GradientButton handles responsive sizing
   },
   glassButtonWrapper: {
-    backgroundColor: 'transparent',
+    backgroundColor: palette.neutral.transparent,
     shadowOpacity: 0,
     shadowRadius: 0,
     elevation: 0,
-    borderRadius: BORDER_RADIUS.MD,
+    borderRadius: radius.m,  // Match BEGIN button (16px)
   },
   glassButtonContainer: {
-    borderWidth: 0.5,
-    borderRadius: BORDER_RADIUS.MD,
+    borderWidth: borderWidth.thin,
+    borderColor: palette.navy.light,
+    borderRadius: radius.m,  // Match BEGIN button (16px)
   },
   glassButtonContent: {
-    paddingVertical: SPACING.MD,
-    paddingHorizontal: SPACING.XXL,
+    paddingVertical: verticalScale(12),
+    paddingHorizontal: scale(16),  // Match BEGIN button
     minWidth: 0,
   },
   glassButtonText: {
-    color: COLORS.PRIMARY.GOLD,
-    fontSize: Math.min(screenWidth * 0.05, 18),
+    fontFamily: fontFamily.heading,        // Figma: Cormorant Garamond
+    fontSize: moderateScale(fontSize.xl),  // Figma: 24px
+    fontWeight: fontWeight.regular,        // Figma: 400
+    lineHeight: moderateScale(fontSize.xl) * 1.3,  // Figma: 31.2px
+    letterSpacing: 0,
+    color: palette.gold.DEFAULT,           // Figma: #f2e2b1
+    textShadowColor: textShadow.warmGlow.color,
+    textShadowOffset: textShadow.warmGlow.offset,
+    textShadowRadius: textShadow.warmGlow.radius,
   },
 });

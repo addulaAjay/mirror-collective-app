@@ -1,5 +1,6 @@
 // NewEchoAudioScreen.tsx
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { palette } from '@theme';
 import { RootStackParamList } from '@types';
 import React, { useMemo, useState } from 'react';
 import {
@@ -23,6 +24,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Camera } from 'react-native-vision-camera';
 
+
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
 import StarIcon from '@components/StarIcon';
@@ -32,7 +34,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'NewEchoAudioScreen'>;
 
 const { width: W, height: H } = Dimensions.get('window');
 
-const GOLD = '#D7C08A';
+const GOLD = palette.gold.mid;
 const OFFWHITE = 'rgba(253, 253, 249, 0.92)';
 
 const SURFACE_BORDER = 'rgba(253, 253, 249, 0.18)';
@@ -495,7 +497,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   removeText: {
-    color: '#ff6b6b',
+    color: palette.status.errorHover,
     fontSize: 14,
     textDecorationLine: 'underline',
   },

@@ -1,5 +1,14 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import {
+  palette,
+  fontFamily,
+  fontSize,
+  fontWeight,
+  scale,
+  verticalScale,
+  moderateScale,
+} from '@theme';
 import type { RootStackParamList } from '@types';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -7,26 +16,22 @@ import {
   View,
   Text,
   StyleSheet,
-  Dimensions,
   TouchableOpacity,
   Image,
   StatusBar,
+  Alert,
+  ScrollView,
 } from 'react-native';
-import { Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
 import { QuizStorageService } from '@services/quizStorageService';
 
-
 type ArchetypeScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
   'Archetype'
 >;
-
-
-const { width: screenWidth, height: screenHeight } = Dimensions.get('screen');
 
 interface ArchetypeScreenProps {
   route: {
@@ -47,21 +52,17 @@ const ArchetypeScreen: React.FC<ArchetypeScreenProps> = ({ route }) => {
   const { archetype } = route.params;
 
   const handleContinue = () => {
-    // After viewing archetype, continue into auth flow
     navigation.navigate('Login');
   };
 
   const handleRetake = () => {
     Alert.alert(
-      t('quiz.archetype.retakeTitle') || 'Retake Quiz?',
-      t('quiz.archetype.retakeMessage') || 'This will discard your current results and start a new quiz.',
+      t('quiz.archetype.retakeTitle'),
+      t('quiz.archetype.retakeMessage'),
       [
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: t('common.cancel') || 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: t('quiz.archetype.retakeConfirm') || 'Retake',
+          text: t('quiz.archetype.retakeConfirm'),
           style: 'destructive',
           onPress: async () => {
             try {
@@ -80,6 +81,12 @@ const ArchetypeScreen: React.FC<ArchetypeScreenProps> = ({ route }) => {
     );
   };
 
+  // Archetype description from backend (via backendResult.archetype_details.description)
+  // Format: "Para 1 text\n\n Para 2 text" — trim() removes leading space on para 2
+  const descParts = archetype.description.split('\n\n');
+  const para1 = descParts[0]?.trim() ?? archetype.description;
+  const para2 = descParts[1]?.trim() ?? null;
+
   return (
     <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage}>
       <SafeAreaView style={styles.safe}>
@@ -88,53 +95,66 @@ const ArchetypeScreen: React.FC<ArchetypeScreenProps> = ({ route }) => {
           translucent
           backgroundColor="transparent"
         />
-          <LogoHeader />
-          <TouchableOpacity testID="archetype-container" style={styles.container} onPress={handleContinue}>
+        <LogoHeader />
 
-        {/* Archetype Title */}
-        <View style={styles.titleContainer}>
-          <Text testID="archetype-title" style={styles.title}>{archetype.title}</Text>
-        </View>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          <TouchableOpacity
+            testID="archetype-container"
+            style={styles.container}
+            onPress={handleContinue}
+            activeOpacity={1}
+          >
+            {/* Content column — gap-[24px] between all sections, Figma: node 205:457 */}
+            <View style={styles.content}>
 
-        {/* Archetype Image */}
-        <View style={styles.imageContainer}>
-          <Image
-            testID="archetype-image"
-            source={archetype.image}
-            style={styles.archetypeImage}
-            resizeMode="contain"
-          />
-        </View>
+              {/* Title */}
+              <View style={styles.titleContainer}>
+                <Text testID="archetype-title" style={styles.title}>
+                  {archetype.title}
+                </Text>
+              </View>
 
-        {/* Description */}
-        <View testID="archetype-description" style={styles.descriptionContainer}>
-          {archetype.description
-            .split('\n\n')
-            .map((paragraph, paragraphIndex) => (
-              <Text
-                key={paragraphIndex}
-                style={
-                  paragraphIndex === 0
-                    ? styles.description
-                    : styles.questionText
-                }
-              >
-                {paragraph}
+              {/* Archetype Image — 240×240 square with shadow wrapper */}
+              <View style={styles.imageShadowWrapper}>
+                <Image
+                  testID="archetype-image"
+                  source={archetype.image}
+                  style={styles.archetypeImage}
+                  resizeMode="cover"
+                />
+              </View>
+
+              {/* Description paragraphs */}
+              <View style={styles.descriptionContainer}>
+                <Text testID="archetype-description" style={styles.descriptionLight}>
+                  {para1}
+                </Text>
+                {para2 ? (
+                  <Text style={styles.descriptionItalic}>{para2}</Text>
+                ) : null}
+              </View>
+
+              {/* "Click anywhere to continue" — Figma: node 205:462 */}
+              <Text style={styles.hintText}>
+                Click anywhere to continue
               </Text>
-            ))}
-        </View>
-        <View style={styles.hintContainer}>
-          <Text style={styles.hintText}>Click anywhere to continue</Text>
-        </View>
 
-        {/* Continue Text */}
-        <Text testID="archetype-continue-text" style={styles.continueText}>{t('quiz.archetype.continuePrompt')}</Text>
+            </View>
+          </TouchableOpacity>
+        </ScrollView>
 
-        {/* Retake Option */}
-        <TouchableOpacity onPress={handleRetake} style={styles.retakeButton}>
-          <Text style={styles.retakeText}>{t('quiz.archetype.retakeButton') || 'Not you? Retake Quiz'}</Text>
-        </TouchableOpacity>
-        </TouchableOpacity>
+        {/* Dev-only retake button — not in Figma, hidden in production */}
+        {__DEV__ && (
+          <TouchableOpacity onPress={handleRetake} style={styles.retakeButton}>
+            <Text style={styles.retakeText}>
+              {t('quiz.archetype.retakeButton')}
+            </Text>
+          </TouchableOpacity>
+        )}
       </SafeAreaView>
     </BackgroundWrapper>
   );
@@ -148,101 +168,126 @@ const styles = StyleSheet.create({
   },
   safe: {
     flex: 1,
-    backgroundColor: 'transparent',
+    backgroundColor: palette.neutral.transparent,
   },
   bgImage: {
     resizeMode: 'cover',
   },
+
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingTop: verticalScale(40),
+    paddingBottom: verticalScale(40),
+  },
+
+  // Figma: outer container left-[24px] w-[351px]
   container: {
-    paddingHorizontal: Math.max(20, screenWidth * 0.051),
-    paddingBottom: Math.max(30, screenHeight * 0.035),
+    paddingHorizontal: scale(24),
     alignItems: 'center',
   },
+
+  // Figma: node 205:457 — flex col gap-[24px] items-center w-full
+  content: {
+    width: '100%',
+    alignItems: 'center',
+    gap: scale(24),
+  },
+
+  // Figma: node 205:458 — w-[313px] items-center justify-center
   titleContainer: {
+    width: scale(313),
     alignItems: 'center',
-    marginTop: 20,
-    // marginBottom: Math.max(60, screenHeight * 0.01),
+    justifyContent: 'center',
   },
+
+  // Figma: Heading/Heading L — Cormorant Regular 3XL, #e5d6b0, shadow 0 0 8px #e5d6b0
   title: {
-    fontFamily: 'CormorantGaramond-Light',
-    fontSize: Math.min(screenWidth * 0.082, 32),
-    fontWeight: '300',
-    lineHeight: Math.min(screenWidth * 0.082, 32),
-    color: '#E5D6B0',
+    fontFamily: fontFamily.heading,
+    fontSize: moderateScale(fontSize['3xl']),
+    fontWeight: fontWeight.regular,
+    lineHeight: moderateScale(fontSize['3xl'] * 1.3),
+    letterSpacing: 0,
+    color: palette.gold.warm,
     textAlign: 'center',
-    textShadowColor: '#E5D6B0',
+    textShadowColor: palette.gold.warm,
+    textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 8,
   },
-  imageContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
+
+  // Figma: node 205:460 — 240×240, shadow 0 0 44px rgba(0,0,0,0.2)
+  imageShadowWrapper: {
+    width: scale(240),
+    height: scale(240),
+    shadowColor: palette.neutral.black,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.2,
+    shadowRadius: 44,
+    elevation: 8,
   },
   archetypeImage: {
-    width: Math.min(screenWidth * 0.7, 275),
-    height: Math.min(screenHeight * 0.5, 424),
-    shadowColor: '#E5D6B0',
-    shadowOffset: { width: 0, height: 0 },
-    // shadowOpacity: 0.3,
-    shadowRadius: 40,
+    width: '100%',
+    height: '100%',
   },
+
+  // Figma: node 4023:2903 — gap-[24px] px-[24px] w-full
   descriptionContainer: {
-    width: Math.min(screenWidth * 0.8, 313),
-    alignItems: 'center',
-    marginTop: -60,
-    marginBottom: Math.max(40, screenHeight * 0.047),
+    width: '100%',
+    paddingHorizontal: scale(24),
+    gap: scale(24),
   },
-  hintContainer: {
-    width: Math.min(screenWidth * 0.76, 284),
-    alignSelf: 'center',
-    marginBottom: Math.max(16, screenHeight * 0.02),
+
+  // Figma: Body M/Body M Light — Inter Light 18px, lineHeight 1.5, #fdfdf9
+  descriptionLight: {
+    fontFamily: fontFamily.bodyLight,
+    fontSize: moderateScale(fontSize.m),
+    fontWeight: fontWeight.light,
+    lineHeight: moderateScale(fontSize.m * 1.5),
+    letterSpacing: 0,
+    color: palette.gold.subtlest,
+    textAlign: 'center',
   },
+
+  // Figma: Body M/Body M Italic — Inter Italic 18px, lineHeight 1.5, #fdfdf9
+  descriptionItalic: {
+    fontFamily: fontFamily.bodyItalic,
+    fontStyle: 'italic',              // Required on iOS alongside fontFamily to trigger italic rendering
+    fontSize: moderateScale(fontSize.m),
+    fontWeight: fontWeight.regular,
+    lineHeight: moderateScale(fontSize.m * 1.5),
+    letterSpacing: 0,
+    color: palette.gold.subtlest,
+    textAlign: 'center',
+  },
+
+  // Figma: node 205:462 — Inter Italic S 16px, #f2e2b1, w-[284px]
   hintText: {
-    fontFamily: 'Inter',
-    fontStyle: 'italic',
-    fontSize: Math.min(screenWidth * 0.061, 16),
-    fontWeight: '400',
-    color: '#F2E2B1',
+    fontFamily: fontFamily.bodyItalic,
+    fontStyle: 'italic',              // Required on iOS alongside fontFamily to trigger italic rendering
+    fontSize: moderateScale(fontSize.s),
+    fontWeight: fontWeight.regular,
+    lineHeight: moderateScale(fontSize.s * 1.5),
+    letterSpacing: 0,
+    color: palette.gold.DEFAULT,
     textAlign: 'center',
-    lineHeight: Math.min(screenWidth * 0.079, 31.2),
+    width: scale(284),
   },
-  description: {
-    fontFamily: 'Inter',
-    fontSize: Math.min(screenWidth * 0.051, 18),
-    fontWeight: '300',
-    lineHeight: Math.min(screenWidth * 0.064, 25),
-    color: '#FDFDF9',
-    textAlign: 'center',
-  },
-  questionText: {
-    fontFamily: 'Inter',
-    fontStyle: 'italic',
-    fontWeight: '400',
-    fontSize: Math.min(screenWidth * 0.051, 18),
-    color: '#FDFDF9',
-    textAlign: 'center',
-    marginTop: Math.max(10, screenHeight * 0.012),
-  },
-  continueText: {
-    fontFamily: 'CormorantGaramond-Regular',
-    fontSize: Math.min(screenWidth * 0.061, 16),
-    fontWeight: '400',
-    color: '#F2E2B1',
-    textAlign: 'center',
-    lineHeight: Math.min(screenWidth * 0.079, 31.2),
-    flex: 1,
-    bottom: Math.max(40, screenHeight * 0.05),
-    alignSelf: 'center',
-  },
+
+  // Dev-only — not in Figma
   retakeButton: {
-    position: 'absolute',
-    bottom: Math.max(10, screenHeight * 0.015),
     alignSelf: 'center',
-    padding: 10,
+    paddingVertical: verticalScale(12),
+    paddingHorizontal: scale(16),
+    marginBottom: verticalScale(8),
   },
   retakeText: {
-    fontFamily: 'CormorantGaramond-Regular',
-    fontSize: Math.min(screenWidth * 0.04, 16),
-    color: 'rgba(242, 226, 177, 0.6)', // Subtle gold
+    fontFamily: fontFamily.bodyItalic,
+    fontStyle: 'italic',
+    fontSize: moderateScale(fontSize.xs),
+    color: 'rgba(242, 226, 177, 0.5)',
+    textAlign: 'center',
     textDecorationLine: 'underline',
   },
 });

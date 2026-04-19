@@ -1,6 +1,7 @@
 
 import {useNavigation} from '@react-navigation/native';
 import React from 'react';
+import { palette } from '@theme';
 import {
   View,
   Text,
@@ -121,21 +122,21 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(163, 179, 204, 0.05)',
     borderRadius: 12,
     borderWidth: 0.5,
-    borderColor: '#A3B3CC',
+    borderColor: palette.navy.light,
     padding: 24,
     alignItems: 'center',
   },
   title: {
     fontFamily: 'CormorantGaramond-Regular',
     fontSize: 28,
-    color: '#F2E2B1',
+    color: palette.gold.DEFAULT,
     textAlign: 'center',
     marginBottom: 16,
   },
   message: {
     fontFamily: 'Inter',
     fontSize: 16,
-    color: '#FDFDF9',
+    color: palette.gold.subtlest,
     textAlign: 'center',
     lineHeight: 24,
     marginBottom: 24,
@@ -149,13 +150,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 12,
     borderWidth: 0.5,
-    borderColor: '#A3B3CC',
+    borderColor: palette.navy.light,
     alignItems: 'center',
   },
   upgradeText: {
     fontFamily: 'CormorantGaramond-Regular',
     fontSize: 20,
-    color: '#F2E2B1',
+    color: palette.gold.DEFAULT,
     fontWeight: '400',
   },
   closeButton: {
@@ -164,7 +165,7 @@ const styles = StyleSheet.create({
   closeText: {
     fontFamily: 'Inter',
     fontSize: 14,
-    color: '#A3B3CC',
+    color: palette.navy.light,
   },
 });
 

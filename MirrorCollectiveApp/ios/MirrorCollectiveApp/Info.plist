@@ -55,6 +55,19 @@
 		<string>CormorantGaramond-Regular.ttf</string>
 		<string>CormorantGaramond-SemiBold.ttf</string>
 		<string>CormorantGaramond-SemiBoldItalic.ttf</string>
+		<string>Inter-Medium.ttf</string>
+		<string>Inter-Light.ttf</string>
+		<string>PlayfairDisplay-Bold.ttf</string>
+		<string>PlayfairDisplay-SemiBold.ttf</string>
+		<string>PlayfairDisplay-Medium.ttf</string>
+		<string>Inter-Bold.ttf</string>
+		<string>Inter-Regular.ttf</string>
+		<string>PlayfairDisplay-Italic.ttf</string>
+		<string>PlayfairDisplay-Regular.ttf</string>
+		<string>Inter-MediumItalic.ttf</string>
+		<string>Inter-Italic.ttf</string>
+		<string>PlayfairDisplay-MediumItalic.ttf</string>
+		<string>Inter-SemiBold.ttf</string>
 	</array>
 	<key>UIBackgroundModes</key>
 	<array>

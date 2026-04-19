@@ -1,10 +1,12 @@
 import '@i18n'; // Initialize i18n configuration
 import 'react-native-get-random-values';
 import 'react-native-url-polyfill/auto';
+
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { ThemeProvider } from '@theme';
 import type { RootStackParamList } from '@types';
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
@@ -14,6 +16,7 @@ import { SubscriptionProvider } from '@context/SubscriptionContext';
 import { UserProvider } from '@context/UserContext';
 import useAppStateHandler from '@hooks/useAppStateHandler';
 import useInactivityTimer from '@hooks/useInactivityTimer';
+import { OnboardingService } from '@services';
 // Import your screens
 import AboutScreen from '@screens/AboutScreen';
 import AppExplainerScreen from '@screens/AppExplainerScreen';
@@ -166,9 +169,13 @@ const AuthNavigator = () => (
 );
 
 // Authenticated Navigator (Private)
-const AuthenticatedNavigator = () => (
+interface AuthenticatedNavigatorProps {
+  initialRouteName?: keyof RootStackParamList;
+}
+
+const AuthenticatedNavigator = ({ initialRouteName = 'EnterMirror' }: AuthenticatedNavigatorProps) => (
   <Stack.Navigator
-    initialRouteName="EnterMirror"
+    initialRouteName={initialRouteName}
     screenOptions={{ headerShown: false }}
   >
     <Stack.Screen name="EnterMirror" component={EnterMirrorScreen} />
@@ -215,6 +222,7 @@ const AuthenticatedNavigator = () => (
 const AppNavigator = () => {
   const { state, signOut } = useSession();
   const { isAuthenticated } = state;
+  const [initialRoute, setInitialRoute] = useState<keyof RootStackParamList>('EnterMirror');
 
   const handleInactivityTimeout = useCallback(async () => {
     if (__DEV__) {
@@ -227,6 +235,18 @@ const AppNavigator = () => {
     isEnabled: isAuthenticated,
     onTimeout: handleInactivityTimeout,
   });
+
+  // Check onboarding status when authentication state changes
+  useEffect(() => {
+    const checkOnboarding = async () => {
+      if (isAuthenticated) {
+        const hasCompletedOnboarding = await OnboardingService.hasCompletedOnboarding();
+        setInitialRoute(hasCompletedOnboarding ? 'TalkToMirror' : 'EnterMirror');
+      }
+    };
+
+    checkOnboarding();
+  }, [isAuthenticated]);
 
   return (
     <NavigationContainer
@@ -245,7 +265,7 @@ const AppNavigator = () => {
             return false; // Don't consume — let children handle the touch
           }}
         >
-          <AuthenticatedNavigator />
+          <AuthenticatedNavigator initialRouteName={initialRoute} />
         </View>
       ) : (
         <AuthNavigator />
@@ -293,6 +313,7 @@ const App = () => {
 
   return (
     <SafeAreaProvider>
+      <ThemeProvider>
       <ErrorBoundary>
         <SessionProvider>
           <UserProvider>
@@ -309,6 +330,7 @@ const App = () => {
           </UserProvider>
         </SessionProvider>
       </ErrorBoundary>
+      </ThemeProvider>
     </SafeAreaProvider>
   );
 };

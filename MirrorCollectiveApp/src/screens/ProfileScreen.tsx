@@ -1,3 +1,7 @@
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { palette } from '@theme';
+import type { RootStackParamList } from '@types';
 import React, { useState } from 'react';
 import {
   Dimensions,
@@ -9,8 +13,8 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
@@ -28,6 +32,7 @@ const formatPhoneDisplay = (e164: string): string => {
 };
 
 const ProfileScreen: React.FC = () => {
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('+1');
@@ -75,7 +80,7 @@ const ProfileScreen: React.FC = () => {
                   <Svg width="120" height="120" viewBox="0 0 60 50" fill="none">
                     <Path
                       d="M30 30C37.18 30 43 24.18 43 17C43 9.82 37.18 4 30 4C22.82 4 17 9.82 17 17C17 24.18 22.82 30 30 30ZM30 37C21.33 37 4 41.34 4 50V56H56V50C56 41.34 38.67 37 30 37Z"
-                      fill="#A3B3CC"
+                      fill={palette.navy.light}
                     />
                   </Svg>
                 </View>
@@ -84,7 +89,7 @@ const ProfileScreen: React.FC = () => {
                   <Svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                     <Path
                       d="M10 4V16M4 10H16"
-                      stroke="#0B0F1C"
+                      stroke={palette.navy.deep}
                       strokeWidth="2"
                       strokeLinecap="round"
                     />
@@ -167,6 +172,20 @@ const ProfileScreen: React.FC = () => {
               </LinearGradient>
             </TouchableOpacity>
 
+            {/* Developer Tools */}
+            {__DEV__ && (
+              <View style={styles.devSection}>
+                <Text style={styles.devTitle}>Developer Tools</Text>
+                <TouchableOpacity
+                  style={styles.devButton}
+                  onPress={() => navigation.navigate('ComponentDemo')}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.devButtonText}>🎨 View Component Demo</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
             </View>
           </TouchableWithoutFeedback>
         </ScrollView>
@@ -178,7 +197,7 @@ const ProfileScreen: React.FC = () => {
 const styles = StyleSheet.create({
   bg: {
     flex: 1,
-    backgroundColor: '#0B0F1C',
+    backgroundColor: palette.navy.deep,
   },
   bgImage: {
     resizeMode: 'cover',
@@ -212,9 +231,9 @@ const styles = StyleSheet.create({
     fontSize: Math.min(screenWidth * 0.082, 32),
     fontWeight: '400',
     lineHeight: Math.min(screenWidth * 0.082 * 1.3, 41.6),
-    color: '#F2E2B1',
+    color: palette.gold.DEFAULT,
     textAlign: 'center',
-    textShadowColor: '#E5D6B0',
+    textShadowColor: palette.gold.warm,
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 10,
     letterSpacing: 4,
@@ -224,7 +243,7 @@ const styles = StyleSheet.create({
     fontSize: Math.min(screenWidth * 0.041, 16),
     fontWeight: '300',
     lineHeight: 24,
-    color: '#FDFDF9',
+    color: palette.gold.subtlest,
     textAlign: 'center',
     alignSelf: 'stretch',
   },
@@ -241,7 +260,7 @@ const styles = StyleSheet.create({
     height: 120,
     aspectRatio: 1 / 1,
     borderRadius: 100,
-    backgroundColor: '#7B8FA6',
+    backgroundColor: palette.navy.light,
     justifyContent: 'center',
     alignItems: 'center',
     overflow: 'hidden',
@@ -253,11 +272,11 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#A3B3CC',
+    backgroundColor: palette.navy.light,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 3,
-    borderColor: '#0B0F1C',
+    borderColor: palette.navy.deep,
   },
   formSection: {
     width: '100%',
@@ -272,11 +291,11 @@ const styles = StyleSheet.create({
     fontFamily: 'CormorantGaramond-Light',
     fontSize: 20,
     fontWeight: '300',
-    color: '#F2E2B1',
+    color: palette.gold.DEFAULT,
     paddingLeft: 4,
   },
   customPlaceholder: {
-    color: '#A3B3CC',
+    color: palette.navy.light,
     fontFamily: 'CormorantGaramond-Italic',
     fontSize: 20,
     fontWeight: '400',
@@ -286,7 +305,7 @@ const styles = StyleSheet.create({
     marginTop: 24,
     borderRadius: 12,
     borderWidth: 0.5,
-    borderColor: '#A3B3CC',
+    borderColor: palette.navy.light,
     overflow: 'hidden',
     alignSelf: 'center',
   },
@@ -302,11 +321,39 @@ const styles = StyleSheet.create({
     fontFamily: 'CormorantGaramond-Medium',
     fontSize: 24,
     fontWeight: '500',
-    color: '#E5D6B0',
+    color: palette.gold.warm,
     textShadowColor: 'rgba(229, 214, 176, 0.5)',
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 8,
     letterSpacing: 2,
+  },
+  devSection: {
+    marginTop: 40,
+    paddingTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: palette.navy.light + '40',
+    width: '100%',
+    alignItems: 'center',
+    gap: 12,
+  },
+  devTitle: {
+    fontFamily: 'CormorantGaramond-Light',
+    fontSize: 18,
+    color: palette.navy.light,
+    marginBottom: 8,
+  },
+  devButton: {
+    backgroundColor: palette.navy.light + '20',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: palette.navy.light + '40',
+  },
+  devButtonText: {
+    fontFamily: 'CormorantGaramond-Medium',
+    fontSize: 16,
+    color: palette.gold.DEFAULT,
   },
 });
 

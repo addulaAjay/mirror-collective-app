@@ -1,3 +1,4 @@
+import { palette } from '@theme';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '@types';
@@ -119,11 +120,13 @@ const ReflectionRoomQuizScreen: React.FC = () => {
                       selected === motif.label && styles.motifCircleSelected,
                     ]}
                   >
-                    <SvgXml
-                      xml={MOTIF_SVG[MOTIF_KEYS[motif.image!]] || ''}
-                      width="60%"
-                      height="60%"
-                    />
+                    <View style={styles.motifIconWrapper}>
+                      <SvgXml
+                        xml={MOTIF_SVG[MOTIF_KEYS[motif.image!]] || ''}
+                        width={84.5}
+                        height={84.5}
+                      />
+                    </View>
                   </View>
                 </TouchableOpacity>
               ))}
@@ -180,7 +183,7 @@ export default ReflectionRoomQuizScreen;
 const styles = StyleSheet.create({
   bg: {
     flex: 1,
-    backgroundColor: '#0B0F1C',
+    backgroundColor: palette.navy.deep,
   },
   bgImage: {
     resizeMode: 'cover',
@@ -203,7 +206,7 @@ const styles = StyleSheet.create({
   question: {
     fontFamily: 'CormorantGaramond-Regular',
     fontSize: 24,
-    color: '#F2E2B1',
+    color: palette.gold.DEFAULT,
     textAlign: 'center',
     marginBottom: Math.max(24, screenHeight * 0.03),
     paddingHorizontal: 8,
@@ -227,7 +230,7 @@ const styles = StyleSheet.create({
   cardSelected: {
     backgroundColor: 'rgba(20, 30, 60, 0.85)',
     borderWidth: 1,
-    borderColor: '#F2E2B1',
+    borderColor: palette.gold.DEFAULT,
   },
   cardSelectedShadow: {
     ...(Platform.OS === 'ios'
@@ -235,13 +238,13 @@ const styles = StyleSheet.create({
           elevation: 12,
         }
       : {
-          boxShadow: '0 0 12px 4px #F0D4A8',
+          boxShadow: '0 0 12px 4px palette.gold.glow',
         }),
   },
   cardText: {
     fontFamily: 'CormorantGaramond-Regular',
     fontSize: 22,
-    color: '#FDFDF9',
+    color: palette.gold.subtlest,
     letterSpacing: 2,
     textAlign: 'center',
   },
@@ -256,7 +259,7 @@ const styles = StyleSheet.create({
   },
   motifWrapper: {
     alignItems: 'center',
-    borderRadius: 40,
+    borderRadius: 55,
   },
   motifWrapperSelected: {
     ...(Platform.OS === 'ios'
@@ -264,23 +267,30 @@ const styles = StyleSheet.create({
           elevation: 12,
         }
       : {
-          boxShadow: '0 0 12px 4px #F0D4A8',
+          boxShadow: '0 0 12px 4px palette.gold.glow',
         }),
   },
   motifCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#1a2238',
+    width: 110,
+    height: 110,
+    borderRadius: 55,
+    backgroundColor: palette.navy.DEFAULT,
     borderWidth: 0.25,
-    borderColor: '#9baac2',
+    borderColor: palette.navy.muted,
     overflow: 'hidden',
     justifyContent: 'center',
     alignItems: 'center',
   },
   motifCircleSelected: {
     borderWidth: 1.5,
-    borderColor: '#F2E2B1',
+    borderColor: palette.gold.DEFAULT,
+  },
+  motifIconWrapper: {
+    width: 84.5,
+    height: 84.5,
+    aspectRatio: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   motifImage: {
     width: '60%',
@@ -289,7 +299,7 @@ const styles = StyleSheet.create({
   hint: {
     fontFamily: 'CormorantGaramond-Regular',
     fontSize: 20,
-    color: '#a3b3cc',
+    color: palette.navy.light,
     textAlign: 'center',
     marginBottom: Math.max(28, screenHeight * 0.035),
     lineHeight: 28,
@@ -297,11 +307,13 @@ const styles = StyleSheet.create({
   bottomRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     width: '100%',
-    gap: 12,
+    position: 'relative',
   },
   backSquare: {
+    position: 'absolute',
+    left: 0,
     width: 52,
     height: 52,
     backgroundColor: 'rgba(10, 18, 40, 0.7)',
@@ -314,7 +326,7 @@ const styles = StyleSheet.create({
   backArrowImg: {
     width: 24,
     height: 24,
-    tintColor: '#FDFDF9',
+    tintColor: palette.gold.subtlest,
   },
   nextButton: {
     minWidth: 120,
@@ -335,7 +347,7 @@ const styles = StyleSheet.create({
           elevation: 12,
         }
       : {
-          boxShadow: '0 0 8px 2px #F0D4A8',
+          boxShadow: '0 0 8px 2px palette.gold.glow',
         }),
   },
   nextButtonDisabled: {
@@ -344,7 +356,7 @@ const styles = StyleSheet.create({
   nextText: {
     fontFamily: 'CormorantGaramond-Regular',
     fontSize: 24,
-    color: '#F2E2B1',
+    color: palette.gold.DEFAULT,
     letterSpacing: 2,
   },
 });

@@ -1,13 +1,19 @@
 // ImageOptionButton.tsx
+import { palette } from '@theme';
 import React from 'react';
 import { TouchableOpacity, StyleSheet, View } from 'react-native';
+import { SvgXml } from 'react-native-svg';
 
-import BrickSymbol from './symbols/BrickSymbol';
-import MirrorSymbol from './symbols/MirrorSymbol';
-import SpiralSymbol from './symbols/SpiralSymbol';
-import { StarSymbol } from './symbols/StarSymbol';
+import { MOTIF_SVG } from '@assets/motifs-icons/MotifIconAssets';
 
 export type ImageOptionSymbol = 'star' | 'brick' | 'spiral' | 'mirror';
+
+const SYMBOL_MOTIF_MAP: Record<ImageOptionSymbol, string> = {
+  star: 'radiant-burst',
+  brick: 'blocks',
+  spiral: 'waves',
+  mirror: 'mirror',
+};
 
 interface Props {
   symbolType: ImageOptionSymbol;
@@ -16,18 +22,10 @@ interface Props {
 }
 
 const renderSymbol = (symbolType: ImageOptionSymbol) => {
-  switch (symbolType) {
-    case 'star':
-      return <StarSymbol />;
-    case 'brick':
-      return <BrickSymbol />;
-    case 'spiral':
-      return <SpiralSymbol />;
-    case 'mirror':
-      return <MirrorSymbol />;
-    default:
-      return null;
-  }
+  const motifKey = SYMBOL_MOTIF_MAP[symbolType];
+  const svg = MOTIF_SVG[motifKey];
+  if (!svg) return null;
+  return <SvgXml xml={svg} width="80%" height="80%" />;
 };
 
 const ImageOptionButton = ({ symbolType, selected, onPress }: Props) => (
@@ -71,7 +69,7 @@ const styles = StyleSheet.create({
     borderRadius: 60,
     backgroundColor: 'transparent',
     borderWidth: 0.25,
-    borderColor: '#9BAAC2',
+    borderColor: palette.navy.muted,
     shadowColor: 'rgba(0, 0, 0, 0.29)',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 1,
@@ -81,7 +79,7 @@ const styles = StyleSheet.create({
   selectedBackground: {
     borderRadius: 60,
     // Exact dual shadow from Figma: 0px 4px 19px 4px rgba(0, 0, 0, 0.1), 1px 4px 38px 2px rgba(229, 214, 176, 0.17)
-    shadowColor: '#000000',
+    shadowColor: palette.neutral.black,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 19,

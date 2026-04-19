@@ -1,5 +1,4 @@
-import { SHADOWS, SPACING, BORDER_RADIUS } from '@constants';
-import { theme } from '@theme';
+import { theme, spacing, radius, shadows, palette } from '@theme';
 import type { Message } from '@types';
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
@@ -38,7 +37,7 @@ const styles = StyleSheet.create({
   row: {
     width: '100%',
     flexDirection: 'row',
-    marginVertical: SPACING.XS,
+    marginVertical: spacing.xxs,
   },
   rowUser: {
     justifyContent: 'flex-end',
@@ -49,8 +48,8 @@ const styles = StyleSheet.create({
   bubble: {
     maxWidth: '80%',
 
-    borderRadius: BORDER_RADIUS.MD,
-    ...SHADOWS.MEDIUM,
+    borderRadius: radius.s,
+    ...shadows.MEDIUM,
   },
 
   gradientBubble: {
@@ -61,12 +60,12 @@ const styles = StyleSheet.create({
     marginTop: 14,
     alignSelf: 'flex-start',
     borderWidth: 0.25,
-    borderColor: '#A3B3CC',
+    borderColor: palette.navy.light,
   },
 
   systemBubble: {
-    paddingVertical: SPACING.SM,
-    paddingHorizontal: SPACING.MD,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.s,
     marginTop: 14,
     borderWidth: 1,
     borderColor: 'rgba(155, 170, 194, 0.5)',
@@ -85,8 +84,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '300',
     lineHeight: 24,
-    color: '#F2E2B1',
-    padding: SPACING.SM,
+    color: palette.gold.DEFAULT,
+    padding: spacing.xs,
     backgroundColor: 'transparent',
   },
 
@@ -96,6 +95,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '300',
     lineHeight: 24,
-    color: '#F2E2B1',
+    color: palette.gold.DEFAULT,
   },
 });

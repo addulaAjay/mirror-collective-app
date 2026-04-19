@@ -1,17 +1,13 @@
 
 import { useNavigation } from '@react-navigation/native';
+import { palette, spacing, scale, verticalScale } from '@theme';
 import React, { useState } from 'react';
 import {
   View,
-  Image,
-  Text,
   StyleSheet,
-  Dimensions,
-  Platform,
   Pressable,
   type StyleProp,
   type ViewStyle,
-  type ImageStyle,
 } from 'react-native';
 
 import { useSession } from '@context/SessionContext';
@@ -19,24 +15,18 @@ import { useUser } from '@context/UserContext';
 
 import MirrorSideMenu from '../screens/NavigationMenuScreen';
 
+import CircularLogoMark from './CircularLogoMark';
+import HeaderTextSvg from './HeaderTextSvg';
 import HomeIcon from './HomeIcon';
-
-
-
-const { width: screenWidth } = Dimensions.get('window');
 
 type LogoHeaderProps = {
   containerStyle?: StyleProp<ViewStyle>;
-  logoStyle?: StyleProp<ImageStyle>;
-  textContainerStyle?: StyleProp<ViewStyle>;
   navigation?: any;
   onMenuPress?: () => void;
 };
 
 const LogoHeader = ({
   containerStyle,
-  logoStyle,
-  textContainerStyle,
   navigation: propNavigation,
   onMenuPress,
 }: LogoHeaderProps) => {
@@ -46,7 +36,7 @@ const LogoHeader = ({
   const { user } = useUser();
   const { state } = useSession();
   const { isAuthenticated } = state;
-  const displayName = user?.fullName || 'Guest';
+  const displayName = user?.fullName  || 'Guest';
 
   // If onMenuPress is provided, use it. Otherwise, use internal drawer state.
   const handleMenuPress = () => {
@@ -77,7 +67,7 @@ const LogoHeader = ({
           {isAuthenticated && (
             <Pressable
               onPress={handleMenuPress}
-              hitSlop={12}
+              hitSlop={spacing.s}
               style={styles.hamburgerButton}
             >
               <View style={styles.hamburger}>
@@ -91,17 +81,8 @@ const LogoHeader = ({
 
         {/* Centered Logo + Text */}
         <View style={[styles.container, containerStyle]}>
-          <Image
-            source={require('@assets/Mirror_Collective_Logo_RGB.png')}
-            style={[styles.logo, logoStyle]}
-            resizeMode="contain"
-          />
-          <View style={[styles.textContainer, textContainerStyle]}>
-            <Text style={textStyles.textItalic}>
-              The <Text style={textStyles.textNormal}>MIRROR</Text>
-            </Text>
-            <Text style={textStyles.textNormal}>COLLECTIVE</Text>
-          </View>
+          <CircularLogoMark size={scale(52)} />
+          <HeaderTextSvg width={scale(93)} color={palette.neutral.white} />
         </View>
 
         {/* Right side spacer or Home button to keep logo perfectly centered */}
@@ -109,10 +90,10 @@ const LogoHeader = ({
           {isAuthenticated && (
             <Pressable
               onPress={() => navigation.navigate('TalkToMirror')}
-              hitSlop={12}
+              hitSlop={spacing.s}
               style={styles.homeButton}
             >
-              <HomeIcon width={24} height={24} color="#E5D6B0" />
+              <HomeIcon width={24} height={24} color={palette.gold.warm} />
             </Pressable>
           )}
         </View>
@@ -120,34 +101,6 @@ const LogoHeader = ({
     </>
   );
 };
-
-const fs = Math.min(Math.max(screenWidth * 0.04, 16), 18);
-const lhItalic = Math.min(Math.max(screenWidth * 0.048, 20), 24);
-const lhNormal = Math.min(Math.max(screenWidth * 0.045, 16), 18);
-
-const baseText = {
-  fontSize: fs,
-  textAlign: 'center',
-  color: '#E5D6B0',
-  textShadowOffset: { width: 0, height: 4 },
-  textShadowRadius: 9,
-  textShadowColor: 'rgba(0,0,0,0.25)',
-  textTransform: 'none',
-  ...(Platform.OS === 'android' ? { includeFontPadding: false } : null),
-} as const;
-
-const textStyles = StyleSheet.create({
-  textItalic: {
-    ...baseText,
-    fontFamily: 'CormorantGaramond-Italic',
-    lineHeight: lhItalic,
-  },
-  textNormal: {
-    ...baseText,
-    fontFamily: 'CormorantGaramond-Regular',
-    lineHeight: lhNormal,
-  },
-});
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -157,17 +110,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    minHeight: 60, // Ensure consistent height
+    paddingVertical: verticalScale(12),
+    paddingHorizontal: scale(20),
+    minHeight: verticalScale(60),
   },
   leftContainer: {
-    width: 30, // Fixed width for alignment
+    width: scale(30),
     justifyContent: 'center',
     alignItems: 'flex-start',
   },
   rightContainer: {
-    width: 30, // Matches leftContainer for centering
+    width: scale(30),
     justifyContent: 'center',
     alignItems: 'flex-end',
   },
@@ -178,28 +131,20 @@ const styles = StyleSheet.create({
     zIndex: 11,
   },
   hamburger: {
-    width: 26,
-    height: 18,
+    width: scale(26),
+    height: verticalScale(18),
     justifyContent: 'space-between',
   },
   hamLine: {
-    height: 2,
+    height: verticalScale(2),
     borderRadius: 2,
-    backgroundColor: '#E5D6B0',
+    backgroundColor: palette.gold.warm,
     opacity: 0.9,
   },
   container: {
     flexDirection: 'row',
-    gap: Math.max(8, screenWidth * 0.02),
+    gap: scale(spacing.s),
     alignItems: 'center',
-  },
-  logo: {
-    width: Math.min(Math.max(screenWidth * 0.117, 36), 46),
-    height: Math.min(Math.max(screenWidth * 0.117, 36), 46),
-  },
-  textContainer: {
-    alignItems: 'flex-start',
-    justifyContent: 'center',
   },
 });
 

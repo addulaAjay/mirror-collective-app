@@ -14,6 +14,8 @@ import {
   Linking,
   ActivityIndicator,
 } from 'react-native';
+
+import { palette } from '@theme';
 import { launchImageLibrary } from 'react-native-image-picker';
 import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -28,7 +30,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'NewEchoVideoScreen'>;
 
 const { width } = Dimensions.get('window');
 
-const GOLD = '#D7C08A';
+const GOLD = palette.gold.mid;
 const OFFWHITE = 'rgba(253,253,249,0.92)';
 
 const NewEchoVideoScreen: React.FC<Props> = ({ navigation, route }) => {
@@ -366,7 +368,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   removeText: {
-    color: '#ff6b6b',
+    color: palette.status.errorHover,
     fontSize: 14,
     textDecorationLine: 'underline',
     marginTop: 8,

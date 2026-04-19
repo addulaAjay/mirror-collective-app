@@ -1,4 +1,5 @@
 import React from 'react';
+import { palette } from '@theme';
 import { Dimensions, Image, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -82,7 +83,7 @@ export default ReflectionRoomCommingsoonScreen;
 const styles = StyleSheet.create({
   bg: {
     flex: 1,
-    backgroundColor: '#0B0F1C',
+    backgroundColor: palette.navy.deep,
   },
   bgImage: {
     resizeMode: 'cover',
@@ -115,16 +116,16 @@ const styles = StyleSheet.create({
   },
   backArrow: {
     fontSize: 24,
-    color: '#F2E2B1',
+    color: palette.gold.DEFAULT,
     fontWeight: '300',
   },
   title: {
     fontFamily: 'CormorantGaramond-Light',
     fontSize: Math.min(screenWidth * 0.06, 24),
     fontWeight: '400',
-    color: '#F2E2B1',
+    color: palette.gold.DEFAULT,
     textAlign: 'center',
-    textShadowColor: '#E5D6B0',
+    textShadowColor: palette.gold.warm,
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 10,
     letterSpacing: 2,
@@ -179,7 +180,7 @@ const styles = StyleSheet.create({
     fontSize: Math.min(screenWidth * 0.041, 16),
     fontWeight: '300',
     lineHeight: 20,
-    color: '#FDFDF9',
+    color: palette.gold.subtlest,
     textAlign: 'center',
   },
   footerContainer: {
@@ -195,7 +196,7 @@ const styles = StyleSheet.create({
     fontFamily: 'CormorantGaramond-Regular',
     fontSize: Math.min(screenWidth * 0.082, 32),
     fontWeight: '400',
-    color: '#F2E2B1',
+    color: palette.gold.DEFAULT,
     textAlign: 'center',
     lineHeight: Math.min(screenWidth * 0.082 * 1.3, 41.6),
     textShadowColor: 'rgba(229, 214, 176, 0.5)',

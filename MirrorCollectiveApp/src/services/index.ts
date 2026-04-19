@@ -12,3 +12,6 @@ export { tokenManager } from './tokenManager';
 
 // Auth Events
 export { authEvents } from './authEvents';
+
+// Onboarding
+export { default as OnboardingService } from './onboardingService';

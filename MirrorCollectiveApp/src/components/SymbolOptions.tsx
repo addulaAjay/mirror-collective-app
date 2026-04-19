@@ -1,5 +1,7 @@
+import { palette } from '@theme';
 import React from 'react';
 import { TouchableOpacity, Image, StyleSheet, ViewStyle } from 'react-native';
+
 
 interface SymbolOptionProps {
   icon: any; // require() or uri
@@ -33,13 +35,13 @@ const styles = StyleSheet.create({
     height: 88,
     borderRadius: 44,
     borderWidth: 1,
-    borderColor: '#E5D6B0',
+    borderColor: palette.gold.warm,
     backgroundColor: 'rgba(253, 253, 249, 0.05)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   selected: {
-    shadowColor: '#E5D6B0',
+    shadowColor: palette.gold.warm,
     shadowOpacity: 0.9,
     shadowRadius: 20,
     shadowOffset: { width: 0, height: 0 },

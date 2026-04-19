@@ -1,3 +1,4 @@
+import { palette } from '@theme';
 // NewEchoVaultScreen.tsx
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '@types';
@@ -29,8 +30,8 @@ type Props = NativeStackScreenProps<RootStackParamList, 'NewEchoScreen'>;
 
 const { width: W, height: H } = Dimensions.get('window');
 
-const GOLD = '#F2E2B1'; // Updated from Figma: #F2E2B1
-const OFFWHITE = '#FDFDF9'; // Updated from Figma: #FDFDF9
+const GOLD = palette.gold.DEFAULT; // Updated from Figma: palette.gold.DEFAULT
+const OFFWHITE = palette.gold.subtlest; // Updated from Figma: palette.gold.subtlest
 const SURFACE_BORDER = 'rgba(253, 253, 249, 0.18)';
 const SURFACE_BORDER_2 = 'rgba(253, 253, 249, 0.08)';
 
@@ -376,7 +377,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.2)', // Add a subtle back for touch target
   },
   screenTitle: {
-    color: '#F2E2B1',
+    color: palette.gold.DEFAULT,
     fontSize: 28,
     letterSpacing: 2,
     fontFamily: Platform.select({
@@ -408,7 +409,7 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: 12,
     borderWidth: 0.5,
-    borderColor: '#A3B3CC', // var(--border/subtle)
+    borderColor: palette.navy.light, // var(--border/subtle)
     marginBottom: 24,
     justifyContent: 'center',
   },
@@ -418,7 +419,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   textInput: {
-    color: '#FDFDF9', // var(--text/paragraph-2)
+    color: palette.gold.subtlest, // var(--text/paragraph-2)
     fontSize: 16, // var(--font/size/s)
     fontFamily: 'Inter', // var(--font/family/body)
     fontStyle: 'italic',
@@ -444,7 +445,7 @@ const styles = StyleSheet.create({
     width: '100%',
     borderRadius: 12,
     borderWidth: 0.25,
-    borderColor: '#60739F', // var(--border/inverse-1)
+    borderColor: palette.navy.medium, // var(--border/inverse-1)
     // Wait, in Figma, Component 2 (Dropdown) is above the recipient block.
     marginBottom: 24,
     height: 48,
@@ -458,7 +459,7 @@ const styles = StyleSheet.create({
   },
   dropdownText: {
     flex: 1,
-    color: '#FDFDF9',
+    color: palette.gold.subtlest,
     fontSize: 16,
     fontFamily: 'Inter',
     fontStyle: 'italic',
@@ -483,7 +484,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   recipientQuestion: {
-    color: '#FDFDF9',
+    color: palette.gold.subtlest,
     fontSize: 16,
     fontFamily: 'Inter',
     fontStyle: 'italic',
@@ -513,7 +514,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(215,192,138,0.7)',
   },
   checkMark: {
-    color: '#1A1F2E',
+    color: palette.navy.card,
     fontSize: 10,
     fontWeight: 'bold',
     lineHeight: 13,
@@ -544,13 +545,13 @@ const styles = StyleSheet.create({
     height: 72, // Fixed height from Figma
     borderRadius: 12,
     borderWidth: 0.5,
-    borderColor: '#F2E2B1', // var(--border/brand)
+    borderColor: palette.gold.DEFAULT, // var(--border/brand)
     alignItems: 'center',
     justifyContent: 'center',
     // Shadow from Figma
     ...Platform.select({
       ios: {
-        shadowColor: '#F2E2B1',
+        shadowColor: palette.gold.DEFAULT,
         shadowOffset: { width: 2, height: 2 },
         shadowOpacity: 0.2,
         shadowRadius: 32,
@@ -575,13 +576,13 @@ const styles = StyleSheet.create({
     minHeight: 48,
     borderRadius: 12,
     borderWidth: 0.5,
-    borderColor: '#A3B3CC',
+    borderColor: palette.navy.light,
   },
   nextText: {
     fontFamily: 'CormorantGaramond-Medium',
     fontSize: 28,
     fontWeight: '500',
-    color: '#E5D6B0',
+    color: palette.gold.warm,
     textShadowColor: 'rgba(229, 214, 176, 0.5)',
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 8,

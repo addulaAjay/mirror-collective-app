@@ -9,8 +9,7 @@ import { useAuthGuard } from '@hooks/useAuthGuard';
 import type { RootStackParamList } from '@types';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import GradientButton from '@/components/GradientButton';
-import { BORDER_RADIUS } from '@/constants/dimensions';
-import { COLORS } from '@/constants/colors';
+import { palette, radius } from '@theme';
 
 const { width, height } = Dimensions.get('window');
 
@@ -112,7 +111,7 @@ const styles = StyleSheet.create({
     fontFamily: 'CormorantGaramond-Italic',
     fontSize: 26,
     lineHeight: 34,
-    color: '#111111',
+    color: palette.neutral.dark,
     textAlign: 'center',
   },
 
@@ -124,7 +123,7 @@ const styles = StyleSheet.create({
 
   glassButtonWrapper: {
     backgroundColor: 'transparent',
-    borderRadius: BORDER_RADIUS.MD,
+    borderRadius: radius.s,
     shadowOpacity: 0,
     shadowRadius: 0,
     elevation: 0,
@@ -146,7 +145,7 @@ const styles = StyleSheet.create({
   },
 
   glassButtonText: {
-    color: COLORS.PRIMARY.GOLD,
+    color: palette.gold.warm,
     fontFamily: 'CormorantGaramond-Regular',
     fontSize: 22,
     lineHeight: 28,

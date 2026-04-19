@@ -2,6 +2,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '@types';
 import React, { useEffect, useRef } from 'react';
+import { palette } from '@theme';
 import {
   Animated,
   Dimensions,
@@ -107,7 +108,7 @@ export default ReflectionRoomLoadingScreen;
 const styles = StyleSheet.create({
   bg: {
     flex: 1,
-    backgroundColor: '#0B0F1C',
+    backgroundColor: palette.navy.deep,
   },
   bgImage: {
     resizeMode: 'cover',
@@ -126,7 +127,7 @@ const styles = StyleSheet.create({
   tuningTitle: {
     fontFamily: 'CormorantGaramond-Regular',
     fontSize: 32,
-    color: '#F2E2B1',
+    color: palette.gold.DEFAULT,
     textAlign: 'center',
     letterSpacing: 2,
     marginTop: Math.max(30, screenHeight * 0.04),
@@ -152,14 +153,14 @@ const styles = StyleSheet.create({
   tuningBody: {
     fontFamily: 'CormorantGaramond-Regular',
     fontSize: 28,
-    color: '#FDFDF9',
+    color: palette.gold.subtlest,
     textAlign: 'center',
     marginBottom: 16,
   },
   tuningSubtext: {
     fontFamily: 'Inter',
     fontSize: 16,
-    color: '#FDFDF9',
+    color: palette.gold.subtlest,
     textAlign: 'center',
     lineHeight: 24,
     paddingHorizontal: 8,
