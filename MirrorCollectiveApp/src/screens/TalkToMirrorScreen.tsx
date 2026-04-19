@@ -250,9 +250,9 @@ const styles = StyleSheet.create<{
     fontWeight: fontWeight.light,
     color: palette.neutral.white,
     textAlign: 'center',
-    textShadowColor: palette.gold.warm,
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 8,
+    textShadowColor: textShadow.glowSubtle.color,
+    textShadowOffset: textShadow.glowSubtle.offset,
+    textShadowRadius: textShadow.glowSubtle.radius,
   },
 
   // Shadow wrapper — no overflow:hidden so shadow bleeds outward.

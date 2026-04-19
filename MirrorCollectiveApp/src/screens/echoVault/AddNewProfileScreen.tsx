@@ -1,7 +1,7 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { palette, textShadow } from '@theme';
 import { RootStackParamList } from '@types';
 import React, { useState } from 'react';
-import { palette } from '@theme';
 import {
   View,
   Text,
@@ -355,9 +355,9 @@ const styles = StyleSheet.create({
     color: LIGHT_GOLD,
     fontSize: 24,
     textAlign: 'center',
-    textShadowColor: 'rgba(229,214,176,0.5)',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 9,
+    textShadowColor: textShadow.warmGlow.color,
+    textShadowOffset: textShadow.warmGlow.offset,
+    textShadowRadius: textShadow.warmGlow.radius,
     fontFamily: Platform.select({
       ios: 'CormorantGaramond-Regular',
       android: 'serif',

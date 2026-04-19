@@ -380,9 +380,9 @@ const styles = StyleSheet.create({
     width: scale(313),
     textAlign: 'center',
     marginBottom: verticalScale(60),  // Figma: 60px gap to options
-    textShadowColor: palette.gold.warm,
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 8,
+    textShadowColor: textShadow.glowSubtle.color,
+    textShadowOffset: textShadow.glowSubtle.offset,
+    textShadowRadius: textShadow.glowSubtle.radius,
   },
   textOptionsScroll: {
     width: '100%',

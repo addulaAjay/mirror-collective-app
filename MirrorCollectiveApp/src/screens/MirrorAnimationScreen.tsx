@@ -2,10 +2,12 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
   fontFamily,
   fontSize,
+  lineHeight,
   moderateScale,
   palette,
   scaleCap,
   spacing,
+  textShadow,
 } from '@theme';
 import type { RootStackParamList } from '@types';
 import React, { useCallback } from 'react';
@@ -28,11 +30,10 @@ import { useAuthGuard } from '@hooks/useAuthGuard';
 const { width: screenWidth } = Dimensions.get('screen');
 
 // Figma: container left:40px, width:313px on 393px screen
-// Logo aspect ratio from Figma: 313 × 487 (original SVG content dimensions)
-// Note: viewBox is expanded to include glow, but rendered size uses original aspect ratio
+// Logo aspect ratio from Figma: 313 × 487
 const CONTAINER_WIDTH = screenWidth - 80; // 40px padding each side
-const LOGO_WIDTH = scaleCap(CONTAINER_WIDTH, 313); // Original logo width
-const LOGO_HEIGHT = LOGO_WIDTH * (487 / 313); // Original logo aspect ratio
+const LOGO_WIDTH = scaleCap(CONTAINER_WIDTH, 313); // Figma design width
+const LOGO_HEIGHT = LOGO_WIDTH * (487 / 313); // Maintain aspect ratio
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'MirrorAnimation'>;
@@ -85,7 +86,9 @@ const MirrorAnimationScreen: React.FC<Props> = ({ navigation }) => {
           onPress={handleEnter}
           activeOpacity={1}
         >
-          <MCLogo width={LOGO_WIDTH} height={LOGO_HEIGHT} />
+          <View style={styles.logoContainer}>
+            <MCLogo width={LOGO_WIDTH} height={LOGO_HEIGHT} />
+          </View>
 
           <View style={styles.textBlock}>
             <Text style={styles.title}>START REFLECTING</Text>
@@ -111,21 +114,31 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40, // Figma: left:40px on 393px screen
     gap: 60,               // Figma: gap between logo and text block
   },
+  // Figma: Glow Drop Shadow effect — blur:10, spread:3, #F0D4A8 at 30%
+  logoContainer: {
+    shadowColor: palette.gold.glow,     // #F0D4A8
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,                 // 30% from Figma
+    shadowRadius: 10,                   // blur:10 from Figma
+    elevation: 10,                      // Android shadow
+  },
   textBlock: {
     width: '100%',
     gap: spacing.xxs, // Figma: gap:4px between title and subtitle
   },
-  // Figma: Cormorant Garamond Regular, 32px (3XL), lh:1.3, color gold.DEFAULT
-  // Text shadow: 0 0 16px rgba(240,212,168,0.6) — golden glow
+  // Figma: Heading/Heading M (Cormorant) — font:Heading, weight:400, size:2XL, line-height:XL
+  // Text color: Text/Paragraph-1 (#f2e2b1)
+  // Glow Drop Shadow: X:0 Y:0 Blur:10 Spread:3 #F0D4A8 · 30%
+  // Second shadow (Blur:60) not applied due to React Native single-shadow limitation
   title: {
-    fontFamily: fontFamily.heading,                 // CormorantGaramond-Regular
-    fontSize: moderateScale(fontSize['3xl'], 0.3),  // 32 base
-    lineHeight: moderateScale(fontSize['3xl'] * 1.3, 0.3), // lh ratio 1.3
+    fontFamily: fontFamily.heading,                    // CormorantGaramond-Regular (weight 400)
+    fontSize: moderateScale(fontSize['2xl'], 0.3),     // 28 base
+    lineHeight: moderateScale(lineHeight.xl, 0.3),     // 32 base
     textAlign: 'center',
-    color: palette.gold.DEFAULT,                    // #f2e2b1
-    textShadowColor: 'rgba(240, 212, 168, 0.6)',   // Figma glow — palette.gold.glow at 0.6
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 16,
+    color: palette.gold.DEFAULT,                       // #f2e2b1 (Text/Paragraph-1)
+    textShadowColor: textShadow.glow.color,            // textShadow.glow from design system
+    textShadowOffset: textShadow.glow.offset,
+    textShadowRadius: textShadow.glow.radius,
   },
   // Figma: Cormorant Garamond Medium, 20px (L), lh:1.3, color gold.DEFAULT
   subtitle: {
@@ -133,7 +146,10 @@ const styles = StyleSheet.create({
     fontSize: moderateScale(fontSize.l, 0.3),       // 20 base
     lineHeight: moderateScale(fontSize.l * 1.3, 0.3), // lh ratio 1.3
     textAlign: 'center',
-    color: palette.gold.DEFAULT,                    // #f2e2b1
+    color: palette.gold.DEFAULT,  
+    textShadowColor: textShadow.glow.color,            // textShadow.glow from design system
+    textShadowOffset: textShadow.glow.offset,
+    textShadowRadius: textShadow.glow.radius,                  // #f2e2b1
   },
 });
 

@@ -1,7 +1,7 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { palette, textShadow } from '@theme';
 import { RootStackParamList } from '@types';
 import React, { useState, useEffect, useCallback } from 'react';
-import { palette } from '@theme';
 import {
   View,
   Text,
@@ -375,8 +375,8 @@ const styles = StyleSheet.create({
       ios: 'CormorantGaramond-Regular',
       android: 'serif',
     }),
-    textShadowColor: 'rgba(240, 212, 168, 0.4)',
-    textShadowOffset: { width: 0, height: 0 },
+    textShadowColor: textShadow.glowSubtle.color,
+    textShadowOffset: textShadow.glowSubtle.offset,
     textShadowRadius: 16,
   },
 
@@ -606,9 +606,9 @@ const styles = StyleSheet.create({
       ios: 'CormorantGaramond-Regular',
       android: 'serif',
     }),
-    textShadowColor: 'rgba(229, 214, 176, 0.5)',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 9,
+    textShadowColor: textShadow.warmGlow.color,
+    textShadowOffset: textShadow.warmGlow.offset,
+    textShadowRadius: textShadow.warmGlow.radius,
     letterSpacing: 2,
   },
   disabled: {

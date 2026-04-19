@@ -1,6 +1,6 @@
-import { palette } from '@theme';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { palette, textShadow } from '@theme';
 import { RootStackParamList } from '@types';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
@@ -679,9 +679,9 @@ const styles = StyleSheet.create({
       ios: 'CormorantGaramond-Regular',
       android: 'serif',
     }),
-    textShadowColor: 'rgba(229, 214, 176, 0.5)',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 9,
+    textShadowColor: textShadow.warmGlow.color,
+    textShadowOffset: textShadow.warmGlow.offset,
+    textShadowRadius: textShadow.warmGlow.radius,
     letterSpacing: 2,
   },
   nextActionText: {
@@ -691,9 +691,9 @@ const styles = StyleSheet.create({
       ios: 'CormorantGaramond-Regular',
       android: 'serif',
     }),
-    textShadowColor: 'rgba(229, 214, 176, 0.5)',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 9,
+    textShadowColor: textShadow.warmGlow.color,
+    textShadowOffset: textShadow.warmGlow.offset,
+    textShadowRadius: textShadow.warmGlow.radius,
     letterSpacing: 2,
   },
   disabled: {

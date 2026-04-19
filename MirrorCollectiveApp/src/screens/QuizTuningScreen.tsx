@@ -5,10 +5,10 @@ import {
   fontFamily,
   fontSize,
   fontWeight,
-  textShadow,
   scale,
   verticalScale,
   moderateScale,
+  textShadow,
 } from '@theme';
 import type { RootStackParamList } from '@types';
 import React, { useEffect } from 'react';
@@ -107,9 +107,9 @@ const styles = StyleSheet.create({
     letterSpacing: 0,
     color: palette.gold.warm,
     textAlign: 'center',
-    textShadowColor: palette.gold.warm,
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 8,
+    textShadowColor: textShadow.glowSubtle.color,
+    textShadowOffset: textShadow.glowSubtle.offset,
+    textShadowRadius: textShadow.glowSubtle.radius,
   },
   mirrorContainer: {
     justifyContent: 'center',

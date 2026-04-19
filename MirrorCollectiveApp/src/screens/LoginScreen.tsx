@@ -6,6 +6,7 @@ import {
   moderateScale,
   scale,
   verticalScale,
+  textShadow,
 } from '@theme';
 import type { LoginScreenProps } from '@types';
 import React, { useEffect, useState } from 'react';
@@ -308,8 +309,8 @@ const styles = StyleSheet.create({
     lineHeight: moderateScale(fontSize['2xl']) * 1.3,
     letterSpacing: 0,
     color: palette.gold.DEFAULT,                            // Figma: #f2e2b1 (NOT .warm)
-    textShadowColor: 'rgba(229,214,176,0.5)',               // warmGlow color
-    textShadowOffset: { width: 0, height: 0 },
+    textShadowColor: textShadow.warmGlow.color,
+    textShadowOffset: textShadow.warmGlow.offset,
     textShadowRadius: 4,                                    // Figma: 4px (smaller than warmGlow token 9)
   },
 

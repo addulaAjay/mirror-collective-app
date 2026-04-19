@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { palette } from '@theme';
+import { palette, textShadow } from '@theme';
 import type { RootStackParamList } from '@types';
 import React, { useState } from 'react';
 import {
@@ -233,9 +233,9 @@ const styles = StyleSheet.create({
     lineHeight: Math.min(screenWidth * 0.082 * 1.3, 41.6),
     color: palette.gold.DEFAULT,
     textAlign: 'center',
-    textShadowColor: palette.gold.warm,
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 10,
+    textShadowColor: textShadow.glow.color,
+    textShadowOffset: textShadow.glow.offset,
+    textShadowRadius: textShadow.glow.radius,
     letterSpacing: 4,
   },
   subtitle: {
@@ -322,9 +322,9 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '500',
     color: palette.gold.warm,
-    textShadowColor: 'rgba(229, 214, 176, 0.5)',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 8,
+    textShadowColor: textShadow.glowSubtle.color,
+    textShadowOffset: textShadow.glowSubtle.offset,
+    textShadowRadius: textShadow.glowSubtle.radius,
     letterSpacing: 2,
   },
   devSection: {

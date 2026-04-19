@@ -114,9 +114,9 @@ const styles = StyleSheet.create<{
     color: palette.gold.DEFAULT,
     textAlign: 'center',
     lineHeight: lineHeight.xl,
-    textShadowColor: palette.gold.warm,
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 8,
+    textShadowColor: textShadow.glowSubtle.color,
+    textShadowOffset: textShadow.glowSubtle.offset,
+    textShadowRadius: textShadow.glowSubtle.radius,
   },
   imageContainer: {
     width: scale(200),

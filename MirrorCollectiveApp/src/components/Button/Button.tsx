@@ -1,4 +1,4 @@
-import { moderateScale, scaleCap, useTheme, palette } from '@theme';
+import { moderateScale, scaleCap, useTheme, palette, textShadow, fontSize, fontFamily } from '@theme';
 import React from 'react';
 import {
   TouchableOpacity,
@@ -161,11 +161,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   gradientText: {
-    fontFamily: 'CormorantGaramond-Regular',
-    fontSize: moderateScale(20),
+    fontFamily: fontFamily.heading,
+    fontSize: moderateScale(fontSize.xl), // Figma: font/size/XL (24px)
     fontWeight: '400',
+    lineHeight: moderateScale(28), // Figma: font/size/2XL (28px)
+    letterSpacing: 0, // Figma: 0%
     textAlign: 'center',
     textTransform: 'uppercase',
+    textShadowColor: textShadow.warmGlow.color, // Figma: #E5D6B0 · 50% Blur:9
+    textShadowOffset: textShadow.warmGlow.offset,
+    textShadowRadius: textShadow.warmGlow.radius,
     includeFontPadding: false,
   },
 
@@ -182,8 +187,8 @@ const styles = StyleSheet.create({
     fontFamily: 'CormorantGaramond-Regular',
     fontSize: 28,
     textTransform: 'uppercase',
-    textShadowColor: 'rgba(229, 214, 176, 0.5)',
-    textShadowOffset: { width: 0, height: 0 },
+    textShadowColor: textShadow.glowSubtle.color,
+    textShadowOffset: textShadow.glowSubtle.offset,
     textShadowRadius: 4,
   },
   authDot: {

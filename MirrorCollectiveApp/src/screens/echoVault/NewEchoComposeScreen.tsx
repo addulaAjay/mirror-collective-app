@@ -1,5 +1,5 @@
 ﻿import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { palette } from '@theme';
+import { palette, textShadow } from '@theme';
 import { RootStackParamList } from '@types';
 import React, { useState, useMemo } from 'react';
 import {
@@ -1075,9 +1075,9 @@ const styles = StyleSheet.create({
   saveActionText: {
     color: palette.gold.DEFAULT,
     textAlign: 'center',
-    textShadowColor: 'rgba(229, 214, 176, 0.50)',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 9,
+    textShadowColor: textShadow.warmGlow.color,
+    textShadowOffset: textShadow.warmGlow.offset,
+    textShadowRadius: textShadow.warmGlow.radius,
     fontFamily: Platform.select({
       ios: 'CormorantGaramond-Regular',
       android: 'serif',
@@ -1106,9 +1106,9 @@ const styles = StyleSheet.create({
   pillText: {
     color: palette.gold.DEFAULT,
     textAlign: 'center',
-    textShadowColor: 'rgba(229, 214, 176, 0.50)',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 9,
+    textShadowColor: textShadow.warmGlow.color,
+    textShadowOffset: textShadow.warmGlow.offset,
+    textShadowRadius: textShadow.warmGlow.radius,
     fontFamily: Platform.select({
       ios: 'CormorantGaramond-Regular',
       android: 'serif',
