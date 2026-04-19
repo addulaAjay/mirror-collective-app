@@ -122,7 +122,7 @@ const QuizWelcomeScreen = () => {
                   <Text style={styles.regularText}>
                     A few quick reflections to reveal your
                   </Text>
-                  <Text style={styles.italicHighlight}> starting role.</Text>
+                  <Text style={styles.italicHighlight}> starting parttern.</Text>
                   {'\n\n'}
                   <Text style={styles.regularText}>
                     No judgment. No labels.{' '}

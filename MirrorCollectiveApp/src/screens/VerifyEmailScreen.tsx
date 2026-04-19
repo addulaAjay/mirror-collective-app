@@ -197,7 +197,7 @@ const VerifyEmailScreen = () => {
           <View style={styles.messageContainer}>
             {/* Header */}
             <View style={styles.headerSection}>
-              <Text style={styles.title}>We've sent a whisper to your inbox</Text>
+              <Text style={styles.title}>We've sent a code to your inbox</Text>
               <Text style={styles.subtitle}>
                 Please enter the 6-digit verification code from your email to confirm your entry.
               </Text>
@@ -267,7 +267,7 @@ const VerifyEmailScreen = () => {
               onPress={() => navigation.goBack()}
               style={styles.backButton}
               accessibilityRole="button"
-              accessibilityLabel="Back to Sign up"
+              accessibilityLabel="Back to sign up"
               accessibilityHint="Returns to the sign up screen"
             >
               <Text style={styles.backButtonText}>
