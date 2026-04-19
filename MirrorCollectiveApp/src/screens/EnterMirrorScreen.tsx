@@ -67,14 +67,14 @@ const EnterMirrorScreen: React.FC<Props> = ({ navigation }) => {
               {/* Gap between body paragraphs via bodySection gap */}
               <View style={styles.bodySection}>
                 <Text style={styles.body}>
-                  Your reflection is captured.{'\n'}The Mirror is now tuned to you — your patterns, your growth, your progress.
+                  Your reflections are captured.{'\n'}The Mirror now understands your patterns — and evolves with you.
                 </Text>
                 <Text style={styles.body}>
-                  No pressure. No judgment. Just clarity, over time.
+                  No pressure. No judgment.
                 </Text>
                 {/* Figma: Body XS Italic — italic span at end of body block */}
                 <Text style={styles.bodyItalic}>
-                  It's time to step into a journey toward a better you.
+                  Just clarity, over time.{'\n'}This is where things start to change.
                 </Text>
               </View>
             </View>

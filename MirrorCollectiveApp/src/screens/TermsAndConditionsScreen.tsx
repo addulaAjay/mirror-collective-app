@@ -119,17 +119,12 @@ const TermsAndConditionsScreen = () => {
 
                   <Text style={styles.cardEmphasis}>Welcome to Mirror.</Text>
                   <Text style={styles.cardBody}>
-                    Mirror is designed for reflection, self-inquiry, and
-                    personal insight. Before continuing, please read the
-                    following carefully.
+                    Mirror is built for reflection, self-awareness, and insight.{'\n'}Before you continue, here’s what to know.
                   </Text>
 
                   <Text style={styles.cardHeading}>What Mirror Is</Text>
                   <Text style={styles.cardBody}>
-                    Mirror uses artificial intelligence to generate symbolic,
-                    reflective responses based on the language you share. These
-                    reflections are intended to support self-awareness and
-                    contemplation.
+                    Mirror uses AI to reflect patterns in what you share.{'\n'}It’s designed to help you see yourself more clearly and understand what may be shaping your thoughts, emotions, and reactions.
                   </Text>
                   <Text style={styles.cardBody}>
                     Mirror does not provide medical, mental health, legal, or
