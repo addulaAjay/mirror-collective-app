@@ -14,28 +14,28 @@
       "id": "Seeker",
       "name": "Seeker",
       "title": "THE SEEKER",
-      "description": "This is your starting role — the way you naturally approach life right now. \n\nSeekers are driven by curiosity and meaning. You ask why, look beneath the surface, and feel called to grow, learn, and understand more.",
+      "description": "Driven by understanding, you seek clarity before acting. You ask thoughtful questions, spot patterns, and look beneath the surface.\n\nGrowth comes through insight, experimentation, and discovering what truly works for you.",
       "imagePath": "seeker-archetype.png"
     },
     "guardian": {
       "id": "Guardian",
       "name": "Guardian",
       "title": "THE GUARDIAN",
-      "description": "Guardians are loyal, dependable, and organized, with a strong desire to help and support others.\n\nAre you ready to find your truth?",
+      "description": "Grounded in responsibility and care, you protect people, systems, and outcomes. You hold things together, set boundaries, and safeguard what matters.\n\nGrowth lies in learning to share support, not carry it alone.",
       "imagePath": "guardian-archetype.png"
     },
     "flamebearer": {
       "id": "Flamebearer",
       "name": "Flamebearer",
       "title": "THE FLAMEBEARER",
-      "description": "Flamebearers embody light, sparking transformation wherever you go — by being passionate, purposeful and courageous.\n\nWhich path will you take?",
+      "description": "Fueled by conviction, you act when something matters. You bring energy, courage, and spark change, often leading by example.\n\nGrowth comes from channeling your intensity into steady, sustainable progress.",
       "imagePath": "flamebearer-archetype.png"
     },
     "weaver": {
       "id": "Weaver",
       "name": "Weaver",
       "title": "THE WEAVER",
-      "description": "Weavers embody the ability to connect, create, and shape reality through patterns, weaving invisible threads into meaning.\n\nWhat story is woven into your destiny?",
+      "description": "You see connections others miss—between people, ideas, and patterns bringing harmony, translating complexity, and making things work together.\n\nGrowth comes from focusing your energy on what matters most right now.",
       "imagePath": "weaver-archetype.png"
     }
   },
@@ -118,30 +118,6 @@
     },
     {
       "id": 4,
-      "question": "Which kind of magic feels closest to how you move through the world?",
-      "options": [
-        {
-          "text": "Asking powerful questions",
-          "archetype": "Seeker"
-        },
-        {
-          "text": "Showing up fully for others",
-          "archetype": "Guardian"
-        },
-        {
-          "text": "Shaking things up with heart",
-          "archetype": "Flamebearer"
-        },
-        {
-          "text": "Designing a life that fits your soul",
-          "archetype": "Weaver"
-        }
-      ],
-      "type": "text",
-      "core": false
-    },
-    {
-      "id": 5,
       "question": "How do you offer support when someone is hurting?",
       "options": [
         {
@@ -165,7 +141,7 @@
       "core": false
     },
     {
-      "id": 6,
+      "id": 5,
       "question": "Which truth feels most true for you right now?",
       "options": [
         {

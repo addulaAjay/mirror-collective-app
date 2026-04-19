@@ -60,6 +60,7 @@ export interface UserAnswer {
 
 export interface QuizResult {
   finalArchetype: Archetype;
+  assignmentReason: 'core_override' | 'highest_score' | 'tie_break_core_frequency' | 'tie_break_q5' | 'tie_break_q1' | 'tie_break_default';
   totalScores: ArchetypeScores;
   coreArchetypeCounts: ArchetypeScores;
   userAnswers: UserAnswer[];
@@ -103,6 +104,7 @@ export function calculateQuizResult(
   const coreArchetypeCounts = getCoreArchetypeCounts(coreAnswers);
 
   let finalArchetype: Archetype;
+  let assignmentReason: 'core_override' | 'highest_score' | 'tie_break_core_frequency' | 'tie_break_q5' | 'tie_break_q1' | 'tie_break_default';
   let hadCoreArchetypeMatch = false;
   let usedTieBreaker = false;
   let tieBreakingRule: string | undefined;
@@ -113,6 +115,7 @@ export function calculateQuizResult(
     if (coreArchetypeCounts[archetype] >= 2) {
       coreMatch = archetype;
       hadCoreArchetypeMatch = true;
+      assignmentReason = 'core_override';
       break;
     }
   }
@@ -132,6 +135,7 @@ export function calculateQuizResult(
     // If only one archetype has the highest score, return it
     if (tiedArchetypes.length === 1) {
       finalArchetype = tiedArchetypes[0];
+      assignmentReason = 'highest_score';
     } else {
       // Step 4: Tie-breaker rules
       usedTieBreaker = true;
@@ -143,11 +147,23 @@ export function calculateQuizResult(
       );
       finalArchetype = archetype;
       tieBreakingRule = rule;
+      
+      // Map tie-breaking rule to standardized assignment_reason codes
+      if (rule.includes('Most core questions')) {
+        assignmentReason = 'tie_break_core_frequency';
+      } else if (rule.includes('Question 5')) {
+        assignmentReason = 'tie_break_q5';
+      } else if (rule.includes('Question 1')) {
+        assignmentReason = 'tie_break_q1';
+      } else {
+        assignmentReason = 'tie_break_default';
+      }
     }
   }
 
   return {
     finalArchetype,
+    assignmentReason,
     totalScores: calculateTotalScores(answers, questions, config),
     coreArchetypeCounts,
     userAnswers,
@@ -192,7 +208,7 @@ export function calculateArchetype(
     }
   }
 
-  // Step 2: Calculate total scores across all 6 questions
+  // Step 2: Calculate total scores across all 5 questions
   const totalScores = calculateTotalScores(answers, questions, quizConfig);
 
   // Step 3: Find archetype(s) with highest score
@@ -299,7 +315,16 @@ function resolveTieWithDetails(
     };
   }
 
-  // Tie-breaker 2: Check Q1 answer among remaining tied archetypes
+  // Tie-breaker 2: Check Q5 answer among remaining tied archetypes
+  const q5Answer = allAnswers.find(answer => answer.questionId === 5);
+  if (q5Answer && coreWinners.includes(q5Answer.archetype)) {
+    return {
+      archetype: q5Answer.archetype,
+      rule: 'Question 5 preference',
+    };
+  }
+
+  // Tie-breaker 3: Check Q1 answer among remaining tied archetypes
   const q1Answer = allAnswers.find(answer => answer.questionId === 1);
   if (q1Answer && coreWinners.includes(q1Answer.archetype)) {
     return {
@@ -308,7 +333,7 @@ function resolveTieWithDetails(
     };
   }
 
-  // Tie-breaker 3: Default to first archetype in order
+  // Tie-breaker 4: Default to first archetype in order
   for (const archetype of config.tieBreaker.order) {
     if (coreWinners.includes(archetype)) {
       return {
