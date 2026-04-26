@@ -10,9 +10,9 @@ import {
   verticalScale,
   moderateScale,
 } from '@theme';
-import type { RootStackParamList } from '@types';
-import type { QuizSubmissionRequest } from '@types';
 import type { QuizQuestion } from '@types';
+import type { QuizSubmissionRequest } from '@types';
+import type { RootStackParamList } from '@types';
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -96,7 +96,7 @@ const QuizQuestionsScreen = () => {
 
   if (isLoading) {
     return (
-      <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage}>
+      <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage} scrollable>
         <SafeAreaView style={styles.safe}>
           <StatusBar
             barStyle="light-content"
@@ -118,7 +118,7 @@ const QuizQuestionsScreen = () => {
   // Ensure questions exist
   if (!questions || questions.length === 0) {
     return (
-      <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage}>
+      <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage} scrollable>
         <SafeAreaView style={styles.safe}>
           <StatusBar
             barStyle="light-content"
@@ -126,7 +126,7 @@ const QuizQuestionsScreen = () => {
             backgroundColor="transparent"
           />
           <LogoHeader />
-          <View style={styles.container}>
+          <View style={styles.loadingContainer}>
             <Text style={styles.question}>Unable to load quiz. Please try again later.</Text>
           </View>
         </SafeAreaView>
@@ -244,63 +244,78 @@ const QuizQuestionsScreen = () => {
           translucent
           backgroundColor="transparent"
         />
+      {/*
+        Layout shape (sticky-CTA pattern, only options scroll):
+          ┌─────────────────────────────┐
+          │ LogoHeader        (pinned)  │
+          │ ProgressBar       (pinned)  │
+          │ Question          (pinned)  │
+          ├─────────────────────────────┤
+          │ ScrollView (flex:1) — clips │
+          │   to its bounds. Options    │
+          │   scroll inside; nothing    │
+          │   bleeds into the button.   │
+          ├─────────────────────────────┤
+          │ NEXT button       (pinned)  │
+          └─────────────────────────────┘
+        Only the options list scrolls; question and CTA stay in place.
+        Card glow shadows render into the contentContainer's vertical
+        padding (16 top, 60 bottom = Figma gap to button) — no need for
+        overflow:visible on the ScrollView, so options can't render under
+        the button.
+      */}
       <LogoHeader />
-      <View style={styles.container}>
 
-        {/* Progress Bar - exact positioning from Figma */}
-        <View style={styles.progressWrap}>
-          <ProgressBar progress={(currentIndex + 1) / questions.length} />
-        </View>
+      {/* Figma: Progress bar at top:148 — w:345 (24px gutter). */}
+      <View style={styles.progressWrap}>
+        <ProgressBar progress={(currentIndex + 1) / questions.length} />
+      </View>
 
-        {/* Question */}
-        <Text style={styles.question}>{currentQuestion.question}</Text>
+      <Text style={styles.question}>{currentQuestion.question}</Text>
 
-        {/* Options */}
-        <View style={styles.contentArea}>
-          <View style={styles.optionsContainer}>
-            {currentQuestion.type === 'text' ? (
-              <ScrollView
-                style={styles.textOptionsScroll}
-                contentContainerStyle={styles.textOptionsList}
-                showsVerticalScrollIndicator={false}
-                scrollEnabled={true}
-                bounces={false}
-              >
-                {currentQuestion.options.map((item: any) => (
-                  <OptionButton
-                    key={item.text}
-                    label={item.text}
-                    selected={selected === item.text}
-                    onPress={() => setSelected(item.text)}
-                    style={styles.optionButton}
-                  />
-                ))}
-              </ScrollView>
-            ) : (
-              <View style={styles.imageGrid}>
-                {currentQuestion.options.map((item: any, index: number) => (
-                  <ImageOptionButton
-                    key={item.label || index}
-                    symbolType={symbolSequence[index % symbolSequence.length]}
-                    selected={selected === item.label}
-                    onPress={() => setSelected(item.label)}
-                  />
-                ))}
-              </View>
-            )}
+      <ScrollView
+        style={styles.scrollArea}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {currentQuestion.type === 'text' ? (
+          <View style={styles.textOptionsList}>
+            {currentQuestion.options.map((item: any) => (
+              <OptionButton
+                key={item.text}
+                label={item.text}
+                selected={selected === item.text}
+                onPress={() => setSelected(item.text)}
+              />
+            ))}
           </View>
-
-          <View style={styles.nextWrap}>
-            <Button
-              variant="primary"
-              size="L"
-              active={!!selected}
-              title={isLast ? t('quiz.quizQuestions.finishButton') : t('quiz.quizQuestions.nextButton')}
-              onPress={handleNext}
-              disabled={!selected}
-            />
+        ) : (
+          <View style={styles.imageGrid}>
+            {currentQuestion.options.map((item: any, index: number) => (
+              <ImageOptionButton
+                key={item.label || index}
+                symbolType={symbolSequence[index % symbolSequence.length]}
+                selected={selected === item.label}
+                onPress={() => setSelected(item.label)}
+              />
+            ))}
           </View>
-        </View>
+        )}
+      </ScrollView>
+
+      {/* Pinned CTA — always visible regardless of content size. */}
+      <View style={styles.buttonBar}>
+        <Button
+          variant="primary"
+          size="L"
+          active={!!selected}
+          title={(isLast
+            ? t('quiz.quizQuestions.finishButton')
+            : t('quiz.quizQuestions.nextButton')
+          ).toUpperCase()}
+          onPress={handleNext}
+          disabled={!selected}
+        />
       </View>
     </SafeAreaView>
   </BackgroundWrapper>
@@ -342,69 +357,78 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     backgroundColor: palette.neutral.overlay,
   },
-  container: {
-    paddingHorizontal: scale(40),  // Figma: 40px left/right margin
-    paddingBottom: verticalScale(20),  // Reduced from 30px to match Figma spacing
-    alignItems: 'center',
-    flex: 1,
-  },
-  imageGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-evenly',
-    alignItems: 'center',
-    rowGap: verticalScale(30),
-    columnGap: scale(30),
-    paddingVertical: verticalScale(30),
-    width: '100%',
-  },
-  question: {
-    fontFamily: fontFamily.heading,        // Figma: Cormorant Garamond
-    fontSize: moderateScale(fontSize.xl),  // Figma: 24px
-    fontWeight: fontWeight.regular,        // Figma: 400 (not 300!)
-    lineHeight: moderateScale(fontSize.xl) * 1.3,  // Figma: 31.2px (24 × 1.3)
-    letterSpacing: 0,
-    color: palette.gold.DEFAULT,           // Figma: #f2e2b1 rgb(242, 226, 177)
-    width: scale(313),
-    textAlign: 'center',
-    marginBottom: verticalScale(60),  // Figma: 60px gap to options
-    textShadowColor: textShadow.glow.color,                // Glow: #F0D4A8 · 30%
-    textShadowOffset: textShadow.glow.offset,              // X:0 Y:0
-    textShadowRadius: textShadow.glow.radius,              // Blur:10
-  },
-  textOptionsScroll: {
-    width: '100%',
-    flexGrow: 0,
-  },
-  textOptionsList: {
-    alignItems: 'center',
-    gap: verticalScale(16), // Figma: gap-16px between options
-  },
-  optionButton: {
-    width: scale(313),
-  },
-  contentArea: {
-    flex: 1,
-    width: '100%',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  optionsContainer: {
-    width: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  nextWrap: {
-    width: '100%',
-    alignItems: 'center',
-  },
+  // Figma: Progress bar at top:148, w:345 (24px gutter — wider than content).
+  // Logo header bottom sits ≈ 30px above the bar (Figma 148 - 118).
   progressWrap: {
-    width: scale(313),
-    alignItems: 'center',
-    // iOS safe area top (~47px) vs Figma Android status bar (24px) = 23px extra consumed.
-    // Reducing from verticalScale(48) to verticalScale(25) lands the progress bar at the
-    // correct Figma position (148px from top) and frees space for the 60px button gap.
-    marginTop: verticalScale(25),
-    marginBottom: verticalScale(60),
+    width:      scale(345),
+    alignSelf:  'center',
+    marginTop:  verticalScale(30),
+  },
+
+  // Question (203:2521) — pinned above the scroll area.
+  // alignSelf:'center' + Figma 60px gaps via marginTop / marginBottom.
+  question: {
+    fontFamily:        fontFamily.heading,
+    fontSize:          moderateScale(fontSize.xl),
+    fontWeight:        fontWeight.regular,
+    lineHeight:        moderateScale(fontSize.xl) * 1.3,
+    letterSpacing:     0,
+    color:             palette.gold.DEFAULT,
+    width:             scale(313),
+    alignSelf:         'center',
+    textAlign:         'center',
+    marginTop:         verticalScale(60),    // Figma 60px gap from progress bar
+    marginBottom:      verticalScale(44),    // 44 + scrollContent paddingTop:16 = 60 (Figma gap to first option)
+    textShadowColor:   textShadow.glow.color,
+    textShadowOffset:  textShadow.glow.offset,
+    textShadowRadius:  textShadow.glow.radius,
+  },
+
+  // Scrollable area — only this scrolls. flex:1 takes remaining height
+  // between question and buttonBar. Default overflow (clip to bounds) so
+  // scrolling options never bleed into the button area below.
+  scrollArea: {
+    flex:  1,
+    width: '100%',
+  },
+  // contentContainer — top padding gives shadow room above first card,
+  // bottom padding is the Figma 60px gap to the button (when content fits)
+  // plus shadow room below last card. alignItems:center keeps the cards
+  // centered in the full-screen width so the gutter stays even.
+  scrollContent: {
+    flexGrow:      1,
+    alignItems:    'center',
+    paddingTop:    verticalScale(16),
+    paddingBottom: verticalScale(60),
+  },
+
+  // Figma 203:2522 — flex-col gap:16 between option buttons.
+  // Explicit width: scale(313) is the single source of truth for card
+  // width. Cards inside have width:'100%' so they fill this exactly.
+  textOptionsList: {
+    width:      scale(313),
+    alignItems: 'stretch',
+    gap:        verticalScale(16),
+  },
+
+  // Figma 203:2425 — 280×280 grid container, gap 40 row + col, 4× 120×120 items
+  imageGrid: {
+    flexDirection:  'row',
+    flexWrap:       'wrap',
+    justifyContent: 'center',
+    alignItems:     'center',
+    rowGap:         verticalScale(40),
+    columnGap:      scale(40),
+    width:          scale(280),
+    alignSelf:      'center',
+  },
+
+  // Pinned CTA bar at the bottom of the safe area. Width:100% so the Button
+  // (content-sized) can center via alignItems. paddingBottom matches the
+  // gap previously held by container's paddingBottom for safe-area separation.
+  buttonBar: {
+    width:         '100%',
+    alignItems:    'center',
+    paddingBottom: verticalScale(20),
   },
 });
