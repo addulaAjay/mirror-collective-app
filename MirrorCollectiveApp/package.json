@@ -22,7 +22,8 @@
     "android:deep-clean": "bash ./android-clean.sh",
     "prepare": "husky",
     "tokens:build": "node design/style-dictionary.config.mjs",
-    "tokens:verify": "node design/style-dictionary.config.mjs && git diff --exit-code src/theme/generated/"
+    "tokens:verify": "node design/style-dictionary.config.mjs && git diff --exit-code src/theme/generated/",
+    "figma:check": "node scripts/figma-check.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-sns": "^3.876.0",
@@ -64,6 +65,7 @@
     "@babel/plugin-transform-class-static-block": "^7.28.3",
     "@babel/preset-env": "^7.25.3",
     "@babel/runtime": "^7.25.0",
+    "@figma/code-connect": "^1.4.4",
     "@react-native-community/cli": "^20.0.1",
     "@react-native-community/cli-platform-android": "^20.1.3",
     "@react-native-community/cli-platform-ios": "^20.1.3",

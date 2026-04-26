@@ -1,0 +1,20 @@
+{
+  "codeConnect": {
+    "parser": "react",
+    "include": [
+      "src/components/**/*.figma.tsx"
+    ],
+    "exclude": [
+      "node_modules/**",
+      "**/__tests__/**",
+      "**/_dev/**"
+    ],
+    "importPaths": {
+      "src/components/*": "@/components/*",
+      "src/theme/*": "@theme/*"
+    },
+    "documentUrlSubstitutions": {
+      "DESIGN_MASTER": "https://www.figma.com/design/CKupz8fZOJEx3IQyUsm4ia/Design-Master-File"
+    }
+  }
+}

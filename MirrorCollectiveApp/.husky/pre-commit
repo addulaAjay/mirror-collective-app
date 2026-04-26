@@ -1,1 +1,28 @@
 npx lint-staged
+
+# Guard: Figma token round-trip
+# If anyone staged a hand-edit to src/theme/generated/tokens.ts, reject.
+# Generated tokens must come from `npm run tokens:build` (sourced from
+# design/figma-tokens/tokens.json — Figma Variables export).
+STAGED_GENERATED=$(git diff --cached --name-only -- src/theme/generated/tokens.ts)
+STAGED_SOURCE=$(git diff --cached --name-only -- design/figma-tokens/tokens.json)
+
+if [ -n "$STAGED_GENERATED" ] && [ -z "$STAGED_SOURCE" ]; then
+  echo ""
+  echo "✗ Refusing commit: src/theme/generated/tokens.ts was hand-edited."
+  echo "  Generated tokens are derived from design/figma-tokens/tokens.json."
+  echo "  Edit the source (or re-export from Figma) and run: npm run tokens:build"
+  echo ""
+  exit 1
+fi
+
+if [ -n "$STAGED_SOURCE" ]; then
+  echo "✓ Token source changed — verifying round-trip..."
+  npm run tokens:verify || {
+    echo ""
+    echo "✗ Token round-trip drift detected."
+    echo "  Run: npm run tokens:build && git add src/theme/generated/tokens.ts"
+    echo ""
+    exit 1
+  }
+fi
