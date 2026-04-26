@@ -23,16 +23,6 @@
  * parent. Wrapping the Text in another View breaks iOS auto-wrap.
  */
 
-import React from 'react';
-import {
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  type ViewStyle,
-} from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
-
 import {
   fontFamily,
   fontSize,
@@ -44,6 +34,16 @@ import {
   textShadow,
   verticalScale,
 } from '@theme';
+import React from 'react';
+import {
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  type ViewStyle,
+} from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
+
 
 interface Props {
   label: string;

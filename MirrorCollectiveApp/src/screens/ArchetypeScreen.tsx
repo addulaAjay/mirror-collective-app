@@ -1,5 +1,16 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import {
+  palette,
+  fontFamily,
+  fontSize,
+  fontWeight,
+  scale,
+  verticalScale,
+  moderateScale,
+  textShadow,
+} from '@theme';
+import type { RootStackParamList } from '@types';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -18,17 +29,6 @@ import BackgroundWrapper from '@components/BackgroundWrapper';
 import Button from '@components/Button';
 import LogoHeader from '@components/LogoHeader';
 import { QuizStorageService } from '@services/quizStorageService';
-import {
-  palette,
-  fontFamily,
-  fontSize,
-  fontWeight,
-  scale,
-  verticalScale,
-  moderateScale,
-  textShadow,
-} from '@theme';
-import type { RootStackParamList } from '@types';
 
 type ArchetypeScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,

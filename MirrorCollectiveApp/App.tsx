@@ -4,9 +4,6 @@ import 'react-native-url-polyfill/auto';
 
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { OnboardingService } from '@services';
-import { ThemeProvider } from '@theme';
-import type { RootStackParamList } from '@types';
 import React, { useCallback, useEffect, useState } from 'react';
 import { StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -19,7 +16,6 @@ import useAppStateHandler from '@hooks/useAppStateHandler';
 import useInactivityTimer from '@hooks/useInactivityTimer';
 // Import your screens
 import AboutScreen from '@screens/AboutScreen';
-import AppExplainerScreen from '@screens/AppExplainerScreen';
 import AppVideoScreen from '@screens/AppVideoScreen';
 import ArchetypeScreen from '@screens/ArchetypeScreen';
 import CheckoutScreen from '@screens/CheckoutScreen';
@@ -72,7 +68,10 @@ import TalkToMirrorScreen from '@screens/TalkToMirrorScreen';
 import TermsAndConditionsScreen from '@screens/TermsAndConditionsScreen';
 import TheMirrorPledgeCommingsoonScreen from '@screens/TheMirrorPledgeCommingsoonScreen';
 import VerifyEmailScreen from '@screens/VerifyEmailScreen';
+import { OnboardingService } from '@services';
 import PushNotificationService from '@services/PushNotificationService';
+import { ThemeProvider } from '@theme';
+import type { RootStackParamList } from '@types';
 
 // DEV-only: button visual QA + blur tuning screen. Loaded lazily so the
 // showcase code never executes outside __DEV__.
@@ -166,7 +165,6 @@ const AuthNavigator = () => (
     <Stack.Screen name="EchoVaultStorage" component={EchoVaultStorageScreen} />
     <Stack.Screen name="Splash" component={SplashScreen} />
     <Stack.Screen name="MirrorAnimation" component={MirrorAnimationScreen} />
-    <Stack.Screen name="AppExplanation" component={AppExplainerScreen} />
     {/* Quiz Flow (Pre-Auth) */}
     <Stack.Screen name="QuizWelcome" component={QuizWelcomeScreen} />
     <Stack.Screen name="QuizTuning" component={QuizTuningScreen} />

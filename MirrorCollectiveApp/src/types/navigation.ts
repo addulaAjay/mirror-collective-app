@@ -37,7 +37,6 @@ export type RootStackParamList = {
   EmailConfirmation: undefined;
   AppVideo: undefined;
   TalkToMirror: undefined;
-  AppExplanation: undefined;
   Login: undefined;
   MirrorChat: undefined;
   SignUp: undefined;
