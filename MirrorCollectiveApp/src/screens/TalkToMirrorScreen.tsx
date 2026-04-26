@@ -46,7 +46,7 @@ const MENU_OPTIONS = [
   { label: 'CODE LIBRARY',    route: 'MirrorCodeLibrary' },
   { label: 'MIRROR ECHO',     route: 'MirrorEchoVaultHome' },
   { label: 'REFLECTION ROOM', route: 'ReflectionRoom' },
-  { label: 'MIRROR PLEDGE',   route: 'TheMirrorPledge' },
+  { label: 'MIRROR PLEDGE',   route: 'MirrorPledgeIntro' },
 ] as const;
 
 const TalkToMirrorScreen: React.FC<Props> = ({ navigation }) => {

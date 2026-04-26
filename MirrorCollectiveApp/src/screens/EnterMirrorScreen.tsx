@@ -18,7 +18,6 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   type ViewStyle,
   type TextStyle,
 } from 'react-native';
@@ -26,8 +25,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import AuthenticatedRoute from '@components/AuthenticatedRoute';
 import BackgroundWrapper from '@components/BackgroundWrapper';
+import Button from '@components/Button';
 import LogoHeader from '@components/LogoHeader';
-import StarIcon from '@components/StarIcon';
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'EnterMirror'>;
@@ -79,19 +78,12 @@ const EnterMirrorScreen: React.FC<Props> = ({ navigation }) => {
               </View>
             </View>
 
-            {/* ── ENTER button — Figma node 1286:1464 ───────────────── */}
-            {/* gap:16 between star icons and text */}
-            <TouchableOpacity
-              style={styles.enterButton}
+            {/* ── ENTER button — Figma node 1286:1464 (auth-CTA pattern) ── */}
+            <Button
+              variant="auth"
+              title="ENTER"
               onPress={handleEnter}
-              activeOpacity={0.8}
-              accessibilityRole="button"
-              accessibilityLabel="Enter Mirror"
-            >
-              <StarIcon width={scale(20)} height={scale(21)} color={palette.gold.DEFAULT} />
-              <Text style={styles.enterText}>ENTER</Text>
-              <StarIcon width={scale(19)} height={scale(20)} color={palette.gold.DEFAULT} />
-            </TouchableOpacity>
+            />
 
           </View>
         </SafeAreaView>
@@ -111,8 +103,6 @@ const styles = StyleSheet.create<{
   bodySection: ViewStyle;
   body: TextStyle;
   bodyItalic: TextStyle;
-  enterButton: ViewStyle;
-  enterText: TextStyle;
 }>({
   bg: {
     flex: 1,
@@ -180,28 +170,5 @@ const styles = StyleSheet.create<{
     lineHeight: moderateScale(fontSize.l),     // 24px
     color: palette.gold.subtlest,              // Text/Paragraph-2 (#fdfdf9)
     textAlign: 'center',
-  },
-
-  // ── ENTER button — Figma node 1286:1464 ──────────────────────────────────
-  // flexDirection row, gap:16, items-center, justify-center
-  enterButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: scale(spacing.m),                   // 16px — Figma gap:16
-  },
-
-  // Figma: Heading/Heading L (Cormorant), Text/Paragraph-1
-  // text-shadow: rgba(229,214,176,0.5) radius:4 → textShadow.warmGlow
-  enterText: {
-    fontFamily: fontFamily.heading,                       // CormorantGaramond-Regular
-    fontSize: moderateScale(fontSize['3xl']),             // 32px
-    fontWeight: fontWeight.regular,
-    lineHeight: lineHeight.xxl,                           // 40px
-    color: palette.gold.DEFAULT,                          // Text/Paragraph-1 (#f2e2b1)
-    textTransform: 'uppercase',
-    textShadowColor: textShadow.warmGlow.color,           // rgba(229,214,176,0.5)
-    textShadowOffset: textShadow.warmGlow.offset,
-    textShadowRadius: textShadow.warmGlow.radius,         // 9px (Figma:4 — warmGlow is closest token)
   },
 });

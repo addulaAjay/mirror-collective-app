@@ -59,6 +59,7 @@ jest.mock('@react-navigation/native', () => ({
     goBack: jest.fn(),
     reset: jest.fn(),
   }),
+  useRoute: () => ({ params: {} }),
   useFocusEffect: jest.fn(),
 }));
 
@@ -165,3 +166,9 @@ global.console = {
 
 // Mock react-native-linear-gradient
 jest.mock('react-native-linear-gradient', () => 'LinearGradient');
+
+// Mock @react-native-community/blur — native BlurView module would otherwise
+// crash render(). String component name keeps snapshots readable.
+jest.mock('@react-native-community/blur', () => ({
+  BlurView: 'BlurView',
+}));

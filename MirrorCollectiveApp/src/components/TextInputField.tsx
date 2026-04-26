@@ -261,7 +261,7 @@ const styles = StyleSheet.create({
     minHeight: 48,                // Figma: Hug (48px)
     flexDirection: 'row',
     alignItems: 'center',
-    overflow: 'hidden',           // clips BlurView and LinearGradient to borderRadius
+    overflow: 'hidden',           // clips LinearGradient to borderRadius
     // Shadow — Figma: 0px 4px 12px rgba(0,0,0,0.25)
     ...theme.shadows.input,
   },

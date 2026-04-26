@@ -48,6 +48,14 @@ export type RootStackParamList = {
   QuizTuning: ArchetypeRouteParams;
   QuizQuestions: undefined;
   Archetype: ArchetypeRouteParams;
+  // Mirror Pledge Screens
+  MirrorPledgeIntro: undefined;
+  EchoLedger: undefined;
+  ViewAllCauses: undefined;
+  CausesCarousel: { initialCauseId?: string } | undefined;
+  PledgeThankYou: undefined;
+  // DEV-only: button visual QA + blur tuning. Wire-up in App.tsx is gated by __DEV__.
+  ButtonShowcase: undefined;
   // Echo Vault Screens
   MirrorEchoVaultHome: undefined;
   MirrorEchoVaultLibrary: undefined;

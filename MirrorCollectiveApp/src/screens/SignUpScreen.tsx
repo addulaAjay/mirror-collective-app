@@ -25,8 +25,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
+import Button from '@components/Button';
 import LogoHeader from '@components/LogoHeader';
-import StarIcon from '@components/StarIcon';
 import TextInputField from '@components/TextInputField';
 
 interface SignUpScreenProps {
@@ -319,19 +319,13 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
                   </View>
                 </View>
 
-                {/* Continue Button */}
-                <TouchableOpacity
-                  style={styles.continueButton}
+                {/* Continue Button — Figma: auth-CTA pattern */}
+                <Button
+                  variant="auth"
+                  title={t('auth.signup.buttons.continue')}
                   onPress={handleContinue}
-                  activeOpacity={0.8}
                   testID="signup-button"
-                >
-                  <StarIcon width={20} height={20} />
-                  <Text style={styles.continueText}>
-                    {t('auth.signup.buttons.continue')}
-                  </Text>
-                  <StarIcon width={20} height={20} />
-                </TouchableOpacity>
+                />
               </View>
             </TouchableWithoutFeedback>
           </ScrollView>

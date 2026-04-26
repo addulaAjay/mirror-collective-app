@@ -20,8 +20,8 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
+import Button from '@components/Button';
 import LogoHeader from '@components/LogoHeader';
-import StarIcon from '@components/StarIcon';
 import TextInputField from '@components/TextInputField';
 import { useSession } from '@context/SessionContext';
 import { getApiErrorMessage } from '@utils/apiErrorUtils';
@@ -216,20 +216,19 @@ const ResetPasswordScreen = () => {
                     <Text style={styles.errorText}>{state.error}</Text>
                   )}
 
-                  {/* Reset Password Button */}
-                  <TouchableOpacity
-                    style={styles.enterButton}
-                    testID="reset-password-button"
+                  {/* Reset Password Button — auth-CTA pattern, 24px stars per Figma */}
+                  <Button
+                    variant="auth"
+                    title={
+                      isLoading
+                        ? t('auth.resetPassword.resettingButton')
+                        : t('auth.resetPassword.resetButton')
+                    }
                     onPress={handleResetPassword}
                     disabled={isLoading}
-                    activeOpacity={0.8}
-                  >
-                    <StarIcon width={24} height={24} />
-                    <Text style={styles.enterText}>
-                      {isLoading ? t('auth.resetPassword.resettingButton') : t('auth.resetPassword.resetButton')}
-                    </Text>
-                    <StarIcon width={24} height={24} />
-                  </TouchableOpacity>
+                    iconSize={24}
+                    testID="reset-password-button"
+                  />
                 </View>
 
                 {/* Back to Login */}

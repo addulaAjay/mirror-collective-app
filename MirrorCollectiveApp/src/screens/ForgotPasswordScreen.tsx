@@ -30,8 +30,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Circle, Path } from 'react-native-svg';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
+import Button from '@components/Button';
 import LogoHeader from '@components/LogoHeader';
-import StarIcon from '@components/StarIcon';
 import TextInputField from '@components/TextInputField';
 import { useSession } from '@context/SessionContext';
 import { getApiErrorMessage } from '@utils/apiErrorUtils';
@@ -119,16 +119,12 @@ const ForgotPasswordScreen = () => {
                     <Text style={styles.emailHighlight}>{email}</Text>
                   </Text>
 
-                  <TouchableOpacity
-                    style={styles.enterButton}
-                    testID="success-continue-button"
+                  <Button
+                    variant="auth"
+                    title={t('common.continue')}
                     onPress={() => navigation.navigate('ResetPassword', { email })}
-                    activeOpacity={0.8}
-                  >
-                    <StarIcon width={20} height={20} />
-                    <Text style={styles.enterText}>{t('common.continue')}</Text>
-                    <StarIcon width={20} height={20} />
-                  </TouchableOpacity>
+                    testID="success-continue-button"
+                  />
 
                   <TouchableOpacity
                     onPress={handleBackToLogin}
@@ -205,22 +201,18 @@ const ForgotPasswordScreen = () => {
                   )}
                 </View>
 
-                {/* SEND LINK button — Figma: node 4116:521, stars 20×20, 2XL 28px */}
-                <TouchableOpacity
-                  style={styles.enterButton}
-                  testID="forgot-password-button"
+                {/* SEND LINK button — Figma: node 4116:521 (auth-CTA pattern) */}
+                <Button
+                  variant="auth"
+                  title={
+                    isLoading
+                      ? t('auth.forgotPassword.sendingButton')
+                      : t('auth.forgotPassword.sendButton')
+                  }
                   onPress={handleForgotPassword}
                   disabled={isLoading}
-                  activeOpacity={0.8}
-                >
-                  <StarIcon width={20} height={20} />
-                  <Text style={styles.enterText}>
-                    {isLoading
-                      ? t('auth.forgotPassword.sendingButton')
-                      : t('auth.forgotPassword.sendButton')}
-                  </Text>
-                  <StarIcon width={20} height={20} />
-                </TouchableOpacity>
+                  testID="forgot-password-button"
+                />
 
                 {/* Back to login — Figma: node 4116:526, Cormorant Italic L (20px), #fdfdf9 */}
                 <TouchableOpacity

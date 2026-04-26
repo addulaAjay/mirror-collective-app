@@ -22,6 +22,8 @@ import {
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 
+import StarIcon from '../StarIcon';
+
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
@@ -36,6 +38,7 @@ interface BaseProps {
   onPress: () => void;
   title: string;
   disabled?: boolean;
+  testID?: string;
 }
 
 // MC Component Library variants (Figma node 125:440)
@@ -64,6 +67,10 @@ interface GradientProps extends BaseProps {
 
 interface AuthProps extends BaseProps {
   variant: 'auth';
+  /** Optional star size override (px). Default 20px to match auth screen designs. */
+  iconSize?: number;
+  style?: ViewStyle;
+  textStyle?: TextStyle;
 }
 
 export type ButtonProps = GradientProps | AuthProps | MCButtonBaseProps;
@@ -75,26 +82,33 @@ export type ButtonProps = GradientProps | AuthProps | MCButtonBaseProps;
 // Glow Drop Shadow: color #F0D4A84D, blur:10, spread:3
 // ---------------------------------------------------------------------------
 
-// Figma: RoundedButton auto-generated (node 125:440) confirms borderRadius: 16
-const MC_BORDER_RADIUS = radius.m; // 16px — from Figma node inspection
+// Verified against Figma node 125:435 (Primary-L-Inactive symbol — the actual
+// button instance, not the parent component frame). Variable bound to the
+// button surface is `Radius/M:16`. The parent frame also exposes `Corner/M:8`
+// but that variable is not applied to the button itself; it's a sibling token
+// used elsewhere in the design system.
+const MC_BORDER_RADIUS = radius.m; // 16px — Figma: Radius/M (bound to node 125:435)
 
 // Size specs derived from Figma metadata (L: 155×52, S: 138×42)
+// Typography: Cormorant Garamond Regular per Figma "Heading S/XS (Cormorant)" tokens.
+//   Heading S  → font/size/XL (24) / lineHeight font/size/2XL (28) — used at size L
+//   Heading XS → font/size/L  (20) / lineHeight 1.3 ≈ 26 — used at size S
 const SIZE = {
   L: {
     paddingVertical: spacing.s,      // 12px → 12+28+12 = 52px total
     paddingHorizontal: spacing.m,    // 16px — Figma: Spacing/M
     minHeight: 52,
     gap: spacing.xs,                 // 8px between icon and label
-    fontSize: fontSize.s,            // 16px — Figma: font/size/S
-    lineHeight: 24,
+    fontSize: fontSize.xl,           // 24px — Figma: font/size/XL (Heading S)
+    lineHeight: fontSize['2xl'],     // 28px — Figma: font/size/2XL
   },
   S: {
     paddingVertical: spacing.xs,     // 8px → 8+26+8 = 42px total
     paddingHorizontal: spacing.s,    // 12px — Figma: Spacing/S
     minHeight: 42,
     gap: spacing.xs,                 // 8px
-    fontSize: fontSize.xs,           // 14px — Figma: font/size/XS
-    lineHeight: 20,
+    fontSize: fontSize.l,            // 20px — Figma: font/size/L (Heading XS)
+    lineHeight: 26,                  // Figma: 1.3 × 20 ≈ 26
   },
 } as const;
 
@@ -112,8 +126,23 @@ const ACTIVE_GLOW_SHADOW = {
 
 // ---------------------------------------------------------------------------
 // MC Primary Button
-// Figma: background = "Transparent White Gradient" (glassGradient.button 4%→1%)
-//        border = 0.5px Border/Subtle (#a3b3cc), borderRadius = Radius/M (16px)
+// Solid `palette.navy.card` fill with hairline `Border/Subtle` and
+// `Radius/M (16px)`. Active state adds a gold drop shadow.
+//
+// Earlier iterations tried to render Figma's "BACKGROUND_BLUR radius:60" +
+// "Transparent White Gradient" literally via BlurView + LinearGradient. On
+// real iOS hardware that read as nearly transparent — the blur captures the
+// underlying screen content (stars/sky), and the 4%→1% white overlay isn't
+// strong enough to mask it. The QuizWelcomeScreen card pattern (solid navy
+// fill) matches Figma's mockup intent and renders consistently.
+//
+// Layer contract:
+//   <View mcGlowWrapper>             ← shadow lives here, no clipping
+//     <View activeGlowLayer/>        ← solid bg triggers iOS shadow render (active only)
+//     <TouchableOpacity mcBase>      ← border + solid navy fill
+//       icon + label + icon
+//     </TouchableOpacity>
+//   </View>
 // ---------------------------------------------------------------------------
 
 const PrimaryButton = ({
@@ -126,6 +155,7 @@ const PrimaryButton = ({
   rightIcon,
   style,
   textStyle,
+  testID,
 }: Omit<MCButtonBaseProps, 'variant'>) => {
   const sz = SIZE[size];
   return (
@@ -137,6 +167,7 @@ const PrimaryButton = ({
         onPress={onPress}
         disabled={disabled}
         activeOpacity={0.85}
+        testID={testID}
         style={[
           styles.mcBase,
           {
@@ -148,14 +179,6 @@ const PrimaryButton = ({
           },
         ]}
       >
-        {/* Figma: Transparent White Gradient — top→bottom 4%→1% white over navy.card base */}
-        <LinearGradient
-          colors={[glassGradient.button.start, glassGradient.button.end]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 0, y: 1 }}
-          style={StyleSheet.absoluteFill}
-          pointerEvents="none"
-        />
         {leftIcon}
         <Text
           style={[
@@ -174,9 +197,9 @@ const PrimaryButton = ({
 
 // ---------------------------------------------------------------------------
 // MC Secondary Button
-// Figma: background = "Translucent White Gradient" (glassGradient.card 8%→2%)
-//        shadow = Background Blur 60 (no glow)
-//        border = 0.5px Border/Subtle (#a3b3cc), borderRadius = Radius/M (16px)
+// Visually identical to Primary today (both render the QuizWelcome-style
+// solid navy card surface). If a designer-distinct secondary visual is
+// needed later, branch from here.
 // ---------------------------------------------------------------------------
 
 const SecondaryButton = ({
@@ -189,6 +212,7 @@ const SecondaryButton = ({
   rightIcon,
   style,
   textStyle,
+  testID,
 }: Omit<MCButtonBaseProps, 'variant'>) => {
   const sz = SIZE[size];
   return (
@@ -200,6 +224,7 @@ const SecondaryButton = ({
         onPress={onPress}
         disabled={disabled}
         activeOpacity={0.85}
+        testID={testID}
         style={[
           styles.mcBase,
           {
@@ -211,14 +236,6 @@ const SecondaryButton = ({
           },
         ]}
       >
-        {/* Figma: Translucent White Gradient — top→bottom 8%→2% white over navy.card base */}
-        <LinearGradient
-          colors={[glassGradient.card.start, glassGradient.card.end]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 0, y: 1 }}
-          style={StyleSheet.absoluteFill}
-          pointerEvents="none"
-        />
         {leftIcon}
         <Text
           style={[
@@ -251,6 +268,7 @@ const LinkButton = ({
   rightIcon,
   style,
   textStyle,
+  testID,
 }: Omit<MCButtonBaseProps, 'variant' | 'active'>) => {
   const sz = SIZE[size];
   return (
@@ -258,6 +276,7 @@ const LinkButton = ({
       onPress={onPress}
       disabled={disabled}
       activeOpacity={0.7}
+      testID={testID}
       style={[
         styles.linkContainer,
         { gap: sz.gap },
@@ -299,6 +318,7 @@ const GradientButton = ({
   contentStyle,
   textStyle,
   gradientColors = DEFAULT_GRADIENT,
+  testID,
 }: Omit<GradientProps, 'variant'>) => {
   const theme = useTheme();
 
@@ -308,6 +328,7 @@ const GradientButton = ({
         activeOpacity={0.85}
         onPress={onPress}
         disabled={disabled}
+        testID={testID}
         style={[styles.gradientContainer, containerStyle]}
       >
         <LinearGradient
@@ -328,20 +349,34 @@ const GradientButton = ({
 };
 
 // ---------------------------------------------------------------------------
-// Legacy: Auth variant
+// MC Auth Button — star + Cormorant + star CTA used on Login / SignUp /
+// ForgotPassword / ResetPassword screens.
+// Pattern: StarIcon (20×20) — gap 16 — title (Cormorant 24px / 28 lh, warmGlow
+//          shadow blur 4) — gap 16 — StarIcon (20×20). No background, border,
+//          or blur — text-only with decorative icons.
 // ---------------------------------------------------------------------------
 
-const AuthButtonInner = ({ title, onPress }: Omit<AuthProps, 'variant'>) => {
-  const theme = useTheme();
-
-  return (
-    <TouchableOpacity onPress={onPress} style={styles.authContainer} activeOpacity={0.8}>
-      <View style={[styles.authDot, { backgroundColor: theme.colors.text.accent }]} />
-      <Text style={[styles.authText, { color: theme.colors.text.accent }]}>{title}</Text>
-      <View style={[styles.authDot, { backgroundColor: theme.colors.text.accent }]} />
-    </TouchableOpacity>
-  );
-};
+const AuthButtonInner = ({
+  title,
+  onPress,
+  disabled,
+  iconSize = 20,
+  style,
+  textStyle,
+  testID,
+}: Omit<AuthProps, 'variant'>) => (
+  <TouchableOpacity
+    onPress={onPress}
+    disabled={disabled}
+    activeOpacity={0.8}
+    testID={testID}
+    style={[styles.authContainer, disabled && styles.disabled, style]}
+  >
+    <StarIcon width={iconSize} height={iconSize} />
+    <Text style={[styles.authText, textStyle]}>{title}</Text>
+    <StarIcon width={iconSize} height={iconSize} />
+  </TouchableOpacity>
+);
 
 // ---------------------------------------------------------------------------
 // Public Button component
@@ -372,14 +407,17 @@ export default Button;
 
 const styles = StyleSheet.create({
   // ── MC Component Library shared base ──────────────────────────────────────
-  // Figma auto-gen confirmed: borderWidth:0.5, borderRadius:16, gap:8
+  // Solid navy fill matching QuizWelcomeScreen card pattern. Figma's
+  // BACKGROUND_BLUR + Transparent White Gradient mocks read as nearly
+  // transparent on real iOS hardware; the solid fill produces the same
+  // perceived appearance as the design while rendering consistently.
   mcBase: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: borderWidth.thin,             // Figma: 0.5px
     borderColor: palette.navy.light,           // Figma: Border/Subtle = #a3b3cc
-    backgroundColor: palette.navy.card,        // Figma: dark glass base (#1a1f2e) — gradient overlaid on top
+    backgroundColor: palette.navy.card,        // Solid navy — matches QuizWelcome card
     overflow: 'hidden',
   },
 
@@ -399,8 +437,11 @@ const styles = StyleSheet.create({
   },
 
   // Shared label style for primary + secondary
+  // Figma: "Heading S/XS (Cormorant)" — Cormorant Garamond Regular at the
+  // size set per `SIZE[size].fontSize`. Cormorant ascends taller than Inter,
+  // so the larger 24/20 sizes are intentional and match the design height.
   mcLabel: {
-    fontFamily: fontFamily.body,               // Figma: Inter Regular
+    fontFamily: fontFamily.heading,           // Figma: Cormorant Garamond Regular
     fontWeight: '400',
     color: palette.gold.DEFAULT,              // Figma: Bg/Brand = #f2e1b0
     textAlign: 'center',
@@ -419,8 +460,9 @@ const styles = StyleSheet.create({
   },
 
   // Link label — same gold, no underline (matches Figma screenshot)
+  // Same Cormorant typography as primary/secondary labels per Figma node 125:440.
   linkLabel: {
-    fontFamily: fontFamily.body,               // Figma: Inter Regular
+    fontFamily: fontFamily.heading,           // Figma: Cormorant Garamond Regular
     fontWeight: '400',
     color: palette.gold.DEFAULT,              // Figma: Bg/Brand = #f2e1b0
     textAlign: 'center',
@@ -488,31 +530,24 @@ const styles = StyleSheet.create({
     includeFontPadding: false,
   },
 
-  // ── Legacy: Auth variant ───────────────────────────────────────────────────
+  // ── Auth variant — star+text+star CTA (Login/SignUp/Forgot/Reset) ─────────
+  // Figma: row with 16px gap, no padding/background/border. Stars are
+  // decorative; the only press target is the whole row.
   authContainer: {
     flexDirection: 'row',
-    gap: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    height: 30,
-    marginVertical: 30,
+    gap: spacing.m,                            // 16px — Figma: Spacing/M
   },
   authText: {
-    fontFamily: 'CormorantGaramond-Regular',
-    fontSize: 28,
-    textTransform: 'uppercase',
-    textShadowColor: textShadow.glowSubtle.color,
-    textShadowOffset: textShadow.glowSubtle.offset,
-    textShadowRadius: 4,
-  },
-  authDot: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    shadowColor: palette.gold.warm,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 1,
-    shadowRadius: 4,
-    elevation: 4,
+    fontFamily: fontFamily.heading,            // Cormorant Garamond Regular
+    fontWeight: '400',
+    fontSize: fontSize.xl,                     // 24px — Figma: Heading S size
+    lineHeight: fontSize['2xl'],               // 28px — Figma: Heading S lineHeight
+    color: palette.gold.DEFAULT,               // #f2e2b1 — Text/Paragraph-1
+    textShadowColor: textShadow.warmGlow.color, // #E5D6B0 · 50%
+    textShadowOffset: textShadow.warmGlow.offset,
+    textShadowRadius: 4,                       // Figma: blur 4
+    includeFontPadding: false,
   },
 });

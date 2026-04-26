@@ -1,5 +1,4 @@
 
-import { BlurView } from '@react-native-community/blur';
 import React from 'react';
 import {
   View,
@@ -13,6 +12,8 @@ import {
 import { SvgXml } from 'react-native-svg';
 
 import { CLOSE_ICON_XML, MOTIF_ICONS } from '../assets/motifs/MotifAssets';
+
+import BlurSurface from './_internal/BlurSurface';
 
 import { palette } from '@/theme';
 
@@ -49,13 +50,11 @@ const MotifSelectionModal: React.FC<MotifSelectionModalProps> = ({
       onRequestClose={onClose}
     >
       <View style={styles.container}>
-        <BlurView
-          style={StyleSheet.absoluteFill}
-          blurType="dark"
-          blurAmount={10}
-          reducedTransparencyFallbackColor="rgba(7,9,14,0.3)"
-        />
-        
+        {/* Modal backdrop: lower blur amount (10) than glass cards (25) — heavy
+            blur on full-screen overlays is overwhelming. Dimmer fallback color
+            (~30% opacity navy) so the screen behind shows through when blur is off. */}
+        <BlurSurface amount={10} fallbackColor="rgba(7,9,14,0.3)" />
+
         <View style={styles.content}>
           <TouchableOpacity style={styles.closeButton} onPress={onClose}>
             <View style={styles.closeIcon}>
