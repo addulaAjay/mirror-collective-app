@@ -1,5 +1,16 @@
 import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import {
+  palette,
+  fontFamily,
+  fontSize,
+  spacing,
+  radius,
+  scale,
+  verticalScale,
+  moderateScale,
+} from '@theme';
+import type { RootStackParamList } from '@types';
 import React, { useCallback, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -15,17 +26,6 @@ import Video from 'react-native-video';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import Button from '@components/Button';
 import LogoHeader from '@components/LogoHeader';
-import {
-  palette,
-  fontFamily,
-  fontSize,
-  spacing,
-  radius,
-  scale,
-  verticalScale,
-  moderateScale,
-} from '@theme';
-import type { RootStackParamList } from '@types';
 
 
 const VIDEO_URL =

@@ -412,6 +412,11 @@ const styles = StyleSheet.create({
   },
 
   // Figma 203:2425 — 280×280 grid container, gap 40 row + col, 4× 120×120 items
+  // The +2 buffer is a sub-pixel rounding fix: scale(120)*2 + scale(40) is
+  // mathematically equal to scale(280), but on devices like iPhone 17 Pro
+  // floating-point drift in JS multiplication makes the row total exceed the
+  // container width by a fraction of a pixel, forcing each item onto its own
+  // row. The 2px headroom is invisible visually and breaks the tie.
   imageGrid: {
     flexDirection:  'row',
     flexWrap:       'wrap',
@@ -419,7 +424,7 @@ const styles = StyleSheet.create({
     alignItems:     'center',
     rowGap:         verticalScale(40),
     columnGap:      scale(40),
-    width:          scale(280),
+    width:          scale(280) + 2,
     alignSelf:      'center',
   },
 

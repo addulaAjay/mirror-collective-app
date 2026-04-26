@@ -28,6 +28,13 @@ export interface EchoResponse {
     email: string;
     motif?: string;
   };
+  /** Present on inbox echoes — the user who created and sent the echo. */
+  sender?: {
+    user_id: string;
+    name: string;
+    email: string;
+    motif?: string;
+  };
   scheduled_at?: string; // ISO date string
 }
 

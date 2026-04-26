@@ -25,6 +25,7 @@ import ChooseRecipientScreen from '@screens/echoVault/ChooseRecipientScreen';
 import EchoAudioPlaybackScreen from '@screens/echoVault/EchoAudioPlaybackScreen';
 import EchoDetailScreen from '@screens/echoVault/EchoDetailScreen';
 import MirrorEchoVaultHomeScreen from '@screens/echoVault/EchoVaultHomeScreen';
+import EchoInboxScreen from '@screens/echoVault/EchoInboxScreen';
 import MirrorEchoVaultLibraryScreen from '@screens/echoVault/EchoVaultLibraryScreen';
 import EchoVideoPlaybackScreen from '@screens/echoVault/EchoVideoPlaybackScreen';
 import ManageGuardianScreen from '@screens/echoVault/ManageGuardianScreen';
@@ -226,6 +227,7 @@ const AuthenticatedNavigator = ({ initialRouteName = 'EnterMirror' }: Authentica
     {/* Echo Vault Screens */}
     <Stack.Screen name="MirrorEchoVaultHome" component={MirrorEchoVaultHomeScreen} />
     <Stack.Screen name="MirrorEchoVaultLibrary" component={MirrorEchoVaultLibraryScreen} />
+    <Stack.Screen name="EchoInboxScreen" component={EchoInboxScreen} />
     <Stack.Screen name="NewEchoScreen" component={NewEchoScreen} />
     <Stack.Screen name="NewEchoComposeScreen" component={NewEchoComposeScreen} />
     <Stack.Screen name="NewEchoAudioScreen" component={NewEchoAudioScreen} />
