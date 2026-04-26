@@ -146,7 +146,6 @@ const QuizWelcomeScreen = () => {
           <Button
             variant="primary"
             size="L"
-            active
             title="BEGIN"
             onPress={() => navigation.navigate('QuizQuestions')}
             style={styles.beginButton}

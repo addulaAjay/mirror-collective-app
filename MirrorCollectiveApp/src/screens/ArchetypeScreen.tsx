@@ -1,16 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import {
-  palette,
-  fontFamily,
-  fontSize,
-  fontWeight,
-  scale,
-  verticalScale,
-  moderateScale,
-  textShadow,
-} from '@theme';
-import type { RootStackParamList } from '@types';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -29,6 +18,17 @@ import BackgroundWrapper from '@components/BackgroundWrapper';
 import Button from '@components/Button';
 import LogoHeader from '@components/LogoHeader';
 import { QuizStorageService } from '@services/quizStorageService';
+import {
+  palette,
+  fontFamily,
+  fontSize,
+  fontWeight,
+  scale,
+  verticalScale,
+  moderateScale,
+  textShadow,
+} from '@theme';
+import type { RootStackParamList } from '@types';
 
 type ArchetypeScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -90,7 +90,7 @@ const ArchetypeScreen: React.FC<ArchetypeScreenProps> = ({ route }) => {
   const para2 = descParts[1]?.trim() ?? null;
 
   return (
-    <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage}>
+    <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage} scrollable>
       <SafeAreaView style={styles.safe}>
         <StatusBar
           barStyle="light-content"
@@ -135,20 +135,23 @@ const ArchetypeScreen: React.FC<ArchetypeScreenProps> = ({ route }) => {
                 ) : null}
               </View>
 
-              {/* Continue link — replaces tap-anywhere pattern with a discrete CTA */}
-              <Button
-                variant="link"
-                size="L"
-                title={t('common.continue')}
-                onPress={handleContinue}
-                testID="archetype-continue"
-              />
-
             </View>
           </View>
         </ScrollView>
 
-        {/* Dev-only retake button — not in Figma, hidden in production */}
+        {/* Pinned CTA — always visible regardless of how much description scrolled. */}
+        <View style={styles.continueBar}>
+          <Button
+            variant="link"
+            size="L"
+            title="Click anywhere to continue"
+            onPress={handleContinue}
+            testID="archetype-continue"
+          />
+        </View>
+
+        {/* Dev-only retake button — gated by __DEV__ so it only appears in
+            debug/dev builds, never in production (TestFlight/App Store). */}
         {__DEV__ && (
           <TouchableOpacity onPress={handleRetake} style={styles.retakeButton}>
             <Text style={styles.retakeText}>
@@ -175,13 +178,18 @@ const styles = StyleSheet.create({
     resizeMode: 'cover',
   },
 
+  // ScrollView holds the scrollable middle (title + image + description).
+  // The Continue CTA and dev-only retake live below as siblings, pinned.
   scrollView: {
     flex: 1,
   },
+  // No flexGrow on contentContainer — it would force the container to claim
+  // at least the viewport's height, which on iOS prevents the ScrollView
+  // from detecting overflow and disables scrolling. With natural sizing,
+  // content scrolls when it exceeds the visible scroll area.
   scrollContent: {
-    flexGrow: 1,
-    paddingTop: verticalScale(40),
-    paddingBottom: verticalScale(40),
+    paddingTop:    verticalScale(40),
+    paddingBottom: verticalScale(24),
   },
 
   // Figma: outer container left-[24px] w-[351px]
@@ -261,6 +269,13 @@ const styles = StyleSheet.create({
     letterSpacing: 0,
     color: palette.gold.subtlest,
     textAlign: 'center',
+  },
+
+  // Pinned Continue CTA — sibling of ScrollView so it always stays visible.
+  continueBar: {
+    width:            '100%',
+    alignItems:       'center',
+    paddingHorizontal: scale(24),
   },
 
   // Dev-only — not in Figma
