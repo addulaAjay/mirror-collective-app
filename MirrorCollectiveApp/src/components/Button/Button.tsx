@@ -1,3 +1,14 @@
+import React, { type ReactNode } from 'react';
+import {
+  TouchableOpacity,
+  Text,
+  View,
+  StyleSheet,
+  type ViewStyle,
+  type TextStyle,
+} from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
+
 import {
   moderateScale,
   scaleCap,
@@ -11,16 +22,6 @@ import {
   borderWidth,
   glassGradient,
 } from '@theme';
-import React, { type ReactNode } from 'react';
-import {
-  TouchableOpacity,
-  Text,
-  View,
-  StyleSheet,
-  type ViewStyle,
-  type TextStyle,
-} from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
 
 import StarIcon from '../StarIcon';
 
@@ -197,10 +198,27 @@ const PrimaryButton = ({
 
 // ---------------------------------------------------------------------------
 // MC Secondary Button
-// Visually identical to Primary today (both render the QuizWelcome-style
-// solid navy card surface). If a designer-distinct secondary visual is
-// needed later, branch from here.
+// Figma node 125:436 — Style=Secondary, Size=L, State=Inactive
+//
+// Differs from Primary in two ways:
+//   1. Background: "Translucent White Gradient" rgba(253,253,249,0.03)→0.20
+//      (Primary uses "Transparent White Gradient" 0.01→0 which is near-invisible)
+//   2. Text: NO warm-glow shadow (Primary has 0px 0px 9px rgba(229,214,176,0.5))
+//
+// Layer contract (mirrors OptionsButton shell/frame pattern):
+//   <View mcGlowWrapper>          ← shadow lives here, no clipping
+//     <View activeGlowLayer/>     ← active-state glow (optional)
+//     <TouchableOpacity mcBase>   ← border, radius, overflow:hidden
+//       <LinearGradient>          ← Translucent White Gradient (clipped by overflow)
+//       icon + label + icon
+//     </TouchableOpacity>
+//   </View>
 // ---------------------------------------------------------------------------
+
+const SECONDARY_GRADIENT = [
+  glassGradient.echoPrimary.start,  // rgba(253,253,249,0.03)
+  glassGradient.echoPrimary.end,    // rgba(253,253,249,0.20)
+];
 
 const SecondaryButton = ({
   title,
@@ -227,6 +245,7 @@ const SecondaryButton = ({
         testID={testID}
         style={[
           styles.mcBase,
+          styles.mcSecondaryBase,
           {
             paddingVertical: sz.paddingVertical,
             paddingHorizontal: sz.paddingHorizontal,
@@ -236,10 +255,17 @@ const SecondaryButton = ({
           },
         ]}
       >
+        <LinearGradient
+          colors={SECONDARY_GRADIENT}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0, y: 1 }}
+          style={StyleSheet.absoluteFill}
+          pointerEvents="none"
+        />
         {leftIcon}
         <Text
           style={[
-            styles.mcLabel,
+            styles.mcSecondaryLabel,
             { fontSize: moderateScale(sz.fontSize, 0.3), lineHeight: sz.lineHeight },
             textStyle,
           ]}
@@ -436,19 +462,33 @@ const styles = StyleSheet.create({
     ...ACTIVE_GLOW_SHADOW,
   },
 
-  // Shared label style for primary + secondary
-  // Figma: "Heading S/XS (Cormorant)" — Cormorant Garamond Regular at the
-  // size set per `SIZE[size].fontSize`. Cormorant ascends taller than Inter,
-  // so the larger 24/20 sizes are intentional and match the design height.
+  // Primary label — Cormorant Regular, gold, WITH warm-glow text shadow.
+  // Figma: Primary inactive text-shadow 0px 0px 9px rgba(229,214,176,0.5)
   mcLabel: {
-    fontFamily: fontFamily.heading,           // Figma: Cormorant Garamond Regular
+    fontFamily: fontFamily.heading,
     fontWeight: '400',
-    color: palette.gold.DEFAULT,              // Figma: Bg/Brand = #f2e1b0
+    color: palette.gold.DEFAULT,
     textAlign: 'center',
     includeFontPadding: false,
     textShadowColor: textShadow.warmGlow.color,
     textShadowOffset: textShadow.warmGlow.offset,
     textShadowRadius: textShadow.warmGlow.radius,
+  },
+
+  // Secondary base — transparent so LinearGradient shows through.
+  // mcBase's solid navy fill is replaced by the gradient.
+  mcSecondaryBase: {
+    backgroundColor: 'transparent',
+  },
+
+  // Secondary label — identical to mcLabel EXCEPT no text shadow.
+  // Figma node 125:436: secondary removes the warm-glow shadow on text.
+  mcSecondaryLabel: {
+    fontFamily: fontFamily.heading,
+    fontWeight: '400',
+    color: palette.gold.DEFAULT,
+    textAlign: 'center',
+    includeFontPadding: false,
   },
 
   // Link container — no background/border; Figma: Link L:122×40, Link S:114×40

@@ -58,6 +58,7 @@ export type RootStackParamList = {
   // Echo Vault Screens
   MirrorEchoVaultHome: undefined;
   MirrorEchoVaultLibrary: undefined;
+  EchoInboxScreen: undefined;
   NewEchoVault: undefined;
   NewEchoScreen: undefined;
   NewEchoCompose: {

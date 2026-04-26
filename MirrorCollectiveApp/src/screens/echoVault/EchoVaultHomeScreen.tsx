@@ -1,19 +1,35 @@
+/**
+ * Echo Vault Home Screen
+ * Figma: Design-Master-File → Echo Vault Home (767:2513)
+ *
+ * Layout (top → bottom):
+ *   LogoHeader (hamburger / logo / home)
+ *   Title row: [spacer] | ECHO VAULT | ⓘ
+ *   Hero image (mirror_echo_map.png, 1:1 aspect, full-width minus 20px padding)
+ *   Copy text (Body S Inter, 4 lines, #fdfdf9, center)
+ *   CTA stack: [START ECHO] / [VIEW VAULT]
+ *
+ * Tokens used (from Figma variable defs):
+ *   Heading/Heading M: Cormorant Regular 28/32 — title
+ *   Body S: Inter Regular 16/24 — copy
+ *   Text/Paragraph-1 (#f2e1b0) — title
+ *   Text/Paragraph-2 (#fdfdf9) — copy
+ *   Spacing/L (20), Spacing/M (16), Spacing/S (12), Radius/M (16)
+ */
+
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
-  palette,
+  borderWidth,
   fontFamily,
   fontSize,
   fontWeight,
   lineHeight,
-  radius,
-  borderWidth,
-  textShadow,
-  glassGradient,
-  spacing,
-  scale,
-  verticalScale,
   moderateScale,
+  palette,
+  scale,
+  spacing,
+  verticalScale,
 } from '@theme';
 import type { RootStackParamList } from '@types';
 import React from 'react';
@@ -26,11 +42,13 @@ import {
   Text,
   TouchableOpacity,
   View,
+  type ImageStyle,
   type TextStyle,
   type ViewStyle,
 } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Svg, { Path, Circle } from 'react-native-svg';
+import Svg, { Circle, Path } from 'react-native-svg';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import Button from '@components/Button/Button';
@@ -42,7 +60,7 @@ type MirrorEchoNavigationProp = NativeStackNavigationProp<
   'MirrorEchoVaultHome'
 >;
 
-// ── Info icon (Material outlined) ───────────────────────────────────────────
+// ── Info icon ────────────────────────────────────────────────────────────────
 const InfoIcon: React.FC<{ size?: number }> = ({ size = 24 }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Circle cx="12" cy="12" r="9.5" stroke={palette.gold.DEFAULT} strokeWidth={1} />
@@ -53,28 +71,10 @@ const InfoIcon: React.FC<{ size?: number }> = ({ size = 24 }) => (
   </Svg>
 );
 
-// ── Button width: Figma 176px at 393px reference ────────────────────────────
+// Button width — Figma 176px at 393px reference
 const BTN_WIDTH = scale(176);
 
-// ── Shared button prop overrides (applied to both CTA buttons) ──────────────
-// Figma: radius.m (16px), borderWidth.thin (0.5px), py-12, px-16, text 24px
-const BTN_CONTAINER_STYLE: ViewStyle = {
-  borderRadius: radius.m,
-  borderWidth: borderWidth.thin,
-};
-const BTN_CONTENT_STYLE: ViewStyle = {
-  paddingVertical: verticalScale(spacing.s),   // 12px
-  paddingHorizontal: scale(spacing.m),         // 16px
-  minWidth: 0,
-};
-const BTN_TEXT_STYLE: TextStyle = {
-  fontFamily: fontFamily.heading,              // CormorantGaramond-Regular
-  fontSize: moderateScale(fontSize.xl),        // 24px
-  lineHeight: moderateScale(fontSize['2xl']),  // 28px (font/size/2xl)
-  color: palette.gold.DEFAULT,
-};
-
-// ── Screen ──────────────────────────────────────────────────────────────────
+// ── Screen ───────────────────────────────────────────────────────────────────
 export function MirrorEchoContent() {
   const navigation = useNavigation<MirrorEchoNavigationProp>();
   const [showInfo, setShowInfo] = React.useState(false);
@@ -86,127 +86,95 @@ export function MirrorEchoContent() {
 
         <LogoHeader navigation={navigation} />
 
-        {/*
-          NO flexGrow:1 on scrollContent — that prevents scrolling by always
-          expanding to fill the viewport. Content has natural height and will
-          scroll when it overflows on small devices (iPhone SE etc.)
-        */}
         <ScrollView
           style={styles.scroll}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          {/*
-            Figma node 767:2844 — flex-col gap-[20px] items-center
-            width:'100%' is required so nested children with width:'100%'
-            resolve against scroll content width, not an undefined parent.
-          */}
+          {/* Figma 767:2844 — flex-col gap:20 items-center */}
           <View style={styles.content}>
 
-            {/* ── Title row: spacer | MIRROR ECHO | info ───────────────── */}
-            {/* Figma node 767:2863: justify-between, items-center, w-full */}
+            {/* ── Title row ────────────────────────────────────────────── */}
+            {/* Figma 767:2863 — justify-between, items-center, w-full */}
             <View style={styles.titleRow}>
-              {/* Equal-size spacer keeps title visually centred */}
               <View style={styles.iconPlaceholder} />
 
               {/*
-                Figma node 767:2865:
-                Cormorant Regular 28px, lineHeight 32px, gold.DEFAULT,
-                textShadow: 0 0 20px #e5d6b0
+                Figma 767:2865 — Heading/Heading M: Cormorant Regular 28/32
+                Colour Text/Paragraph-1 (#f2e1b0), textShadow gold warm
               */}
-              <Text style={styles.title}>MIRROR ECHO</Text>
+              <Text style={styles.title}>ECHO VAULT</Text>
 
-              {/* Figma node 1232:1108 — info button, 24px */}
               <TouchableOpacity
                 onPress={() => setShowInfo(true)}
                 activeOpacity={0.75}
                 style={styles.infoHit}
                 accessibilityRole="button"
-                accessibilityLabel="About Mirror Echo"
+                accessibilityLabel="About Echo Vault"
               >
                 <InfoIcon size={scale(24)} />
               </TouchableOpacity>
             </View>
 
-            {/* ── Echo map image ────────────────────────────────────────── */}
+            {/* ── Hero image ───────────────────────────────────────────── */}
             {/*
-              Figma node 767:2846: px-[20px] (spacing.l), w-full
-              Figma node 767:2847: aspect-[328/328] (1:1), w-full
-              Image overflows slightly (left -12.91%, size 125.81%) to show
-              the face — cropped by overflow:hidden on imageSquare.
-              Edge blending: 4 LinearGradient overlays fade the hard image
-              boundary into the background colour (navy.deep).
+              Figma 767:2846 — px:20 (Spacing/L), w-full
+              Figma 767:2847 — aspect-[1:1] (328×328), w-full, overflow hidden
+              Image source is the mirror echo map (face + constellation).
             */}
-            <View >
-              <View >
+            <View style={styles.imageWrapper}>
+              <View style={styles.imageSquare}>
                 <Image
                   testID="mirror-echo-image"
-                  source={require('../../assets/mirror_echo_map.png')}
-                  
+                  source={require('@assets/mirror_echo_map.png')}
+                  style={styles.heroImage}
                   resizeMode="cover"
                   accessibilityIgnoresInvertColors
                 />
               </View>
             </View>
 
-            {/* ── Copy text ─────────────────────────────────────────────── */}
+            {/* ── Copy text ────────────────────────────────────────────── */}
             {/*
-              Figma node 767:2848:
-              Inter Regular 16px, lineHeight 24px, gold.subtlest (#fdfdf9)
-              Two paragraphs, centre-aligned, maxWidth 335px
+              Figma 767:2848 — Body S: Inter Regular 16/24
+              Colour Text/Paragraph-2 (#fdfdf9), center, maxWidth 335px
             */}
             <View style={styles.copyWrap}>
               <Text style={styles.copyText}>
-                {'Become the architect of your own story.\nSave what you\u2019ve learned, loved, and lived \u2014 in a private vault that\u2019s yours.'}
+                {'Your space.\nYour memories.\nYour story.\nSave it for yourself or someone you love.'}
               </Text>
             </View>
 
-            {/* ── CTA buttons ───────────────────────────────────────────── */}
+            {/* ── CTA buttons ──────────────────────────────────────────── */}
             {/*
-              Figma node 767:2849: flex-col gap-[12px] items-center w-[176px]
-
-              Using <Button variant="gradient"> from @components/Button.
-              Override: borderRadius → radius.m (16px), borderWidth → 0.5px,
-              padding → py-12 / px-16, text → Cormorant 24px gold.
+              Figma 767:2849 — flex-col gap:12 items-center, w:176px
+              START ECHO uses Translucent White Gradient (more opaque)
+              VIEW VAULT uses Transparent White Gradient (more transparent)
+              Both use Radius/M (16), border 0.5px, Cormorant 24px gold.
             */}
             <View style={styles.ctaWrap}>
-              {/* START ECHO — gradient from rgba(253,253,249,0.03) to rgba(253,253,249,0.2) */}
+              {/* VIEW VAULT — primary (prominent CTA) */}
+              {/* START ECHO — secondary (supporting action) */}
               <Button
-                variant="gradient"
+                variant="secondary"
+                size="L"
                 title="START ECHO"
                 onPress={() => navigation.navigate('NewEchoScreen')}
-                gradientColors={[glassGradient.echoPrimary.start, glassGradient.echoPrimary.end]}
-                style={{ width: BTN_WIDTH, borderRadius: radius.m }}
-                containerStyle={BTN_CONTAINER_STYLE}
-                contentStyle={BTN_CONTENT_STYLE}
-                textStyle={BTN_TEXT_STYLE}
+                style={{ width: BTN_WIDTH }}
               />
-
-              {/*
-                VIEW VAULT — gradient from rgba(253,253,249,0.01) to rgba(253,253,249,0)
-                Text adds warm glow: 0 0 9px rgba(229,214,176,0.5) (Figma spec)
-              */}
               <Button
-                variant="gradient"
+                variant="primary"
+                size="L"
                 title="VIEW VAULT"
                 onPress={() => navigation.navigate('MirrorEchoVaultLibrary')}
-                gradientColors={[glassGradient.echoSecondary.start, glassGradient.echoSecondary.end]}
-                style={{ width: BTN_WIDTH, borderRadius: radius.m }}
-                containerStyle={BTN_CONTAINER_STYLE}
-                contentStyle={BTN_CONTENT_STYLE}
-                textStyle={{
-                  ...BTN_TEXT_STYLE,
-                  textShadowColor: textShadow.warmGlow.color,
-                  textShadowOffset: textShadow.warmGlow.offset,
-                  textShadowRadius: textShadow.warmGlow.radius,
-                }}
+                style={{ width: BTN_WIDTH }}
               />
             </View>
 
           </View>
         </ScrollView>
 
-        {/* ── Info Modal ─────────────────────────────────────────────────── */}
+        {/* ── Info Modal ───────────────────────────────────────────────── */}
         <Modal
           visible={showInfo}
           transparent
@@ -215,38 +183,50 @@ export function MirrorEchoContent() {
           statusBarTranslucent
         >
           <View style={styles.modalOverlay}>
-            <View style={styles.infoCard}>
-              {/* Close button container */}
-              <View style={styles.closeContainer}>
-                <TouchableOpacity
-                  onPress={() => setShowInfo(false)}
-                  style={styles.closeButton}
-                  accessibilityRole="button"
-                  accessibilityLabel="Close"
-                >
-                  <Svg width={20} height={20} viewBox="0 0 20 20">
-                    <Path
-                      d="M15.8334 5.34175L14.6584 4.16675L10.0001 8.82508L5.34175 4.16675L4.16675 5.34175L8.82508 10.0001L4.16675 14.6584L5.34175 15.8334L10.0001 11.1751L14.6584 15.8334L15.8334 14.6584L11.1751 10.0001L15.8334 5.34175Z"
-                      fill={palette.gold.DEFAULT}
-                    />
-                  </Svg>
-                </TouchableOpacity>
+            {/*
+              Outer wrapper owns the glow shadow (no overflow:hidden so the
+              warm gold halo can bleed outward into the dark scrim).
+              Inner card clips the gradient to the 13px radius.
+              Figma 347:1239: shadow 0 0 15px rgba(229,214,176,0.3)
+            */}
+            <View style={styles.infoCardGlow}>
+              <View style={styles.infoCard}>
+                <LinearGradient
+                  colors={['rgba(253,253,249,0.01)', 'rgba(253,253,249,0)']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 0, y: 1 }}
+                  style={StyleSheet.absoluteFill}
+                  pointerEvents="none"
+                />
+
+                <View style={styles.closeContainer}>
+                  <TouchableOpacity
+                    onPress={() => setShowInfo(false)}
+                    style={styles.closeButton}
+                    accessibilityRole="button"
+                    accessibilityLabel="Close"
+                  >
+                    <Svg width={20} height={20} viewBox="0 0 20 20">
+                      <Path
+                        d="M15.8334 5.34175L14.6584 4.16675L10.0001 8.82508L5.34175 4.16675L4.16675 5.34175L8.82508 10.0001L4.16675 14.6584L5.34175 15.8334L10.0001 11.1751L14.6584 15.8334L15.8334 14.6584L11.1751 10.0001L15.8334 5.34175Z"
+                        fill={palette.gold.DEFAULT}
+                      />
+                    </Svg>
+                  </TouchableOpacity>
+                </View>
+
+                <Text style={styles.infoTitle}>WELCOME TO{'\n'}ECHO VAULT</Text>
+                <Text style={styles.infoSubtitle}>
+                  A quiet space to keep what matters most.
+                </Text>
+                <StarIcon width={scale(20)} height={scale(20)} />
+                <Text style={styles.infoBody}>
+                  Store your reflections, memories, and messages—kept safe and accessible when they matter most, relayed at a time for moments that matter the most.
+                </Text>
+                <Text style={styles.infoQuote}>
+                  "These are the patterns shaping your becoming."
+                </Text>
               </View>
-
-              <Text style={styles.infoTitle}>WELCOME TO MIRROR ECHO</Text>
-
-              <Text style={styles.infoSubtitle}>A space to see yourself clearly</Text>
-
-              {/* Decorative star icon */}
-              <StarIcon width={28} height={28} />
-
-              <Text style={styles.infoBody}>
-                Each day, you'll receive your Echo Signature—a gentle snapshot of the emotional patterns, metaphors, and themes moving through you now.
-              </Text>
-
-              <Text style={styles.infoQuote}>
-                "These are the patterns shaping your becoming."
-              </Text>
             </View>
           </View>
         </Modal>
@@ -259,7 +239,7 @@ export default function MirrorEchoScreen() {
   return <MirrorEchoContent />;
 }
 
-// ── Styles ───────────────────────────────────────────────────────────────────
+// ── Styles ────────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create<{
   bg: ViewStyle;
@@ -271,11 +251,15 @@ const styles = StyleSheet.create<{
   iconPlaceholder: ViewStyle;
   title: TextStyle;
   infoHit: ViewStyle;
+  imageWrapper: ViewStyle;
+  imageSquare: ViewStyle;
+  heroImage: ImageStyle;
   copyWrap: ViewStyle;
   copyText: TextStyle;
   ctaWrap: ViewStyle;
   // Modal
   modalOverlay: ViewStyle;
+  infoCardGlow: ViewStyle;
   infoCard: ViewStyle;
   closeContainer: ViewStyle;
   closeButton: ViewStyle;
@@ -285,165 +269,197 @@ const styles = StyleSheet.create<{
   infoQuote: TextStyle;
 }>({
   bg: {
-    flex: 1,
+    flex:            1,
     backgroundColor: palette.navy.deep,
   },
   safe: {
-    flex: 1,
+    flex:            1,
     backgroundColor: palette.neutral.transparent,
   },
 
-  // ── Scroll ─────────────────────────────────────────────────────────────────
-  scroll: {
-    flex: 1,
-  },
-  // No flexGrow:1 — prevents scroll by always filling viewport
+  scroll: { flex: 1 },
+  // No flexGrow:1 — prevents scroll by always filling viewport on small devices
   scrollContent: {
-    paddingHorizontal: scale(spacing.xl),         // 24px — Figma 6.11%
-    paddingTop: verticalScale(spacing.xl),
-    paddingBottom: verticalScale(spacing.xxxl),
+    paddingHorizontal: scale(spacing.xl),
+    paddingTop:        verticalScale(spacing.xl),
+    paddingBottom:     verticalScale(spacing.xxxl),
   },
 
-  // ── Outer column ───────────────────────────────────────────────────────────
-  // width:'100%' is critical — without it, children's width:'100%' resolves
-  // against undefined and may collapse or overflow unpredictably.
+  // Figma 767:2844 — flex-col gap:20 items-center, w-full
   content: {
-    width: '100%',
+    width:      '100%',
     alignItems: 'center',
-    gap: verticalScale(spacing.l),                // 20px = spacing.l
+    gap:        verticalScale(spacing.l),          // 20px (Spacing/L)
   },
 
-  // ── Title row ──────────────────────────────────────────────────────────────
+  // Figma 767:2863 — justify-between items-center w-full
   titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection:  'row',
+    alignItems:     'center',
     justifyContent: 'space-between',
-    width: '100%',
+    width:          '100%',
   },
-
   iconPlaceholder: {
-    width: scale(44),   // matches infoHit hit-area width
+    width:  scale(44),
     height: scale(24),
   },
 
-  // Figma: Cormorant Regular 28px, lineHeight 32px, gold, glow 0 0 20px #e5d6b0
+  // Heading/Heading M — Cormorant Regular 28/32, Text/Paragraph-1 (#f2e1b0)
   title: {
-    flex: 1,
+    flex:       1,
     fontFamily: fontFamily.heading,
-    fontSize: moderateScale(fontSize['2xl']),      // 28px
+    fontSize:   moderateScale(fontSize['2xl']),   // 28px
     fontWeight: fontWeight.regular,
-    lineHeight: lineHeight.xl,                     // 32px
-    color: palette.gold.DEFAULT,
-    textAlign: 'center',
-    textShadowColor: palette.gold.warm,
+    lineHeight: lineHeight.xl,                    // 32px
+    color:      palette.gold.DEFAULT,
+    textAlign:  'center',
+    textShadowColor:  palette.gold.warm,
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 8,
   },
 
-  // 44pt minimum touch target
   infoHit: {
-    width: scale(44),
-    height: scale(44),
-    alignItems: 'flex-end',
-    justifyContent: 'center',
+    width:           scale(44),
+    height:          scale(44),
+    alignItems:      'flex-end',
+    justifyContent:  'center',
   },
 
-  // ── Copy text ──────────────────────────────────────────────────────────────
-  // Figma: Inter Regular 16px, lineHeight 24px, gold.subtlest (#fdfdf9), center
+  // Figma 767:2846 — Spacing/L (20px) horizontal padding, w-full
+  imageWrapper: {
+    paddingHorizontal: scale(spacing.l),          // 20px
+    width:             '100%',
+  },
+
+  // Figma 767:2847 — aspect 1:1 (328×328 in Figma), overflow hidden
+  imageSquare: {
+    width:       '100%',
+    aspectRatio: 1,
+    overflow:    'hidden',
+  },
+
+  heroImage: {
+    width:    '100%',
+    height:   '100%',
+  },
+
+  // Body S — Inter Regular 16/24, Text/Paragraph-2 (#fdfdf9), center, maxWidth 335
   copyWrap: {
-    width: '100%',
+    width:      '100%',
     alignItems: 'center',
   },
   copyText: {
     fontFamily: fontFamily.body,
-    fontSize: moderateScale(fontSize.s),           // 16px
+    fontSize:   moderateScale(fontSize.s),        // 16px
     fontWeight: fontWeight.regular,
-    lineHeight: lineHeight.m,                      // 24px
-    color: palette.gold.subtlest,
-    textAlign: 'center',
-    maxWidth: scale(335),
+    lineHeight: lineHeight.m,                     // 24px
+    color:      palette.gold.subtlest,            // #fdfdf9
+    textAlign:  'center',
+    maxWidth:   scale(335),
   },
 
-  // ── CTA ────────────────────────────────────────────────────────────────────
-  // Figma: flex-col gap-[12px] items-center
+  // Figma 767:2849 — flex-col gap:12 items-center
   ctaWrap: {
     alignItems: 'center',
-    gap: verticalScale(spacing.s),                // 12px
+    gap:        verticalScale(spacing.s),         // 12px (Spacing/S)
   },
 
-  // ── Info Modal ─────────────────────────────────────────────────────────────
+  // ── Info Modal ────────────────────────────────────────────────────────────
+  // Figma 347:1239 — Echo Vault Information Overlay
   modalOverlay: {
-    flex: 1,
+    flex:            1,
     backgroundColor: 'rgba(11,15,28,0.92)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: scale(spacing.xl),
+    justifyContent:  'center',
+    alignItems:      'center',
+    padding:         scale(spacing.xl),
   },
-  infoCard: {
-    width: '100%',
-    maxWidth: scale(329),
-    backgroundColor: 'rgba(253,253,249,0.01)',
-    borderRadius: scale(13),
-    borderWidth: borderWidth.hairline,
-    borderColor: 'rgba(163,179,204,1)',
-    padding: scale(spacing.xl),         // 24px all sides
-    gap: verticalScale(spacing.m),      // 16px between items
-    alignItems: 'center',
-    shadowColor: palette.gold.warm,
-    shadowOffset: { width: 0, height: 0 },
+
+  // Outer wrapper — owns the warm gold glow. No overflow:hidden so the
+  // halo bleeds outward into the dark scrim.
+  // Figma: box-shadow 0 0 15px 0 rgba(229,214,176,0.3)
+  infoCardGlow: {
+    width:         '100%',
+    maxWidth:      scale(329),
+    borderRadius:  scale(13),
+    boxShadow:     '0px 0px 15px 0px rgba(229,214,176,0.3)',
+    shadowColor:   palette.gold.warm,
+    shadowOffset:  { width: 0, height: 0 },
     shadowOpacity: 0.3,
-    shadowRadius: 15,
-    elevation: 15,
+    shadowRadius:  15,
+    elevation:     15,
   },
+
+  // Inner card — clips LinearGradient to 13px corners.
+  // Figma: bg Transparent White Gradient (0.01→0), border 0.25px #a3b3cc
+  //        padding 24px (Spacing/XL), gap 16px between items
+  infoCard: {
+    width:        '100%',
+    borderRadius: scale(13),
+    borderWidth:  borderWidth.hairline,             // 0.25px
+    borderColor:  palette.navy.light,               // #a3b3cc
+    padding:      scale(spacing.xl),                // 24px
+    gap:          16,                               // Figma: fixed 16px gap
+    alignItems:   'center',
+    overflow:     'hidden',
+  },
+
   closeContainer: {
-    width: '100%',
+    width:      '100%',
     alignItems: 'flex-end',
   },
   closeButton: {
-    width: scale(20),
-    height: scale(20),
+    width:          scale(20),
+    height:         scale(20),
     justifyContent: 'center',
-    alignItems: 'center',
+    alignItems:     'center',
   },
+
+  // Figma 347:1240 — Cormorant Regular 24/28, #f2e1b0, text-shadow 0 0 10 #e5d6b0
   infoTitle: {
-    fontFamily: fontFamily.heading,
-    fontSize: moderateScale(fontSize.xl),
-    fontWeight: fontWeight.regular,
-    lineHeight: moderateScale(28),
-    color: palette.gold.DEFAULT,
-    textAlign: 'center',
-    letterSpacing: 0,
-    textShadowColor: palette.gold.warm,
+    fontFamily:       fontFamily.heading,
+    fontSize:         moderateScale(fontSize.xl),    // 24px
+    fontWeight:       fontWeight.regular,
+    lineHeight:       moderateScale(28),             // 28px (font/size/2XL)
+    color:            palette.gold.DEFAULT,           // #f2e1b0
+    textAlign:        'center',
+    letterSpacing:    0,
+    textShadowColor:  palette.gold.warm,             // #e5d6b0
     textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 8,
+    textShadowRadius: 10,                            // Figma: 10px
   },
+
+  // Figma 347:1241 — Cormorant Italic 24px, lh 1.3, white
   infoSubtitle: {
-    fontFamily: fontFamily.headingItalic,
-    fontSize: moderateScale(fontSize.xl),
-    fontWeight: fontWeight.regular,
-    fontStyle: 'italic',
-    lineHeight: moderateScale(31.2),
-    color: palette.neutral.white,
-    textAlign: 'center',
+    fontFamily:    fontFamily.headingItalic,
+    fontSize:      moderateScale(fontSize.xl),
+    fontWeight:    fontWeight.regular,
+    fontStyle:     'italic',
+    lineHeight:    moderateScale(fontSize.xl * 1.3),
+    color:         palette.neutral.white,
+    textAlign:     'center',
     letterSpacing: 0,
   },
+
+  // Figma 347:1244 — Inter Regular 16/24, white
   infoBody: {
-    fontFamily: fontFamily.body,
-    fontSize: moderateScale(fontSize.s),
-    fontWeight: fontWeight.regular,
-    lineHeight: moderateScale(24),
-    color: palette.neutral.white,
-    textAlign: 'center',
+    fontFamily:    fontFamily.body,
+    fontSize:      moderateScale(fontSize.s),        // 16px
+    fontWeight:    fontWeight.regular,
+    lineHeight:    moderateScale(24),                // 24px (line-height/M)
+    color:         palette.neutral.white,
+    textAlign:     'center',
     letterSpacing: 0,
   },
+
+  // Figma 347:1245 — Inter Italic 14/20, #e5d6b0
   infoQuote: {
-    fontFamily: fontFamily.bodyItalic,
-    fontSize: moderateScale(fontSize.xs),
-    fontWeight: fontWeight.regular,
-    fontStyle: 'italic',
-    lineHeight: moderateScale(20),
-    color: palette.gold.warm,
-    textAlign: 'center',
+    fontFamily:    fontFamily.bodyItalic,
+    fontSize:      moderateScale(fontSize.xs),       // 14px
+    fontWeight:    fontWeight.regular,
+    fontStyle:     'italic',
+    lineHeight:    moderateScale(20),                // 20px (line-height/S)
+    color:         palette.gold.warm,               // #e5d6b0
+    textAlign:     'center',
     letterSpacing: 0,
   },
 });
