@@ -9,7 +9,6 @@ import {
   radius,
   borderWidth,
   textShadow,
-  glassGradient,
   scale,
   verticalScale,
   moderateScale,
@@ -231,7 +230,9 @@ const TermsAndConditionsScreen = () => {
             </TouchableOpacity>
 
             <Button
-              variant="gradient"
+              variant="secondary"
+              size="L"
+              active={agreed && !isLoading}
               title={isLoading ? 'CREATING...' : 'CONTINUE'}
               onPress={async () => {
                 if (!agreed || isLoading) return;
@@ -272,13 +273,6 @@ const TermsAndConditionsScreen = () => {
               }}
               disabled={!agreed || isLoading}
               style={styles.buttonWrapper}
-              containerStyle={styles.buttonContainer}
-              contentStyle={styles.buttonContent}
-              textStyle={styles.buttonText}
-              gradientColors={[
-                glassGradient.button.start,
-                glassGradient.button.end,
-              ]}
             />
           </View>
         </SafeAreaView>
@@ -311,9 +305,6 @@ const styles = StyleSheet.create<{
   checkboxCheck: TextStyle;
   checkboxLabel: TextStyle;
   buttonWrapper: ViewStyle;
-  buttonContainer: ViewStyle;
-  buttonContent: ViewStyle;
-  buttonText: TextStyle;
 }>({
   bg: {
     flex: 1,
@@ -483,32 +474,6 @@ const styles = StyleSheet.create<{
     color: palette.gold.DEFAULT,
   },
   buttonWrapper: {
-    backgroundColor: palette.neutral.transparent,
-    shadowOpacity: 0,
-    shadowRadius: 0,
-    elevation: 0,
-    borderRadius: radius.m,
-  },
-  buttonContainer: {
-    borderWidth: borderWidth.thin,
-    borderColor: palette.navy.light,
-    borderRadius: radius.m,
-  },
-  buttonContent: {
-    paddingVertical: verticalScale(12),
-    paddingHorizontal: scale(16),
-    minWidth: 0,
-  },
-  buttonText: {
-    fontFamily: fontFamily.heading,
-    fontSize: moderateScale(fontSize.xl),
-    fontWeight: fontWeight.regular,
-    lineHeight: lineHeight.l,
-    letterSpacing: 0,
-    color: palette.gold.DEFAULT,
-    textShadowColor: textShadow.warmGlow.color,
-    textShadowOffset: textShadow.warmGlow.offset,
-    textShadowRadius: textShadow.warmGlow.radius,
-    textTransform: 'none',
+
   },
 });

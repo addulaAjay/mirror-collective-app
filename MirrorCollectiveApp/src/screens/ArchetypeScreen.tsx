@@ -8,6 +8,7 @@ import {
   scale,
   verticalScale,
   moderateScale,
+  textShadow,
 } from '@theme';
 import type { RootStackParamList } from '@types';
 import React from 'react';
@@ -212,9 +213,9 @@ const styles = StyleSheet.create({
     letterSpacing: 0,
     color: palette.gold.warm,
     textAlign: 'center',
-    textShadowColor: palette.gold.warm,
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 8,
+    textShadowColor: textShadow.glowSubtle.color,
+    textShadowOffset: textShadow.glowSubtle.offset,
+    textShadowRadius: textShadow.glowSubtle.radius,
   },
 
   // Figma: node 205:460 — 240×240, shadow 0 0 44px rgba(0,0,0,0.2)

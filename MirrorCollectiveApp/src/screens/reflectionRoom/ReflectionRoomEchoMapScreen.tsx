@@ -1,4 +1,4 @@
-import { palette } from '@theme';
+import { palette, textShadow } from '@theme';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '@types';
@@ -458,9 +458,9 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     marginBottom: 16,
     marginTop: 8,
-    textShadowColor: 'rgba(242, 226, 177, 0.4)',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 8,
+    textShadowColor: textShadow.glowSubtle.color,
+    textShadowOffset: textShadow.glowSubtle.offset,
+    textShadowRadius: textShadow.glowSubtle.radius,
   },
   infoBody: {
     fontFamily: 'Inter',

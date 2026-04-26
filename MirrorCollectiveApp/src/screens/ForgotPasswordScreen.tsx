@@ -183,7 +183,7 @@ const ForgotPasswordScreen = () => {
                 <View style={styles.inputWrapper}>
                   <TextInputField
                     testID="email-input"
-                    size="S"
+                    size="M"
                     placeholder={t('auth.forgotPassword.emailPlaceholder')}
                     value={email}
                     onChangeText={setEmail}
@@ -274,8 +274,7 @@ const styles = StyleSheet.create({
     gap: verticalScale(40),
   },
 
-  // Figma: Heading/Heading L — Cormorant Regular 3XL (32px), lh:40 (XXL), #f2e2b1
-  // NOTE: No text shadow in Figma (unlike other screens)
+  // Figma: Heading/Heading L — Cormorant Regular 3XL (32px), lh:40 (XXL), #f2e2b1, glow shadow
   title: {
     fontFamily: fontFamily.heading,                       // CormorantGaramond-Regular
     fontSize: moderateScale(fontSize['3xl']),              // 32px — Figma: font/size/3XL
@@ -284,6 +283,9 @@ const styles = StyleSheet.create({
     letterSpacing: 0,
     color: palette.gold.DEFAULT,                           // #f2e2b1 — Figma: text/paragraph-1
     textAlign: 'center',
+    textShadowColor: textShadow.glow.color,                // Glow: #F0D4A8 · 30%
+    textShadowOffset: textShadow.glow.offset,              // X:0 Y:0
+    textShadowRadius: textShadow.glow.radius,              // Blur:10
   },
 
   // Figma: Heading/Heading XS — Cormorant Regular L (20px), lh:24px, #fdfdf9

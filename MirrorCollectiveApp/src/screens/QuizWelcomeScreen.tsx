@@ -6,11 +6,12 @@ import {
   fontFamily,
   fontSize,
   fontWeight,
-  glassGradient,
   scale,
   verticalScale,
   moderateScale,
-  modalColors,
+  textShadow,
+  borderWidth,
+  spacing,
 } from '@theme';
 import type { RootStackParamList } from '@types';
 import React from 'react';
@@ -29,8 +30,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
+import Button from '@components/Button';
 import CircularLogoMark from '@components/CircularLogoMark';
-import GradientButton from '@components/GradientButton';
 import { QuizStorageService } from '@services/quizStorageService';
 
 type QuizWelcomeScreenNavigationProp = NativeStackNavigationProp<
@@ -54,28 +55,38 @@ const QuizWelcomeScreen = () => {
       try {
         const pendingResults = await QuizStorageService.getPendingQuizResults();
         if (pendingResults?.backendResult) {
-          console.log('Found pending quiz results, redirecting to Archetype screen');
+          console.log(
+            'Found pending quiz results, redirecting to Archetype screen',
+          );
 
-          const archetypeDetails = pendingResults.backendResult.archetype_details;
+          const archetypeDetails =
+            pendingResults.backendResult.archetype_details;
 
           const archetypeWithImage = {
             ...archetypeDetails,
-            image: archetypeImages[archetypeDetails.imagePath as keyof typeof archetypeImages],
+            image:
+              archetypeImages[
+                archetypeDetails.imagePath as keyof typeof archetypeImages
+              ],
           };
 
           navigation.reset({
             index: 0,
-            routes: [{
-              name: 'Archetype',
-              params: {
-                archetype: archetypeWithImage,
-                quizResult: {
-                  finalArchetype: pendingResults.backendResult.final_archetype,
-                  assignmentReason: pendingResults.backendResult.assignment_reason,
-                  totalScores: pendingResults.backendResult.total_scores,
-                }
-              }
-            }]
+            routes: [
+              {
+                name: 'Archetype',
+                params: {
+                  archetype: archetypeWithImage,
+                  quizResult: {
+                    finalArchetype:
+                      pendingResults.backendResult.final_archetype,
+                    assignmentReason:
+                      pendingResults.backendResult.assignment_reason,
+                    totalScores: pendingResults.backendResult.total_scores,
+                  },
+                },
+              },
+            ],
           });
         }
       } catch (error) {
@@ -114,41 +125,31 @@ const QuizWelcomeScreen = () => {
             </View>
           </View>
 
-          {/* Card — gradient border glow (same three-layer pattern as TermsAndConditionsScreen) */}
-          <View style={styles.cardShadow}>
-            <View style={styles.cardGradientBorder}>
-              <View style={styles.cardClip}>
-                <Text style={styles.description}>
-                  <Text style={styles.regularText}>
-                    A few quick reflections to reveal your
-                  </Text>
-                  <Text style={styles.italicHighlight}> starting parttern.</Text>
-                  {'\n\n'}
-                  <Text style={styles.regularText}>
-                    No judgment. No labels.{' '}
-                  </Text>
-                  {'\n'}
-                  <Text style={styles.italicHighlight}>Just insight.</Text>
-                  {'\n\n'}
-                  <Text style={styles.regularText}>This is where </Text>
-                  <Text style={styles.italicHighlight}>change begins.</Text>
-                </Text>
-              </View>
-            </View>
+          {/* Card — Figma specs: Border:0.25px Radius:20px Padding:L/M */}
+          <View style={styles.cardContainer}>
+            <Text style={styles.description}>
+              <Text style={styles.regularText}>
+                A few quick reflections to reveal your
+              </Text>
+              <Text style={styles.italicHighlight}> starting parttern.</Text>
+              {'\n\n'}
+              <Text style={styles.regularText}>No judgment. No labels. </Text>
+              {'\n'}
+              <Text style={styles.italicHighlight}>Just insight.</Text>
+              {'\n\n'}
+              <Text style={styles.regularText}>This is where </Text>
+              <Text style={styles.italicHighlight}>change begins.</Text>
+            </Text>
           </View>
 
-          {/* BEGIN button — inline in gap:60 column, matches Figma */}
-          <GradientButton
+          {/* BEGIN button — always active: primary CTA */}
+          <Button
+            variant="primary"
+            size="L"
+            active
             title="BEGIN"
             onPress={() => navigation.navigate('QuizQuestions')}
-            style={styles.glassButtonWrapper}
-            containerStyle={styles.glassButtonContainer}
-            contentStyle={styles.glassButtonContent}
-            textStyle={styles.glassButtonText}
-            gradientColors={[
-              'rgba(253, 253, 249, 0.01)',
-              'rgba(253, 253, 249, 0.00)',
-            ]}
+            style={styles.beginButton}
           />
 
           {__DEV__ && (
@@ -178,16 +179,11 @@ const styles = StyleSheet.create<{
   logoWelcomeGroup: ViewStyle;
   welcomeContainer: ViewStyle;
   welcome: TextStyle;
-  cardShadow: ViewStyle;
-  cardGradientBorder: ViewStyle;
-  cardClip: ViewStyle;
+  cardContainer: ViewStyle;
   description: TextStyle;
   regularText: TextStyle;
   italicHighlight: TextStyle;
-  glassButtonWrapper: ViewStyle;
-  glassButtonContainer: ViewStyle;
-  glassButtonContent: ViewStyle;
-  glassButtonText: TextStyle;
+  beginButton: ViewStyle;
   devClearCache: TextStyle;
 }>({
   bg: {
@@ -224,43 +220,32 @@ const styles = StyleSheet.create<{
     letterSpacing: 0,
     color: palette.gold.DEFAULT,
     textAlign: 'center',
-    textShadowColor: palette.gold.warm,
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 10,
+    textShadowColor: textShadow.glow.color,
+    textShadowOffset: textShadow.glow.offset,
+    textShadowRadius: textShadow.glow.radius,
     textTransform: 'uppercase',
   },
-  // Three-layer gradient border pattern (matches TermsAndConditionsScreen)
-  // backgroundColor gives iOS CALayer a concrete shape to render the gold
-  // glow shadow from. palette.navy.deep matches the app background tone.
-  cardShadow: {
+  // Figma card specs: Radius:20px Border:0.25px Padding:L(20)/M(16) Height:251px Width:313px
+  // Background: Transparent White Gradient, Border: Border/Subtle
+  // Shadow: X:0 Y:0 Blur:15 Spread:3 #F2E2B1 · 30%
+  cardContainer: {
     alignSelf: 'center',
     width: scale(313),
-    borderRadius: radius.s,
-    backgroundColor: palette.navy.deep,
-
-    shadowColor: modalColors.textGoldMuted,
-    shadowOffset: { width: 2, height: 2 },
-    shadowOpacity: 0.5,
-    shadowRadius: moderateScale(16),
-    elevation: 8,
-  },
-  // overflow:hidden clips to border radius; paddingHorizontal:0.5 = left+right gradient border
-  cardGradientBorder: {
-    borderRadius: radius.s,
-    overflow: 'hidden',
-    paddingHorizontal: 0.5,
-  },
-  // marginVertical:0.25 = top+bottom gradient border; dark background for content
-  cardClip: {
-    marginVertical: 0.25,
-    borderRadius: radius.s - 0.25,
-    overflow: 'hidden',
-    backgroundColor: palette.navy.card,
     minHeight: verticalScale(251),
-    paddingVertical: verticalScale(20),
-    paddingHorizontal: scale(16),
+    borderRadius: radius.l, // Figma: 20px
+    borderWidth: borderWidth.hairline, // Figma: 0.25px
+    borderColor: palette.navy.light, // Figma: Border/Subtle
+    backgroundColor: palette.navy.card, // Transparent gradient background
+    paddingVertical: verticalScale(spacing.l), // Figma: Spacing/L (20px)
+    paddingHorizontal: scale(spacing.m), // Figma: Spacing/M (16px)
     alignItems: 'center',
     justifyContent: 'center',
+
+    shadowColor: palette.gold.DEFAULT, // Figma: #F2E2B1
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 15,
+    elevation: 8,
   },
   description: {
     fontSize: moderateScale(fontSize.xl), // fontSize.xl = 24px
@@ -278,38 +263,13 @@ const styles = StyleSheet.create<{
     fontWeight: fontWeight.regular,
     color: palette.gold.DEFAULT,
   },
-  // Figma BEGIN button: border:0.5px #a3b3cc, rounded-m (16px), gradient 0.04→0.01
-  glassButtonWrapper: {
-    backgroundColor: palette.neutral.transparent,
-    shadowOpacity: 0,
-    shadowRadius: 0,
-    elevation: 0,
-    borderRadius: radius.m,
-  },
-  glassButtonContainer: {
-    borderWidth: 0.5,
-    borderColor: palette.navy.light,
-    borderRadius: radius.m,
-  },
-  glassButtonContent: {
-    paddingVertical: verticalScale(12),
-    paddingHorizontal: scale(16),
-    minWidth: 0,
-  },
-  glassButtonText: {
-    fontFamily: fontFamily.heading,
-    fontSize: moderateScale(fontSize.xl), // 24px
-    fontWeight: fontWeight.regular, // 400
-    lineHeight: moderateScale(fontSize.xl) * 1.3, // 31.2px
-    letterSpacing: 0,
-    color: palette.gold.DEFAULT,
-    textShadowColor: 'rgba(229, 214, 176, 0.5)',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 9,
+  beginButton: {
+    alignSelf: 'center',
+    minWidth: scale(155),
   },
   devClearCache: {
-    color: glassGradient.border.shadowColor, // gold.DEFAULT @ ~50% — dev only
-    fontSize: 12,
+    color: palette.gold.mid, // Muted gold for dev-only text
+    fontSize: fontSize.xxs,
     textDecorationLine: 'underline',
   },
 });

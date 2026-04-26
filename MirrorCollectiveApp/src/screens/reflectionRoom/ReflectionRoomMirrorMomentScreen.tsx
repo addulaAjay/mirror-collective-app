@@ -1,5 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { palette, textShadow } from '@theme';
 import type { RootStackParamList } from '@types';
 import React from 'react';
 import {
@@ -20,7 +21,6 @@ import { SvgXml } from 'react-native-svg';
 import { MOTIF_SVG } from '@assets/motifs-icons/MotifIconAssets';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
-import { palette } from '@theme';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('screen');
 
@@ -478,9 +478,9 @@ const styles = StyleSheet.create({
     color: palette.gold.DEFAULT,
     textAlign: 'center',
     lineHeight: 36,
-    textShadowColor: 'rgba(240, 212, 168, 0.60)',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 16,
+    textShadowColor: textShadow.glowStrong.color,
+    textShadowOffset: textShadow.glowStrong.offset,
+    textShadowRadius: textShadow.glowStrong.radius,
   },
   infoBody: {
     alignSelf: 'stretch',

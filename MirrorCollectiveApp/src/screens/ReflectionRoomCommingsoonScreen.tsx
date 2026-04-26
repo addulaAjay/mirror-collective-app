@@ -1,5 +1,5 @@
 import React from 'react';
-import { palette } from '@theme';
+import { palette, textShadow } from '@theme';
 import { Dimensions, Image, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -125,9 +125,9 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     color: palette.gold.DEFAULT,
     textAlign: 'center',
-    textShadowColor: palette.gold.warm,
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 10,
+    textShadowColor: textShadow.glow.color,
+    textShadowOffset: textShadow.glow.offset,
+    textShadowRadius: textShadow.glow.radius,
     letterSpacing: 2,
   },
   imageContainer: {
@@ -199,8 +199,8 @@ const styles = StyleSheet.create({
     color: palette.gold.DEFAULT,
     textAlign: 'center',
     lineHeight: Math.min(screenWidth * 0.082 * 1.3, 41.6),
-    textShadowColor: 'rgba(229, 214, 176, 0.5)',
-    textShadowOffset: { width: 0, height: 0 },
+    textShadowColor: textShadow.glowSubtle.color,
+    textShadowOffset: textShadow.glowSubtle.offset,
     textShadowRadius: 4,
     marginHorizontal: 12,
   },

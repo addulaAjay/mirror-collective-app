@@ -1,46 +1,28 @@
 // MC.svg inlined as a React Native SVG component.
 // Original asset: assets/MC.svg — viewBox 0 0 313 487
-// ViewBox expanded by 65px L/R and 63px T/B so the radial glow bleeds outside the logo boundary.
-// Full rendered area: 443×613 (logo content: 313×487, centered).
+// Matches Figma export exactly - no modifications
 import { palette } from '@theme';
 import React from 'react';
-import Svg, { ClipPath, Defs, Ellipse, G, Path, RadialGradient, Rect, Stop } from 'react-native-svg';
+import Svg, { ClipPath, Defs, G, Path, Rect } from 'react-native-svg';
 
 interface Props {
   width?: number;
   height?: number;
 }
 
-const MCLogo: React.FC<Props> = ({ width = 443, height = 613 }) => (
+const MCLogo: React.FC<Props> = ({ width = 313, height = 487 }) => (
   <Svg
     width={width}
     height={height}
-    viewBox="-65 -63 443 613"
+    viewBox="0 0 313 487"
     fill="none"
   >
     <Defs>
-      {/* Soft warm glow around the logo — matches Figma drop shadow + blur effect */}
-      <RadialGradient
-        id="mc_glow"
-        cx={156.5}
-        cy={243.5}
-        rx={220}
-        ry={305}
-        gradientUnits="userSpaceOnUse"
-      >
-        <Stop offset="0"   stopColor={palette.gold.glow}  stopOpacity="0.08" />
-        <Stop offset="0.5" stopColor={palette.gold.glow}  stopOpacity="0.04" />
-        <Stop offset="1"   stopColor={palette.gold.glow}  stopOpacity="0" />
-      </RadialGradient>
-
       {/* Clip path keeps logo paths within original 313×487 boundary */}
       <ClipPath id="mc_clip">
-        <Rect width={313} height={486.23} />
+        <Rect width={313} height={486.23} fill="white" />
       </ClipPath>
     </Defs>
-
-    {/* Glow — rendered outside clip so it extends beyond the logo edges */}
-    <Ellipse cx={156.5} cy={243.5} rx={220} ry={305} fill="url(#mc_glow)" />
 
     {/* Logo paths — clipped to original 313×487 */}
     <G clipPath="url(#mc_clip)">

@@ -1,6 +1,6 @@
-import { palette, spacing, shadows } from '@theme';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { palette, spacing, shadows, textShadow } from '@theme';
 import type { RootStackParamList } from '@types';
 import React, { useState, useEffect, useCallback } from 'react';
 import {
@@ -19,7 +19,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
 
-import { MOTIF_ICONS, getMotifIcon } from '@assets/motifs/MotifAssets';
+import { getMotifIcon } from '@assets/motifs/MotifAssets';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
 import { echoApiService, EchoResponse } from '@services/api/echo';
@@ -45,7 +45,6 @@ export function EchoLibraryContent() {
   const [viewMode, setViewMode] = useState<'LIBRARY' | 'INBOX'>('LIBRARY');
   const [activeTab, setActiveTab] = useState<'RECIPIENT' | 'CATEGORY'>('RECIPIENT');
 
-  const cardMaxWidth = Math.min(width - spacing.l * 2, 440);
 
   const fetchEchoes = useCallback(async () => {
     try {
@@ -72,9 +71,6 @@ export function EchoLibraryContent() {
     fetchEchoes();
   }, [fetchEchoes]);
 
-  const handleMenu = () => {
-    (navigation as any)?.openDrawer?.();
-  };
 
   const handleCreateEcho = () => {
     navigation.navigate('NewEchoScreen');
@@ -586,8 +582,9 @@ const styles = StyleSheet.create({
     fontSize: 24,
     color: GOLD,
     textAlign: 'center',
-    textShadowColor: 'rgba(229, 214, 176, 0.5)',
-    textShadowRadius: 9,
+    textShadowColor: textShadow.warmGlow.color,
+    textShadowOffset: textShadow.warmGlow.offset,
+    textShadowRadius: textShadow.warmGlow.radius,
   },
 
   // ... keep loading/error styles

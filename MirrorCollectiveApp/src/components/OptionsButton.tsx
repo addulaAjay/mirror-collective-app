@@ -5,6 +5,7 @@ import {
   fontSize,
   fontWeight,
   textShadow,
+  glassGradient,
   scale,
   scaleCap,
   moderateScale,
@@ -17,6 +18,7 @@ import {
   StyleSheet,
   ViewStyle,
 } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 
 
 interface Props {
@@ -33,6 +35,16 @@ const OptionButton = ({ label, selected, onPress, style }: Props) => {
       activeOpacity={0.9}
       style={[styles.button, selected && styles.buttonSelected, style]}
     >
+      {/* Figma: Translucent White Gradient for selected state (iOS-compatible) */}
+      {selected && (
+        <LinearGradient
+          colors={[glassGradient.card.start, glassGradient.card.end]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0, y: 1 }}
+          style={StyleSheet.absoluteFill}
+          pointerEvents="none"
+        />
+      )}
       <Text style={[styles.label, selected && styles.labelSelected]}>
         {label}
       </Text>
@@ -47,13 +59,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: verticalScale(8),    // Figma: py spacing/xs = 8px
-    paddingHorizontal: scale(12),         // Figma: px spacing/s = 12px
+    paddingHorizontal: scale(16),         // Figma: px spacing/m = 16px
     width: scaleCap(313, 313),
     minHeight: verticalScale(72),         // Figma: h-72px
     backgroundColor: palette.surface.DEFAULT, // Figma: rgba(163,179,204,0.05)
     borderWidth: 0.25,                    // Figma: 0.25px hairline
     borderColor: palette.navy.border,     // Figma: #808fb2 border/bold
     borderRadius: radius.s,               // Figma: rounded-12px
+    overflow: 'hidden',                   // Clips BlurView + LinearGradient to borderRadius
     shadowColor: palette.neutral.black,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
@@ -62,15 +75,14 @@ const styles = StyleSheet.create({
   },
 
   buttonSelected: {
-    backgroundColor: 'rgba(253, 253, 249, 0.14)',
-    borderColor: palette.navy.light,
+    backgroundColor: 'transparent',       // Figma: Blur + Gradient only
+    borderColor: palette.navy.light,      // Figma: Border/Subtle (#a3b3cc)
     borderWidth: 0.25,
-    paddingHorizontal: verticalScale(16),
-    // Golden glow shadow for selected state
-    shadowColor: palette.gold.DEFAULT,  // #f2e2b1 golden glow
+    // Figma: Glow Drop Shadow X:0 Y:0 Blur:10 Spread:3 #F0D4A8 · 30%
+    shadowColor: textShadow.glow.color,   // #F0D4A8 · 30%
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.6,
-    shadowRadius: 20,
+    shadowOpacity: 1,                     // Color already has opacity
+    shadowRadius: 10,                     // Blur:10
     elevation: 8,
   },
 

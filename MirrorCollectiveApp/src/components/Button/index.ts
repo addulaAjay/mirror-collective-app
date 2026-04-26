@@ -1,2 +1,2 @@
 export { default } from './Button';
-export type { ButtonProps, ButtonVariant } from './Button';
+export type { ButtonProps, ButtonVariant, ButtonSize } from './Button';

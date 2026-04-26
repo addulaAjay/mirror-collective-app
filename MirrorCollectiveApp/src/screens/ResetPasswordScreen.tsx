@@ -1,7 +1,7 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { palette, theme } from '@theme';
+import { palette, theme, textShadow } from '@theme';
 import type { RootStackParamList } from '@types';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -335,9 +335,9 @@ const styles = StyleSheet.create({
   },
   enterText: {
     ...theme.typography.styles.button,
-    textShadowColor: 'rgba(245, 230, 184, 0.50)',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 4,
+    textShadowColor: textShadow.glow.color,                // Glow: #F0D4A8 · 30%
+    textShadowOffset: textShadow.glow.offset,              // X:0 Y:0
+    textShadowRadius: textShadow.glow.radius,              // Blur:10
   },
   backLink: {
     marginTop: 20,
