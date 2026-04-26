@@ -54,6 +54,10 @@ yarn-error.log
 design/figma-components/raw/
 design/figma-components/generated/
 
+# MCP local config (may contain secrets — use .mcp.json.example as template)
+.mcp.json
+.mcp.local.json
+
 **/fastlane/report.xml
 **/fastlane/Preview.html
 **/fastlane/screenshots

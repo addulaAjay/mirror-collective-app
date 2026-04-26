@@ -59,6 +59,7 @@ jest.mock('@react-navigation/native', () => ({
     goBack: jest.fn(),
     reset: jest.fn(),
   }),
+  useRoute: () => ({ params: {} }),
   useFocusEffect: jest.fn(),
 }));
 
@@ -165,3 +166,17 @@ global.console = {
 
 // Mock react-native-linear-gradient
 jest.mock('react-native-linear-gradient', () => 'LinearGradient');
+
+// Mock react-native-safe-area-context — its native module errors in jest.
+// Components that import SafeAreaView render as the string 'SafeAreaView'.
+jest.mock('react-native-safe-area-context', () => ({
+  SafeAreaView: 'SafeAreaView',
+  SafeAreaProvider: ({ children }) => children,
+  useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
+}));
+
+// Mock @react-native-community/blur — native BlurView module would otherwise
+// crash render(). String component name keeps snapshots readable.
+jest.mock('@react-native-community/blur', () => ({
+  BlurView: 'BlurView',
+}));

@@ -1,11 +1,25 @@
+/**
+ * Home Screen — TalkToMirror
+ * Figma: Design-Master-File → Home Screen - FINAL (4326:2276)
+ * Reference render: docs/visual-qa/talk-to-mirror/talk-to-mirror-figma.png
+ *
+ * Layout (top → bottom, after LogoHeader):
+ *   1. Greeting row   — small avatar (50) + "Welcome back, X" italic text
+ *   2. Oval mirror    — 183×275 elliptical centerpiece (gold rim + gradient fill)
+ *   3. Talk button    — bordered pill flanked by 20px stars, gap 16
+ *   4. Category row   — horizontal scroll: Mirror Echo / Reflection Room /
+ *                       Code Library / Mirror Pledge (100×100 circles + labels)
+ *
+ * Outer column (Figma 4326:2301): h-[654px] flex-col items-center
+ * justify-between, w-345 — distributes the 4 sections vertically.
+ */
+
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { OnboardingService } from '@services';
 import {
   palette,
   fontFamily,
-  fontSize,
   fontWeight,
-  lineHeight,
   radius,
   borderWidth,
   textShadow,
@@ -28,9 +42,15 @@ import {
   type TextStyle,
   type ImageStyle,
 } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import IconCodeLibrary from '@assets/talk-to-mirror/icon-code-library.svg';
+import IconMirrorEcho from '@assets/talk-to-mirror/icon-mirror-echo.svg';
+import IconReflectionRoom from '@assets/talk-to-mirror/icon-reflection-room.svg';
+import OvalMirrorSvg from '@assets/talk-to-mirror/oval-mirror.svg';
 import BackgroundWrapper from '@components/BackgroundWrapper';
+import MirrorPledgeIcon from '@components/icons/MirrorPledgeIcon';
 import LogoHeader from '@components/LogoHeader';
 import StarIcon from '@components/StarIcon';
 import { useUser } from '@context/UserContext';
@@ -39,141 +59,152 @@ interface Props {
   navigation: NativeStackNavigationProp<RootStackParamList, 'TalkToMirror'>;
 }
 
-const ARCHETYPE_IMAGE = require('@assets/flamebearer-archetype.png');
+// Raster avatar (the only PNG that didn't have a vector equivalent in Figma).
+const AVATAR_IMAGE = require('@assets/talk-to-mirror/user-avatar.png');
 
-// Figma node 2336:3076 — 4 items, 2×2 grid (ECHO MAP removed — not in Figma design)
-const MENU_OPTIONS = [
-  { label: 'CODE LIBRARY',    route: 'MirrorCodeLibrary' },
-  { label: 'MIRROR ECHO',     route: 'MirrorEchoVaultHome' },
-  { label: 'REFLECTION ROOM', route: 'ReflectionRoom' },
-  { label: 'MIRROR PLEDGE',   route: 'TheMirrorPledge' },
-] as const;
+// Sizing constants — referenced by both the screen markup and styles below.
+const AVATAR_SIZE = moderateScale(50);
+const MIRROR_W    = moderateScale(183);
+const MIRROR_H    = moderateScale(275);
+const ICON_RING   = moderateScale(100);
+
+// Figma 4326:2337 — horizontal scroll category list
+const CATEGORIES = [
+  { key: 'mirror-echo',     label: 'MIRROR ECHO',     route: 'MirrorEchoVaultHome' as const },
+  { key: 'reflection-room', label: 'REFLECTION ROOM', route: 'ReflectionRoom' as const },
+  { key: 'code-library',    label: 'CODE LIBRARY',    route: 'MirrorCodeLibrary' as const },
+  { key: 'mirror-pledge',   label: 'MIRROR PLEDGE',   route: 'MirrorPledgeIntro' as const },
+];
+
+/** Figma 4326:2339-2393 — 100×100 full-circle SVG + 20px label.
+ *  The SVG includes the ring border itself, so no wrapping View is needed. */
+interface CategoryCardProps {
+  icon: React.ReactNode;
+  label: string;
+  onPress: () => void;
+}
+const CategoryCard: React.FC<CategoryCardProps> = ({ icon, label, onPress }) => (
+  <TouchableOpacity
+    style={styles.categoryCard}
+    activeOpacity={0.85}
+    onPress={onPress}
+    accessibilityRole="button"
+    accessibilityLabel={label}
+  >
+    <View style={styles.categoryIconBox}>{icon}</View>
+    <Text style={styles.categoryLabel}>{label}</Text>
+  </TouchableOpacity>
+);
+
+// ---------------------------------------------------------------------------
+// Screen
+// ---------------------------------------------------------------------------
 
 const TalkToMirrorScreen: React.FC<Props> = ({ navigation }) => {
   const { user } = useUser();
   const firstName = user?.fullName ? user.fullName.split(' ')[0] : 'Friend';
 
-  // Mark onboarding as complete when this screen first mounts
   useEffect(() => {
-    const markOnboardingComplete = async () => {
-      await OnboardingService.markOnboardingComplete();
-    };
-
-    markOnboardingComplete();
+    OnboardingService.markOnboardingComplete().catch(() => {
+      // non-fatal — onboarding flag is best-effort
+    });
   }, []);
 
-  const handleTalkPress = () => {
-    navigation.navigate('MirrorChat');
-  };
-
-  const handleMenuPress = (route: string) => {
+  const handleTalkPress = () => navigation.navigate('MirrorChat');
+  const handleCategoryPress = (route: keyof RootStackParamList) =>
     navigation.navigate(route as never);
+
+  const renderCategoryIcon = (key: string) => {
+    switch (key) {
+      case 'mirror-echo':
+        return <IconMirrorEcho width={ICON_RING} height={ICON_RING} />;
+      case 'reflection-room':
+        return <IconReflectionRoom width={ICON_RING} height={ICON_RING} />;
+      case 'code-library':
+        return <IconCodeLibrary width={ICON_RING} height={ICON_RING} />;
+      case 'mirror-pledge':
+        return <MirrorPledgeIcon size={ICON_RING} />;
+      default:
+        return null;
+    }
   };
 
   return (
-    /*
-      scrollable — skips TouchableWithoutFeedback so it cannot intercept
-      scroll gestures on the inner ScrollView.
-    */
     <BackgroundWrapper style={styles.bg} scrollable>
       <SafeAreaView style={styles.safe}>
         <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
         <LogoHeader />
 
-        {/*
-          Scroll fix: remove flexGrow:1 from contentContainerStyle and flex:1
-          from the content View. The ScrollView measures content naturally and
-          scrolls when content height > visible height on small devices.
-        */}
         <ScrollView
           style={styles.scroll}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          {/*
-            Figma node 2336:3067 — outer column
-            inset 6.11% sides = 24px, gap:55 between sections
-          */}
           <View style={styles.content}>
 
-            {/* ── Top: greeting + circular avatar — gap:32 ──────────────── */}
-            {/* Figma node 2336:3068: flex-col gap-[32px] items-center */}
-            <View style={styles.topSection}>
-              {/* Figma node 2336:3070: Cormorant Light Italic 32px, white, Glow Drop Shadow */}
-              <Text style={styles.greeting}>Welcome back, {firstName}</Text>
-
-              {/*
-                Figma node 3906:487: 180×180 circle
-                border: 1px palette.gold.DEFAULT
-                shadow: Glow Drop Shadow rgba(240,212,168,0.6) radius:16
-                Image inside: h:149.82%, top:-6.74% (crops to face)
-
-                Two-layer approach required because iOS shadow + overflow:hidden
-                cannot coexist on the same view:
-                  avatarShadow  — shadow layer, no overflow clip
-                  avatarRing    — overflow:hidden clips image to circle
-              */}
-              <View style={styles.avatarShadow}>
-                <View style={styles.avatarRing}>
-                  <Image
-                    source={ARCHETYPE_IMAGE}
-                    style={styles.avatarImage}
-                    resizeMode="cover"
-                    accessibilityIgnoresInvertColors
-                  />
-                </View>
+            {/* Figma 4326:2302 — gap:16, items-center, justify-center */}
+            <View style={styles.greetingRow}>
+              <View style={styles.avatarRing}>
+                <Image
+                  source={AVATAR_IMAGE}
+                  style={styles.avatarImage}
+                  resizeMode="cover"
+                  accessibilityIgnoresInvertColors
+                />
               </View>
+              <Text style={styles.greeting} numberOfLines={2}>
+                Welcome back, {firstName}
+              </Text>
             </View>
 
-            {/* ── TALK TO MIRROR button ─────────────────────────────────── */}
-            {/* Figma node 2336:3072: gap:16, Heading L, warmGlow shadow */}
-            <TouchableOpacity
-              style={styles.talkButton}
-              onPress={handleTalkPress}
-              activeOpacity={0.85}
-              accessibilityRole="button"
-              accessibilityLabel="Talk to Mirror"
+            {/* Figma 4326:2306 — oval mirror centerpiece */}
+            <OvalMirrorSvg width={MIRROR_W} height={MIRROR_H} />
+
+            {/* Figma 4326:2332 — talk button row (gap:16, stars flanking) */}
+            <View style={styles.talkRow}>
+              <StarIcon
+                width={moderateScale(20)}
+                height={moderateScale(20)}
+                color={palette.gold.DEFAULT}
+              />
+              <TouchableOpacity
+                style={styles.talkButton}
+                onPress={handleTalkPress}
+                activeOpacity={0.85}
+                accessibilityRole="button"
+                accessibilityLabel="Talk to Mirror"
+              >
+                <LinearGradient
+                  colors={['rgba(253,253,249,0.01)', 'rgba(253,253,249,0)']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 0, y: 1 }}
+                  style={StyleSheet.absoluteFill}
+                  pointerEvents="none"
+                />
+                <Text style={styles.talkText}>TALK TO MIRROR</Text>
+              </TouchableOpacity>
+              <StarIcon
+                width={moderateScale(20)}
+                height={moderateScale(20)}
+                color={palette.gold.DEFAULT}
+              />
+            </View>
+
+            {/* Figma 4326:2337 — horizontal category scroll */}
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.categoryScrollContent}
             >
-              <StarIcon width={scale(24)} height={scale(24)} color={palette.gold.DEFAULT} />
-              <Text style={styles.talkText}>TALK TO MIRROR</Text>
-              <StarIcon width={scale(24)} height={scale(24)} color={palette.gold.DEFAULT} />
-            </TouchableOpacity>
-
-            {/* ── Menu grid: 2 rows × 2 cols ───────────────────────────── */}
-            {/*
-              Figma node 2336:3076: flex-col gap-[12px]
-              Each row: flex gap-[24px] h-[76px]
-              Cards: surface.overlay bg, border 0.5px navy.light, radius.s
-              Text: Caps/Heading Caps M — Cormorant Regular 20px lineHeight:1.5
-            */}
-            <View style={styles.menuGrid}>
-              <View style={styles.menuRow}>
-                {MENU_OPTIONS.slice(0, 2).map(({ label, route }) => (
-                  <TouchableOpacity
-                    key={label}
-                    style={styles.menuCard}
-                    activeOpacity={0.85}
-                    onPress={() => handleMenuPress(route)}
-                    accessibilityRole="button"
-                  >
-                    <Text style={styles.menuText}>{label}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-              <View style={styles.menuRow}>
-                {MENU_OPTIONS.slice(2, 4).map(({ label, route }) => (
-                  <TouchableOpacity
-                    key={label}
-                    style={styles.menuCard}
-                    activeOpacity={0.85}
-                    onPress={() => handleMenuPress(route)}
-                    accessibilityRole="button"
-                  >
-                    <Text style={styles.menuText}>{label}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
+              {CATEGORIES.map(({ key, label, route }) => (
+                <CategoryCard
+                  key={key}
+                  icon={renderCategoryIcon(key)}
+                  label={label}
+                  onPress={() => handleCategoryPress(route)}
+                />
+              ))}
+            </ScrollView>
 
           </View>
         </ScrollView>
@@ -184,7 +215,9 @@ const TalkToMirrorScreen: React.FC<Props> = ({ navigation }) => {
 
 export default TalkToMirrorScreen;
 
-const AVATAR_SIZE = scale(180);
+// ---------------------------------------------------------------------------
+// Styles
+// ---------------------------------------------------------------------------
 
 const styles = StyleSheet.create<{
   bg: ViewStyle;
@@ -192,152 +225,151 @@ const styles = StyleSheet.create<{
   scroll: ViewStyle;
   scrollContent: ViewStyle;
   content: ViewStyle;
-  topSection: ViewStyle;
-  greeting: TextStyle;
-  avatarShadow: ViewStyle;
+  greetingRow: ViewStyle;
   avatarRing: ViewStyle;
   avatarImage: ImageStyle;
+  greeting: TextStyle;
+  talkRow: ViewStyle;
   talkButton: ViewStyle;
   talkText: TextStyle;
-  menuGrid: ViewStyle;
-  menuRow: ViewStyle;
-  menuCard: ViewStyle;
-  menuText: TextStyle;
+  categoryScrollContent: ViewStyle;
+  categoryCard: ViewStyle;
+  categoryIconBox: ViewStyle;
+  categoryLabel: TextStyle;
 }>({
-  bg: {
-    flex: 1,
-    backgroundColor: palette.navy.deep,
-  },
-  safe: {
-    flex: 1,
-    backgroundColor: palette.neutral.transparent,
-  },
+  bg:   { flex: 1, backgroundColor: palette.navy.deep },
+  safe: { flex: 1, backgroundColor: palette.neutral.transparent },
 
-  // ── ScrollView ────────────────────────────────────────────────────────────
-  // NO flexGrow:1 on scrollContent — that was preventing scroll by always
-  // expanding content to fill the viewport. Content now has its natural height
-  // and will scroll on small devices.
-  scroll: {
-    flex: 1,
-  },
+  // ── ScrollView (vertical) ────────────────────────────────────────────────
+  scroll:        { flex: 1 },
   scrollContent: {
-    paddingHorizontal: scale(spacing.xl),    // 24px — Figma 6.11% of 393px
-    paddingTop: verticalScale(spacing.xl),   // breathing room below LogoHeader
-    paddingBottom: verticalScale(spacing.xxxl),
+    paddingHorizontal: scale(spacing.xl),    // Figma 24px (left:24, right:24)
+    paddingTop:        verticalScale(spacing.l),
+    paddingBottom:     verticalScale(spacing.xxxl),
   },
 
-  // ── Outer column ─────────────────────────────────────────────────────────
-  // Figma gap:55 between [greeting+avatar], [TALK TO MIRROR], [menu grid]
+  // Outer column: Figma flex-col items-center justify-between (h:654 in mock)
   content: {
-    alignItems: 'center',
-    gap: verticalScale(55),
+    alignItems:    'center',
+    justifyContent:'space-between',
+    minHeight:     verticalScale(560),
+    width:         '100%',
+    gap:           verticalScale(spacing.xl),
   },
 
-  // ── Top section: greeting + avatar ───────────────────────────────────────
-  // Figma gap:32
-  topSection: {
-    alignItems: 'center',
-    gap: verticalScale(spacing.xxl),         // 32px
-    width: '100%',
+  // ── Greeting row ─────────────────────────────────────────────────────────
+  // Figma 4326:2302 — gap:16, items-center, justify-center
+  greetingRow: {
+    flexDirection: 'row',
+    alignItems:    'center',
+    justifyContent:'center',
+    gap:           scale(spacing.m),
+    width:         '100%',
   },
-
-  // Figma: Cormorant Light Italic 32px, white, Glow Drop Shadow
-  greeting: {
-    fontFamily: fontFamily.headingLightItalic,
-    fontStyle: 'italic',                     // required on iOS alongside fontFamily
-    fontSize: moderateScale(fontSize['3xl']), // 32px
-    lineHeight: moderateScale(fontSize['3xl']) * 1.3,
-    fontWeight: fontWeight.light,
-    color: palette.neutral.white,
-    textAlign: 'center',
-    textShadowColor: textShadow.glowSubtle.color,
-    textShadowOffset: textShadow.glowSubtle.offset,
-    textShadowRadius: textShadow.glowSubtle.radius,
-  },
-
-  // Shadow wrapper — no overflow:hidden so shadow bleeds outward.
-  // backgroundColor required for iOS CALayer shadow rendering.
-  avatarShadow: {
-    width: AVATAR_SIZE,
-    height: AVATAR_SIZE,
-    borderRadius: AVATAR_SIZE / 2,
-    backgroundColor: palette.navy.deep,
-    shadowColor: textShadow.glow.color,      // Glow Drop Shadow
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 1,
-    shadowRadius: moderateScale(16),
-    elevation: 12,
-  },
-  // Clip ring — overflow:hidden clips image to circle, gold border visible
+  // Figma 4326:2303 — 50×50, border 1px gold, glow shadow
   avatarRing: {
-    width: AVATAR_SIZE,
-    height: AVATAR_SIZE,
-    borderRadius: AVATAR_SIZE / 2,
-    borderWidth: borderWidth.regular,        // 1px
-    borderColor: palette.gold.DEFAULT,       // border/brand #f2e2b1
-    overflow: 'hidden',
+    width:           AVATAR_SIZE,
+    height:          AVATAR_SIZE,
+    borderRadius:    AVATAR_SIZE / 2,
+    borderWidth:     borderWidth.regular,
+    borderColor:     palette.gold.DEFAULT,
+    overflow:        'hidden',
+    shadowColor:     palette.gold.glow,
+    shadowOffset:    { width: 0, height: 0 },
+    shadowOpacity:   0.6,
+    shadowRadius:    moderateScale(10),
+    elevation:       6,
+    backgroundColor: palette.navy.deep,
   },
-  // Figma: h:149.82%, top:-6.74% — image taller than circle, offset up to show face
   avatarImage: {
+    width:    '100%',
+    height:   '150%',                          // Figma h:149.82%, top:-6.74%
     position: 'absolute',
-    width: '100%',
-    height: '150%',
-    top: -verticalScale(12),                 // ~-6.74% of 180px
+    top:      -moderateScale(3),
+    left:     0,
+  },
+  // Figma 4326:2305 — Cormorant Garamond Light Italic 28px, lh 1.3, white, glow
+  greeting: {
+    flexShrink:        1,
+    width:             scale(210),             // Figma 4326:2304: w-[210px]
+    fontFamily:        fontFamily.headingLightItalic,
+    fontStyle:         'italic',
+    fontSize:          moderateScale(28),
+    lineHeight:        moderateScale(28) * 1.3,
+    fontWeight:        fontWeight.light,
+    color:             palette.neutral.white,
+    textAlign:         'center',
+    textShadowColor:   textShadow.glowSubtle.color,
+    textShadowOffset:  textShadow.glowSubtle.offset,
+    textShadowRadius:  textShadow.glowSubtle.radius,
   },
 
-  // ── TALK TO MIRROR ────────────────────────────────────────────────────────
-  // Figma: gap:16, Heading L (Cormorant Regular 32px), warmGlow shadow
+  // ── Talk button ──────────────────────────────────────────────────────────
+  // Figma 4326:2332 — flex row gap:16, items-center
+  talkRow: {
+    flexDirection: 'row',
+    alignItems:    'center',
+    justifyContent:'center',
+    gap:           scale(spacing.m),
+    width:         '100%',
+  },
+  // Figma 4407:2755 — bordered pill, radius 16, padding 16h/12v, gradient bg
   talkButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: scale(spacing.m),                   // 16px
+    overflow:        'hidden',
+    borderRadius:    radius.m,                 // 16
+    borderWidth:     borderWidth.thin,         // 0.5
+    borderColor:     palette.navy.light,       // Border/Subtle #a3b3cc
+    paddingHorizontal: scale(spacing.m),
+    paddingVertical:   verticalScale(spacing.s),
+    backgroundColor: 'rgba(253,253,249,0.005)',// average of gradient stops
+    alignItems:      'center',
+    justifyContent:  'center',
   },
+  // Figma I4407:2755;125:342 — Cormorant Regular 24px, lh 28, gold, warm glow
   talkText: {
-    fontFamily: fontFamily.heading,           // CormorantGaramond-Regular
-    fontSize: moderateScale(fontSize['3xl']), // 32px
-    fontWeight: fontWeight.regular,
-    lineHeight: lineHeight.xxl,              // 40px
-    color: palette.gold.DEFAULT,             // Text/Paragraph-1
-    textTransform: 'uppercase',
-    textShadowColor: textShadow.warmGlow.color,
-    textShadowOffset: textShadow.warmGlow.offset,
-    textShadowRadius: textShadow.warmGlow.radius,
+    fontFamily:        fontFamily.heading,
+    fontSize:          moderateScale(24),
+    lineHeight:        moderateScale(28),
+    fontWeight:        fontWeight.regular,
+    color:             palette.gold.DEFAULT,
+    textAlign:         'center',
+    textTransform:     'uppercase',
+    textShadowColor:   textShadow.warmGlow.color,
+    textShadowOffset:  textShadow.warmGlow.offset,
+    textShadowRadius:  textShadow.warmGlow.radius,
   },
 
-  // ── Menu grid ─────────────────────────────────────────────────────────────
-  // Figma: flex-col gap-[12px], full width
-  menuGrid: {
-    gap: verticalScale(spacing.s),           // 12px between rows
-    width: '100%',
+  // ── Category row ─────────────────────────────────────────────────────────
+  // Figma 4326:2338 — horizontal scroll, gap 24
+  categoryScrollContent: {
+    gap:               scale(spacing.l),       // 24
+    paddingHorizontal: scale(spacing.xs),
+    alignItems:        'center',
   },
-  // Figma: flex gap-[24px] h-[76px]
-  menuRow: {
-    flexDirection: 'row',
-    gap: scale(spacing.m),                    // 16px between cards
-    minHeight: moderateScale(76),             // content-based height; allows 2-line text on all screens
+  // Figma 4326:2339 — flex-col gap:12 items-center
+  categoryCard: {
+    alignItems:    'center',
+    justifyContent:'center',
+    gap:           verticalScale(spacing.s),   // 12
   },
-  // Figma: surface.overlay bg, border 0.5px navy.light, radius.s
-  // backdrop-blur-[30px] — not supported natively in RN without a library
-  menuCard: {
-    flex: 1,                                 // equal width columns
-    borderRadius: radius.s,                  // 12px
-    borderWidth: borderWidth.thin,           // 0.5px
-    borderColor: palette.navy.light,         // Border/Subtle #a3b3cc
-    backgroundColor: palette.surface.overlay, // rgba(191,199,217,0.05)
-    alignItems: 'center',
+  // Figma 4326:2340 — 100×100 SVG box. SVG already includes ring + content,
+  // so this is just a positional wrapper. No border/background/shadow on the
+  // wrapper — those are baked into the SVG.
+  categoryIconBox: {
+    width:        ICON_RING,
+    height:       ICON_RING,
+    alignItems:   'center',
     justifyContent: 'center',
-    paddingHorizontal: scale(spacing.xs),        // 8px — more text room on small screens
-    paddingVertical: verticalScale(spacing.xs),
   },
-  // Figma: Caps/Heading Caps M — Cormorant Regular 20px lineHeight:1.5
-  menuText: {
-    fontFamily: fontFamily.heading,           // CormorantGaramond-Regular
-    fontSize: moderateScale(20),
-    fontWeight: fontWeight.regular,
-    lineHeight: moderateScale(20) * 1.5,     // 1.5 line height
-    color: palette.gold.DEFAULT,             // Text/Paragraph-1
-    textAlign: 'center',
+  // Figma 4326:2343/2360/2382/2393 — Cormorant Regular 20px, lh 24, gold, center
+  categoryLabel: {
+    fontFamily:    fontFamily.heading,
+    fontSize:      moderateScale(20),
+    lineHeight:    moderateScale(24),
+    fontWeight:    fontWeight.regular,
+    color:         palette.gold.DEFAULT,
+    textAlign:     'center',
     textTransform: 'uppercase',
+    maxWidth:      scale(110),
   },
 });

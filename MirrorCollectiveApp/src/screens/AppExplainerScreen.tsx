@@ -4,11 +4,11 @@ import { useTranslation } from 'react-i18next';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import BackgroundWrapper from '@components/BackgroundWrapper';
+import Button from '@components/Button';
 import LogoHeader from '@components/LogoHeader';
 import { useAuthGuard } from '@hooks/useAuthGuard';
 import type { RootStackParamList } from '@types';
-import BackgroundWrapper from '@components/BackgroundWrapper';
-import GradientButton from '@/components/GradientButton';
 import { palette, radius } from '@theme';
 
 const { width, height } = Dimensions.get('window');
@@ -56,7 +56,8 @@ const AppExplainerScreen: React.FC<Props> = ({ navigation }) => {
           </View>
 
           <View style={styles.nextWrap}>
-            <GradientButton
+            <Button
+              variant="gradient"
               title="NEXT"
               onPress={handleNext}
               style={styles.glassButtonWrapper}

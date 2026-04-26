@@ -18,12 +18,14 @@ interface StarIconProps {
   width?: number;
   height?: number;
   color?: string;
+  testID?: string;
 }
 
 const StarIcon: React.FC<StarIconProps> = ({
   width = 28,
   height = 28,
   color = palette.gold.warm,
+  testID,
 }) => {
   // Scale to desired size while maintaining aspect ratio
   const viewBoxWidth = 28;
@@ -35,6 +37,7 @@ const StarIcon: React.FC<StarIconProps> = ({
       height={height}
       viewBox={`0 0 ${viewBoxWidth} ${viewBoxHeight}`}
       fill="none"
+      testID={testID}
     >
       <Defs>
         <Filter

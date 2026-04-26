@@ -26,6 +26,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
+import Button from '@components/Button';
 import LogoHeader from '@components/LogoHeader';
 import { QuizStorageService } from '@services/quizStorageService';
 
@@ -103,12 +104,7 @@ const ArchetypeScreen: React.FC<ArchetypeScreenProps> = ({ route }) => {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          <TouchableOpacity
-            testID="archetype-container"
-            style={styles.container}
-            onPress={handleContinue}
-            activeOpacity={1}
-          >
+          <View testID="archetype-container" style={styles.container}>
             {/* Content column — gap-[24px] between all sections, Figma: node 205:457 */}
             <View style={styles.content}>
 
@@ -139,13 +135,17 @@ const ArchetypeScreen: React.FC<ArchetypeScreenProps> = ({ route }) => {
                 ) : null}
               </View>
 
-              {/* "Click anywhere to continue" — Figma: node 205:462 */}
-              <Text style={styles.hintText}>
-                Click anywhere to continue
-              </Text>
+              {/* Continue link — replaces tap-anywhere pattern with a discrete CTA */}
+              <Button
+                variant="link"
+                size="L"
+                title={t('common.continue')}
+                onPress={handleContinue}
+                testID="archetype-continue"
+              />
 
             </View>
-          </TouchableOpacity>
+          </View>
         </ScrollView>
 
         {/* Dev-only retake button — not in Figma, hidden in production */}
@@ -261,19 +261,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0,
     color: palette.gold.subtlest,
     textAlign: 'center',
-  },
-
-  // Figma: node 205:462 — Inter Italic S 16px, #f2e2b1, w-[284px]
-  hintText: {
-    fontFamily: fontFamily.bodyItalic,
-    fontStyle: 'italic',              // Required on iOS alongside fontFamily to trigger italic rendering
-    fontSize: moderateScale(fontSize.s),
-    fontWeight: fontWeight.regular,
-    lineHeight: moderateScale(fontSize.s * 1.5),
-    letterSpacing: 0,
-    color: palette.gold.DEFAULT,
-    textAlign: 'center',
-    width: scale(284),
   },
 
   // Dev-only — not in Figma

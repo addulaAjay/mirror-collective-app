@@ -353,3 +353,25 @@ export const shadows = {
   CONTAINER: elevation.surfaceRaised,
   GLOW: elevation.surfaceRaised,
 } as const;
+
+// ---------------------------------------------------------------------------
+// Effects — frosted-glass / backdrop-blur surfaces
+// Single source of truth for any component using @react-native-community/blur.
+// Re-tune the `amount` here once and every consumer (Button, modals, inputs)
+// updates together.
+// ---------------------------------------------------------------------------
+
+// Figma BACKGROUND_BLUR radius:60 (gaussian σ) ≈ iOS UIBlurEffect amount:25.
+// Empirical mapping — gaussian σ and UIBlurEffectStyle aren't 1:1 equivalent,
+// so this value should be dialled in on a real iOS device against the Figma
+// reference, not the simulator (simulator over-blurs).
+export const effects = {
+  backgroundBlur: {
+    amount: 60,
+    type: 'dark' as const,
+    // Solid tint shown when iOS Reduce Transparency is on, or on Android
+    // where blur perf is unreliable. Matches the dark navy base so the
+    // surface still reads as a glass card without the blur effect.
+    fallbackColor: palette.navy.card,
+  },
+} as const;

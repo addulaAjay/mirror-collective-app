@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
     borderWidth: 0.25,                    // Figma: 0.25px hairline
     borderColor: palette.navy.border,     // Figma: #808fb2 border/bold
     borderRadius: radius.s,               // Figma: rounded-12px
-    overflow: 'hidden',                   // Clips BlurView + LinearGradient to borderRadius
+    overflow: 'hidden',                   // Clips LinearGradient to borderRadius
     shadowColor: palette.neutral.black,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
