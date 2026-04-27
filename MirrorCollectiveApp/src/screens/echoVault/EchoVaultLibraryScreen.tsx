@@ -262,7 +262,7 @@ export function EchoLibraryContent() {
                     style={[styles.row, !isLast && styles.rowBorder]}
                   >
                     <View style={styles.rowLeft}>
-                      <EchoAvatar motif={item.recipient?.motif} profileImage={undefined} />
+                      <EchoAvatar motif={item.recipient?.motif} profileImage={item.recipient?.profile_image_url} />
                       <View style={styles.rowText}>
                         <Text style={styles.rowTitle} numberOfLines={1}>{item.title}</Text>
                         <Text style={styles.rowSub} numberOfLines={1}>
@@ -635,13 +635,14 @@ const styles = StyleSheet.create<{
 
   // Inter Light 18px, #fdfdf9, lineHeight 1.5
   emptyCardBody: {
-    fontFamily: fontFamily.bodyLight,
-    fontSize:   moderateScale(18),
-    fontWeight: '300',
-    lineHeight: moderateScale(18 * 1.5),
-    color:      palette.gold.subtlest,
-    textAlign:  'center',
-    width:      '100%',
+    fontFamily:  fontFamily.bodyLight,
+    fontSize:    moderateScale(18),
+    fontWeight:  '300',
+    lineHeight:  moderateScale(18 * 1.5),
+    color:       palette.gold.subtlest,
+    textAlign:   'center',
+    width:       '100%',
+    alignSelf:   'stretch',   // override parent alignItems:'center' so text fills full width
   },
 
   stateBox: {

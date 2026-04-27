@@ -1,78 +1,99 @@
+/**
+ * Choose Recipient Screen
+ * Figma: Design-Master-File → Choose Your Recipient (791:1488)
+ *
+ * Layout (top → bottom):
+ *   LogoHeader
+ *   Header row: ← | CHOOSE YOUR RECIPIENT | spacer
+ *   "Recipient *" label + inline dropdown (Choose from list ▼ / ▲ + list)
+ *   "Lock Date (only if required)" label + date input (calendar icon)
+ *   "Letter to Recipient *" label + multiline textarea
+ *   NEXT button
+ *
+ * Hidden (Day 2 / legacy):
+ *   - "Legacy" section (Is this a legacy echo? YES/NO)
+ *   - "Unlock upon death" checkbox
+ *   - Guardian prompt modal
+ *
+ * On NEXT: navigate directly to NewEchoComposeScreen (no guardian flow).
+ *
+ * Tokens (from Figma 791:1488 variable defs):
+ *   Heading M 28/32     → fontFamily.heading, Cormorant Regular — screen title
+ *   Heading XS Bold 20/24 → fontFamily.heading weight 500 — section labels
+ *   Body S Italic 16/24 → fontFamily.bodyItalic — placeholders
+ *   Body S Regular 16/24 → fontFamily.body — selected values
+ *   Border/Inverse-1 #60739f → palette.navy.medium — field borders
+ *   Radius/S 12, radius/md 8, Space/M 16
+ */
+
 import DateTimePicker from '@react-native-community/datetimepicker';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { palette, textShadow } from '@theme';
-import { RootStackParamList } from '@types';
-import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  StatusBar,
-  TouchableOpacity,
-  TextInput,
-  Dimensions,
-  Platform,
-  FlatList,
+  borderWidth,
+  fontFamily,
+  fontSize,
+  fontWeight,
+  moderateScale,
+  palette,
+  scale,
+  spacing,
+  verticalScale,
+} from '@theme';
+import type { RootStackParamList } from '@types';
+import React, { useCallback, useEffect, useState } from 'react';
+import {
   ActivityIndicator,
-  Modal,
   Image,
-  ScrollView,
   KeyboardAvoidingView,
-  Keyboard,
+  Platform,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  type ImageStyle,
+  type TextStyle,
+  type ViewStyle,
 } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Svg, { Path } from 'react-native-svg';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
+import Button from '@components/Button/Button';
 import LogoHeader from '@components/LogoHeader';
-import StarIcon from '@components/StarIcon';
-import { echoApiService, Recipient } from '@services/api/echo';
+import TextInputField from '@components/TextInputField';
+import { echoApiService, type Recipient } from '@services/api/echo';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ChooseRecipientScreen'>;
 
-const { width } = Dimensions.get('window');
+// ── Back arrow ────────────────────────────────────────────────────────────────
+const BackIcon: React.FC = () => (
+  <Svg width={scale(20)} height={scale(20)} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
+      fill={palette.gold.DEFAULT}
+    />
+  </Svg>
+);
 
-const GOLD = palette.gold.mid;
-const OFFWHITE = 'rgba(253,253,249,0.92)';
-const SUBTEXT = 'rgba(253,253,249,0.65)';
-const BORDER = 'rgba(253,253,249,0.18)';
-
+// ── Screen ────────────────────────────────────────────────────────────────────
 const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
-  const { title, category, mode } = route.params; 
+  const { title, category, mode } = route.params;
+
   const [recipients, setRecipients] = useState<Recipient[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedRecipient, setSelectedRecipient] = useState<Recipient | null>(null);
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [legacy, setLegacy] = useState<'yes' | 'no' | null>(null);
-  const [unlockOnDeath, setUnlockOnDeath] = useState(false);
-  const [notes, setNotes] = useState('');
-  const [showGuardianPrompt, setShowGuardianPrompt] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [lockDate, setLockDate] = useState<Date | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [keyboardVisible, setKeyboardVisible] = useState(false);
-  const scrollViewRef = useRef<ScrollView>(null);
-
-  const contentWidth = Math.min(width * 0.88, 360);
-
-  useEffect(() => {
-    const showSub = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
-    const hideSub = Keyboard.addListener('keyboardDidHide', () => {
-      setKeyboardVisible(false);
-      scrollViewRef.current?.scrollTo({ y: 0, animated: true });
-    });
-    return () => {
-      showSub.remove();
-      hideSub.remove();
-    };
-  }, []);
+  const [notes, setNotes] = useState('');
 
   const fetchRecipients = useCallback(async () => {
     try {
       setLoading(true);
       const response = await echoApiService.getRecipients();
-      if (response.success && response.data) {
-        setRecipients(response.data);
-      }
+      if (response.success && response.data) setRecipients(response.data);
     } catch (err) {
       console.error('Failed to load recipients:', err);
     } finally {
@@ -82,323 +103,227 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
 
   useEffect(() => {
     fetchRecipients();
-    const unsubscribe = navigation.addListener('focus', fetchRecipients);
-    return unsubscribe;
+    const unsub = navigation.addListener('focus', fetchRecipients);
+    return unsub;
   }, [navigation, fetchRecipients]);
 
-  const handleSelectRecipient = (recipient: Recipient) => {
-    setSelectedRecipient(recipient);
-    setShowDropdown(false);
+  const handleDateChange = (_: any, date?: Date) => {
+    if (Platform.OS === 'android') setShowDatePicker(false);
+    if (date) setLockDate(date);
+    if (Platform.OS === 'ios') setShowDatePicker(false);
   };
+
+  const formatDate = (date: Date) =>
+    date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
   const handleNext = () => {
-    if (selectedRecipient) {
-      // Show guardian prompt modal
-      setShowGuardianPrompt(true);
-    }
-  };
-
-  const handleGuardianPromptYes = () => {
-    setShowGuardianPrompt(false);
-    // Navigate to ChooseGuardianScreen
-    navigation.navigate('ChooseGuardianScreen', {
-      mode,
-      title,
-      category,
-      recipientId: selectedRecipient?.recipient_id,
-      recipientName: selectedRecipient?.name,
-      lockDate: lockDate?.toISOString(),
-      unlockOnDeath,
-    });
-  };
-
-  const handleGuardianPromptNo = () => {
-    setShowGuardianPrompt(false);
-    // Navigate directly to compose
+    if (!selectedRecipient) return;
+    // Navigate directly to compose — no guardian prompt (Day 2 feature)
     navigation.navigate('NewEchoComposeScreen', {
       mode,
       title,
       category,
       hasRecipient: true,
-      recipient: selectedRecipient,
-      recipientId: selectedRecipient?.recipient_id,
-      recipientName: selectedRecipient?.name,
-      unlockOnDeath,
-      lockDate: lockDate?.toISOString(),
-      // No guardianId
-    });
-  };
-
-  const handleDateChange = (event: any, selectedDate?: Date) => {
-    // Close picker on both platforms when date is selected or dismissed
-    if (Platform.OS === 'android') {
-      setShowDatePicker(false);
-    }
-    
-    if (event.type === 'dismissed' || event.type === 'set') {
-      setShowDatePicker(false);
-    }
-    
-    if (selectedDate) {
-      setLockDate(selectedDate);
-    }
-  };
-
-  const formatDate = (date: Date | null) => {
-    if (!date) return null;
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
+      recipient:    selectedRecipient,
+      recipientId:  selectedRecipient.recipient_id,
+      recipientName: selectedRecipient.name,
+      lockDate:     lockDate?.toISOString(),
     });
   };
 
   return (
-    <BackgroundWrapper style={styles.root}>
+    <BackgroundWrapper style={styles.bg} scrollable>
       <SafeAreaView style={styles.safe}>
-        <StatusBar
-          barStyle="light-content"
-          translucent
-          backgroundColor="transparent"
-        />
+        <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
+        <LogoHeader navigation={navigation} />
 
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={{ flex: 1, width: '100%' }}
+          style={styles.kav}
         >
           <ScrollView
-            ref={scrollViewRef}
-            style={{ flex: 1 }}
+            style={styles.scroll}
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
-            scrollEnabled={keyboardVisible}
           >
-        {/* Header */}
-        <LogoHeader navigation={navigation} />
+            <View style={styles.content}>
 
-        {/* Title */}
-        <View style={[styles.titleRow, { width: contentWidth, alignSelf: 'center' }]}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Image source={require('@assets/back-arrow.png')} style={styles.backArrowImg} resizeMode="contain" />
-          </TouchableOpacity>
-
-          <Text style={styles.title}>CHOOSE YOUR{'\n'}RECIPIENT</Text>
-
-          <View style={{ width: 24 }} />
-        </View>
-
-        {/* Content */}
-        <View style={[styles.content, { width: contentWidth, alignSelf: 'center' }]}>
-          {/* Recipient dropdown */}
-          <Text style={styles.label}>Recipient</Text>
-          <TouchableOpacity
-            activeOpacity={0.9}
-            onPress={() => setShowDropdown(true)}
-            style={{ width: '100%' }}
-          >
-            <LinearGradient
-              colors={['rgba(253,253,249,0.04)', 'rgba(253,253,249,0.01)']}
-              start={{ x: 0.5, y: 0 }}
-              end={{ x: 0.5, y: 1 }}
-              style={styles.dropdownShell}
-            >
-              <View style={styles.dropdownContent}>
-                <View style={styles.dropdownLeft} />
-                <Text style={selectedRecipient ? styles.dropdownValueText : styles.dropdownPlaceholderText}>
-                  {selectedRecipient ? selectedRecipient.name : 'Choose from list'}
-                </Text>
-                <View style={styles.dropdownRight}>
-                  <Image source={require('@assets/down-arrow.png')} style={{ width: 16, height: 16, tintColor: OFFWHITE }} resizeMode="contain" />
-                </View>
+              {/* ── Header row ──────────────────────────────────────────── */}
+              <View style={styles.headerRow}>
+                <TouchableOpacity
+                  onPress={() => navigation.goBack()}
+                  style={styles.backBtn}
+                  accessibilityRole="button"
+                >
+                  <BackIcon />
+                </TouchableOpacity>
+                {/* Heading M: Cormorant Regular 28/32, #f2e1b0, glow */}
+                <Text style={styles.screenTitle}>CHOOSE YOUR{'\n'}RECIPIENT</Text>
+                <View style={styles.headerSpacer} />
               </View>
-            </LinearGradient>
-          </TouchableOpacity>
 
-          {/* Legacy */}
-          <LinearGradient
-            colors={['rgba(253, 253, 249, 0.04)', 'rgba(253, 253, 249, 0.01)']}
-            start={{ x: 0.5, y: 0 }}
-            end={{ x: 0.5, y: 1 }}
-            style={styles.legacyCard}
-          >
-            <View style={styles.legacyRow}>
-              <Text style={styles.label}>Legacy</Text>
-              <TouchableOpacity hitSlop={10}>
-                <Text style={styles.infoIcon}>ⓘ</Text>
-              </TouchableOpacity>
-            </View>
+              {/* ── Recipient dropdown ─────────────────────────────────── */}
+              {/*
+                TextInputField (editable=false) as the trigger surface.
+                Chevron icon overlaid absolutely on the right.
+                Backdrop TouchableOpacity dismisses the inline list.
+              */}
+              <View style={styles.fieldGroup}>
+                {/*
+                  Outer TouchableOpacity = entire tap target (whole input area).
+                  pointerEvents="none" on inner View prevents TextInput from
+                  stealing taps — every tap anywhere on the field opens dropdown.
+                  TextInputField label prop handles correct label styling.
+                */}
+                {/*
+                  fieldWithIcon is relative. TouchableOpacity covers full area.
+                  Icon is a SIBLING of TouchableOpacity, absolutely positioned
+                  on fieldWithIcon with bottom:0 + fixed height = input field area.
+                  This ensures icon centres in the INPUT, not in label+input.
+                */}
+                <View style={styles.fieldWithIcon}>
+                  <TouchableOpacity
+                    style={styles.fieldTouchable}
+                    activeOpacity={0.9}
+                    onPress={() => setDropdownOpen(o => !o)}
+                  >
+                    <View pointerEvents="none">
+                      <TextInputField
+                        label="Recipient"
+                        placeholder="Choose from list"
+                        value={selectedRecipient?.name ?? ''}
+                      />
+                    </View>
+                  </TouchableOpacity>
+                  {/* Chevron — sibling of TouchableOpacity, anchored to input bottom */}
+                  <View style={styles.fieldIcon} pointerEvents="none">
+                    <Svg width={scale(16)} height={scale(16)} viewBox="0 0 24 24" fill="none">
+                      <Path
+                        d={dropdownOpen ? 'M7 14l5-5 5 5' : 'M7 10l5 5 5-5'}
+                        stroke={palette.gold.subtlest}
+                        strokeWidth={1.5}
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </Svg>
+                  </View>
+                </View>
 
-            <View style={styles.legacyCheckRow}>
-              <Text style={[styles.subLabel, { flex: 1, marginBottom: 0 }]}>Is this a legacy echo?</Text>
-              <CheckOption
-                label="YES"
-                active={legacy === 'yes'}
-                onPress={() => setLegacy('yes')}
+                {dropdownOpen && (
+                  <TouchableOpacity
+                    style={styles.dropdownBackdrop}
+                    activeOpacity={1}
+                    onPress={() => setDropdownOpen(false)}
+                  />
+                )}
+
+                {/* Inline recipient list */}
+                {dropdownOpen && (
+                  <View style={styles.dropdownList}>
+                    {loading ? (
+                      <View style={styles.listState}>
+                        <ActivityIndicator size="small" color={palette.gold.DEFAULT} />
+                      </View>
+                    ) : recipients.length === 0 ? (
+                      <View style={styles.listState}>
+                        <Text style={styles.emptyText}>No recipients yet</Text>
+                      </View>
+                    ) : (
+                      recipients.map((r, idx) => {
+                        const isLast = idx === recipients.length - 1;
+                        return (
+                          <TouchableOpacity
+                            key={r.recipient_id}
+                            style={[styles.dropdownOption, isLast && styles.dropdownOptionLast]}
+                            activeOpacity={0.85}
+                            onPress={() => { setSelectedRecipient(r); setDropdownOpen(false); }}
+                          >
+                            <Text style={styles.optionName}>{r.name}</Text>
+                            <Text style={styles.optionEmail}>{r.email}</Text>
+                          </TouchableOpacity>
+                        );
+                      })
+                    )}
+                    <TouchableOpacity
+                      style={styles.addNewRow}
+                      activeOpacity={0.85}
+                      onPress={() => { setDropdownOpen(false); navigation.navigate('AddNewProfileScreen'); }}
+                    >
+                      <Text style={styles.addNewText}>+ Add New Recipient</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </View>
+
+              {/* ── Lock Date ─────────────────────────────────────────── */}
+              {/*
+                TextInputField (editable=false) as the trigger surface.
+                Calendar icon overlaid absolutely on the right.
+              */}
+              <View style={styles.fieldGroup}>
+                <View style={styles.fieldWithIcon}>
+                  <TouchableOpacity
+                    style={styles.fieldTouchable}
+                    activeOpacity={0.9}
+                    onPress={() => setShowDatePicker(true)}
+                  >
+                    <View pointerEvents="none">
+                      <TextInputField
+                        label="Lock Date (only if required)"
+                        placeholder="When do you want to open it?"
+                        value={lockDate ? formatDate(lockDate) : ''}
+                      />
+                    </View>
+                  </TouchableOpacity>
+                  {/* Calendar — sibling, anchored to input bottom */}
+                  <View style={styles.fieldIcon} pointerEvents="none">
+                    <Image
+                      source={require('@assets/calendar_month.png')}
+                      style={styles.calendarIcon}
+                      resizeMode="contain"
+                    />
+                  </View>
+                </View>
+
+                {showDatePicker && (
+                  <DateTimePicker
+                    value={lockDate ?? new Date()}
+                    mode="date"
+                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                    onChange={handleDateChange}
+                    minimumDate={new Date()}
+                    textColor={palette.gold.DEFAULT}
+                    themeVariant="dark"
+                  />
+                )}
+              </View>
+
+              {/* ── Letter to Recipient ───────────────────────────────── */}
+              <View style={styles.fieldGroup}>
+                <TextInputField
+                  label="Letter to Recipient"
+                  placeholder="Write notes here"
+                  value={notes}
+                  onChangeText={setNotes}
+                  size="L"
+                  multiline
+                />
+              </View>
+
+              {/* ── NEXT button ───────────────────────────────────────── */}
+              <Button
+                variant="primary"
+                size="L"
+                title="NEXT"
+                onPress={handleNext}
+                disabled={!selectedRecipient}
+                active={!!selectedRecipient}
               />
-              <CheckOption
-                label="NO"
-                active={legacy === 'no'}
-                onPress={() => setLegacy('no')}
-              />
+
             </View>
-          </LinearGradient>
-
-          {/* Lock date */}
-          <Text style={[styles.label, { marginTop: 18 }]}>
-            Lock Date <Text style={styles.subtle}>(only if required)</Text>
-          </Text>
-
-          <TouchableOpacity
-            style={styles.inputShell}
-            onPress={() => setShowDatePicker(true)}
-          >
-            <Text style={lockDate ? styles.selectedText : styles.placeholder}>
-              {lockDate ? formatDate(lockDate) : 'When do you want to open it?'}
-            </Text>
-            <Image source={require('@assets/calendar_month.png')} style={styles.calendar} />
-          </TouchableOpacity>
-
-          {showDatePicker && (
-            <DateTimePicker
-              value={lockDate || new Date()}
-              mode="date"
-              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-              onChange={handleDateChange}
-              minimumDate={new Date()}
-              textColor={GOLD}
-              themeVariant="dark"
-            />
-          )}
-
-          {/* Unlock on death */}
-          <TouchableOpacity
-            style={styles.row}
-            onPress={() => setUnlockOnDeath(!unlockOnDeath)}
-          >
-            <View
-              style={[styles.checkbox, unlockOnDeath && styles.checkboxActive]}
-            >
-              {unlockOnDeath && <Text style={styles.checkMark}>✓</Text>}
-            </View>
-            <Text style={styles.checkboxLabel}>Unlock upon death</Text>
-          </TouchableOpacity>
-
-          {/* Letter */}
-          <Text style={[styles.label, { marginTop: 18 }]}>
-            Letter to Recipient
-          </Text>
-
-          <View style={[styles.inputShell, styles.textArea]}>
-            <TextInput
-              value={notes}
-              onChangeText={setNotes}
-              placeholder="Write notes here"
-              placeholderTextColor={palette.navy.medium}
-              multiline
-              style={styles.textAreaInput}
-            />
-          </View>
-        </View>
-
-        {/* Next */}
-        <TouchableOpacity
-          style={[styles.nextAction, !selectedRecipient && styles.disabled]}
-          onPress={handleNext}
-          disabled={!selectedRecipient}
-        >
-          <LinearGradient
-            colors={['rgba(253,253,249,0.04)', 'rgba(253,253,249,0.01)']}
-            start={{ x: 0.5, y: 0 }}
-            end={{ x: 0.5, y: 1 }}
-            style={styles.nextGradient}
-          >
-            <Text style={styles.nextText}>NEXT</Text>
-          </LinearGradient>
-        </TouchableOpacity>
           </ScrollView>
         </KeyboardAvoidingView>
-
-        {/* Dropdown Modal */}
-        <Modal
-          visible={showDropdown}
-          transparent
-          animationType="fade"
-          onRequestClose={() => setShowDropdown(false)}
-        >
-          <TouchableOpacity
-            style={styles.modalOverlay}
-            activeOpacity={1}
-            onPress={() => setShowDropdown(false)}
-          >
-            <View style={[styles.dropdownContainer, { width: contentWidth }]}>
-              <Text style={styles.dropdownTitle}>Select Recipient</Text>
-              {loading ? (
-                <ActivityIndicator size="small" color={GOLD} />
-              ) : recipients.length === 0 ? (
-                <Text style={styles.emptyText}>No recipients available</Text>
-              ) : (
-                <FlatList
-                  data={recipients}
-                  keyExtractor={item => item.recipient_id}
-                  renderItem={({ item }) => (
-                    <TouchableOpacity
-                      style={styles.dropdownItem}
-                      onPress={() => handleSelectRecipient(item)}
-                    >
-                      <Text style={styles.dropdownItemName}>{item.name}</Text>
-                      <Text style={styles.dropdownItemEmail}>{item.email}</Text>
-                    </TouchableOpacity>
-                  )}
-                />
-              )}
-              {/* Add New Recipient Button */}
-              <TouchableOpacity
-                style={styles.addNewButton}
-                onPress={() => {
-                   setShowDropdown(false);
-                   navigation.navigate('AddNewProfileScreen');
-                }}
-              >
-                  <Text style={styles.addNewText}>+ Add New Recipient</Text>
-              </TouchableOpacity>
-            </View>
-          </TouchableOpacity>
-        </Modal>
-
-        {/* Guardian Prompt Modal */}
-        <Modal
-          visible={showGuardianPrompt}
-          transparent
-          animationType="fade"
-          onRequestClose={() => setShowGuardianPrompt(false)}
-        >
-          <View style={styles.modalOverlay}>
-            <View style={styles.guardianPromptCard}>
-              <Text style={styles.guardianPromptTitle}>Assign a Guardian?</Text>
-              <Text style={styles.guardianPromptText}>
-                A Guardian can manage the release of this Echo on your behalf.
-                Would you like to assign one?
-              </Text>
-              
-              <View style={styles.guardianPromptButtons}>
-                <TouchableOpacity
-                  style={[styles.guardianPromptButton, styles.guardianPromptButtonYes]}
-                  onPress={handleGuardianPromptYes}
-                >
-                  <Text style={styles.guardianPromptButtonText}>Yes</Text>
-                </TouchableOpacity>
-                
-                <TouchableOpacity
-                  style={[styles.guardianPromptButton, styles.guardianPromptButtonNo]}
-                  onPress={handleGuardianPromptNo}
-                >
-                  <Text style={[styles.guardianPromptButtonText, styles.guardianPromptButtonTextNo]}>No</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        </Modal>
       </SafeAreaView>
     </BackgroundWrapper>
   );
@@ -406,418 +331,184 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
 
 export default ChooseRecipientScreen;
 
-/* ---------------- COMPONENTS ---------------- */
+// ── Styles ────────────────────────────────────────────────────────────────────
 
-const CheckOption = ({
-  label,
-  active,
-  onPress,
-}: {
-  label: string;
-  active: boolean;
-  onPress: () => void;
-}) => (
-  <TouchableOpacity style={styles.checkOption} onPress={onPress}>
-    <View style={[styles.checkbox, active && styles.checkboxActive]}>
-      {active && <Text style={styles.checkMark}>✓</Text>}
-    </View>
-    <Text style={styles.checkLabel}>{label}</Text>
-  </TouchableOpacity>
-);
+const styles = StyleSheet.create<{
+  bg: ViewStyle;
+  safe: ViewStyle;
+  kav: ViewStyle;
+  scroll: ViewStyle;
+  scrollContent: ViewStyle;
+  content: ViewStyle;
+  // Header
+  headerRow: ViewStyle;
+  backBtn: ViewStyle;
+  screenTitle: TextStyle;
+  headerSpacer: ViewStyle;
+  // Field groups
+  fieldGroup: ViewStyle;
+  fieldWithIcon: ViewStyle;
+  fieldTouchable: ViewStyle;
+  fieldIcon: ViewStyle;
+  // Dropdown / picker
+  dropdownBackdrop: ViewStyle;
+  dropdownList: ViewStyle;
+  dropdownOption: ViewStyle;
+  dropdownOptionLast: ViewStyle;
+  optionName: TextStyle;
+  optionEmail: TextStyle;
+  listState: ViewStyle;
+  emptyText: TextStyle;
+  addNewRow: ViewStyle;
+  addNewText: TextStyle;
+  calendarIcon: ImageStyle;
+}>({
+  bg:   { flex: 1 },
+  safe: { flex: 1, backgroundColor: 'transparent' },
+  kav:  { flex: 1, width: '100%' },
 
-/* ---------------- STYLES ---------------- */
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: 'transparent', alignItems: 'center' },
-  root: {
-    flex: 1,
-  },
-
-  /* Header */
-  header: {
-    height: 56,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  iconBtn: { width: 44, height: 44, justifyContent: 'center' },
-  iconText: { color: OFFWHITE, fontSize: 22 },
-  brand: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  logoCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: GOLD,
-  },
-  brandSmall: { color: GOLD, fontSize: 10, letterSpacing: 1 },
-  brandText: { color: GOLD, fontSize: 12, letterSpacing: 2, lineHeight: 14 },
-
-  /* Title */
-  titleRow: {
-    marginTop: 30,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  backArrow: { fontSize: 22, color: GOLD },
-  backArrowImg: { width: 20, height: 20, tintColor: GOLD },
-  title: {
-    textAlign: 'center',
-    color: GOLD,
-    fontSize: 28,
-    letterSpacing: 0,
-    textShadowColor: GOLD,
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 16,
-    fontFamily: Platform.select({
-      ios: 'CormorantGaramond-Regular',
-      android: 'serif',
-    }),
-  },
-
+  scroll: { flex: 1 },
   scrollContent: {
-    alignItems: 'center',
-    paddingBottom: 80,
+    flexGrow:          1,
+    paddingBottom:     verticalScale(spacing.xxxl),
+  },
+  content: {
+    paddingHorizontal: scale(spacing.xl),               // 24px
+    paddingTop:        verticalScale(spacing.l),
+    gap:               verticalScale(spacing.l),         // 20px between sections
   },
 
-  /* Content */
-  content: { marginTop: 10 },
+  // ── Header ─────────────────────────────────────────────────────────────────
+  headerRow: {
+    flexDirection:  'row',
+    alignItems:     'center',
+    justifyContent: 'space-between',
+  },
+  backBtn: {
+    width:          scale(44),
+    height:         scale(44),
+    justifyContent: 'center',
+    alignItems:     'flex-start',
+  },
+  // Heading M: Cormorant Regular 28/32, #f2e1b0, glow
+  screenTitle: {
+    fontFamily:       fontFamily.heading,
+    fontSize:         moderateScale(fontSize['2xl']),    // 28px
+    fontWeight:       fontWeight.regular,
+    lineHeight:       moderateScale(32),
+    color:            palette.gold.DEFAULT,
+    textAlign:        'center',
+    textShadowColor:  'rgba(240,212,168,0.3)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 10,
+    flex:             1,
+  },
+  headerSpacer: { width: scale(44) },
 
-  label: {
-    color: GOLD,
-    fontSize: 20,
-    marginBottom: 6,
-    fontFamily: Platform.select({
-      ios: 'CormorantGaramond-Medium',
-      android: 'serif',
-    }),
+  // ── Field groups ────────────────────────────────────────────────────────────
+  fieldGroup: { gap: verticalScale(spacing.xs) },       // 8px label-to-field gap
+
+  // Heading XS Bold: Cormorant Medium 20/24, gold
+  fieldLabel: {
+    fontFamily: fontFamily.heading,
+    fontWeight: '500',
+    fontSize:   moderateScale(fontSize.l),
+    lineHeight: moderateScale(24),
+    color:      palette.gold.DEFAULT,
   },
-  subLabel: {
-    color: palette.navy.medium,
-    fontSize: 16,
-    fontStyle: 'italic',
-    marginBottom: 8,
-    fontFamily: Platform.select({
-      ios: 'Inter-Italic',
-      android: 'sans-serif',
-    }),
+  fieldLabelLight: {
+    fontFamily: fontFamily.bodyLight,
+    fontWeight: '300',
+    fontSize:   moderateScale(fontSize.xs),
+    lineHeight: moderateScale(20),
+    color:      palette.navy.light,
   },
-  subtle: {
-    color: GOLD,
-    fontSize: 14,
-    fontFamily: Platform.select({
-      ios: 'Inter-Light',
-      android: 'sans-serif',
-    }),
-    opacity: 0.8,
+  required: { color: palette.gold.DEFAULT },
+  fieldWithIcon:  { position: 'relative' },
+  fieldTouchable: { width: '100%' },
+
+  // Icon sibling of fieldTouchable, positioned absolutely on fieldWithIcon.
+  // bottom: 0 = bottom of the entire TextInputField (label + input).
+  // height: scale(40) ≈ input field height only — so the icon centres in
+  // the INPUT area, not in label+input together.
+  fieldIcon: {
+    position:       'absolute',
+    right:          scale(spacing.m),
+    bottom:         0,
+    height:         scale(40),
+    justifyContent: 'center',
+    alignItems:     'center',
+    zIndex:         2,
   },
 
-  inputShell: {
-    borderRadius: 12,
-    borderWidth: 0.5,
+  // ── Dropdown / picker overlays ─────────────────────────────────────────────
+  dropdownBackdrop: {
+    position: 'absolute',
+    top:      -200, left: -100, right: -100, bottom: -200,
+    zIndex:   -1,
+  },
+
+  // Inline list
+  dropdownList: {
+    width:       '100%',
+    borderWidth: borderWidth.hairline,
     borderColor: palette.navy.medium,
-    backgroundColor: 'rgba(253,253,249,0.04)',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 12,
-    minHeight: 48,
+    borderTopWidth: 0,
+    borderBottomLeftRadius:  8,
+    borderBottomRightRadius: 8,
+    overflow: 'hidden',
+    maxHeight: verticalScale(220),
   },
-  placeholder: {
-    color: palette.navy.medium,
-    fontSize: 15,
+  dropdownOption: {
+    backgroundColor:   'rgba(253,253,249,0.05)',
+    paddingVertical:   verticalScale(spacing.s),
+    paddingHorizontal: scale(spacing.m),
+    borderBottomWidth: borderWidth.hairline,
+    borderBottomColor: palette.navy.medium,
   },
-  selectedText: {
-    color: OFFWHITE,
-    fontSize: 15,
+  dropdownOptionLast: {
+    borderBottomWidth: 0,
   },
-  chevron: { color: OFFWHITE, fontSize: 16 },
-  calendar: { width: 20, height: 20 },
-  dropdownShell: {
-    width: '100%',
-    borderRadius: 12,
-    borderWidth: 0.25,
-    borderColor: palette.navy.medium,
-    marginBottom: 12,
-    height: 48,
-    justifyContent: 'center',
+  // Body S Regular: Inter 16/24, gold
+  optionName: {
+    fontFamily: fontFamily.body,
+    fontSize:   moderateScale(fontSize.s),
+    lineHeight: moderateScale(24),
+    color:      palette.gold.DEFAULT,
   },
-  dropdownContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
+  // Body XS Light: Inter Light 14/20, navy.light
+  optionEmail: {
+    fontFamily: fontFamily.bodyLight,
+    fontWeight: '300',
+    fontSize:   moderateScale(fontSize.xs),
+    lineHeight: moderateScale(20),
+    color:      palette.navy.light,
   },
-  dropdownLeft: { width: 24 },
-  dropdownRight: { width: 24, alignItems: 'flex-end' as const },
-  dropdownValueText: {
-    flex: 1,
-    color: OFFWHITE,
-    fontSize: 15,
-    textAlign: 'center',
-  },
-  dropdownPlaceholderText: {
-    flex: 1,
-    color: 'rgba(253,253,249,0.55)',
-    fontSize: 15,
-    textAlign: 'center',
-  },
-
-  legacyCard: {
-    width: '100%',
-    paddingVertical: 4,
-    paddingHorizontal: 4,
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'flex-start',
-    gap: 8,
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
-    borderBottomLeftRadius: 0,
-    borderBottomRightRadius: 0,
-    marginBottom: 12,
-    minHeight: 100,
-  },
-  legacyRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    width: '96%',
-  },
-  legacyCheckRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    width: '96%',
-    justifyContent: 'space-between',
-  },
-  infoIcon: {
-    color: GOLD,
-    fontSize: 16,
-    opacity: 0.8,
-  },
-
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 20,
-    marginBottom: 10,
-  },
-
-  checkOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  checkbox: {
-    width: 16,
-    height: 16,
-    borderRadius: 0,
-    borderWidth: 1,
-    borderColor: GOLD,
-    backgroundColor: 'transparent',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  checkboxActive: {
-    backgroundColor: 'rgba(215,192,138,0.7)',
-  },
-  checkMark: {
-    color: palette.navy.card,
-    fontSize: 10,
-    fontWeight: 'bold',
-    lineHeight: 13,
-  },
-  checkLabel: {
-    color: GOLD,
-    fontSize: 14,
-    fontFamily: Platform.select({
-      ios: 'Inter-Regular',
-      android: 'sans-serif',
-    }),
-  },
-  checkboxLabel: {
-    color: OFFWHITE,
-    fontSize: 14,
-  },
-
-  textArea: {
-    height: 120,
-    alignItems: 'flex-start',
-  },
-  textAreaInput: {
-    flex: 1,
-    width: '100%',
-    color: OFFWHITE,
-    fontSize: 15,
-    textAlignVertical: 'top',
-  },
-
-  /* Next */
-  nextAction: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-    justifyContent: 'center',
-    marginTop: 20,
-    marginBottom: 20,
-  },
-  nextGradient: {
-    borderRadius: 12,
-    borderWidth: 0.5,
-    borderColor: GOLD,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  nextText: {
-    paddingHorizontal: 32,
-    paddingVertical: 12,
-    color: GOLD,
-    fontSize: 24,
-    fontFamily: Platform.select({
-      ios: 'CormorantGaramond-Regular',
-      android: 'serif',
-    }),
-    textShadowColor: textShadow.warmGlow.color,
-    textShadowOffset: textShadow.warmGlow.offset,
-    textShadowRadius: textShadow.warmGlow.radius,
-    letterSpacing: 2,
-  },
-  nextActionText: {
-    color: GOLD,
-    fontSize: 24,
-    fontFamily: Platform.select({
-      ios: 'CormorantGaramond-Regular',
-      android: 'serif',
-    }),
-    textShadowColor: textShadow.warmGlow.color,
-    textShadowOffset: textShadow.warmGlow.offset,
-    textShadowRadius: textShadow.warmGlow.radius,
-    letterSpacing: 2,
-  },
-  disabled: {
-    opacity: 0.5,
-  },
-
-  /* Modal */
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  dropdownContainer: {
-    backgroundColor: palette.navy.deep,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: BORDER,
-    padding: 16,
-    maxHeight: 300,
-  },
-  dropdownTitle: {
-    color: GOLD,
-    fontSize: 18,
-    marginBottom: 12,
-    textAlign: 'center',
-  },
-  dropdownItem: {
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: BORDER,
-  },
-  dropdownItemName: {
-    color: OFFWHITE,
-    fontSize: 16,
-  },
-  dropdownItemEmail: {
-    color: SUBTEXT,
-    fontSize: 12,
-    marginTop: 2,
+  listState: {
+    alignItems:    'center',
+    paddingVertical: verticalScale(spacing.m),
+    backgroundColor: 'rgba(253,253,249,0.05)',
   },
   emptyText: {
-    color: SUBTEXT,
-    fontSize: 14,
-    textAlign: 'center',
-    paddingVertical: 20,
+    fontFamily: fontFamily.body,
+    fontSize:   moderateScale(fontSize.s),
+    color:      palette.navy.light,
   },
-  addNewButton: {
-    paddingVertical: 14,
-    borderTopWidth: 1,
-    borderTopColor: BORDER,
-    alignItems: 'center',
+  addNewRow: {
+    alignItems:      'center',
+    paddingVertical: verticalScale(spacing.s),
+    backgroundColor: 'rgba(253,253,249,0.03)',
   },
   addNewText: {
-    color: GOLD,
-    fontSize: 16,
-    fontFamily: Platform.select({
-      ios: 'CormorantGaramond-SemiBold',
-      android: 'serif',
-    }),
+    fontFamily: fontFamily.body,
+    fontSize:   moderateScale(fontSize.s),
+    color:      palette.gold.DEFAULT,
+    opacity:    0.8,
   },
 
-  /* Guardian Prompt Modal */
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  guardianPromptCard: {
-    width: '85%',
-    maxWidth: 400,
-    backgroundColor: palette.navy.card,
-    borderRadius: 16,
-    padding: 24,
-    borderWidth: 1,
-    borderColor: GOLD,
-  },
-  guardianPromptTitle: {
-    color: GOLD,
-    fontSize: 24,
-    marginBottom: 16,
-    textAlign: 'center',
-    fontFamily: Platform.select({
-      ios: 'CormorantGaramond-Medium',
-      android: 'serif',
-    }),
-  },
-  guardianPromptText: {
-    color: OFFWHITE,
-    fontSize: 16,
-    marginBottom: 24,
-    textAlign: 'center',
-    lineHeight: 24,
-  },
-  guardianPromptButtons: {
-    flexDirection: 'row',
-    gap: 12,
-    justifyContent: 'center',
-  },
-  guardianPromptButton: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: GOLD,
-  },
-  guardianPromptButtonYes: {
-    backgroundColor: GOLD,
-  },
-  guardianPromptButtonNo: {
-    backgroundColor: 'transparent',
-  },
-  guardianPromptButtonText: {
-    fontSize: 18,
-    color: palette.navy.card,
-    fontFamily: Platform.select({
-      ios: 'CormorantGaramond-Medium',
-      android: 'serif',
-    }),
-  },
-  guardianPromptButtonTextNo: {
-    color: GOLD,
+  calendarIcon: {
+    width:     scale(20),
+    height:    scale(20),
+    tintColor: palette.navy.light,    // matches placeholder color (#a3b3cc = Text/Inverse Paragraph-2)
   },
 });
