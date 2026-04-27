@@ -48,12 +48,12 @@ import {
   type TextStyle,
   type ViewStyle,
 } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
 
 import { getMotifIcon } from '@assets/motifs/MotifAssets';
 import BackgroundWrapper from '@components/BackgroundWrapper';
+import Button from '@components/Button/Button';
 import LogoHeader from '@components/LogoHeader';
 import { echoApiService, type Recipient } from '@services/api/echo';
 
@@ -225,22 +225,13 @@ const ManageRecipientScreen: React.FC<Props> = ({ navigation }) => {
           )}
 
           {/* ── ADD RECIPIENT button ──────────────────────────────────────── */}
-          {/* Figma 222:2146 — glass gradient, border 0.5px #a3b3cc, radius 16,
-               padding 12v/16h, Cormorant Regular 24/28 gold */}
-          <TouchableOpacity
-            activeOpacity={0.8}
+          <Button
+            variant="primary"
+            size="L"
+            title="ADD RECIPIENT"
             onPress={() => navigation.navigate('AddNewProfileScreen')}
             style={styles.addBtnWrapper}
-          >
-            <LinearGradient
-              colors={['rgba(253,253,249,0.01)', 'rgba(253,253,249,0)']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 0, y: 1 }}
-              style={styles.addBtn}
-            >
-              <Text style={styles.addBtnText}>ADD RECIPIENT</Text>
-            </LinearGradient>
-          </TouchableOpacity>
+          />
         </ScrollView>
       </SafeAreaView>
     </BackgroundWrapper>
@@ -281,8 +272,6 @@ const styles = StyleSheet.create<{
   deleteBtn: ViewStyle;
   deleteIcon: ImageStyle;
   addBtnWrapper: ViewStyle;
-  addBtn: ViewStyle;
-  addBtnText: TextStyle;
 }>({
   bg:   { flex: 1 },
   safe: { flex: 1 },
@@ -499,26 +488,4 @@ const styles = StyleSheet.create<{
     alignSelf: 'center',
   },
 
-  addBtn: {
-    paddingVertical:   verticalScale(spacing.s),   // 12
-    paddingHorizontal: scale(spacing.m),           // 16
-    borderRadius:      radius.m,                   // 16
-    borderWidth:       borderWidth.thin,           // 0.5
-    borderColor:       palette.navy.light,         // #a3b3cc
-    alignItems:        'center',
-    justifyContent:    'center',
-  },
-
-  // Cormorant Regular 24/28, gold, glow text-shadow
-  addBtnText: {
-    fontFamily:       fontFamily.heading,
-    fontSize:         moderateScale(fontSize.xl),  // 24
-    fontWeight:       fontWeight.regular,
-    lineHeight:       moderateScale(28),
-    color:            palette.gold.DEFAULT,
-    textAlign:        'center',
-    textShadowColor:  'rgba(229,214,176,0.5)',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 9,
-  },
 });
