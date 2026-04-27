@@ -28,7 +28,7 @@ export class UserApiService extends BaseApiService {
       null,
       true,
     );
-    return ApiErrorHandler.handleApiResponse(response, 'Profile retrieved');
+    return ApiErrorHandler.handleApiResponse<UserProfileResponse>(response, 'Profile retrieved');
   }
 
   async updateProfile(data: UpdateProfileRequest): Promise<ApiResponse<void>> {
@@ -38,7 +38,7 @@ export class UserApiService extends BaseApiService {
       data,
       true,
     );
-    return ApiErrorHandler.handleApiResponse(response, 'Profile updated');
+    return ApiErrorHandler.handleApiResponse<void>(response, 'Profile updated');
   }
 
   async updatePledgeAcceptance(): Promise<ApiResponse<PledgeAcceptanceResponse>> {
@@ -54,7 +54,6 @@ export class UserApiService extends BaseApiService {
     return ApiErrorHandler.handleApiResponse<PledgeAcceptanceResponse>(
       response,
       'Pledge acceptance recorded successfully',
-      'PledgeAcceptanceError',
     );
   }
 }

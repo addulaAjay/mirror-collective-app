@@ -102,7 +102,13 @@ const ManageRecipientScreen: React.FC<Props> = ({ navigation }) => {
   const renderRecipientRow = ({ item }: { item: Recipient }) => (
     <View style={styles.row}>
       <View style={styles.avatar}>
-        {item.motif && getMotifIcon(item.motif) ? (
+        {item.profile_image_url ? (
+          <Image
+            source={{ uri: item.profile_image_url }}
+            style={styles.avatarImg}
+            resizeMode="cover"
+          />
+        ) : item.motif && getMotifIcon(item.motif) ? (
           <View style={{ width: 28, height: 28 }}>
             <SvgXml
               xml={getMotifIcon(item.motif)?.xml || ''}
@@ -289,6 +295,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'rgba(215,192,138,0.08)',
+    overflow: 'hidden',
+  },
+  avatarImg: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 21,
   },
   avatarInner: {
     width: 26,

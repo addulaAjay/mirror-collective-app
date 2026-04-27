@@ -51,6 +51,7 @@ export interface Guardian {
   name: string;
   email: string;
   status: 'pending' | 'accepted' | 'declined';
+  profile_image_url?: string;
   created_at: string;
 }
 
@@ -60,6 +61,7 @@ export interface Recipient {
   email: string;
   relationship?: string;
   motif?: string;
+  profile_image_url?: string;
   created_at: string;
 }
 
@@ -156,7 +158,7 @@ export class EchoApiService extends BaseApiService {
   async getUploadUrl(
     fileType: string,
     echoId?: string,
-    uploadType: 'echo' | 'profile' = 'echo',
+    uploadType: 'echo' | 'profile' | 'user_profile' = 'echo',
   ): Promise<ApiResponse<UploadUrlResponse>> {
     const response = await this.makeRequest<UploadUrlResponse>(
       '/api/echoes/upload-url',

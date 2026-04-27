@@ -2,9 +2,11 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { palette, textShadow } from '@theme';
 import type { RootStackParamList } from '@types';
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
+  Alert,
   Dimensions,
+  Image,
   ScrollView,
   StyleSheet,
   Text,
@@ -13,6 +15,7 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
 } from 'react-native';
+import { launchImageLibrary } from 'react-native-image-picker';
 import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
@@ -20,6 +23,8 @@ import Svg, { Path } from 'react-native-svg';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
 import TextInputField from '@components/TextInputField';
+import { echoApiService } from '@services/api/echo';
+import { userApiService } from '@services/api/user';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('screen');
 
@@ -36,6 +41,43 @@ const ProfileScreen: React.FC = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('+1');
+  const [profileImageUrl, setProfileImageUrl] = useState<string | undefined>();
+  const [uploadingImage, setUploadingImage] = useState(false);
+
+  // Load profile image on mount
+  const loadProfile = useCallback(async () => {
+    try {
+      const res = await userApiService.getProfile();
+      if (res.success && res.data) {
+        if (res.data.firstName) setName(res.data.firstName);
+        if (res.data.email) setEmail(res.data.email);
+        if (res.data.profile_image_url) setProfileImageUrl(res.data.profile_image_url);
+      }
+    } catch { /* non-fatal */ }
+  }, []);
+
+  useEffect(() => { loadProfile(); }, [loadProfile]);
+
+  const handlePickProfileImage = async () => {
+    const result = await launchImageLibrary({ mediaType: 'photo', quality: 0.8 });
+    if (result.didCancel || !result.assets?.[0]?.uri) return;
+    const localUri = result.assets[0].uri;
+    const mimeType = result.assets[0].type || 'image/jpeg';
+
+    try {
+      setUploadingImage(true);
+      const urlRes = await echoApiService.getUploadUrl(mimeType, undefined, 'user_profile');
+      if (!urlRes.success || !urlRes.data) throw new Error(urlRes.error ?? 'Upload URL failed');
+
+      await echoApiService.uploadMedia(urlRes.data.upload_url, localUri, mimeType);
+      await userApiService.updateProfile({ profile_image_url: urlRes.data.media_url });
+      setProfileImageUrl(urlRes.data.media_url);
+    } catch (err: any) {
+      Alert.alert('Upload failed', err?.message ?? 'Could not upload photo');
+    } finally {
+      setUploadingImage(false);
+    }
+  };
 
   const handlePhoneChange = (text: string) => {
     let digits = text.replace(/\D/g, '');
@@ -47,7 +89,6 @@ const ProfileScreen: React.FC = () => {
   };
 
   const handleSave = () => {
-    // Handle save logic
     console.log('Save profile:', { name, email, phoneNumber });
   };
 
@@ -76,16 +117,26 @@ const ProfileScreen: React.FC = () => {
             <View style={styles.profileImageContainer}>
               <View style={styles.profileImageWrapper}>
                 <View style={styles.profileImageCircle}>
-                  {/* Default Avatar Icon */}
-                  <Svg width="120" height="120" viewBox="0 0 60 50" fill="none">
-                    <Path
-                      d="M30 30C37.18 30 43 24.18 43 17C43 9.82 37.18 4 30 4C22.82 4 17 9.82 17 17C17 24.18 22.82 30 30 30ZM30 37C21.33 37 4 41.34 4 50V56H56V50C56 41.34 38.67 37 30 37Z"
-                      fill={palette.navy.light}
+                  {profileImageUrl ? (
+                    <Image
+                      source={{ uri: profileImageUrl }}
+                      style={styles.profilePhoto}
+                      resizeMode="cover"
                     />
-                  </Svg>
+                  ) : (
+                    <Svg width="120" height="120" viewBox="0 0 60 50" fill="none">
+                      <Path
+                        d="M30 30C37.18 30 43 24.18 43 17C43 9.82 37.18 4 30 4C22.82 4 17 9.82 17 17C17 24.18 22.82 30 30 30ZM30 37C21.33 37 4 41.34 4 50V56H56V50C56 41.34 38.67 37 30 37Z"
+                        fill={palette.navy.light}
+                      />
+                    </Svg>
+                  )}
                 </View>
-                {/* Plus Icon Badge */}
-                <TouchableOpacity style={styles.editBadge}>
+                <TouchableOpacity
+                  style={styles.editBadge}
+                  onPress={handlePickProfileImage}
+                  disabled={uploadingImage}
+                >
                   <Svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                     <Path
                       d="M10 4V16M4 10H16"
@@ -264,6 +315,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     overflow: 'hidden',
+  },
+  profilePhoto: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 100,
   },
   editBadge: {
     position: 'absolute',

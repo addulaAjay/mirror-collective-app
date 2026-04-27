@@ -95,7 +95,15 @@ const ManageGuardianScreen: React.FC<Props> = ({ navigation }) => {
   const renderGuardianRow = ({ item }: { item: Guardian }) => (
     <View style={styles.row}>
       <View style={styles.avatar}>
-        <View style={styles.avatarInner} />
+        {item.profile_image_url ? (
+          <Image
+            source={{ uri: item.profile_image_url }}
+            style={styles.avatarImg}
+            resizeMode="cover"
+          />
+        ) : (
+          <View style={styles.avatarInner} />
+        )}
       </View>
 
       <View style={styles.rowText}>
@@ -249,7 +257,13 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(215,192,138,0.4)',
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
     backgroundColor: 'rgba(215,192,138,0.08)',
+  },
+  avatarImg: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 21,
   },
   avatarInner: {
     width: 26,
