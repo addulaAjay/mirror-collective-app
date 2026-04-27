@@ -6,7 +6,41 @@ interface PledgeAcceptanceResponse {
   pledgeAcceptedAt: string;
 }
 
+export interface UpdateProfileRequest {
+  profile_image_url?: string;
+}
+
+export interface UserProfileResponse {
+  id: string;
+  email: string;
+  name?: string;
+  firstName?: string;
+  lastName?: string;
+  profile_image_url?: string;
+  [key: string]: unknown;
+}
+
 export class UserApiService extends BaseApiService {
+  async getProfile(): Promise<ApiResponse<UserProfileResponse>> {
+    const response = await this.makeRequest<UserProfileResponse>(
+      '/auth/me',
+      'GET',
+      null,
+      true,
+    );
+    return ApiErrorHandler.handleApiResponse(response, 'Profile retrieved');
+  }
+
+  async updateProfile(data: UpdateProfileRequest): Promise<ApiResponse<void>> {
+    const response = await this.makeRequest<void>(
+      '/auth/me',
+      'PATCH',
+      data,
+      true,
+    );
+    return ApiErrorHandler.handleApiResponse(response, 'Profile updated');
+  }
+
   async updatePledgeAcceptance(): Promise<ApiResponse<PledgeAcceptanceResponse>> {
     const pledgeAcceptedAt = new Date().toISOString();
     
