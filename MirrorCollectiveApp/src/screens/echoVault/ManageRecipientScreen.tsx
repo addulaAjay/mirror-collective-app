@@ -62,23 +62,30 @@ type Props = NativeStackScreenProps<RootStackParamList, 'ManageRecipientScreen'>
 // ── Avatar ───────────────────────────────────────────────────────────────────
 // Figma 4629:3814 — 40×40, border 1px #f2e1b0, glow 0 0 10 3px rgba(240,212,168,0.3)
 // Image height 149.82%, top offset -6.74% (portrait crop, same as EchoAvatar)
-const RecipientAvatar: React.FC<{ item: Recipient }> = ({ item }) => (
-  <View style={styles.avatarGlow}>
-    <View style={styles.avatarRing}>
-      {item.profile_image_url ? (
-        <Image
-          source={{ uri: item.profile_image_url }}
-          style={styles.avatarImg}
-          resizeMode="cover"
-        />
-      ) : item.motif && getMotifIcon(item.motif) ? (
-        <SvgXml xml={getMotifIcon(item.motif)?.xml || ''} width="60%" height="60%" />
-      ) : (
-        <View style={styles.avatarPlaceholder} />
-      )}
+const RecipientAvatar: React.FC<{ item: Recipient }> = ({ item }) => {
+  const [imgError, setImgError] = useState(false);
+  const showImg = item.profile_image_url && !imgError;
+  const showMotif = !showImg && item.motif && getMotifIcon(item.motif);
+
+  return (
+    <View style={styles.avatarGlow}>
+      <View style={styles.avatarRing}>
+        {showImg ? (
+          <Image
+            source={{ uri: item.profile_image_url }}
+            style={styles.avatarImg}
+            resizeMode="cover"
+            onError={() => setImgError(true)}
+          />
+        ) : showMotif ? (
+          <SvgXml xml={getMotifIcon(item.motif!)?.xml || ''} width="60%" height="60%" />
+        ) : (
+          <View style={styles.avatarPlaceholder} />
+        )}
+      </View>
     </View>
-  </View>
-);
+  );
+};
 
 // ── Screen ────────────────────────────────────────────────────────────────────
 const ManageRecipientScreen: React.FC<Props> = ({ navigation }) => {

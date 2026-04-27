@@ -82,28 +82,38 @@ const LockIcon: React.FC = () => (
 
 // ── Avatar ───────────────────────────────────────────────────────────────────
 // Figma: 40×40, border 1px #f2e1b0, glow 0 0 10 3px rgba(240,212,168,0.3)
-// Avatar image: 149.82% height, offset -6.74% top (crops to face)
+// Image: 149.82% height, -6.74% top (portrait crop matching Figma 4629:3814)
+// onError: if the presigned S3 URL fails (expired or 403), fall back to
+//          motif SVG → Group.png so the ring is never visually empty.
 interface AvatarProps {
   motif?: string;
   profileImage?: string;
 }
-const EchoAvatar: React.FC<AvatarProps> = ({ motif, profileImage }) => (
-  <View style={styles.avatarGlow}>
-    <View style={styles.avatarRing}>
-      {profileImage ? (
-        <Image
-          source={{ uri: profileImage }}
-          style={styles.avatarImg}
-          resizeMode="cover"
-        />
-      ) : motif && getMotifIcon(motif) ? (
-        <SvgXml xml={getMotifIcon(motif)?.xml || ''} width="60%" height="60%" />
-      ) : (
-        <Image source={require('@assets/Group.png')} style={styles.avatarFallback} />
-      )}
+const EchoAvatar: React.FC<AvatarProps> = ({ motif, profileImage }) => {
+  const [imgError, setImgError] = useState(false);
+
+  const showImg = profileImage && !imgError;
+  const showMotif = !showImg && motif && getMotifIcon(motif);
+
+  return (
+    <View style={styles.avatarGlow}>
+      <View style={styles.avatarRing}>
+        {showImg ? (
+          <Image
+            source={{ uri: profileImage }}
+            style={styles.avatarImg}
+            resizeMode="cover"
+            onError={() => setImgError(true)}
+          />
+        ) : showMotif ? (
+          <SvgXml xml={getMotifIcon(motif!)?.xml || ''} width="60%" height="60%" />
+        ) : (
+          <Image source={require('@assets/Group.png')} style={styles.avatarFallback} />
+        )}
+      </View>
     </View>
-  </View>
-);
+  );
+};
 
 // ── Screen ───────────────────────────────────────────────────────────────────
 
