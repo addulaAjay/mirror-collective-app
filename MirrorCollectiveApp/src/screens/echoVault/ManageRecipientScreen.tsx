@@ -1,58 +1,102 @@
+/**
+ * Manage Recipients Screen
+ * Figma: Design-Master-File → Manage Recipients (211:1528)
+ *
+ * Layout:
+ *   LogoHeader
+ *   ← MANAGE RECIPIENTS (back arrow + gold Cormorant 28, centered)
+ *   "Choose who can access echoes you share." (Inter Light 16)
+ *   Flat list — avatar (40×40 gold-border glow) + name/email | SHARED? + delete
+ *   ADD RECIPIENT glass button (Cormorant 24, centered)
+ *
+ * Tokens:
+ *   Heading M:   Cormorant Regular 28/32  → fontFamily.heading 28
+ *   Heading XS:  Cormorant Regular 20/24  → fontFamily.heading 20
+ *   Body XS Italic: Inter Italic 14/20   → fontFamily.bodyItalic 14
+ *   Body S Light: Inter Light 16/24      → fontFamily.bodyLight 16
+ *   Row separator: 0.25px #a3b3cc       → palette.navy.light
+ *   Avatar glow:  0 0 10 3px rgba(240,212,168,0.3)
+ */
 
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { palette, textShadow } from '@theme';
-import { RootStackParamList } from '@types';
-import React, { useState, useEffect, useCallback } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  StatusBar,
-  TouchableOpacity,
-  Image,
-  Dimensions,
-  Platform,
-  FlatList,
+  borderWidth,
+  fontFamily,
+  fontSize,
+  fontWeight,
+  moderateScale,
+  palette,
+  radius,
+  scale,
+  spacing,
+  verticalScale,
+} from '@theme';
+import type { RootStackParamList } from '@types';
+import React, { useCallback, useEffect, useState } from 'react';
+import {
   ActivityIndicator,
   Alert,
+  FlatList,
+  Image,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  type ImageStyle,
+  type TextStyle,
+  type ViewStyle,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
 
-import { MOTIF_ICONS, getMotifIcon } from '@assets/motifs/MotifAssets';
+import { getMotifIcon } from '@assets/motifs/MotifAssets';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
-import { echoApiService, Recipient } from '@services/api/echo';
+import { echoApiService, type Recipient } from '@services/api/echo';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ManageRecipientScreen'>;
 
-const { width } = Dimensions.get('window');
+// ── Avatar ───────────────────────────────────────────────────────────────────
+// Figma 4629:3814 — 40×40, border 1px #f2e1b0, glow 0 0 10 3px rgba(240,212,168,0.3)
+// Image height 149.82%, top offset -6.74% (portrait crop, same as EchoAvatar)
+const RecipientAvatar: React.FC<{ item: Recipient }> = ({ item }) => (
+  <View style={styles.avatarGlow}>
+    <View style={styles.avatarRing}>
+      {item.profile_image_url ? (
+        <Image
+          source={{ uri: item.profile_image_url }}
+          style={styles.avatarImg}
+          resizeMode="cover"
+        />
+      ) : item.motif && getMotifIcon(item.motif) ? (
+        <SvgXml xml={getMotifIcon(item.motif)?.xml || ''} width="60%" height="60%" />
+      ) : (
+        <View style={styles.avatarPlaceholder} />
+      )}
+    </View>
+  </View>
+);
 
-const GOLD = palette.gold.mid;
-const OFFWHITE = 'rgba(253,253,249,0.92)';
-const SUBTEXT = 'rgba(253,253,249,0.65)';
-const BORDER = 'rgba(253,253,249,0.16)';
-const SURFACE = 'rgba(7,9,14,0.35)';
-
+// ── Screen ────────────────────────────────────────────────────────────────────
 const ManageRecipientScreen: React.FC<Props> = ({ navigation }) => {
   const [recipients, setRecipients] = useState<Recipient[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const contentWidth = Math.min(width * 0.88, 360);
-
   const fetchRecipients = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await echoApiService.getRecipients();
-      if (response.success && response.data) {
-        setRecipients(response.data);
+      const res = await echoApiService.getRecipients();
+      if (res.success && res.data) {
+        setRecipients(res.data);
       } else {
-        setError(response.error || 'Failed to load recipients');
+        setError(res.error || 'Failed to load recipients');
       }
-    } catch (err) {
+    } catch {
       setError('Failed to load recipients');
     } finally {
       setLoading(false);
@@ -61,169 +105,143 @@ const ManageRecipientScreen: React.FC<Props> = ({ navigation }) => {
 
   useEffect(() => {
     fetchRecipients();
-    const unsubscribe = navigation.addListener('focus', fetchRecipients);
-    return unsubscribe;
+    const unsub = navigation.addListener('focus', fetchRecipients);
+    return unsub;
   }, [navigation, fetchRecipients]);
 
-  const handleRemoveRecipient = async (id: string) => {
-    Alert.alert(
-      'Remove Recipient',
-      'Are you sure you want to remove this recipient?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Remove',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              const response = await echoApiService.removeRecipient(id);
-              if (response.success) {
-                setRecipients(prev => prev.filter(r => r.recipient_id !== id));
-              } else {
-                Alert.alert('Error', response.error || 'Failed to remove recipient');
-              }
-            } catch (err) {
-              Alert.alert('Error', 'Failed to remove recipient');
+  const handleRemove = (id: string) => {
+    Alert.alert('Remove Recipient', 'Are you sure you want to remove this recipient?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Remove',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            const res = await echoApiService.removeRecipient(id);
+            if (res.success) {
+              setRecipients(prev => prev.filter(r => r.recipient_id !== id));
+            } else {
+              Alert.alert('Error', res.error || 'Failed to remove recipient');
             }
-          },
+          } catch {
+            Alert.alert('Error', 'Failed to remove recipient');
+          }
         },
-      ]
+      },
+    ]);
+  };
+
+  const renderRow = ({ item, index }: { item: Recipient; index: number }) => {
+    const isLast = index === recipients.length - 1;
+    return (
+      <View style={[styles.row, !isLast && styles.rowBorder]}>
+        {/* Left: avatar + name/email */}
+        <View style={styles.rowLeft}>
+          <RecipientAvatar item={item} />
+          <View style={styles.rowText}>
+            <Text style={styles.name} numberOfLines={1}>{item.name.toUpperCase()}</Text>
+            <Text style={styles.email} numberOfLines={1}>{item.email}</Text>
+          </View>
+        </View>
+
+        {/* Right: delete (shared label omitted — not in recipients API) */}
+        <TouchableOpacity
+          style={styles.deleteBtn}
+          onPress={() => handleRemove(item.recipient_id)}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <Image
+            source={require('@assets/delete.png')}
+            style={styles.deleteIcon}
+            resizeMode="contain"
+          />
+        </TouchableOpacity>
+      </View>
     );
   };
 
-  const handleAddRecipient = () => {
-    navigation.navigate('AddNewProfileScreen');
-  };
-
-  const handleManageGuardians = () => {
-    navigation.navigate('ManageGuardianScreen');
-  };
-
-  const renderRecipientRow = ({ item }: { item: Recipient }) => (
-    <View style={styles.row}>
-      <View style={styles.avatar}>
-        {item.profile_image_url ? (
-          <Image
-            source={{ uri: item.profile_image_url }}
-            style={styles.avatarImg}
-            resizeMode="cover"
-          />
-        ) : item.motif && getMotifIcon(item.motif) ? (
-          <View style={{ width: 28, height: 28 }}>
-            <SvgXml
-              xml={getMotifIcon(item.motif)?.xml || ''}
-              width="100%"
-              height="100%"
-            />
-          </View>
-        ) : item.motif ? (
-          <Text style={{ fontSize: 20 }}>{item.motif}</Text>
-        ) : (
-          <View style={styles.avatarInner} />
-        )}
-      </View>
-
-      <View style={styles.rowText}>
-        <Text style={styles.name}>{item.name.toUpperCase()}</Text>
-        <Text style={styles.email}>{item.email}</Text>
-      </View>
-
-      <TouchableOpacity
-        style={styles.deleteBtn}
-        onPress={() => handleRemoveRecipient(item.recipient_id)}
-      >
-        <Image source={require('@assets/delete.png')} style={styles.deleteIcon} resizeMode="contain" />
-      </TouchableOpacity>
-    </View>
-  );
-
   return (
-    <BackgroundWrapper style={styles.root}>
+    <BackgroundWrapper style={styles.bg}>
       <SafeAreaView style={styles.safe}>
-        <StatusBar
-          barStyle="light-content"
-          translucent
-          backgroundColor="transparent"
-        />
-
+        <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
         <LogoHeader navigation={navigation} />
 
-        {/* Title */}
-        <View style={styles.titleRowContainer}>
-          <View style={[styles.titleRow, { width: contentWidth }]}>
-            <TouchableOpacity onPress={() => navigation.goBack()}>
-              <Image source={require('@assets/back-arrow.png')} style={styles.backArrowImg} resizeMode="contain" />
-            </TouchableOpacity>
-
-            <Text style={styles.title}>MANAGE{'\n'}RECIPIENTS</Text>
-
-            <View style={{ width: 24 }} />
-          </View>
-        </View>
-
-        {/* Description */}
-        <Text style={[styles.description, { width: contentWidth }]}>
-          Choose who can access echoes you share.
-        </Text>
-
-        {/* List */}
-        {loading ? (
-          <ActivityIndicator size="large" color={GOLD} style={{ marginTop: 40 }} />
-        ) : error ? (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>{error}</Text>
-            <TouchableOpacity onPress={fetchRecipients} style={styles.retryBtn}>
-              <Text style={styles.retryText}>Retry</Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <FlatList
-            data={recipients}
-            keyExtractor={item => item.recipient_id}
-            style={{ width: contentWidth, marginTop: 10, flex: 1 }}
-            contentContainerStyle={{ paddingBottom: 100 }}
-            renderItem={renderRecipientRow}
-            ListEmptyComponent={
-              <Text style={styles.emptyText}>No recipients added yet</Text>
-            }
-          />
-        )}
-
-        {/* Buttons */}
-        <View style={[styles.buttonContainer, { width: contentWidth }]}>
-          <TouchableOpacity activeOpacity={0.8} onPress={handleAddRecipient}>
-            <LinearGradient
-              colors={['rgba(253,253,249,0.04)', 'rgba(253,253,249,0.01)']}
-              start={{ x: 0.5, y: 0 }}
-              end={{ x: 0.5, y: 1 }}
-              style={styles.addButton}
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* ── Header row: ← MANAGE RECIPIENTS ─────────────────────────── */}
+          {/* Figma 222:2110 — flex-row, items-center, justify-between */}
+          <View style={styles.headerRow}>
+            <TouchableOpacity
+              onPress={() => navigation.goBack()}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              style={styles.backBtn}
             >
-              <Text style={styles.addText}>ADD RECIPIENT</Text>
+              <Image
+                source={require('@assets/back-arrow.png')}
+                style={styles.backIcon}
+                resizeMode="contain"
+              />
+            </TouchableOpacity>
+
+            <Text style={styles.title}>MANAGE RECIPIENTS</Text>
+
+            {/* Invisible spacer — mirrors back button width for centering */}
+            <View style={styles.backBtn} />
+          </View>
+
+          {/* ── Subtitle ─────────────────────────────────────────────────── */}
+          {/* Figma 222:2114 — Body S Light, Inter Light 16/24, white, center */}
+          <Text style={styles.subtitle}>
+            Choose who can access echoes you share.
+          </Text>
+
+          {/* ── List ─────────────────────────────────────────────────────── */}
+          {/* Figma 222:2115 — flex-col, pl:16, overflow-y-auto */}
+          {loading ? (
+            <ActivityIndicator
+              size="large"
+              color={palette.gold.DEFAULT}
+              style={styles.loader}
+            />
+          ) : error ? (
+            <View style={styles.stateBox}>
+              <Text style={styles.errorText}>{error}</Text>
+              <TouchableOpacity onPress={fetchRecipients} style={styles.retryBtn}>
+                <Text style={styles.retryText}>Retry</Text>
+              </TouchableOpacity>
+            </View>
+          ) : recipients.length === 0 ? (
+            <View style={styles.stateBox}>
+              <Text style={styles.emptyText}>No recipients added yet.</Text>
+            </View>
+          ) : (
+            <View style={styles.listContainer}>
+              {recipients.map((item, index) => renderRow({ item, index }))}
+            </View>
+          )}
+
+          {/* ── ADD RECIPIENT button ──────────────────────────────────────── */}
+          {/* Figma 222:2146 — glass gradient, border 0.5px #a3b3cc, radius 16,
+               padding 12v/16h, Cormorant Regular 24/28 gold */}
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => navigation.navigate('AddNewProfileScreen')}
+            style={styles.addBtnWrapper}
+          >
+            <LinearGradient
+              colors={['rgba(253,253,249,0.01)', 'rgba(253,253,249,0)']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 0, y: 1 }}
+              style={styles.addBtn}
+            >
+              <Text style={styles.addBtnText}>ADD RECIPIENT</Text>
             </LinearGradient>
           </TouchableOpacity>
-
-          <LinearGradient
-            colors={['rgba(253,253,249,0.04)', 'rgba(253,253,249,0.01)']}
-            start={{ x: 0.5, y: 0 }}
-            end={{ x: 0.5, y: 1 }}
-            style={styles.guardianCard}
-          >
-            <Text style={styles.guardianCardTitle}>Need a Vault Guardian?</Text>
-            <Text style={styles.guardianCardDesc}>
-              Choose someone you trust to manage {'\n'} access if something happens to you.
-            </Text>
-            <TouchableOpacity activeOpacity={0.9} onPress={handleManageGuardians}>
-              <LinearGradient
-                colors={['rgba(253, 253, 249, 0.04)', 'rgba(253,253,249,0.01)']}
-                start={{ x: 0.5, y: 1 }}
-                end={{ x: 0.5, y: 0 }}
-                style={styles.guardianWrap}
-              >
-                <Text style={styles.guardianText}>MANAGE GUARDIANS</Text>
-              </LinearGradient>
-            </TouchableOpacity>
-          </LinearGradient>
-        </View>
+        </ScrollView>
       </SafeAreaView>
     </BackgroundWrapper>
   );
@@ -231,240 +249,276 @@ const ManageRecipientScreen: React.FC<Props> = ({ navigation }) => {
 
 export default ManageRecipientScreen;
 
-/* ---------------- STYLES ---------------- */
+// ── Styles ────────────────────────────────────────────────────────────────────
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: 'transparent', alignItems: 'center' },
-  root: {
-    flex: 1,
+const styles = StyleSheet.create<{
+  bg: ViewStyle;
+  safe: ViewStyle;
+  scroll: ViewStyle;
+  scrollContent: ViewStyle;
+  headerRow: ViewStyle;
+  backBtn: ViewStyle;
+  backIcon: ImageStyle;
+  title: TextStyle;
+  subtitle: TextStyle;
+  loader: ViewStyle;
+  stateBox: ViewStyle;
+  errorText: TextStyle;
+  retryBtn: ViewStyle;
+  retryText: TextStyle;
+  emptyText: TextStyle;
+  listContainer: ViewStyle;
+  row: ViewStyle;
+  rowBorder: ViewStyle;
+  rowLeft: ViewStyle;
+  avatarGlow: ViewStyle;
+  avatarRing: ViewStyle;
+  avatarImg: ImageStyle;
+  avatarPlaceholder: ViewStyle;
+  rowText: ViewStyle;
+  name: TextStyle;
+  email: TextStyle;
+  deleteBtn: ViewStyle;
+  deleteIcon: ImageStyle;
+  addBtnWrapper: ViewStyle;
+  addBtn: ViewStyle;
+  addBtnText: TextStyle;
+}>({
+  bg:   { flex: 1 },
+  safe: { flex: 1 },
+
+  scroll: { flex: 1 },
+  scrollContent: {
+    paddingHorizontal: scale(spacing.xl),   // 24px — Figma left:24
+    paddingTop:        verticalScale(24),
+    paddingBottom:     verticalScale(48),
+    gap:               verticalScale(spacing.xl),  // 24 between sections
   },
 
-  /* Title */
-  titleRowContainer: {
-    width: '100%',
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  // ── Header row ───────────────────────────────────────────────────────────
+  // Figma 222:2110 — flex-row, items-center, justify-between
+  headerRow: {
+    flexDirection:  'row',
+    alignItems:     'center',
     justifyContent: 'space-between',
   },
-  backArrow: { fontSize: 22, color: GOLD },
-  backArrowImg: { width: 20, height: 20, tintColor: GOLD },
+
+  backBtn: {
+    width:  scale(19),
+    height: scale(19),
+    alignItems:     'center',
+    justifyContent: 'center',
+  },
+
+  backIcon: {
+    width:     scale(19),
+    height:    scale(19),
+    tintColor: palette.gold.DEFAULT,
+  },
+
+  // Heading M: Cormorant Regular 28/32, gold, glow text-shadow
   title: {
-    fontSize: 28,
-    color: GOLD,
-    letterSpacing: 2,
-    textAlign: 'center',
-    fontFamily: Platform.select({
-      ios: 'CormorantGaramond-Regular',
-      android: 'serif',
-    }),
-    textShadowColor: textShadow.glowSubtle.color,
-    textShadowOffset: textShadow.glowSubtle.offset,
-    textShadowRadius: 16,
+    fontFamily:       fontFamily.heading,
+    fontSize:         moderateScale(fontSize['2xl']),  // 28
+    fontWeight:       fontWeight.regular,
+    lineHeight:       moderateScale(32),
+    color:            palette.gold.DEFAULT,
+    textAlign:        'center',
+    flex:             1,
+    textShadowColor:  'rgba(240,212,168,0.3)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 10,
   },
 
-  description: {
-    marginTop: 10,
-    textAlign: 'center',
-    color: SUBTEXT,
-    fontSize: 14,
-    lineHeight: 20,
+  // Body S Light: Inter Light 16/24, white, center
+  subtitle: {
+    fontFamily: fontFamily.bodyLight,
+    fontSize:   moderateScale(fontSize.s),
+    fontWeight: '300',
+    lineHeight: moderateScale(24),
+    color:      palette.neutral.white,
+    textAlign:  'center',
   },
 
-  /* Row */
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: SURFACE,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: BORDER,
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-    marginBottom: 12,
-  },
-  avatar: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    borderWidth: 1,
-    borderColor: 'rgba(215,192,138,0.4)',
-    alignItems: 'center',
+  // ── State views ──────────────────────────────────────────────────────────
+  loader: { marginTop: verticalScale(40) },
+
+  stateBox: {
+    alignItems:     'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(215,192,138,0.08)',
-    overflow: 'hidden',
-  },
-  avatarImg: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 21,
-  },
-  avatarInner: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    backgroundColor: GOLD,
-    opacity: 0.8,
+    paddingVertical: verticalScale(40),
+    gap:             verticalScale(12),
   },
 
-  rowText: { flex: 1, marginLeft: 12 },
-  name: {
-    color: OFFWHITE,
-    fontSize: 15,
-    letterSpacing: 1,
-  },
-  email: {
-    color: SUBTEXT,
-    fontSize: 12,
-    marginTop: 2,
-  },
-
-  deleteBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: BORDER,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: 8,
-  },
-  deleteIcon: {
-    width: 16,
-    height: 16,
-    tintColor: OFFWHITE,
-  },
-
-  /* Buttons */
-  buttonContainer: {
-    position: 'absolute',
-    bottom: 30,
-    gap: 12,
-    alignItems: 'center',
-  },
-  addButton: {
-    // paddingVertical: 12,
-    // paddingHorizontal: 4,
-    borderRadius: 12,
-    borderWidth: 0.5,
-    borderColor: palette.navy.light,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 44,
-  },
-  addText: {
-    color: palette.gold.warm,
-    fontSize: 24,
-    letterSpacing: 2,
-    padding: 14,
-    fontFamily: Platform.select({
-      ios: 'CormorantGaramond-Medium',
-      android: 'serif',
-    }),
-    textShadowColor: textShadow.glowSubtle.color,
-    textShadowOffset: textShadow.glowSubtle.offset,
-    textShadowRadius: textShadow.glowSubtle.radius,
-  },
-  guardianCard: {
-    width: '100%',
-    borderRadius: 16,
-    // borderWidth: 1,
-    // borderColor: 'rgba(215,192,138,0.25)',
-    // paddingVertical: 16,
-    // paddingHorizontal: 0,
-    alignItems: 'center',
-    gap: 12,
-    ...Platform.select({
-      ios: {
-        shadowColor: 'rgba(229,214,176,0.25)',
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 1,
-        shadowRadius: 15,
-      },
-      android: {
-        boxShadow: '0 4 19 4 rgba(0,0,0,0.10), 0 0 15 2 rgba(229,214,176,0.25)',
-      },
-    }),
-  },
-  guardianCardTitle: {
-    color: palette.gold.warm,
-    fontSize: 16,
-    fontFamily: Platform.select({
-      ios: 'CormorantGaramond-Regular',
-      android: 'serif',
-    }),
-    marginBottom: 6,
-    paddingTop: 10,
-  },
-  guardianCardDesc: {
-    color: SUBTEXT,
-    fontSize: 13,
-    lineHeight: 18,
-    textAlign: 'center',
-    marginBottom: 14,
-  },
-  guardianWrap: {
-    // paddingVertical: 8,
-    // paddingHorizontal: 20,
-    marginBottom: 10,
-    borderRadius: 13,
-    borderWidth: 0.25,
-    minHeight: 44,
-    borderColor: palette.navy.muted,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...Platform.select({
-      ios: {
-        shadowColor: 'rgba(229,214,176,0.25)',
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 1,
-        shadowRadius: 15,
-      },
-      android: {
-        boxShadow: '0 4 19 4 rgba(0,0,0,0.10), 0 0 15 2 rgba(229,214,176,0.25)',
-      },
-    }),
-  },
-  guardianText: {
-    color: palette.gold.warm,
-    fontSize: 20,
-    letterSpacing: 1.5,
-    paddingHorizontal: 10,
-    fontFamily: Platform.select({
-      ios: 'CormorantGaramond-Regular',
-      android: 'serif',
-    }),
-  },
-
-  /* Error/Empty states */
-  errorContainer: {
-    marginTop: 40,
-    alignItems: 'center',
-  },
   errorText: {
-    color: palette.status.errorHover,
-    fontSize: 14,
-    textAlign: 'center',
-    marginBottom: 12,
+    fontFamily: fontFamily.body,
+    fontSize:   moderateScale(14),
+    color:      palette.status.errorHover,
+    textAlign:  'center',
   },
+
   retryBtn: {
-    paddingHorizontal: 20,
-    paddingVertical: 8,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: GOLD,
+    paddingHorizontal: scale(20),
+    paddingVertical:   verticalScale(8),
+    borderRadius:      radius.s,
+    borderWidth:       1,
+    borderColor:       palette.gold.DEFAULT,
   },
+
   retryText: {
-    color: GOLD,
-    fontSize: 14,
+    fontFamily: fontFamily.body,
+    fontSize:   moderateScale(14),
+    color:      palette.gold.DEFAULT,
   },
+
   emptyText: {
-    color: SUBTEXT,
-    fontSize: 14,
-    textAlign: 'center',
-    marginTop: 40,
+    fontFamily: fontFamily.bodyLight,
+    fontSize:   moderateScale(16),
+    color:      palette.navy.light,
+    textAlign:  'center',
+  },
+
+  // ── List ─────────────────────────────────────────────────────────────────
+  // Figma 222:2115 — flex-col, padding-left 16px
+  listContainer: {
+    paddingLeft: scale(spacing.m),   // 16px
+  },
+
+  // Figma row — flex-row, items-center, justify-between, py:20
+  row: {
+    flexDirection:  'row',
+    alignItems:     'center',
+    justifyContent: 'space-between',
+    paddingVertical: verticalScale(spacing.l),  // 20px
+  },
+
+  // Border/Subtle 0.25px between rows (not on last)
+  rowBorder: {
+    borderBottomWidth: borderWidth.hairline,
+    borderBottomColor: palette.navy.light,
+  },
+
+  // Figma 222:2127 — gap:12, items-center, maxWidth:230
+  rowLeft: {
+    flexDirection: 'row',
+    alignItems:    'center',
+    gap:           scale(12),
+    flex:          1,
+    maxWidth:      scale(230),
+  },
+
+  // ── Avatar ───────────────────────────────────────────────────────────────
+  // Figma 4629:3814 — 40×40, border 1px border/brand #f2e1b0, glow shadow
+  avatarGlow: {
+    width:        scale(40),
+    height:       scale(40),
+    borderRadius: scale(20),
+    boxShadow:    '0px 0px 10px 3px rgba(240, 212, 168, 0.3)',
+    shadowColor:  'rgba(240,212,168,0.3)',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 1,
+    shadowRadius: 10,
+    elevation:    4,
+  },
+
+  avatarRing: {
+    width:           '100%',
+    height:          '100%',
+    borderRadius:    scale(20),
+    borderWidth:     1,
+    borderColor:     palette.gold.DEFAULT,        // #f2e1b0
+    backgroundColor: 'rgba(197,158,95,0.05)',
+    overflow:        'hidden',
+    alignItems:      'center',
+    justifyContent:  'center',
+  },
+
+  // Figma: image height 149.82%, top -6.74% (portrait crop)
+  avatarImg: {
+    position: 'absolute',
+    width:    '100%',
+    height:   '150%',
+    top:      '-7%',
+    left:     0,
+  },
+
+  avatarPlaceholder: {
+    width:           scale(22),
+    height:          scale(22),
+    borderRadius:    scale(11),
+    backgroundColor: palette.gold.DEFAULT,
+    opacity:         0.4,
+  },
+
+  // ── Row text ─────────────────────────────────────────────────────────────
+  rowText: {
+    flex:    1,
+    minWidth: 0,
+  },
+
+  // Heading XS: Cormorant Regular 20/24, white
+  name: {
+    fontFamily: fontFamily.heading,
+    fontSize:   moderateScale(fontSize.l),   // 20
+    fontWeight: fontWeight.regular,
+    lineHeight: moderateScale(24),
+    color:      palette.neutral.white,
+  },
+
+  // Body XS Italic: Inter Italic 14/20, white
+  email: {
+    fontFamily: fontFamily.bodyItalic,
+    fontStyle:  'italic',
+    fontSize:   moderateScale(fontSize.xs),  // 14
+    fontWeight: '400',
+    lineHeight: moderateScale(20),
+    color:      palette.neutral.white,
+    opacity:    0.85,
+  },
+
+  // ── Delete icon ──────────────────────────────────────────────────────────
+  // Figma: 20×20 delete icon
+  deleteBtn: {
+    width:           scale(20),
+    height:          scale(20),
+    alignItems:      'center',
+    justifyContent:  'center',
+    marginLeft:      scale(12),
+  },
+
+  deleteIcon: {
+    width:     scale(20),
+    height:    scale(20),
+    tintColor: palette.navy.light,
+  },
+
+  // ── ADD RECIPIENT button ──────────────────────────────────────────────────
+  // Figma 222:2146 — glass gradient, border 0.5px #a3b3cc, radius 16,
+  // px:16 py:12, Cormorant Regular 24/28 gold, glow text-shadow, centered
+  addBtnWrapper: {
+    alignSelf: 'center',
+  },
+
+  addBtn: {
+    paddingVertical:   verticalScale(spacing.s),   // 12
+    paddingHorizontal: scale(spacing.m),           // 16
+    borderRadius:      radius.m,                   // 16
+    borderWidth:       borderWidth.thin,           // 0.5
+    borderColor:       palette.navy.light,         // #a3b3cc
+    alignItems:        'center',
+    justifyContent:    'center',
+  },
+
+  // Cormorant Regular 24/28, gold, glow text-shadow
+  addBtnText: {
+    fontFamily:       fontFamily.heading,
+    fontSize:         moderateScale(fontSize.xl),  // 24
+    fontWeight:       fontWeight.regular,
+    lineHeight:       moderateScale(28),
+    color:            palette.gold.DEFAULT,
+    textAlign:        'center',
+    textShadowColor:  'rgba(229,214,176,0.5)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 9,
   },
 });
