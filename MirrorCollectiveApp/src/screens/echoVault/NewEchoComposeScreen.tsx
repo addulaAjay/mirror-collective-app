@@ -87,18 +87,20 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
         if (!hasMicPermission) await requestMicPermission();
       })();
     }
-  }, [mode, hasCamPermission, hasMicPermission]);
+  }, [mode, hasCamPermission, hasMicPermission, requestCamPermission, requestMicPermission]);
 
   // Cleanup on unmount
   React.useEffect(() => {
+    const recorder = audioRecorderPlayer;
+    const cam = camera.current;
     return () => {
-      audioRecorderPlayer.stopRecorder().catch(() => {});
-      audioRecorderPlayer.removeRecordBackListener();
-      audioRecorderPlayer.stopPlayer().catch(() => {});
-      audioRecorderPlayer.removePlayBackListener();
-      const cam = camera.current;
+      recorder.stopRecorder().catch(() => {});
+      recorder.removeRecordBackListener();
+      recorder.stopPlayer().catch(() => {});
+      recorder.removePlayBackListener();
       if (cam) cam.stopRecording().catch(() => {});
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const formatDuration = (secs: number): string => {
