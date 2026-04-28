@@ -140,7 +140,7 @@ const ManageRecipientScreen: React.FC<Props> = ({ navigation }) => {
   const renderRow = ({ item, index }: { item: Recipient; index: number }) => {
     const isLast = index === recipients.length - 1;
     return (
-      <View style={[styles.row, !isLast && styles.rowBorder]}>
+      <View key={item.recipient_id} style={[styles.row, !isLast && styles.rowBorder]}>
         {/* Left: avatar + name/email */}
         <View style={styles.rowLeft}>
           <RecipientAvatar item={item} />

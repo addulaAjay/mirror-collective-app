@@ -1,5 +1,5 @@
-﻿import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { palette, textShadow } from '@theme';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { palette } from '@theme';
 import { RootStackParamList } from '@types';
 import React, { useState, useMemo } from 'react';
 import {
@@ -27,8 +27,8 @@ import Video from 'react-native-video';
 import { Camera, useCameraDevice, useCameraPermission, useMicrophonePermission } from 'react-native-vision-camera';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
+import Button from '@components/Button/Button';
 import LogoHeader from '@components/LogoHeader';
-import StarIcon from '@components/StarIcon';
 import { echoApiService } from '@services/api';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'NewEchoComposeScreen'>;
@@ -38,11 +38,10 @@ const { width: W } = Dimensions.get('window');
 const GOLD = palette.gold.mid;
 const OFFWHITE = 'rgba(253, 253, 249, 0.92)';
 const SURFACE_BORDER = 'rgba(253, 253, 249, 0.18)';
-const SURFACE_BORDER_2 = 'rgba(253, 253, 249, 0.08)';
 
 const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
   const mode = route.params?.mode ?? 'text';
-  const { recipientName, title, category, hasRecipient, recipientId, guardianId, lockDate, unlockOnDeath } = route.params || {};
+  const { title, category, recipientId, guardianId, lockDate, unlockOnDeath } = route.params || {};
 
   const [message, setMessage] = useState('');
   const [showUploadSheet, setShowUploadSheet] = useState(false);
@@ -51,7 +50,7 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [mediaUri, setMediaUri] = useState<string | null>(null);
   const [mediaFile, setMediaFile] = useState<{ name: string; type: string } | null>(null);
-  const [recordingDuration, setRecordingDuration] = useState(0);
+  const [_recordingDuration, setRecordingDuration] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
   const [isPicking, setIsPicking] = useState(false);
   const [pendingPicker, setPendingPicker] = useState<'audio' | 'video' | 'text' | null>(null);
@@ -76,9 +75,9 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
   const contentWidth = useMemo(() => Math.min(W * 0.88, 360), []);
 
   const titleText = useMemo(() => {
-    if (recipientName?.trim()) return `For ${recipientName.trim()}`;
+    if (title?.trim()) return title.trim();
     return 'NEW ECHO';
-  }, [recipientName]);
+  }, [title]);
 
   // Request camera + mic permissions when in video mode
   React.useEffect(() => {
@@ -528,27 +527,8 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
               </View>
 
               <View style={styles.bottomButtonsRow}>
-                <SmallPillButton label="Upload File" onPress={onUpload} />
-                <TouchableOpacity
-                  activeOpacity={0.85}
-                  style={[styles.saveWrap, isSaving && styles.disabled]}
-                  onPress={onSave}
-                  disabled={isSaving}
-                >
-                  <LinearGradient
-                    colors={[
-                      'rgba(253,253,249,0.04)',
-                      'rgba(253,253,249,0.01)',
-                    ]}
-                    start={{ x: 0.5, y: 0 }}
-                    end={{ x: 0.5, y: 1 }}
-                    style={styles.saveGradient}
-                  >
-                    <Text style={styles.saveActionText}>
-                      {isSaving ? 'SAVING...' : 'SAVE'}
-                    </Text>
-                  </LinearGradient>
-                </TouchableOpacity>
+                <Button variant="secondary" size="L" title="UPLOAD" onPress={onUpload} />
+                <Button variant="primary" size="L" title={isSaving ? 'SAVING...' : 'SAVE'} onPress={onSave} disabled={isSaving} />
               </View>
             </>
           )}
@@ -626,27 +606,8 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
               )}
 
               <View style={styles.bottomButtonsRow}>
-                <SmallPillButton label="Upload File" onPress={onUpload} />
-                <TouchableOpacity
-                  activeOpacity={0.85}
-                  style={[styles.saveWrap, isSaving && styles.disabled]}
-                  onPress={onSave}
-                  disabled={isSaving}
-                >
-                  <LinearGradient
-                    colors={[
-                      'rgba(253,253,249,0.04)',
-                      'rgba(253,253,249,0.01)',
-                    ]}
-                    start={{ x: 0.5, y: 0 }}
-                    end={{ x: 0.5, y: 1 }}
-                    style={styles.saveGradient}
-                  >
-                    <Text style={styles.saveActionText}>
-                      {isSaving ? 'SAVING...' : 'SAVE'}
-                    </Text>
-                  </LinearGradient>
-                </TouchableOpacity>
+                <Button variant="secondary" size="L" title="UPLOAD" onPress={onUpload} />
+                <Button variant="primary" size="L" title={isSaving ? 'SAVING...' : 'SAVE'} onPress={onSave} disabled={isSaving} />
               </View>
             </>
           )}
@@ -753,27 +714,8 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
               </LinearGradient>
 
               <View style={styles.bottomButtonsRow}>
-                <SmallPillButton label="Upload File" onPress={onUpload} />
-                <TouchableOpacity
-                  activeOpacity={0.85}
-                  style={[styles.saveWrap, isSaving && styles.disabled]}
-                  onPress={onSave}
-                  disabled={isSaving}
-                >
-                  <LinearGradient
-                    colors={[
-                      'rgba(253,253,249,0.04)',
-                      'rgba(253,253,249,0.01)',
-                    ]}
-                    start={{ x: 0.5, y: 0 }}
-                    end={{ x: 0.5, y: 1 }}
-                    style={styles.saveGradient}
-                  >
-                    <Text style={styles.saveActionText}>
-                      {isSaving ? 'SAVING...' : 'SAVE'}
-                    </Text>
-                  </LinearGradient>
-                </TouchableOpacity>
+                <Button variant="secondary" size="L" title="UPLOAD" onPress={onUpload} />
+                <Button variant="primary" size="L" title={isSaving ? 'SAVING...' : 'SAVE'} onPress={onSave} disabled={isSaving} />
               </View>
             </>
           )}
@@ -830,27 +772,6 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
 };
 
 /** ---------- Small UI bits (pure RN, no extra deps) ---------- */
-
-const SmallPillButton = ({
-  label,
-  onPress,
-}: {
-  label: string;
-  onPress: () => void;
-}) => {
-  return (
-    <TouchableOpacity activeOpacity={0.9} onPress={onPress} style={{}}>
-      <LinearGradient
-        colors={['rgba(253,253,249,0.03)', 'rgba(253,253,249,0.20)']}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
-        style={styles.pillShell}
-      >
-        <Text style={styles.pillText}>{label}</Text>
-      </LinearGradient>
-    </TouchableOpacity>
-  );
-};
 
 const CircleIcon = ({ label, icon, fullSize }: { label?: string; icon?: any; fullSize?: boolean }) => {
   return (
@@ -985,7 +906,7 @@ const styles = StyleSheet.create({
   },
 
   smallLabel: {
-    color: palette.gold.DEFAULT,
+    color: 'rgba(253,253,249,0.92)',
     fontFamily: Platform.select({
       ios: 'CormorantGaramond-Medium',
       android: 'serif',
@@ -993,9 +914,9 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontStyle: 'normal',
     fontWeight: '500',
-    lineHeight: 26,
+    lineHeight: 24,
     marginBottom: 8,
-    marginLeft: 4,
+    marginLeft: 2,
   },
   textInputShell: {
     flex: 1,
@@ -1052,73 +973,12 @@ const styles = StyleSheet.create({
 
   bottomButtonsRow: {
     flexDirection: 'row',
-    marginTop: 20,
+    marginTop: 24,
     marginBottom: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
+    gap: 16,
   },
-  saveWrap: {},
-  saveGradient: {
-    minWidth: 140,
-    minHeight: 48,
-    flexDirection: 'row',
-    borderRadius: 12,
-    borderWidth: 0.5,
-    borderColor: palette.navy.light,
-    // paddingVertical: 12,
-    // paddingHorizontal: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-  },
-  saveActionText: {
-    color: palette.gold.DEFAULT,
-    textAlign: 'center',
-    textShadowColor: textShadow.warmGlow.color,
-    textShadowOffset: textShadow.warmGlow.offset,
-    textShadowRadius: textShadow.warmGlow.radius,
-    fontFamily: Platform.select({
-      ios: 'CormorantGaramond-Regular',
-      android: 'serif',
-    }),
-    fontSize: 20,
-    fontStyle: 'normal',
-    fontWeight: '400',
-    lineHeight: 26,
-  },
-  disabled: {
-    opacity: 0.5,
-  },
-
-  pillShell: {
-    minWidth: 140,
-    minHeight: 48,
-    borderRadius: 12,
-    borderWidth: 0.5,
-    borderColor: palette.navy.light,
-    // paddingVertical: 12,
-    // paddingHorizontal: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-  },
-  pillText: {
-    color: palette.gold.DEFAULT,
-    textAlign: 'center',
-    textShadowColor: textShadow.warmGlow.color,
-    textShadowOffset: textShadow.warmGlow.offset,
-    textShadowRadius: textShadow.warmGlow.radius,
-    fontFamily: Platform.select({
-      ios: 'CormorantGaramond-Regular',
-      android: 'serif',
-    }),
-    fontSize: 20,
-    fontStyle: 'normal',
-    fontWeight: '400',
-    lineHeight: 26,
-  },
-
   audioWaveWrap: {
     flex: 1,
     justifyContent: 'center',
