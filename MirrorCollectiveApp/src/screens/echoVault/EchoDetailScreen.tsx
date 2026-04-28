@@ -1,6 +1,5 @@
-// EchoDetailScreen.tsx
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { palette, textShadow } from '@theme';
+import { fontFamily, fontSize, lineHeight, palette, spacing } from '@theme';
 import { RootStackParamList } from '@types';
 import React, { useMemo, useState, useEffect } from 'react';
 import {
@@ -22,33 +21,25 @@ import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
+import Button from '@components/Button/Button';
 import LogoHeader from '@components/LogoHeader';
 import { echoApiService, EchoResponse } from '@services/api/echo';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'EchoDetailScreen'>;
 
-
-const { width: W, height: H } = Dimensions.get('window');
-
-const GOLD = palette.gold.mid;
-const OFFWHITE = 'rgba(253,253,249,0.92)';
-const SUBTEXT = 'rgba(253,253,249,0.70)';
-const BORDER = 'rgba(253,253,249,0.16)';
-const BORDER_SOFT = 'rgba(253,253,249,0.08)';
-const SURFACE = 'rgba(7,9,14,0.36)';
+const { width: W } = Dimensions.get('window');
 
 const EchoDetailScreen: React.FC<Props> = ({ navigation, route }) => {
-  const { echoId } = route.params; 
+  const { echoId } = route.params;
   const [echo, setEcho] = useState<EchoResponse | null>(null);
   const [loading, setLoading] = useState(true);
-
   const [folderModalOpen, setFolderModalOpen] = useState(false);
 
   const contentWidth = useMemo(() => Math.min(W * 0.88, 360), []);
-  const textBoxHeight = useMemo(() => Math.min(H * 0.65, 515), []);
 
   useEffect(() => {
     fetchEchoDetails();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [echoId]);
 
   const fetchEchoDetails = async () => {
@@ -61,9 +52,9 @@ const EchoDetailScreen: React.FC<Props> = ({ navigation, route }) => {
         Alert.alert('Error', 'Echo not found');
         navigation.goBack();
       }
-    } catch (error: any) {
-      console.error('Failed to fetch echo details:', error);
-      Alert.alert('Error', error.message || 'Failed to load echo details');
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : 'Failed to load echo details';
+      Alert.alert('Error', msg);
       navigation.goBack();
     } finally {
       setLoading(false);
@@ -73,143 +64,106 @@ const EchoDetailScreen: React.FC<Props> = ({ navigation, route }) => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={GOLD} />
+        <ActivityIndicator size="large" color={palette.gold.mid} />
       </View>
     );
   }
 
-  if (!echo) {
-    return null; 
-  }
+  if (!echo) return null;
 
   const title = echo.title || 'Untitled Echo';
-  const body = echo.echo_type === 'TEXT' 
+  const body = echo.echo_type === 'TEXT'
     ? (echo.content || 'No content provided.')
-    : `[${echo.echo_type} Content Placeholder]\n\nThis media type is not yet fully supported in this view.`;
+    : `[${echo.echo_type} Content]\n\nThis media type is not yet supported in this view.`;
 
   return (
     <BackgroundWrapper style={styles.root}>
       <SafeAreaView style={styles.safe}>
-        <StatusBar
-          barStyle="light-content"
-          translucent
-          backgroundColor="transparent"
-        />
+        <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
         <LogoHeader navigation={navigation} />
 
-        {/* Back + Title */}
-        <View style={styles.titleRowContainer}>
-          <View style={[styles.titleRow, { width: contentWidth }]}>
-            <TouchableOpacity
-              activeOpacity={0.85}
-              style={styles.backBtn}
-              onPress={() => navigation.goBack()}
-            >
+        {/* Main content — gap: 24 between title, text box, actions */}
+        <View style={[styles.contentContainer, { width: contentWidth }]}>
+
+          {/* Title row: back | title | edit */}
+          <View style={styles.titleRow}>
+            <TouchableOpacity activeOpacity={0.85} style={styles.titleBtn} onPress={() => navigation.goBack()}>
               <Image source={require('@assets/back-arrow.png')} style={styles.backArrowImg} resizeMode="contain" />
             </TouchableOpacity>
 
-            <Text style={styles.screenTitle} numberOfLines={1}>
-              {title}
-            </Text>
+            <Text style={styles.screenTitle} numberOfLines={1}>{title}</Text>
 
-            <View style={styles.titleRightSpacer} />
+            <TouchableOpacity activeOpacity={0.85} style={styles.titleBtn} onPress={() => {}}>
+              <Image source={require('@assets/edit-icon.png')} style={styles.editIconImg} resizeMode="contain" />
+            </TouchableOpacity>
           </View>
-        </View>
 
-        {/* Text box */}
-        <LinearGradient
-          colors={['rgba(253,253,249,0.04)', 'rgba(253,253,249,0.01)']}
-          start={{ x: 0.5, y: 0 }}
-          end={{ x: 0.5, y: 1 }}
-          style={[styles.textBoxShell, { width: contentWidth, height: textBoxHeight }]}
-        >
-          <ScrollView
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.scrollContent}
+          {/* Scrollable text box */}
+          <LinearGradient
+            colors={['rgba(253,253,249,0.01)', 'rgba(253,253,249,0)']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 0, y: 1 }}
+            style={styles.textBox}
           >
-            <Text style={styles.bodyText}>{body}</Text>
-          </ScrollView>
-        </LinearGradient>
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.scrollContent}
+            >
+              <Text style={styles.bodyText}>{body}</Text>
+            </ScrollView>
+          </LinearGradient>
 
-        {/* Bottom actions */}
-        <View style={[styles.actionsRow, { width: contentWidth }]}>
-          <ActionIconButton icon={require('@assets/download.png')} onPress={() => {}} />
-          <ActionPrimaryButton
-            label="VAULT"
-            onPress={() => setFolderModalOpen(true)}
-          />
-          <ActionIconButton icon={require('@assets/edit-icon.png')} onPress={() => {}} />
+          {/* Action buttons: download | VAULT | edit */}
+          <View style={styles.actionsRow}>
+            <EchoIconButton icon={require('@assets/download.png')} onPress={() => {}} />
+            <Button
+              variant="primary"
+              size="L"
+              title="VAULT"
+              onPress={() => setFolderModalOpen(true)}
+            />
+            <EchoIconButton icon={require('@assets/edit-icon.png')} onPress={() => {}} />
+          </View>
+
         </View>
 
-        {/* Folder modal sheet */}
+        {/* Vault folder modal */}
         <Modal
           visible={folderModalOpen}
           transparent
           animationType="fade"
           onRequestClose={() => setFolderModalOpen(false)}
         >
-          <Pressable
-            style={styles.modalBackdrop}
-            onPress={() => setFolderModalOpen(false)}
-          >
-            <Pressable
-              style={[styles.sheet, { width: Math.min(W * 0.92, 420) }]}
-            >
+          <Pressable style={styles.modalBackdrop} onPress={() => setFolderModalOpen(false)}>
+            <Pressable style={[styles.sheet, { width: Math.min(W * 0.92, 420) }]}>
               <View style={styles.sheetHeader}>
-                <Text style={styles.sheetTitle}>
-                  Choose folders that you want to share with this Guardian
-                </Text>
-                <TouchableOpacity
-                  onPress={() => setFolderModalOpen(false)}
-                  style={styles.sheetClose}
-                  activeOpacity={0.85}
-                >
+                <Text style={styles.sheetTitle}>Choose folders to share with this Guardian</Text>
+                <TouchableOpacity onPress={() => setFolderModalOpen(false)} style={styles.sheetClose} activeOpacity={0.85}>
                   <Text style={styles.sheetCloseText}>✕</Text>
                 </TouchableOpacity>
               </View>
 
               <View style={styles.sheetBody}>
-                <Text style={styles.sheetHint}>
-                  (Stub UI) Add your folder list here.
-                </Text>
+                {['Family', 'Legacy Capsule', 'Selected Memories'].map(folder => (
+                  <View key={folder} style={styles.folderRow}>
+                    <View style={styles.folderCheckbox} />
+                    <Text style={styles.folderLabel}>{folder}</Text>
+                  </View>
+                ))}
 
-                <View style={styles.fakeRow}>
-                  <View style={styles.fakeBox} />
-                  <Text style={styles.fakeLabel}>Family</Text>
-                </View>
-                <View style={styles.fakeRow}>
-                  <View style={styles.fakeBox} />
-                  <Text style={styles.fakeLabel}>Legacy Capsule</Text>
-                </View>
-                <View style={styles.fakeRow}>
-                  <View style={styles.fakeBox} />
-                  <Text style={styles.fakeLabel}>Selected Memories</Text>
-                </View>
-
-                <TouchableOpacity
-                  activeOpacity={0.9}
+                <Button
+                  variant="secondary"
+                  size="L"
+                  title="SAVE TO VAULT"
                   onPress={() => setFolderModalOpen(false)}
-                  style={styles.sheetCtaWrap}
-                >
-                  <LinearGradient
-                    colors={[
-                      'rgba(253,253,249,0.10)',
-                      'rgba(253,253,249,0.03)',
-                    ]}
-                    start={{ x: 0.5, y: 0 }}
-                    end={{ x: 0.5, y: 1 }}
-                    style={styles.sheetCtaShell}
-                  >
-                    <View style={styles.sheetCtaInner}>
-                      <Text style={styles.sheetCtaText}>SAVE TO VAULT</Text>
-                    </View>
-                  </LinearGradient>
-                </TouchableOpacity>
+                  style={styles.sheetCta}
+                />
               </View>
             </Pressable>
           </Pressable>
         </Modal>
+
       </SafeAreaView>
     </BackgroundWrapper>
   );
@@ -217,170 +171,143 @@ const EchoDetailScreen: React.FC<Props> = ({ navigation, route }) => {
 
 export default EchoDetailScreen;
 
-/* ---------- Buttons ---------- */
+/* ── Icon-only action button ────────────────────────────────────────────── */
 
-const ActionIconButton = ({
+const EchoIconButton = ({
   icon,
   onPress,
 }: {
   icon: ReturnType<typeof require>;
   onPress: () => void;
-}) => {
-  return (
-    <TouchableOpacity
-      activeOpacity={0.9}
-      onPress={onPress}
+}) => (
+  <TouchableOpacity activeOpacity={0.85} onPress={onPress} style={styles.iconBtn}>
+    <LinearGradient
+      colors={['rgba(253,253,249,0.01)', 'rgba(253,253,249,0)']}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 0, y: 1 }}
+      style={styles.iconBtnGradient}
     >
-      <LinearGradient
-        colors={['rgba(253,253,249,0.04)', 'rgba(253,253,249,0.01)']}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
-        style={styles.iconBtnShell}
-      >
-        <Image source={icon} style={styles.iconBtnImg} resizeMode="contain" />
-      </LinearGradient>
-    </TouchableOpacity>
-  );
-};
+      <Image source={icon} style={styles.iconBtnImg} resizeMode="contain" />
+    </LinearGradient>
+  </TouchableOpacity>
+);
 
-const ActionPrimaryButton = ({
-  label,
-  onPress,
-}: {
-  label: string;
-  onPress: () => void;
-}) => {
-  return (
-    <TouchableOpacity activeOpacity={0.9} onPress={onPress}>
-      <LinearGradient
-        colors={['rgba(253,253,249,0.04)', 'rgba(253,253,249,0.01)']}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
-        style={styles.primaryBtnShell}
-      >
-        <Text style={styles.primaryBtnText}>{label}</Text>
-      </LinearGradient>
-    </TouchableOpacity>
-  );
-};
-
-/* ---------- Styles ---------- */
+/* ── Styles ─────────────────────────────────────────────────────────────── */
 
 const styles = StyleSheet.create({
+  root: { flex: 1 },
   safe: { flex: 1, backgroundColor: 'transparent', alignItems: 'center' },
+
   loadingContainer: {
     flex: 1,
     backgroundColor: palette.navy.deep,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  root: {
+
+  contentContainer: {
     flex: 1,
+    marginTop: 20,
+    paddingBottom: 22,
+    gap: 24,
   },
 
-  titleRowContainer: {
-    width: '100%',
-    alignItems: 'center',
-    marginTop: 20,
-  },
+  /* Title row */
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  backBtn: {
+  titleBtn: {
     width: 44,
     height: 44,
+    alignItems: 'center',
     justifyContent: 'center',
-    alignItems: 'flex-start',
   },
-  backIcon: { color: 'rgba(215,192,138,0.9)', fontSize: 30, marginLeft: 2 },
-  backArrowImg: { width: 20, height: 20, tintColor: 'rgba(215,192,138,0.9)' },
+  backArrowImg: {
+    width: 20,
+    height: 20,
+    tintColor: 'rgba(215,192,138,0.9)',
+  },
+  editIconImg: {
+    width: 20,
+    height: 20,
+    tintColor: 'rgba(215,192,138,0.9)',
+  },
   screenTitle: {
+    flex: 1,
     color: 'rgba(215,192,138,0.92)',
-    fontSize: 28,
-    letterSpacing: 2,
+    fontSize: fontSize['2xl'],      // 28px — Figma: font/size/2XL
+    lineHeight: lineHeight.xl,      // 32px
     fontFamily: Platform.select({
       ios: 'CormorantGaramond-Regular',
-      android: 'serif',
+      android: fontFamily.heading,
     }),
-    maxWidth: '78%',
     textAlign: 'center',
-    textShadowColor: textShadow.glowSubtle.color,
-    textShadowOffset: textShadow.glowSubtle.offset,
-    textShadowRadius: 16,
+    textShadowColor: 'rgba(240,212,168,0.3)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 10,
   },
-  titleRightSpacer: { width: 44, height: 44 },
 
-  textBoxShell: {
-    marginTop: 16,
+  /* Scrollable text box */
+  textBox: {
+    flex: 1,
     borderRadius: 8,
     borderWidth: 0.2,
-    borderColor: palette.navy.muted,
-    padding: 16,
+    borderColor: palette.navy.light,
+    padding: spacing.m,           // 16px
     ...Platform.select({
       ios: {
         shadowColor: 'rgba(229,214,176,1)',
         shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.30,
+        shadowOpacity: 0.3,
         shadowRadius: 15,
-        elevation: 5,
       },
       android: {
-        boxShadow: '0 0 15px 0 rgba(229, 214, 176, 0.30)',
+        boxShadow: '0 0 15px 0 rgba(229,214,176,0.3)',
       },
     }),
   },
-  scrollContent: { paddingBottom: 8 },
+  scrollContent: {
+    paddingBottom: spacing.xs,
+  },
   bodyText: {
-    color: 'rgba(253,253,249,0.84)',
-    fontSize: 15,
-    lineHeight: 22,
+    color: 'rgba(253,253,249,1)',
+    fontFamily: fontFamily.body,  // Inter Regular
+    fontSize: fontSize.s,         // 16px — Figma: font/size/S
+    lineHeight: lineHeight.m,     // 24px — Figma: font/line-height/M
+    fontWeight: '400',
   },
 
+  /* Action row */
   actionsRow: {
-    marginTop: 16,
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
+    alignItems: 'stretch',
     justifyContent: 'center',
-    paddingBottom: 18,
+    gap: 24,
   },
-  iconBtnShell: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+
+  /* Icon-only button */
+  iconBtn: {
     borderRadius: 12,
     borderWidth: 0.5,
     borderColor: palette.navy.light,
+    overflow: 'hidden',
+  },
+  iconBtnGradient: {
+    flex: 1,
+    paddingHorizontal: spacing.m,  // 16px
+    paddingVertical: spacing.s,    // 12px
     alignItems: 'center',
     justifyContent: 'center',
   },
   iconBtnImg: {
-    width: 22,
-    height: 22,
+    width: 24,
+    height: 24,
     tintColor: 'rgba(215,192,138,0.92)',
   },
 
-  primaryBtnShell: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    borderWidth: 0.5,
-    borderColor: palette.navy.light,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  primaryBtnText: {
-    color: 'rgba(215,192,138,0.92)',
-    fontSize: 18,
-    letterSpacing: 1.4,
-    fontFamily: Platform.select({
-      ios: 'CormorantGaramond-Regular',
-      android: 'serif',
-    }),
-  },
-
-  /* Modal sheet */
+  /* Vault modal */
   modalBackdrop: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.55)',
@@ -396,20 +323,20 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   sheetHeader: {
-    paddingHorizontal: 14,
-    paddingVertical: 12,
+    paddingHorizontal: spacing.s,
+    paddingVertical: spacing.xs,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(253,253,249,0.08)',
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
-    gap: 10,
+    gap: spacing.xs,
   },
   sheetTitle: {
     flex: 1,
     color: 'rgba(215,192,138,0.92)',
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: fontSize.xs,
+    lineHeight: lineHeight.s,
     textAlign: 'center',
   },
   sheetClose: {
@@ -422,55 +349,32 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(253,253,249,0.10)',
     backgroundColor: 'rgba(253,253,249,0.03)',
   },
-  sheetCloseText: { color: OFFWHITE, fontSize: 14, opacity: 0.9 },
-
-  sheetBody: { padding: 14 },
-  sheetHint: {
-    color: SUBTEXT,
-    fontSize: 13,
-    textAlign: 'center',
-    marginBottom: 12,
+  sheetCloseText: {
+    color: 'rgba(253,253,249,0.92)',
+    fontSize: fontSize.xs,
+    opacity: 0.9,
   },
-
-  fakeRow: {
+  sheetBody: {
+    padding: spacing.s,
+  },
+  folderRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    paddingVertical: 8,
+    gap: spacing.xs,
+    paddingVertical: spacing.xs,
   },
-  fakeBox: {
+  folderCheckbox: {
     width: 18,
     height: 18,
     borderRadius: 3,
     borderWidth: 1,
-    borderColor: GOLD,
-    backgroundColor: 'transparent',
+    borderColor: palette.gold.mid,
   },
-  fakeLabel: { color: OFFWHITE, fontSize: 14 },
-
-  sheetCtaWrap: { marginTop: 14 },
-  sheetCtaShell: {
-    borderRadius: 14,
-    padding: 1,
-    borderWidth: 1,
-    borderColor: 'rgba(215,192,138,0.28)',
+  folderLabel: {
+    color: 'rgba(253,253,249,0.92)',
+    fontSize: fontSize.xs,
   },
-  sheetCtaInner: {
-    borderRadius: 13,
-    borderWidth: 1,
-    borderColor: BORDER_SOFT,
-    backgroundColor: 'rgba(7,9,14,0.28)',
-    paddingVertical: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  sheetCtaText: {
-    color: 'rgba(215,192,138,0.92)',
-    fontSize: 16,
-    letterSpacing: 1.2,
-    fontFamily: Platform.select({
-      ios: 'CormorantGaramond-Regular',
-      android: 'serif',
-    }),
+  sheetCta: {
+    marginTop: spacing.s,
   },
 });
