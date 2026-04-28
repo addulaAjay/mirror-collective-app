@@ -8,7 +8,6 @@ import {
   StyleSheet,
   StatusBar,
   TouchableOpacity,
-  TextInput,
   Dimensions,
   Platform,
   Modal,
@@ -29,6 +28,7 @@ import { Camera, useCameraDevice, useCameraPermission, useMicrophonePermission }
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import Button from '@components/Button/Button';
 import LogoHeader from '@components/LogoHeader';
+import TextInputField from '@components/TextInputField';
 import { echoApiService } from '@services/api';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'NewEchoComposeScreen'>;
@@ -506,25 +506,16 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
         <View style={[styles.content, { width: contentWidth }]}>
           {mode === 'text' && (
             <>
-              <Text style={styles.smallLabel}>Message</Text>
-              <View style={styles.textInputShell}>
-                <LinearGradient
-                  colors={['rgba(253,253,249,0.04)', 'rgba(253,253,249,0.01)']}
-                  start={{ x: 0.5, y: 0 }}
-                  end={{ x: 0.5, y: 1 }}
-                  style={styles.textInputGradient}
-                >
-                  <TextInput
-                    value={message}
-                    onChangeText={setMessage}
-                    placeholder="Write message here"
-                    placeholderTextColor={palette.navy.medium}
-                    style={styles.bigTextInput}
-                    multiline
-                    textAlignVertical="top"
-                  />
-                </LinearGradient>
-              </View>
+              <TextInputField
+                label="Message"
+                placeholder="Write message here"
+                value={message}
+                onChangeText={setMessage}
+                size="L"
+                multiline
+                style={styles.messageInputWrapper}
+                fieldStyle={styles.messageInputField}
+              />
 
               <View style={styles.bottomButtonsRow}>
                 <Button variant="secondary" size="L" title="UPLOAD" onPress={onUpload} />
@@ -905,33 +896,11 @@ const styles = StyleSheet.create({
     paddingBottom: 22,
   },
 
-  smallLabel: {
-    color: 'rgba(253,253,249,0.92)',
-    fontFamily: Platform.select({
-      ios: 'CormorantGaramond-Medium',
-      android: 'serif',
-    }),
-    fontSize: 20,
-    fontStyle: 'normal',
-    fontWeight: '500',
-    lineHeight: 24,
-    marginBottom: 8,
-    marginLeft: 2,
-  },
-  textInputShell: {
+  messageInputWrapper: {
     flex: 1,
-    borderRadius: 12,
-    borderWidth: 0.5,
-    borderColor: palette.navy.light,
-    minHeight: 120,
-    overflow: 'hidden',
-    width: '100%',
   },
-  textInputGradient: {
+  messageInputField: {
     flex: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    width: '100%',
   },
   bigBoxShell: {
     width: '100%',
@@ -961,16 +930,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     zIndex: 10,
   },
-  bigTextInput: {
-    flex: 1,
-    color: OFFWHITE,
-    fontSize: 16,
-    fontFamily: 'Inter',
-    fontStyle: 'normal',
-    fontWeight: '400',
-    lineHeight: 24,
-  },
-
   bottomButtonsRow: {
     flexDirection: 'row',
     marginTop: 24,

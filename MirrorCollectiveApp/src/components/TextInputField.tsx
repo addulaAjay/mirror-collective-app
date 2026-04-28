@@ -59,6 +59,9 @@ interface Props {
     | 'telephoneNumber'
     | 'username';
   maxLength?: number;
+  // Layout overrides for the wrapper and inner field container
+  style?: import('react-native').ViewStyle;
+  fieldStyle?: import('react-native').ViewStyle;
   // Password toggle
   showPasswordToggle?: boolean;
   isPasswordVisible?: boolean;
@@ -98,6 +101,8 @@ const TextInputField = ({
   inputTextStyle,
   size,
   multiline,
+  style,
+  fieldStyle,
   testID,
 }: Props) => {
   const [isFocused, setIsFocused] = useState(false);
@@ -110,7 +115,7 @@ const TextInputField = ({
   const isMultiline = resolvedSize === 'L' || multiline === true;
 
   return (
-    <View style={styles.wrapper}>
+    <View style={[styles.wrapper, style]}>
       {/* ── Label ─────────────────────────────────────────────────────── */}
       {label ? <Text style={styles.label}>{label}</Text> : null}
 
@@ -122,6 +127,7 @@ const TextInputField = ({
           resolvedSize === 'S' && styles.fieldS,
           resolvedSize === 'M' && styles.fieldM,
           resolvedSize === 'L' && styles.fieldL,
+          fieldStyle,
         ]}
       >
         {/* Inactive gradient background — clipped by field's borderRadius */}
