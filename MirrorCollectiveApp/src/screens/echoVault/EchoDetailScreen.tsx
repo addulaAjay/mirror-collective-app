@@ -1,5 +1,13 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { fontFamily, fontSize, lineHeight, palette, spacing } from '@theme';
+import {
+  borderWidth as borderWidthToken,
+  fontFamily,
+  fontSize,
+  lineHeight,
+  palette,
+  radius,
+  spacing,
+} from '@theme';
 import { RootStackParamList } from '@types';
 import React, { useMemo, useState, useEffect } from 'react';
 import {
@@ -16,6 +24,7 @@ import {
   Pressable,
   ActivityIndicator,
   Alert,
+  Share,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -23,6 +32,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import Button from '@components/Button/Button';
 import LogoHeader from '@components/LogoHeader';
+import TextInputField from '@components/TextInputField';
 import { echoApiService, EchoResponse } from '@services/api/echo';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'EchoDetailScreen'>;
@@ -33,6 +43,9 @@ const EchoDetailScreen: React.FC<Props> = ({ navigation, route }) => {
   const { echoId } = route.params;
   const [echo, setEcho] = useState<EchoResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [draftContent, setDraftContent] = useState('');
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
   const [folderModalOpen, setFolderModalOpen] = useState(false);
 
   const contentWidth = useMemo(() => Math.min(W * 0.88, 360), []);
@@ -48,6 +61,7 @@ const EchoDetailScreen: React.FC<Props> = ({ navigation, route }) => {
       const response = await echoApiService.getEcho(echoId);
       if (response.data) {
         setEcho(response.data);
+        setDraftContent(response.data.content || '');
       } else {
         Alert.alert('Error', 'Echo not found');
         navigation.goBack();
@@ -58,6 +72,50 @@ const EchoDetailScreen: React.FC<Props> = ({ navigation, route }) => {
       navigation.goBack();
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleEdit = () => {
+    if (!echo) return;
+    setDraftContent(echo.content || '');
+    setIsEditing(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!echo) return;
+    setIsSavingEdit(true);
+    try {
+      const response = await echoApiService.updateEcho(echoId, { content: draftContent });
+      if (!response.success) {
+        const errorMsg = response.error ?? 'Failed to save changes';
+        const isLocked = /locked|released/i.test(errorMsg);
+        Alert.alert(
+          isLocked ? 'Echo Locked' : 'Error',
+          isLocked
+            ? 'This echo has already been locked or released and can no longer be edited.'
+            : errorMsg,
+          [{ text: 'OK', onPress: () => isLocked && setIsEditing(false) }],
+        );
+        return;
+      }
+      setEcho(prev => prev ? { ...prev, content: draftContent } : null);
+      setIsEditing(false);
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : 'Failed to save changes';
+      Alert.alert('Error', msg);
+    } finally {
+      setIsSavingEdit(false);
+    }
+  };
+
+  const handleDownload = async () => {
+    if (!echo) return;
+    const echoTitle = echo.title || 'Echo';
+    const body = echo.content || '';
+    try {
+      await Share.share({ message: `${echoTitle}\n\n${body}`, title: echoTitle });
+    } catch {
+      // user dismissed share sheet — no action needed
     }
   };
 
@@ -83,10 +141,9 @@ const EchoDetailScreen: React.FC<Props> = ({ navigation, route }) => {
 
         <LogoHeader navigation={navigation} />
 
-        {/* Main content — gap: 24 between title, text box, actions */}
         <View style={[styles.contentContainer, { width: contentWidth }]}>
 
-          {/* Title row: back | title | edit */}
+          {/* Title row: back | title | spacer */}
           <View style={styles.titleRow}>
             <TouchableOpacity activeOpacity={0.85} style={styles.titleBtn} onPress={() => navigation.goBack()}>
               <Image source={require('@assets/back-arrow.png')} style={styles.backArrowImg} resizeMode="contain" />
@@ -94,37 +151,57 @@ const EchoDetailScreen: React.FC<Props> = ({ navigation, route }) => {
 
             <Text style={styles.screenTitle} numberOfLines={1}>{title}</Text>
 
-            <TouchableOpacity activeOpacity={0.85} style={styles.titleBtn} onPress={() => {}}>
-              <Image source={require('@assets/edit-icon.png')} style={styles.editIconImg} resizeMode="contain" />
-            </TouchableOpacity>
+            <View style={styles.titleBtn} />
           </View>
 
-          {/* Scrollable text box */}
-          <LinearGradient
-            colors={['rgba(253,253,249,0.01)', 'rgba(253,253,249,0)']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 0, y: 1 }}
-            style={styles.textBox}
-          >
-            <ScrollView
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={styles.scrollContent}
-            >
-              <Text style={styles.bodyText}>{body}</Text>
-            </ScrollView>
-          </LinearGradient>
+          {isEditing ? (
+            /* Edit mode: TextInputField fills space, no shadow wrapper */
+            <TextInputField
+              value={draftContent}
+              onChangeText={setDraftContent}
+              multiline
+              size="L"
+              autoFocus
+              placeholderAlign="left"
+              style={styles.editFieldWrapper}
+              fieldStyle={styles.editField}
+            />
+          ) : (
+            /* View mode: shadow wrapper + overflow-clipped card + scrollable text */
+            <View style={styles.cardShadow}>
+              <View style={styles.card}>
+                <ScrollView
+                  showsVerticalScrollIndicator={false}
+                  style={styles.scrollViewFill}
+                  contentContainerStyle={styles.scrollContent}
+                >
+                  <Text style={styles.bodyText}>{body}</Text>
+                </ScrollView>
+              </View>
+            </View>
+          )}
 
-          {/* Action buttons: download | VAULT | edit */}
-          <View style={styles.actionsRow}>
-            <EchoIconButton icon={require('@assets/download.png')} onPress={() => {}} />
+          {/* View mode: download | VAULT | edit — Edit mode: single SAVE TO VAULT */}
+          {isEditing ? (
             <Button
               variant="primary"
               size="L"
-              title="VAULT"
-              onPress={() => setFolderModalOpen(true)}
+              title={isSavingEdit ? 'SAVING...' : 'SAVE TO VAULT'}
+              onPress={handleSaveEdit}
+              disabled={isSavingEdit}
             />
-            <EchoIconButton icon={require('@assets/edit-icon.png')} onPress={() => {}} />
-          </View>
+          ) : (
+            <View style={styles.actionsRow}>
+              <EchoIconButton icon={require('@assets/download.png')} onPress={handleDownload} />
+              <Button
+                variant="primary"
+                size="L"
+                title="VAULT"
+                onPress={() => setFolderModalOpen(true)}
+              />
+              <EchoIconButton icon={require('@assets/edit-icon.png')} onPress={handleEdit} />
+            </View>
+          )}
 
         </View>
 
@@ -143,7 +220,6 @@ const EchoDetailScreen: React.FC<Props> = ({ navigation, route }) => {
                   <Text style={styles.sheetCloseText}>✕</Text>
                 </TouchableOpacity>
               </View>
-
               <View style={styles.sheetBody}>
                 {['Family', 'Legacy Capsule', 'Selected Memories'].map(folder => (
                   <View key={folder} style={styles.folderRow}>
@@ -151,7 +227,6 @@ const EchoDetailScreen: React.FC<Props> = ({ navigation, route }) => {
                     <Text style={styles.folderLabel}>{folder}</Text>
                   </View>
                 ))}
-
                 <Button
                   variant="secondary"
                   size="L"
@@ -171,7 +246,7 @@ const EchoDetailScreen: React.FC<Props> = ({ navigation, route }) => {
 
 export default EchoDetailScreen;
 
-/* ── Icon-only action button ────────────────────────────────────────────── */
+/* ── Icon-only action button ──────────────────────────────────────────────── */
 
 const EchoIconButton = ({
   icon,
@@ -185,14 +260,14 @@ const EchoIconButton = ({
       colors={['rgba(253,253,249,0.01)', 'rgba(253,253,249,0)']}
       start={{ x: 0, y: 0 }}
       end={{ x: 0, y: 1 }}
-      style={styles.iconBtnGradient}
-    >
-      <Image source={icon} style={styles.iconBtnImg} resizeMode="contain" />
-    </LinearGradient>
+      style={StyleSheet.absoluteFill}
+      pointerEvents="none"
+    />
+    <Image source={icon} style={styles.iconBtnImg} resizeMode="contain" />
   </TouchableOpacity>
 );
 
-/* ── Styles ─────────────────────────────────────────────────────────────── */
+/* ── Styles ───────────────────────────────────────────────────────────────── */
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
@@ -229,16 +304,11 @@ const styles = StyleSheet.create({
     height: 20,
     tintColor: 'rgba(215,192,138,0.9)',
   },
-  editIconImg: {
-    width: 20,
-    height: 20,
-    tintColor: 'rgba(215,192,138,0.9)',
-  },
   screenTitle: {
     flex: 1,
     color: 'rgba(215,192,138,0.92)',
-    fontSize: fontSize['2xl'],      // 28px — Figma: font/size/2XL
-    lineHeight: lineHeight.xl,      // 32px
+    fontSize: fontSize['2xl'],
+    lineHeight: lineHeight.xl,
     fontFamily: Platform.select({
       ios: 'CormorantGaramond-Regular',
       android: fontFamily.heading,
@@ -249,34 +319,47 @@ const styles = StyleSheet.create({
     textShadowRadius: 10,
   },
 
-  /* Scrollable text box */
-  textBox: {
+  /* View mode: shadow wrapper (no overflow) + clipped card */
+  cardShadow: {
     flex: 1,
-    borderRadius: 8,
-    borderWidth: 0.2,
+    borderRadius: radius.l,
+    shadowColor: palette.gold.DEFAULT,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 15,
+    elevation: 8,
+  },
+  card: {
+    flex: 1,
+    borderRadius: radius.l,                 // 20px
+    borderWidth: borderWidthToken.hairline, // 0.25px
     borderColor: palette.navy.light,
-    padding: spacing.m,           // 16px
-    ...Platform.select({
-      ios: {
-        shadowColor: 'rgba(229,214,176,1)',
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.3,
-        shadowRadius: 15,
-      },
-      android: {
-        boxShadow: '0 0 15px 0 rgba(229,214,176,0.3)',
-      },
-    }),
+    backgroundColor: palette.navy.card,
+    paddingHorizontal: spacing.m,
+    paddingVertical: spacing.m,
+    overflow: 'hidden',                     // bounds ScrollView so it scrolls
+  },
+
+  scrollViewFill: {
+    flex: 1,
   },
   scrollContent: {
     paddingBottom: spacing.xs,
   },
   bodyText: {
     color: 'rgba(253,253,249,1)',
-    fontFamily: fontFamily.body,  // Inter Regular
-    fontSize: fontSize.s,         // 16px — Figma: font/size/S
-    lineHeight: lineHeight.m,     // 24px — Figma: font/line-height/M
+    fontFamily: fontFamily.body,
+    fontSize: fontSize.s,
+    lineHeight: lineHeight.m,
     fontWeight: '400',
+  },
+
+  /* Edit mode: TextInputField fills space, no shadow */
+  editFieldWrapper: {
+    flex: 1,
+  },
+  editField: {
+    flex: 1,
   },
 
   /* Action row */
@@ -289,17 +372,15 @@ const styles = StyleSheet.create({
 
   /* Icon-only button */
   iconBtn: {
+    minHeight: 52,
+    paddingHorizontal: spacing.m,
+    paddingVertical: spacing.s,
+    alignItems: 'center',
+    justifyContent: 'center',
     borderRadius: 12,
     borderWidth: 0.5,
     borderColor: palette.navy.light,
     overflow: 'hidden',
-  },
-  iconBtnGradient: {
-    flex: 1,
-    paddingHorizontal: spacing.m,  // 16px
-    paddingVertical: spacing.s,    // 12px
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   iconBtnImg: {
     width: 24,

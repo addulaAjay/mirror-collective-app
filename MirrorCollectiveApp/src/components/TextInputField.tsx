@@ -59,6 +59,7 @@ interface Props {
     | 'telephoneNumber'
     | 'username';
   maxLength?: number;
+  autoFocus?: boolean;
   // Layout overrides for the wrapper and inner field container
   style?: import('react-native').ViewStyle;
   fieldStyle?: import('react-native').ViewStyle;
@@ -92,6 +93,7 @@ const TextInputField = ({
   autoComplete,
   textContentType,
   maxLength,
+  autoFocus,
   showPasswordToggle = false,
   isPasswordVisible = false,
   onTogglePassword,
@@ -168,6 +170,7 @@ const TextInputField = ({
           autoComplete={autoComplete}
           textContentType={textContentType}
           maxLength={maxLength}
+          autoFocus={autoFocus}
           multiline={isMultiline}
           style={[
             styles.input,
@@ -304,7 +307,8 @@ const styles = StyleSheet.create({
   },
   placeholderLeft: {
     textAlign: 'left',
-    paddingHorizontal: spacing.m, // 16
+    left: spacing.m,   // match field paddingHorizontal (16px)
+    top: spacing.s,    // match field paddingVertical (12px) — absent = renders at y:0
   },
 
   // ── Text input ─────────────────────────────────────────────────────

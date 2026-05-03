@@ -511,6 +511,7 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
               <TextInputField
                 label="Message"
                 placeholder="Write message here"
+                placeholderAlign="left"
                 value={message}
                 onChangeText={setMessage}
                 size="L"

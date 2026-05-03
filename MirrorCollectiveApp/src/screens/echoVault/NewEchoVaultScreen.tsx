@@ -356,7 +356,6 @@ const NewEchoScreen: React.FC = () => {
               */}
               <Button
                 variant="primary"
-                size="L"
                 title="NEXT"
                 onPress={onNext}
               />

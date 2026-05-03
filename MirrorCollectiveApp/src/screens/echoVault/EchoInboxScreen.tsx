@@ -22,6 +22,19 @@
 
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import {
+  borderWidth,
+  fontFamily,
+  fontSize,
+  fontWeight,
+  moderateScale,
+  palette,
+  radius,
+  scale,
+  spacing,
+  verticalScale,
+} from '@theme';
+import type { RootStackParamList } from '@types';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -42,19 +55,6 @@ import BackgroundWrapper from '@components/BackgroundWrapper';
 import Button from '@components/Button/Button';
 import LogoHeader from '@components/LogoHeader';
 import { echoApiService, type EchoResponse } from '@services/api/echo';
-import {
-  borderWidth,
-  fontFamily,
-  fontSize,
-  fontWeight,
-  moderateScale,
-  palette,
-  radius,
-  scale,
-  spacing,
-  verticalScale,
-} from '@theme';
-import type { RootStackParamList } from '@types';
 
 type EchoInboxNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
