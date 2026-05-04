@@ -1,8 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '@types';
 import React, { useEffect, useRef } from 'react';
-import { palette } from '@theme';
 import {
   Animated,
   Dimensions,
@@ -16,6 +14,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
+import { palette, spacing, theme } from '@theme';
+import type { RootStackParamList } from '@types';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('screen');
 
@@ -125,9 +125,9 @@ const styles = StyleSheet.create({
     paddingTop: Math.max(40, screenHeight * 0.05),
   },
   tuningTitle: {
-    fontFamily: 'CormorantGaramond-Regular',
-    fontSize: 32,
-    color: palette.gold.DEFAULT,
+    fontFamily: theme.typography.fontFamily.heading,
+    fontSize: theme.typography.sizes['4xl'],
+    color: theme.colors.text.paragraph1,
     textAlign: 'center',
     letterSpacing: 2,
     marginTop: Math.max(30, screenHeight * 0.04),
@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'flex-end',
-    gap: 12,
+    gap: spacing.s,
     marginBottom: Math.max(50, screenHeight * 0.06),
   },
   iconContainer: {
@@ -151,18 +151,18 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   tuningBody: {
-    fontFamily: 'CormorantGaramond-Regular',
-    fontSize: 28,
-    color: palette.gold.subtlest,
+    fontFamily: theme.typography.fontFamily.heading,
+    fontSize: theme.typography.sizes['3xl'],
+    color: theme.colors.text.paragraph2,
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: spacing.m,
   },
   tuningSubtext: {
-    fontFamily: 'Inter',
-    fontSize: 16,
-    color: palette.gold.subtlest,
+    fontFamily: theme.typography.fontFamily.body,
+    fontSize: theme.typography.sizes.base,
+    color: theme.colors.text.paragraph2,
     textAlign: 'center',
-    lineHeight: 24,
-    paddingHorizontal: 8,
+    lineHeight: theme.typography.lineHeights.lg,
+    paddingHorizontal: spacing.xs,
   },
 });

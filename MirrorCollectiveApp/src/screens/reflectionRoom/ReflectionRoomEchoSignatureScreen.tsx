@@ -1,7 +1,5 @@
-import { palette } from '@theme';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '@types';
 import React, { useState } from 'react';
 import {
   Dimensions,
@@ -21,6 +19,8 @@ import { SvgXml } from 'react-native-svg';
 import { MOTIF_SVG } from '@assets/motifs-icons/MotifIconAssets';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
+import { borderWidth, fontFamily, palette, spacing, theme } from '@theme';
+import type { RootStackParamList } from '@types';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('screen');
 
@@ -183,21 +183,21 @@ const styles = StyleSheet.create({
   backArrowImg: {
     width: 24,
     height: 24,
-    tintColor: palette.gold.DEFAULT,
+    tintColor: theme.colors.text.paragraph1,
   },
   title: {
-    fontFamily: 'CormorantGaramond-Regular',
-    fontSize: 32,
-    color: palette.gold.DEFAULT,
+    fontFamily: theme.typography.fontFamily.heading,
+    fontSize: theme.typography.sizes['4xl'],
+    color: theme.colors.text.paragraph1,
     textAlign: 'center',
     letterSpacing: 1,
     flex: 1,
     marginHorizontal: 8,
   },
   subtitle: {
-    fontFamily: 'Inter',
-    fontSize: 16,
-    color: palette.gold.subtlest,
+    fontFamily: theme.typography.fontFamily.body,
+    fontSize: theme.typography.sizes.base,
+    color: theme.colors.text.paragraph2,
     textAlign: 'center',
     lineHeight: 24,
     marginBottom: Math.max(24, screenHeight * 0.03),
@@ -210,10 +210,10 @@ const styles = StyleSheet.create({
   },
   practiceCard: {
     width: '100%',
-    borderWidth: 0.5,
-    borderColor: palette.navy.light,
-    borderRadius: 13,
-    backgroundColor: palette.navy.DEFAULT,
+    borderWidth: borderWidth.thin,
+    borderColor: theme.colors.border.subtle,
+    borderRadius: spacing.m - 3,
+    backgroundColor: theme.colors.text.inverse,
     flexDirection: 'column',
     alignItems: 'flex-start',
     paddingVertical: 20,
@@ -234,16 +234,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   cardLabel: {
-    fontFamily: 'CormorantGaramond-Regular',
-    fontSize: 24,
-    color: palette.gold.DEFAULT,
+    fontFamily: theme.typography.fontFamily.heading,
+    fontSize: theme.typography.sizes['2xl'],
+    color: theme.colors.text.paragraph1,
     letterSpacing: 1,
   },
   cardSubtitle: {
-    fontFamily: 'Inter',
+    fontFamily: theme.typography.fontFamily.body,
     fontSize: 15,
     fontStyle: 'italic',
-    color: palette.gold.subtlest,
+    color: theme.colors.text.paragraph2,
     lineHeight: 22,
   },
   popupOverlay: {
@@ -265,16 +265,16 @@ const styles = StyleSheet.create({
     borderRadius: 13,
     alignItems: 'center',
     gap: 8,
-    shadowColor: palette.gold.DEFAULT,
+    shadowColor: theme.colors.text.paragraph1,
     shadowOffset: { width: 2, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 32,
     elevation: 10,
   },
   popupTitle: {
-    fontFamily: 'CormorantGaramond-Regular',
+    fontFamily: theme.typography.fontFamily.heading,
     fontSize: 22,
-    color: palette.navy.DEFAULT,
+    color: theme.colors.text.inverse,
     letterSpacing: 1,
     textAlign: 'center',
   },
@@ -283,16 +283,16 @@ const styles = StyleSheet.create({
     height: 40,
   },
   popupPractice: {
-    fontFamily: 'CormorantGaramond-Italic',
-    fontSize: 18,
-    color: palette.navy.DEFAULT,
+    fontFamily: fontFamily.headingItalic,
+    fontSize: theme.typography.sizes.lg,
+    color: theme.colors.text.inverse,
     textAlign: 'center',
     lineHeight: 26,
   },
   popupSubtext: {
-    fontFamily: 'CormorantGaramond-Italic',
-    fontSize: 18,
-    color: '#FDFDF9',
+    fontFamily: fontFamily.headingItalic,
+    fontSize: theme.typography.sizes.lg,
+    color: theme.colors.text.paragraph2,
     textAlign: 'center',
     lineHeight: 26,
   },
@@ -302,45 +302,34 @@ const styles = StyleSheet.create({
     height: 52,
     backgroundColor: 'rgba(10, 18, 40, 0.7)',
     borderWidth: 0.5,
-    borderColor: palette.navy.light,
+    borderColor: theme.colors.border.subtle,
     borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
     alignSelf: 'center',
-    paddingHorizontal: 24,
+    paddingHorizontal: spacing.xl,
     ...(Platform.OS === 'ios'
       ? { elevation: 12 }
-      : { boxShadow: '0 0 8px 2px #F0D4A8' }),
+      : { boxShadow: `0 0 8px 2px ${palette.gold.glow}` }),
   },
   doneText: {
-    fontFamily: 'CormorantGaramond-Regular',
-    fontSize: 24,
-    color: palette.gold.DEFAULT,
+    fontFamily: theme.typography.fontFamily.heading,
+    fontSize: theme.typography.sizes['2xl'],
+    color: theme.colors.text.paragraph1,
     letterSpacing: 2,
   },
   ctaButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    paddingVertical: spacing.s,
+    paddingHorizontal: spacing.m,
     borderRadius: 12,
-    borderWidth: 0.5,
-    borderColor: palette.navy.light,
+    borderWidth: borderWidth.thin,
+    borderColor: theme.colors.border.subtle,
     overflow: 'hidden',
   },
-  ctaGradient: {
-    flexDirection: 'row',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(191, 199, 217, 0.05)',
-    ...(Platform.OS === 'ios'
-      ? { elevation: 12 }
-      : { boxShadow: '0 0 12px 4px #F0D4A8' }),
-  },
   ctaText: {
-    fontFamily: 'CormorantGaramond-Regular',
-    fontSize: 24,
-    color: palette.gold.DEFAULT,
+    fontFamily: theme.typography.fontFamily.heading,
+    fontSize: theme.typography.sizes['2xl'],
+    color: theme.colors.text.paragraph1,
     letterSpacing: 2,
   },
 });

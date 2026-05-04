@@ -1,7 +1,5 @@
-import { palette } from '@theme';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '@types';
 import React, { useState } from 'react';
 import {
   Dimensions,
@@ -21,6 +19,8 @@ import questionsData from '@assets/reflection-room-questions.json';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
 import ProgressBar from '@components/ProgressBar';
+import { borderWidth, palette, radius, spacing, theme } from '@theme';
+import type { RootStackParamList } from '@types';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('screen');
 
@@ -204,47 +204,51 @@ const styles = StyleSheet.create({
     marginBottom: Math.max(24, screenHeight * 0.03),
   },
   question: {
-    fontFamily: 'CormorantGaramond-Regular',
-    fontSize: 24,
-    color: palette.gold.DEFAULT,
+    fontFamily: theme.typography.fontFamily.heading,
+    fontSize: theme.typography.sizes['2xl'],
+    color: theme.colors.text.paragraph1,
     textAlign: 'center',
     marginBottom: Math.max(24, screenHeight * 0.03),
-    paddingHorizontal: 8,
+    paddingHorizontal: spacing.xs,
   },
   cardsContainer: {
     width: '100%',
-    gap: 10,
+    gap: spacing.s - 2,
     marginBottom: Math.max(24, screenHeight * 0.03),
   },
   card: {
     width: '100%',
     height: 64,
     backgroundColor: 'rgba(10, 18, 40, 0.7)',
-    borderWidth: 0.5,
+    borderWidth: borderWidth.thin,
     borderColor: 'rgba(163, 179, 204, 0.3)',
-    borderRadius: 14,
+    borderRadius: radius.m - 2,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 12,
   },
   cardSelected: {
     backgroundColor: 'rgba(20, 30, 60, 0.85)',
-    borderWidth: 1,
-    borderColor: palette.gold.DEFAULT,
+    borderWidth: borderWidth.regular,
+    borderColor: theme.colors.text.paragraph1,
   },
   cardSelectedShadow: {
     ...(Platform.OS === 'ios'
       ? {
+          shadowColor: palette.gold.glow,
+          shadowOffset: { width: 0, height: 0 },
+          shadowOpacity: 1,
+          shadowRadius: 12,
           elevation: 12,
         }
       : {
-          boxShadow: '0 0 12px 4px palette.gold.glow',
+          boxShadow: `0 0 12px 4px ${palette.gold.glow}`,
         }),
   },
   cardText: {
-    fontFamily: 'CormorantGaramond-Regular',
+    fontFamily: theme.typography.fontFamily.heading,
     fontSize: 22,
-    color: palette.gold.subtlest,
+    color: theme.colors.text.paragraph2,
     letterSpacing: 2,
     textAlign: 'center',
   },
@@ -264,26 +268,30 @@ const styles = StyleSheet.create({
   motifWrapperSelected: {
     ...(Platform.OS === 'ios'
       ? {
+          shadowColor: palette.gold.glow,
+          shadowOffset: { width: 0, height: 0 },
+          shadowOpacity: 1,
+          shadowRadius: 12,
           elevation: 12,
         }
       : {
-          boxShadow: '0 0 12px 4px palette.gold.glow',
+          boxShadow: `0 0 12px 4px ${palette.gold.glow}`,
         }),
   },
   motifCircle: {
     width: 110,
     height: 110,
     borderRadius: 55,
-    backgroundColor: palette.navy.DEFAULT,
-    borderWidth: 0.25,
+    backgroundColor: theme.colors.text.inverse,
+    borderWidth: borderWidth.hairline,
     borderColor: palette.navy.muted,
     overflow: 'hidden',
     justifyContent: 'center',
     alignItems: 'center',
   },
   motifCircleSelected: {
-    borderWidth: 1.5,
-    borderColor: palette.gold.DEFAULT,
+    borderWidth: borderWidth.medium,
+    borderColor: theme.colors.text.paragraph1,
   },
   motifIconWrapper: {
     width: 84.5,
@@ -297,12 +305,12 @@ const styles = StyleSheet.create({
     height: '60%',
   },
   hint: {
-    fontFamily: 'CormorantGaramond-Regular',
-    fontSize: 20,
-    color: palette.navy.light,
+    fontFamily: theme.typography.fontFamily.heading,
+    fontSize: theme.typography.sizes.xl,
+    color: theme.colors.border.subtle,
     textAlign: 'center',
     marginBottom: Math.max(28, screenHeight * 0.035),
-    lineHeight: 28,
+    lineHeight: theme.typography.lineHeights.xl,
   },
   bottomRow: {
     flexDirection: 'row',
@@ -326,7 +334,7 @@ const styles = StyleSheet.create({
   backArrowImg: {
     width: 24,
     height: 24,
-    tintColor: palette.gold.subtlest,
+    tintColor: theme.colors.text.paragraph2,
   },
   nextButton: {
     minWidth: 120,
@@ -344,19 +352,23 @@ const styles = StyleSheet.create({
   nextButtonEnabled: {
     ...(Platform.OS === 'ios'
       ? {
+          shadowColor: palette.gold.glow,
+          shadowOffset: { width: 0, height: 0 },
+          shadowOpacity: 1,
+          shadowRadius: 8,
           elevation: 12,
         }
       : {
-          boxShadow: '0 0 8px 2px palette.gold.glow',
+          boxShadow: `0 0 8px 2px ${palette.gold.glow}`,
         }),
   },
   nextButtonDisabled: {
     opacity: 0.4,
   },
   nextText: {
-    fontFamily: 'CormorantGaramond-Regular',
-    fontSize: 24,
-    color: palette.gold.DEFAULT,
+    fontFamily: theme.typography.fontFamily.heading,
+    fontSize: theme.typography.sizes['2xl'],
+    color: theme.colors.text.paragraph1,
     letterSpacing: 2,
   },
 });

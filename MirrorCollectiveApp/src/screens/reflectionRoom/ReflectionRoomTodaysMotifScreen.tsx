@@ -1,7 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { palette } from '@theme';
-import type { RootStackParamList } from '@types';
 import React, { useMemo } from 'react';
 import {
   Dimensions,
@@ -19,6 +17,8 @@ import motifsData from '@assets/motifs-data.json';
 import { MOTIF_SVG } from '@assets/motifs-icons/MotifIconAssets';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
+import { glassGradient, palette, radius, spacing, theme } from '@theme';
+import type { RootStackParamList } from '@types';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('screen');
 
@@ -60,7 +60,7 @@ const ReflectionRoomTodaysMotifScreen: React.FC = () => {
             activeOpacity={0.8}
           >
             <LinearGradient
-              colors={['rgba(253, 253, 249, 0.02)', 'rgba(253, 253, 249, 0.00)']}
+              colors={[glassGradient.echoSecondary.start, glassGradient.echoSecondary.end]}
               start={{ x: 0.5, y: 0 }}
               end={{ x: 0.5, y: 1 }}
               style={styles.ctaGradient}
@@ -97,19 +97,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   reflectionRoomLabel: {
-    fontFamily: 'CormorantGaramond-Regular',
-    fontSize: 28,
-    fontWeight: '400',
+    fontFamily: theme.typography.fontFamily.heading,
+    fontSize: theme.typography.sizes['3xl'],
+    fontWeight: theme.typography.weights.regular,
     lineHeight: 36,
-    color: palette.gold.DEFAULT,
+    color: theme.colors.text.paragraph1,
     textAlign: 'center',
     letterSpacing: 4,
     marginBottom: Math.max(32, screenHeight * 0.04),
   },
   motifName: {
-    fontFamily: 'CormorantGaramond-Regular',
+    fontFamily: theme.typography.fontFamily.heading,
     fontSize: 42,
-    color: palette.gold.DEFAULT,
+    color: theme.colors.text.paragraph1,
     textAlign: 'center',
     letterSpacing: 3,
     marginBottom: 6,
@@ -127,34 +127,34 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   description: {
-    fontFamily: 'Inter',
-    fontSize: 16,
-    fontWeight: '500',
-    color: palette.gold.subtlest,
+    fontFamily: theme.typography.fontFamily.body,
+    fontSize: theme.typography.sizes.base,
+    fontWeight: theme.typography.weights.medium,
+    color: theme.colors.text.paragraph2,
     textAlign: 'center',
-    lineHeight: 24,
+    lineHeight: theme.typography.lineHeights.lg,
     marginBottom: Math.max(32, screenHeight * 0.04),
-    paddingHorizontal: 8,
+    paddingHorizontal: spacing.xs,
     width: Math.min(screenWidth * 0.85, 340),
   },
   ctaButton: {
-    borderRadius: 12,
+    borderRadius: radius.s,
     borderWidth: 0.5,
-    borderColor: palette.navy.light,
+    borderColor: theme.colors.border.subtle,
     overflow: 'hidden',
   },
   ctaGradient: {
     flexDirection: 'row',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    paddingVertical: spacing.s,
+    paddingHorizontal: spacing.m,
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 8,
+    gap: spacing.xs,
   },
   ctaText: {
-    fontFamily: 'CormorantGaramond-Regular',
-    fontSize: 24,
-    color: palette.gold.DEFAULT,
+    fontFamily: theme.typography.fontFamily.heading,
+    fontSize: theme.typography.sizes['2xl'],
+    color: theme.colors.text.paragraph1,
     letterSpacing: 2,
   },
 });

@@ -1,6 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '@types';
 import React, { useState } from 'react';
 import {
   Dimensions,
@@ -16,7 +15,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
-import { palette } from '@theme';
+import { borderWidth, fontFamily, modalColors, palette, radius, spacing, textShadow, theme } from '@theme';
+import type { RootStackParamList } from '@types';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('screen');
 
@@ -188,7 +188,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: Math.max(20, screenWidth * 0.051),
     paddingBottom: Math.max(40, screenHeight * 0.05),
-    gap: 40,
+    gap: spacing.xxxl,
   },
 
   // Frame 600: 345x84, title centered, info icon absolute right
@@ -201,10 +201,10 @@ const styles = StyleSheet.create({
   },
   // Title: Figma 217x84 — fixed width forces 2-line wrap, centered in row
   title: {
-    fontFamily: 'CormorantGaramond-Regular',
-    fontSize: 32,
-    fontWeight: '400',
-    color: palette.gold.DEFAULT,
+    fontFamily: theme.typography.fontFamily.heading,
+    fontSize: theme.typography.sizes['4xl'],
+    fontWeight: theme.typography.weights.regular,
+    color: theme.colors.text.paragraph1,
     textAlign: 'center',
     lineHeight: 38,
     width: 217,
@@ -265,12 +265,12 @@ const styles = StyleSheet.create({
 
   // Description: Inter 16 palette.gold.subtlest, 317w, centered
   description: {
-    fontFamily: 'Inter',
-    fontSize: 16,
-    fontWeight: '400',
-    color: palette.gold.subtlest,
+    fontFamily: theme.typography.fontFamily.body,
+    fontSize: theme.typography.sizes.base,
+    fontWeight: theme.typography.weights.regular,
+    color: theme.colors.text.paragraph2,
     textAlign: 'center',
-    lineHeight: 24,
+    lineHeight: theme.typography.lineHeights.lg,
     width: 317,
   },
 
@@ -278,18 +278,18 @@ const styles = StyleSheet.create({
   startButton: {
     width: 104,
     height: 55,
-    borderRadius: 12,
+    borderRadius: radius.s,
     borderWidth: 0.5,
-    borderColor: palette.navy.light,
-    backgroundColor: 'transparent',
+    borderColor: theme.colors.border.subtle,
+    backgroundColor: palette.neutral.transparent,
     justifyContent: 'center',
     alignItems: 'center',
   },
   startText: {
-    fontFamily: 'CormorantGaramond-Regular',
-    fontSize: 24,
-    fontWeight: '400',
-    color: palette.gold.DEFAULT,
+    fontFamily: theme.typography.fontFamily.heading,
+    fontSize: theme.typography.sizes['2xl'],
+    fontWeight: theme.typography.weights.regular,
+    color: theme.colors.text.paragraph1,
     letterSpacing: 1,
   },
 
@@ -302,33 +302,33 @@ const styles = StyleSheet.create({
     gap: 20,
   },
   ambientLabel: {
-    fontFamily: 'CormorantGaramond-Regular',
-    fontSize: 20,
-    fontWeight: '400',
-    color: palette.gold.warm,
+    fontFamily: theme.typography.fontFamily.heading,
+    fontSize: theme.typography.sizes.xl,
+    fontWeight: theme.typography.weights.regular,
+    color: theme.colors.secondary['secondary-color-2'],
   },
 
   // Custom toggle: 60x32, bg=palette.navy.light, r=16, border=palette.navy.border 1px, padding=4
   toggle: {
     width: 60,
     height: 32,
-    borderRadius: 16,
-    backgroundColor: palette.navy.light,
-    borderWidth: 1,
+    borderRadius: radius.xl,
+    backgroundColor: theme.colors.border.subtle,
+    borderWidth: borderWidth.regular,
     borderColor: palette.navy.border,
-    padding: 4,
+    padding: spacing.xxs,
     justifyContent: 'center',
   },
   toggleOn: {
-    backgroundColor: palette.gold.dark,
-    borderColor: palette.gold.dark,
+    backgroundColor: theme.colors.text.heading,
+    borderColor: theme.colors.text.heading,
   },
-  // Thumb: Ellipse 1 — 24x24, palette.gold.subtlest
+  // Thumb: Ellipse 1 — 24x24, paragraph-2
   thumb: {
     width: 24,
     height: 24,
-    borderRadius: 12,
-    backgroundColor: palette.gold.subtlest,
+    borderRadius: radius.xl / 2,
+    backgroundColor: theme.colors.text.paragraph2,
     alignSelf: 'flex-start',
   },
   thumbOn: {
@@ -336,19 +336,19 @@ const styles = StyleSheet.create({
   },
   infoOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    backgroundColor: modalColors.navyDeep60,
     zIndex: 50,
     justifyContent: 'center',
     alignItems: 'center',
   },
   infoPopupContainer: {
     width: 329,
-    backgroundColor: 'rgba(20, 25, 40, 0.95)',
-    borderRadius: 13,
-    borderWidth: 0.25,
+    backgroundColor: modalColors.card,
+    borderRadius: radius.m - 3,
+    borderWidth: borderWidth.hairline,
     borderColor: palette.navy.muted,
-    padding: 24,
-    shadowColor: palette.gold.DEFAULT,
+    padding: spacing.xl,
+    shadowColor: theme.colors.text.paragraph1,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.3,
     shadowRadius: 12,
@@ -362,37 +362,37 @@ const styles = StyleSheet.create({
   },
   infoCloseText: {
     fontSize: 28,
-    color: palette.gold.DEFAULT,
-    fontWeight: '300',
+    color: theme.colors.text.paragraph1,
+    fontWeight: theme.typography.weights.light,
   },
   infoTitle: {
-    fontFamily: 'CormorantGaramond-Regular',
-    fontSize: 28,
-    color: palette.gold.DEFAULT,
+    fontFamily: theme.typography.fontFamily.heading,
+    fontSize: theme.typography.sizes['3xl'],
+    color: theme.colors.text.paragraph1,
     textAlign: 'center',
     letterSpacing: 1,
-    marginBottom: 16,
-    marginTop: 8,
-    textShadowColor: 'rgba(242, 226, 177, 0.4)',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 8,
+    marginBottom: spacing.m,
+    marginTop: spacing.xs,
+    textShadowColor: textShadow.glowSubtle.color,
+    textShadowOffset: textShadow.glowSubtle.offset,
+    textShadowRadius: textShadow.glowSubtle.radius,
   },
   infoBody: {
-    fontFamily: 'Inter',
-    fontSize: 16,
+    fontFamily: theme.typography.fontFamily.body,
+    fontSize: theme.typography.sizes.base,
     color: palette.neutral.white,
     textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: 16,
+    lineHeight: theme.typography.lineHeights.lg,
+    marginBottom: spacing.m,
   },
   infoSub: {
-    fontFamily: 'Inter-Italic',
+    fontFamily: fontFamily.bodyItalic,
     fontSize: 15,
-    color: palette.gold.DEFAULT,
+    color: theme.colors.text.paragraph1,
     textAlign: 'center',
     lineHeight: 22,
-    marginTop: 8,
-    marginBottom: 16,
+    marginTop: spacing.xs,
+    marginBottom: spacing.m,
   },
   infoRichBody: {
     alignItems: 'flex-start',
@@ -400,8 +400,8 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   infoItalicLine: {
-    fontFamily: 'Inter-Italic',
-    fontSize: 18,
+    fontFamily: fontFamily.bodyItalic,
+    fontSize: theme.typography.sizes.lg,
     color: palette.neutral.white,
     textAlign: 'center',
     width: '100%',
@@ -414,26 +414,26 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   infoBulletDot: {
-    fontFamily: 'Inter',
-    fontSize: 16,
+    fontFamily: theme.typography.fontFamily.body,
+    fontSize: theme.typography.sizes.base,
     color: palette.neutral.white,
-    lineHeight: 24,
+    lineHeight: theme.typography.lineHeights.lg,
   },
   infoBold: {
-    fontFamily: 'Inter-Bold',
-    fontSize: 16,
+    fontFamily: fontFamily.bodyBold,
+    fontSize: theme.typography.sizes.base,
     color: palette.neutral.white,
   },
   infoNavRow: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 24,
+    gap: spacing.xl,
   },
   infoArrowImg: {
     width: 28,
     height: 28,
-    tintColor: palette.gold.DEFAULT,
+    tintColor: theme.colors.text.paragraph1,
   },
   infoArrowPlaceholder: {
     width: 28,
