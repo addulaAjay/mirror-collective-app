@@ -148,14 +148,38 @@ const AuthNavigator = () => (
       name="MirrorCodeLibrary"
       component={MirrorCodeLibraryCommingsoonScreen}
     />
-    <Stack.Screen name="ReflectionRoom" component={ReflectionRoomLandingScreen} />
-    <Stack.Screen name="ReflectionRoomQuiz" component={ReflectionRoomQuizScreen} />
-    <Stack.Screen name="ReflectionRoomLoading" component={ReflectionRoomLoadingScreen} />
-    <Stack.Screen name="ReflectionRoomTodaysMotif" component={ReflectionRoomTodaysMotifScreen} />
-    <Stack.Screen name="ReflectionRoomEchoSignature" component={ReflectionRoomEchoSignatureScreen} />
-    <Stack.Screen name="ReflectionRoomEchoMap" component={ReflectionRoomEchoMapScreen} />
-    <Stack.Screen name="ReflectionRoomMirrorMoment" component={ReflectionRoomMirrorMomentScreen} />
-    <Stack.Screen name="ReflectionRoomCore" component={ReflectionRoomCoreScreen} />
+    <Stack.Screen
+      name="ReflectionRoom"
+      component={ReflectionRoomLandingScreen}
+    />
+    <Stack.Screen
+      name="ReflectionRoomQuiz"
+      component={ReflectionRoomQuizScreen}
+    />
+    <Stack.Screen
+      name="ReflectionRoomLoading"
+      component={ReflectionRoomLoadingScreen}
+    />
+    <Stack.Screen
+      name="ReflectionRoomTodaysMotif"
+      component={ReflectionRoomTodaysMotifScreen}
+    />
+    <Stack.Screen
+      name="ReflectionRoomEchoSignature"
+      component={ReflectionRoomEchoSignatureScreen}
+    />
+    <Stack.Screen
+      name="ReflectionRoomEchoMap"
+      component={ReflectionRoomEchoMapScreen}
+    />
+    <Stack.Screen
+      name="ReflectionRoomMirrorMoment"
+      component={ReflectionRoomMirrorMomentScreen}
+    />
+    <Stack.Screen
+      name="ReflectionRoomCore"
+      component={ReflectionRoomCoreScreen}
+    />
     <Stack.Screen name="MirrorEcho" component={MirrorEchoCommingsoonScreen} />
     <Stack.Screen
       name="TermsAndConditions"

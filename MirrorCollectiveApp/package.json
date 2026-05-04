@@ -74,7 +74,7 @@
     "@react-native/metro-config": "0.80.1",
     "@react-native/typescript-config": "0.80.1",
     "@testing-library/react-native": "^13.2.0",
-    "@tokens-studio/sd-transforms": "^2.0.3",
+    "@tokens-studio/sd-transforms": "^1.2.12",
     "@types/jest": "^29.5.13",
     "@types/react": "^19.1.0",
     "@types/react-test-renderer": "^19.1.0",
