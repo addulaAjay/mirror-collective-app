@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import {
   Dimensions,
   Image,
+  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -134,15 +135,21 @@ const ReflectionRoomLandingScreen: React.FC = () => {
           </View>
         </ScrollView>
       </SafeAreaView>
-      {showInfo && (
-        <Pressable
-          style={styles.infoOverlay}
-          onPress={() => setShowInfo(false)}
-        >
+      <Modal
+        visible={showInfo}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={() => setShowInfo(false)}
+      >
+        <View style={styles.infoModalRoot}>
           <Pressable
-            style={styles.infoPopupContainer}
-            onPress={e => e.stopPropagation()}
-          >
+            style={styles.infoBackdrop}
+            onPress={() => setShowInfo(false)}
+            accessibilityLabel="Close info"
+            accessibilityRole="button"
+          />
+          <View style={styles.infoPopupContainer}>
             <TouchableOpacity
               style={styles.infoCloseBtn}
               onPress={() => setShowInfo(false)}
@@ -204,9 +211,9 @@ const ReflectionRoomLandingScreen: React.FC = () => {
                 <View style={styles.infoArrowPlaceholder} />
               )}
             </View>
-          </Pressable>
-        </Pressable>
-      )}
+          </View>
+        </View>
+      </Modal>
     </BackgroundWrapper>
   );
 };
@@ -378,12 +385,14 @@ const styles = StyleSheet.create({
   thumbOn: {
     alignSelf: 'flex-end',
   },
-  infoOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: modalColors.navyDeep60,
-    zIndex: 50,
+  infoModalRoot: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  infoBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: modalColors.navyDeep60,
   },
   infoPopupContainer: {
     width: 329,

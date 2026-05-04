@@ -4,6 +4,7 @@ import React from 'react';
 import {
   Dimensions,
   Image,
+  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -210,15 +211,21 @@ const ReflectionRoomMirrorMomentScreen: React.FC = () => {
           </Pressable>
         </Pressable>
       )}
-      {showInfo && (
-        <Pressable
-          style={styles.popupOverlay}
-          onPress={() => setShowInfo(false)}
-        >
+      <Modal
+        visible={showInfo}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={() => setShowInfo(false)}
+      >
+        <View style={styles.infoModalRoot}>
           <Pressable
-            style={styles.infoPopupContainer}
-            onPress={e => e.stopPropagation()}
-          >
+            style={styles.infoBackdrop}
+            onPress={() => setShowInfo(false)}
+            accessibilityLabel="Close info"
+            accessibilityRole="button"
+          />
+          <View style={styles.infoPopupContainer}>
             <TouchableOpacity
               style={styles.infoCloseBtn}
               onPress={() => setShowInfo(false)}
@@ -251,9 +258,9 @@ const ReflectionRoomMirrorMomentScreen: React.FC = () => {
                 <View style={styles.infoArrowPlaceholder} />
               )}
             </View>
-          </Pressable>
-        </Pressable>
-      )}
+          </View>
+        </View>
+      </Modal>
     </BackgroundWrapper>
   );
 };
@@ -472,6 +479,15 @@ const styles = StyleSheet.create({
     color: theme.colors.text.paragraph1,
     letterSpacing: 1,
     textAlign: 'center',
+  },
+  infoModalRoot: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  infoBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: modalColors.navyDeep60,
   },
   infoPopupContainer: {
     width: 329,

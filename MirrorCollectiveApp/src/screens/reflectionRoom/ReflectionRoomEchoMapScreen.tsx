@@ -1,10 +1,10 @@
-import { palette, textShadow } from '@theme';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useState } from 'react';
 import {
   Dimensions,
   Image,
+  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -199,14 +199,13 @@ const ReflectionRoomEchoMapScreen: React.FC = () => {
                 setShowInfo(true);
                 setInfoPage(0);
               }}
+              accessibilityLabel="Echo Map info"
             >
-              <Text style={styles.infoIcon}>
-                <Image
-                  source={require('@assets/rr-info-icon.png')}
-                  style={styles.backArrowImg}
-                  resizeMode="contain"
-                />
-              </Text>
+              <Image
+                source={require('@assets/rr-info-icon.png')}
+                style={styles.infoHeaderIcon}
+                resizeMode="contain"
+              />
             </TouchableOpacity>
           </View>
 
@@ -286,7 +285,7 @@ const ReflectionRoomEchoMapScreen: React.FC = () => {
 
           <TouchableOpacity
             style={styles.ctaButton}
-            onPress={() => navigation.navigate('ReflectionRoomMirrorMoment')}
+            onPress={() => navigation.navigate('ReflectionRoomMirrorMoment' as never)}
           >
             <Text style={styles.ctaText}>MIRROR MOMENT</Text>
           </TouchableOpacity>
@@ -298,15 +297,21 @@ const ReflectionRoomEchoMapScreen: React.FC = () => {
           onPress={() => setSelectedNode(null)}
         />
       )}
-      {showInfo && (
-        <Pressable
-          style={styles.infoOverlay}
-          onPress={() => setShowInfo(false)}
-        >
+      <Modal
+        visible={showInfo}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={() => setShowInfo(false)}
+      >
+        <View style={styles.infoModalRoot}>
           <Pressable
-            style={styles.infoPopupContainer}
-            onPress={e => e.stopPropagation()}
-          >
+            style={styles.infoBackdrop}
+            onPress={() => setShowInfo(false)}
+            accessibilityLabel="Close info"
+            accessibilityRole="button"
+          />
+          <View style={styles.infoPopupContainer}>
             <TouchableOpacity
               style={styles.infoCloseBtn}
               onPress={() => setShowInfo(false)}
@@ -368,9 +373,9 @@ const ReflectionRoomEchoMapScreen: React.FC = () => {
                 <View style={styles.infoArrowPlaceholder} />
               )}
             </View>
-          </Pressable>
-        </Pressable>
-      )}
+          </View>
+        </View>
+      </Modal>
     </BackgroundWrapper>
   );
 };
@@ -426,9 +431,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'flex-end',
   },
-  infoIcon: {
-    fontSize: 20,
-    color: theme.colors.text.paragraph1,
+  infoHeaderIcon: {
+    width: 24,
+    height: 24,
   },
   subtitle: {
     fontFamily: theme.typography.fontFamily.body,
@@ -553,12 +558,14 @@ const styles = StyleSheet.create({
     height: 24,
     tintColor: theme.colors.text.paragraph1,
   },
-  infoOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: modalColors.navyDeep60,
-    zIndex: 50,
+  infoModalRoot: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  infoBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: modalColors.navyDeep60,
   },
   infoPopupContainer: {
     width: 329,
