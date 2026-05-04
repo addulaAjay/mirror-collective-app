@@ -1,41 +1,79 @@
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '@types';
-import React, { useState } from 'react';
-import { palette } from '@theme';
-import {
-  View,
-  Text,
-  StyleSheet,
-  StatusBar,
-  TouchableOpacity,
-  Image,
-  TextInput,
-  Dimensions,
-  Platform,
-  KeyboardAvoidingView,
-  ScrollView,
-  Alert,
-  ActivityIndicator,
-} from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { SvgXml } from 'react-native-svg';
+/**
+ * Add New Profile Screen
+ * Figma: Design-Master-File → Add Profile (780:1147)
+ *
+ * Layout:
+ *   LogoHeader
+ *   Header row: ← | ADD PROFILE | spacer
+ *   Subtitle — "Personalize your echo with a photo of the intended recipient/guardian."
+ *   Photo circle (186×186) — "Add Image +" taps open gallery; shows photo when selected
+ *   Name field — TextInputField
+ *   Email field — TextInputField
+ *   ADD button — Button primary
+ *
+ * Image flow:
+ *   1. User taps circle → launchImageLibrary from react-native-image-picker
+ *   2. Selected photo shown in circle (URI stored in state)
+ *   3. getUploadUrl('image/jpeg', undefined, 'profile') → presigned S3 URL (no echoId needed)
+ *   4. uploadMedia(upload_url, localUri) → PUT to S3
+ *   5. Public media_url stored as profile_image_url on recipient via addRecipient
+ *   6. EchoVaultLibraryScreen reads recipient.profile_image_url → shows in EchoAvatar
+ */
 
-import { MOTIF_ICONS } from '@assets/motifs/MotifAssets';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import React, { useState } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  type ImageStyle,
+  type TextStyle,
+  type ViewStyle,
+} from 'react-native';
+import { launchImageLibrary } from 'react-native-image-picker';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Svg, { Path } from 'react-native-svg';
+
 import BackgroundWrapper from '@components/BackgroundWrapper';
+import Button from '@components/Button/Button';
 import LogoHeader from '@components/LogoHeader';
-import MotifSelectionModal from '@components/MotifSelectionModal';
+import TextInputField from '@components/TextInputField';
 import { echoApiService } from '@services/api/echo';
+import {
+  borderWidth,
+  fontFamily,
+  fontSize,
+  fontWeight,
+  moderateScale,
+  palette,
+  scale,
+  spacing,
+  textShadow,
+  verticalScale,
+} from '@theme';
+import type { RootStackParamList } from '@types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AddNewProfileScreen'>;
 
-const { width } = Dimensions.get('window');
+// ── Back arrow ────────────────────────────────────────────────────────────────
+const BackIcon: React.FC = () => (
+  <Svg width={scale(20)} height={scale(20)} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
+      fill={palette.gold.DEFAULT}
+    />
+  </Svg>
+);
 
-const GOLD = palette.gold.mid;
-const LIGHT_GOLD = palette.gold.DEFAULT;
-const OFFWHITE = palette.gold.subtlest;
-const BLUE_GREY = palette.navy.light;
-const SUBTEXT = 'rgba(253,253,249,0.75)';
+const CIRCLE = scale(186);
 
 const AddNewProfileScreen: React.FC<Props> = ({ navigation, route }) => {
   const mode = route.params?.mode ?? 'recipient';
@@ -43,159 +81,165 @@ const AddNewProfileScreen: React.FC<Props> = ({ navigation, route }) => {
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [motif, setMotif] = useState('');
+  const [photoUri, setPhotoUri] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [modalVisible, setModalVisible] = useState(false);
 
-  const handleAddProfile = async () => {
+  const handlePickImage = async () => {
+    const result = await launchImageLibrary({
+      mediaType: 'photo',
+      quality: 0.8,
+      maxWidth: 400,
+      maxHeight: 400,
+    });
+
+    if (!result.didCancel && result.assets?.[0]?.uri) {
+      setPhotoUri(result.assets[0].uri);
+    }
+  };
+
+  const handleAdd = async () => {
     if (!name.trim() || !email.trim()) {
-      Alert.alert('Error', 'Please enter a name and email address');
+      Alert.alert('Required', 'Please enter a name and email address.');
       return;
     }
-
     try {
       setLoading(true);
+
+      // Upload profile photo → S3 before saving the recipient.
+      // Reuses getUploadUrl (upload_type:'profile', no echoId) + uploadMedia —
+      // the same pipeline as echo audio/video, no separate endpoint needed.
+      let profileImageUrl: string | undefined;
+      if (photoUri && !isGuardian) {
+        const urlRes = await echoApiService.getUploadUrl('image/jpeg', undefined, 'profile');
+        if (!urlRes.success || !urlRes.data) {
+          throw new Error(urlRes.error ?? 'Could not get image upload URL');
+        }
+        await echoApiService.uploadMedia(urlRes.data.upload_url, photoUri, 'image/jpeg');
+        profileImageUrl = urlRes.data.media_url;   // public S3 URL stored on recipient
+      }
+
       const response = isGuardian
         ? await echoApiService.addGuardian({ name, email })
-        : await echoApiService.addRecipient({ name, email, motif: motif.trim() || undefined });
+        : await echoApiService.addRecipient({
+            name,
+            email,
+            ...(profileImageUrl ? { profile_image_url: profileImageUrl } : {}),
+          });
+
       if (response.success) {
         Alert.alert('Success', `${isGuardian ? 'Guardian' : 'Recipient'} added successfully`, [
-          { text: 'OK', onPress: () => navigation.goBack() }
+          { text: 'OK', onPress: () => navigation.goBack() },
         ]);
       } else {
         Alert.alert('Error', response.error || `Failed to add ${isGuardian ? 'guardian' : 'recipient'}`);
       }
-    } catch (error) {
-      console.error('Add profile error:', error);
-      Alert.alert('Error', 'An unexpected error occurred');
+    } catch (err: any) {
+      Alert.alert('Error', err?.message ?? 'An unexpected error occurred');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSelectMotif = (motifId: string) => {
-    setMotif(motifId);
-    setModalVisible(false);
-  };
-
-  const contentWidth = Math.min(width * 0.88, 360);
-
-  const selectedIcon = MOTIF_ICONS.find(m => m.id === motif);
-
   return (
-    <BackgroundWrapper style={styles.root}>
+    <BackgroundWrapper style={styles.bg} scrollable>
       <SafeAreaView style={styles.safe}>
-        <StatusBar
-          barStyle="light-content"
-          translucent
-          backgroundColor="transparent"
-        />
-        
-        {/* Header - Sticky */}
+        <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
         <LogoHeader navigation={navigation} />
 
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={{ flex: 1, width: '100%' }}
+          style={styles.kav}
         >
           <ScrollView
-            contentContainerStyle={{ flexGrow: 1, alignItems: 'center', paddingBottom: 40 }}
+            contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
           >
-            {/* Title */}
-            <View style={[styles.titleRow, { width: contentWidth }]}>
-              <TouchableOpacity onPress={() => navigation.goBack()}>
-                <Image source={require('@assets/back-arrow.png')} style={styles.backArrowImg} resizeMode="contain" />
-              </TouchableOpacity>
+            <View style={styles.content}>
 
-              <Text style={styles.title}>{isGuardian ? 'ADD GUARDIAN' : 'ADD PROFILE'}</Text>
-
-              <View style={{ width: 24 }} />
-            </View>
-
-            {/* Description */}
-            <Text style={[styles.description, { width: contentWidth }]}>
-              {isGuardian
-                ? 'Your guardians can verify your identity and unlock legacy echoes.'
-                : 'Your recipients will have access to echoes you share with them.'}
-            </Text>
-
-            {/* Add Icon Circle */}
-            <View style={styles.iconWrap}>
-              <TouchableOpacity
-                onPress={() => setModalVisible(true)}
-              >
-                <LinearGradient
-                  colors={['rgba(229, 214, 176, 0.05)', 'rgba(197, 157, 95, 0.05)']}
-                  start={{x: 1, y: 0.5}}
-                  end={{x: 0, y: 0.5}}
-                  style={styles.iconOuter}
+              {/* ── Header row ──────────────────────────────────────────── */}
+              <View style={styles.headerRow}>
+                <TouchableOpacity
+                  onPress={() => navigation.goBack()}
+                  style={styles.backBtn}
+                  accessibilityRole="button"
                 >
-                  <View style={styles.iconInner}>
-                  {selectedIcon ? (
-                    <SvgXml xml={selectedIcon.xml} width={80} height={80} />
-                  ) : motif ? (
-                    <Text style={[styles.iconLabel, { fontSize: 48 }]}>{motif}</Text>
-                  ) : (
-                    <Text style={styles.iconLabel}>Add Icon</Text>
-                  )}
-                  </View>
-                </LinearGradient>
-              </TouchableOpacity>
-            </View>
-
-            {/* Form */}
-            <View style={[styles.form, { width: contentWidth }]}>
-              <Text style={styles.label}>Name</Text>
-              <View style={styles.inputShell}>
-                <TextInput
-                  value={name}
-                  onChangeText={setName}
-                  placeholder={isGuardian ? 'Enter name of guardian' : 'Enter name of recipient'}
-                  placeholderTextColor={BLUE_GREY}
-                  style={styles.input}
-                />
+                  <BackIcon />
+                </TouchableOpacity>
+                {/* Heading M: Cormorant Regular 28/32, gold, glow */}
+                <Text style={styles.screenTitle}>
+                  {isGuardian ? 'ADD GUARDIAN' : 'ADD PROFILE'}
+                </Text>
+                <View style={styles.headerSpacer} />
               </View>
 
-              <Text style={[styles.label, { marginTop: 16 }]}>Email Address</Text>
-              <View style={styles.inputShell}>
-                <TextInput
-                  value={email}
-                  onChangeText={setEmail}
-                  placeholder={isGuardian ? 'Enter guardian email address' : 'Enter recipient email address'}
-                  placeholderTextColor={BLUE_GREY}
-                  style={styles.input}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                />
-              </View>
+              {/* ── Subtitle ─────────────────────────────────────────────── */}
+              {/* Body S Regular: Inter 16/24, #fdfdf9, center */}
+              <Text style={styles.subtitle}>
+                Personalize your echo with a photo of the intended recipient/guardian.
+              </Text>
 
-
-            </View>
-
-            {/* Add Button */}
-            <TouchableOpacity 
-              style={styles.addWrap}
-              onPress={handleAddProfile}
-              disabled={loading}
-            >
-              <View style={styles.addButton}>
-                {loading ? (
-                  <ActivityIndicator color={LIGHT_GOLD} />
+              {/* ── Photo circle ──────────────────────────────────────────── */}
+              {/*
+                Figma: 186×186 circle, gold border 0.5px, gold glow shadow.
+                "Add Image +" when empty, shows photo when selected.
+                Tap → opens device gallery (react-native-image-picker).
+              */}
+              <TouchableOpacity
+                style={styles.photoCircle}
+                activeOpacity={0.85}
+                onPress={handlePickImage}
+                accessibilityRole="button"
+                accessibilityLabel="Add photo from gallery"
+              >
+                {photoUri ? (
+                  <Image
+                    source={{ uri: photoUri }}
+                    style={styles.photoImg}
+                    resizeMode="cover"
+                  />
                 ) : (
-                  <Text style={styles.addText}>ADD</Text>
+                  <Text style={styles.addImageText}>Add Image +</Text>
                 )}
-              </View>
-            </TouchableOpacity>
+              </TouchableOpacity>
+
+              {/* ── Name ─────────────────────────────────────────────────── */}
+              <TextInputField
+                label="Name"
+                placeholder={isGuardian ? 'Enter name of guardian' : 'Enter name of recipient/guardian'}
+                value={name}
+                onChangeText={setName}
+                autoCapitalize="words"
+              />
+
+              {/* ── Email ────────────────────────────────────────────────── */}
+              <TextInputField
+                label="Email Address"
+                placeholder={isGuardian ? 'Enter guardian email address' : 'Enter recipient/guardian email address'}
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoComplete="email"
+                textContentType="emailAddress"
+              />
+
+              {/* ── ADD button ───────────────────────────────────────────── */}
+              {loading ? (
+                <ActivityIndicator color={palette.gold.DEFAULT} style={{ marginTop: verticalScale(8) }} />
+              ) : (
+                <Button
+                  variant="primary"
+                  size="L"
+                  title="ADD"
+                  onPress={handleAdd}
+                  active={!!(name.trim() && email.trim())}
+                />
+              )}
+
+            </View>
           </ScrollView>
         </KeyboardAvoidingView>
-        
-        <MotifSelectionModal 
-          visible={modalVisible}
-          onClose={() => setModalVisible(false)}
-          onSelect={handleSelectMotif}
-        />
       </SafeAreaView>
     </BackgroundWrapper>
   );
@@ -203,164 +247,113 @@ const AddNewProfileScreen: React.FC<Props> = ({ navigation, route }) => {
 
 export default AddNewProfileScreen;
 
-/* ---------------- STYLES ---------------- */
+// ── Styles ────────────────────────────────────────────────────────────────────
 
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: 'transparent',
-    alignItems: 'center',
+const styles = StyleSheet.create<{
+  bg: ViewStyle;
+  safe: ViewStyle;
+  kav: ViewStyle;
+  scrollContent: ViewStyle;
+  content: ViewStyle;
+  headerRow: ViewStyle;
+  backBtn: ViewStyle;
+  screenTitle: TextStyle;
+  headerSpacer: ViewStyle;
+  subtitle: TextStyle;
+  photoCircle: ViewStyle;
+  photoImg: ImageStyle;
+  addImageText: TextStyle;
+}>({
+  bg:   { flex: 1 },
+  safe: { flex: 1, backgroundColor: 'transparent' },
+  kav:  { flex: 1, width: '100%' },
+
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: verticalScale(spacing.xxxl),
   },
-  root: {
-    flex: 1,
-    alignItems: 'center',
+  content: {
+    paddingHorizontal: scale(spacing.xl),        // 24px
+    paddingTop:        verticalScale(spacing.l),
+    gap:               verticalScale(spacing.xl), // 24px between sections
+    alignItems:        'center',
   },
 
-  /* Title */
-  titleRow: {
-    marginTop: 30,
-    flexDirection: 'row',
-    alignItems: 'center',
+  // ── Header ─────────────────────────────────────────────────────────────────
+  headerRow: {
+    flexDirection:  'row',
+    alignItems:     'center',
     justifyContent: 'space-between',
+    width:          '100%',
   },
-  backArrow: {
-    fontSize: 22,
-    color: LIGHT_GOLD,
+  backBtn: {
+    width:          scale(44),
+    height:         scale(44),
+    justifyContent: 'center',
+    alignItems:     'flex-start',
   },
-  backArrowImg: {
-    width: 20,
-    height: 20,
-    tintColor: LIGHT_GOLD,
-  },
-  title: {
-    fontSize: 28,
-    color: LIGHT_GOLD,
-    letterSpacing: 0,
-    textAlign: 'center',
-    fontFamily: Platform.select({
-      ios: 'CormorantGaramond-Regular',
-      android: 'serif',
-    }),
-    textShadowColor: palette.gold.glow,
+  // Heading M: Cormorant Regular 28/32, #f2e1b0, glow
+  screenTitle: {
+    fontFamily:       fontFamily.heading,
+    fontSize:         moderateScale(fontSize['2xl']),
+    fontWeight:       fontWeight.regular,
+    lineHeight:       moderateScale(32),
+    color:            palette.gold.DEFAULT,
+    textAlign:        'center',
+    flex:             1,
+    textShadowColor:  'rgba(240,212,168,0.3)',
     textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 16,
+    textShadowRadius: 10,
+  },
+  headerSpacer: { width: scale(44) },
+
+  // ── Subtitle ────────────────────────────────────────────────────────────────
+  // Body S Regular: Inter 16/24, #fdfdf9, center
+  subtitle: {
+    fontFamily: fontFamily.body,
+    fontWeight: fontWeight.regular,
+    fontSize:   moderateScale(fontSize.s),
+    lineHeight: moderateScale(24),
+    color:      palette.gold.subtlest,
+    textAlign:  'center',
+    width:      '100%',
   },
 
-  /* Description */
-  description: {
-    marginTop: 12,
-    textAlign: 'center',
-    color: OFFWHITE,
-    fontSize: 16,
-    lineHeight: 24,
-    fontFamily: Platform.select({
-      ios: 'System', // Inter is not standard, using System as fallback or we assume custom font loaded
-      android: 'sans-serif',
-    }),
+  // ── Photo circle ────────────────────────────────────────────────────────────
+  // Figma: 186×186, gold border 0.5px, glow shadow 0 0 25px rgba(229,214,176,0.3)
+  photoCircle: {
+    width:           CIRCLE,
+    height:          CIRCLE,
+    borderRadius:    CIRCLE / 2,
+    borderWidth:     borderWidth.thin,              // 0.5px
+    borderColor:     palette.gold.warm,             // gold warm
+    backgroundColor: 'rgba(229,214,176,0.04)',
+    alignItems:      'center',
+    justifyContent:  'center',
+    overflow:        'hidden',
+    // Glow
+    boxShadow:       '0px 0px 25px 0px rgba(229,214,176,0.3)',
+    shadowColor:     palette.gold.warm,
+    shadowOffset:    { width: 0, height: 0 },
+    shadowOpacity:   0.3,
+    shadowRadius:    25,
+    elevation:       8,
   },
-
-  /* Icon Circle */
-  iconWrap: {
-    marginTop: 24,
-    marginBottom: 24,
-    alignItems: 'center',
+  photoImg: {
+    width:        '100%',
+    height:       '100%',
+    borderRadius: CIRCLE / 2,
   },
-  iconOuter: {
-    width: 186,
-    height: 186,
-    borderRadius: 93,
-    borderWidth: 0.5,
-    borderColor: palette.gold.warm,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...Platform.select({
-      ios: {
-        shadowColor: 'rgba(229, 214, 176, 1)',
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.3,
-        shadowRadius: 25,
-      },
-      android: {
-        boxShadow: '0 0 25px rgba(229, 214, 176, 0.30)',
-      },
-    }),
-  },
-  iconInner: {
-    width: 160,
-    height: 160,
-    borderRadius: 80,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  iconLabel: {
-    color: 'white',
-    fontSize: 24,
-    textAlign: 'center',
-    fontFamily: Platform.select({
-      ios: 'CormorantGaramond-Regular',
-      android: 'serif',
-    }),
-  },
-
-  /* Form */
-  form: {
-    marginBottom: 24,
-  },
-  label: {
-    color: LIGHT_GOLD,
-    fontSize: 20,
-    marginBottom: 6,
-    fontFamily: Platform.select({
-      ios: 'CormorantGaramond-Medium',
-      android: 'serif',
-    }),
-  },
-  inputShell: {
-    borderRadius: 12,
-    borderWidth: 0.5,
-    borderColor: BLUE_GREY,
-    backgroundColor: 'rgba(253,253,249,0.04)',
-    paddingHorizontal: 16,
-    height: 48,
-    justifyContent: 'center',
-  },
-  input: {
-    color: BLUE_GREY,
-    fontSize: 16,
-    fontFamily: Platform.select({
-      ios: 'CormorantGaramond-Italic',
-      android: 'serif',
-    }),
-    fontStyle: 'italic',
-    paddingVertical: 0,
-    includeFontPadding: false,
-  },
-
-  /* Add button */
-  addWrap: {
-    marginTop: 8,
-  },
-  addButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 12,
-    borderWidth: 0.5,
-    borderColor: BLUE_GREY,
-    backgroundColor: 'rgba(253,253,249,0.04)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    minWidth: 100,
-  },
-  addText: {
-    color: LIGHT_GOLD,
-    fontSize: 24,
-    textAlign: 'center',
-    textShadowColor: 'rgba(229,214,176,0.5)',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 9,
-    fontFamily: Platform.select({
-      ios: 'CormorantGaramond-Regular',
-      android: 'serif',
-    }),
+  // "Add Image +" — Heading XS: Cormorant Regular 20/24, gold
+  addImageText: {
+    fontFamily: fontFamily.heading,
+    fontSize:   moderateScale(fontSize.l),          // 20px
+    fontWeight: fontWeight.regular,
+    lineHeight: moderateScale(24),
+    color:      palette.gold.DEFAULT,
+    textAlign:  'center',
+    textShadowColor:  textShadow.warmGlow.color,
+    textShadowOffset: textShadow.warmGlow.offset,
+    textShadowRadius: textShadow.warmGlow.radius,
   },
 });

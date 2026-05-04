@@ -37,7 +37,6 @@ export type RootStackParamList = {
   EmailConfirmation: undefined;
   AppVideo: undefined;
   TalkToMirror: undefined;
-  AppExplanation: undefined;
   Login: undefined;
   MirrorChat: undefined;
   SignUp: undefined;
@@ -48,9 +47,18 @@ export type RootStackParamList = {
   QuizTuning: ArchetypeRouteParams;
   QuizQuestions: undefined;
   Archetype: ArchetypeRouteParams;
+  // Mirror Pledge Screens
+  MirrorPledgeIntro: undefined;
+  EchoLedger: undefined;
+  ViewAllCauses: undefined;
+  CausesCarousel: { initialCauseId?: string } | undefined;
+  PledgeThankYou: undefined;
+  // DEV-only: button visual QA + blur tuning. Wire-up in App.tsx is gated by __DEV__.
+  ButtonShowcase: undefined;
   // Echo Vault Screens
   MirrorEchoVaultHome: undefined;
   MirrorEchoVaultLibrary: undefined;
+  EchoInboxScreen: undefined;
   NewEchoVault: undefined;
   NewEchoScreen: undefined;
   NewEchoCompose: {

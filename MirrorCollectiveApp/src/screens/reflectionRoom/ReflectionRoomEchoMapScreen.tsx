@@ -1,3 +1,4 @@
+import { palette, textShadow } from '@theme';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useState } from 'react';
@@ -15,10 +16,33 @@ import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
 
-import { AGENCY_ICON_SVG, AGENCY_NODE_SVG, CLARITY_ICON_SVG, CLARITY_NODE_SVG, CONNECTING_LINES_SVG, ECHO_MAP_SVG, GRIEF_ICON_SVG, GRIEF_NODE_SVG, OVERWHELM_ICON_SVG, OVERWHELM_NODE_SVG, PRESSURE_ICON_SVG, PRESSURE_NODE_SVG, SELF_SILENCING_ICON_SVG, SELF_SILENCING_NODE_SVG } from '@assets/reflection-room-ech0-map-assets/ReflectionRoomEchoMapAssets';
+import {
+  AGENCY_ICON_SVG,
+  AGENCY_NODE_SVG,
+  CLARITY_ICON_SVG,
+  CLARITY_NODE_SVG,
+  CONNECTING_LINES_SVG,
+  ECHO_MAP_SVG,
+  GRIEF_ICON_SVG,
+  GRIEF_NODE_SVG,
+  OVERWHELM_ICON_SVG,
+  OVERWHELM_NODE_SVG,
+  PRESSURE_ICON_SVG,
+  PRESSURE_NODE_SVG,
+  SELF_SILENCING_ICON_SVG,
+  SELF_SILENCING_NODE_SVG,
+} from '@assets/reflection-room-ech0-map-assets/ReflectionRoomEchoMapAssets';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
-import { borderWidth, fontFamily, modalColors, palette, spacing, textShadow, theme } from '@theme';
+import {
+  borderWidth,
+  fontFamily,
+  modalColors,
+  palette,
+  spacing,
+  textShadow,
+  theme,
+} from '@theme';
 import type { RootStackParamList } from '@types';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('screen');
@@ -73,12 +97,60 @@ const INFO_PAGES = [
 ];
 
 const ECHO_NODES: EchoNode[] = [
-  { label: 'Clarity', cx: 173, cy: 50, customSvg: CLARITY_NODE_SVG, iconSvg: CLARITY_ICON_SVG, description: 'Your mind is sorting the noise. Decisions and next steps feel easier to see.' },
-  { label: 'Self-silencing', cx: 62, cy: 64, customSvg: SELF_SILENCING_NODE_SVG, iconSvg: SELF_SILENCING_ICON_SVG, description: 'You may be holding back your needs or opinions to avoid conflict, judgment, or disappointment.' },
-  { label: 'Pressure', cx: 290, cy: 133, customSvg: PRESSURE_NODE_SVG, iconSvg: PRESSURE_ICON_SVG, description: 'You\'re in "I have to" mode \u2014 urgency, expectations, or fear of falling behind may be driving you.' },
-  { label: 'Grief', cx: 295, cy: 362, customSvg: GRIEF_NODE_SVG, iconSvg: GRIEF_ICON_SVG, description: 'You\'re processing loss or change. Slowing down and being gentle may help it soften.' },
-  { label: 'Agency', cx: 50, cy: 334, customSvg: AGENCY_NODE_SVG, iconSvg: AGENCY_ICON_SVG, description: 'You\'re regaining choice and traction. Even a small action can shift momentum right now.' },
-  { label: 'Overwhelm', cx: 167, cy: 402, customSvg: OVERWHELM_NODE_SVG, iconSvg: OVERWHELM_ICON_SVG, description: 'Too many inputs at once. Your system may need simplification before it can move.' },
+  {
+    label: 'Clarity',
+    cx: 173,
+    cy: 50,
+    customSvg: CLARITY_NODE_SVG,
+    iconSvg: CLARITY_ICON_SVG,
+    description:
+      'Your mind is sorting the noise. Decisions and next steps feel easier to see.',
+  },
+  {
+    label: 'Self-silencing',
+    cx: 62,
+    cy: 64,
+    customSvg: SELF_SILENCING_NODE_SVG,
+    iconSvg: SELF_SILENCING_ICON_SVG,
+    description:
+      'You may be holding back your needs or opinions to avoid conflict, judgment, or disappointment.',
+  },
+  {
+    label: 'Pressure',
+    cx: 290,
+    cy: 133,
+    customSvg: PRESSURE_NODE_SVG,
+    iconSvg: PRESSURE_ICON_SVG,
+    description:
+      'You\'re in "I have to" mode \u2014 urgency, expectations, or fear of falling behind may be driving you.',
+  },
+  {
+    label: 'Grief',
+    cx: 295,
+    cy: 362,
+    customSvg: GRIEF_NODE_SVG,
+    iconSvg: GRIEF_ICON_SVG,
+    description:
+      "You're processing loss or change. Slowing down and being gentle may help it soften.",
+  },
+  {
+    label: 'Agency',
+    cx: 50,
+    cy: 334,
+    customSvg: AGENCY_NODE_SVG,
+    iconSvg: AGENCY_ICON_SVG,
+    description:
+      "You're regaining choice and traction. Even a small action can shift momentum right now.",
+  },
+  {
+    label: 'Overwhelm',
+    cx: 167,
+    cy: 402,
+    customSvg: OVERWHELM_NODE_SVG,
+    iconSvg: OVERWHELM_ICON_SVG,
+    description:
+      'Too many inputs at once. Your system may need simplification before it can move.',
+  },
 ];
 
 const ReflectionRoomEchoMapScreen: React.FC = () => {
@@ -109,10 +181,11 @@ const ReflectionRoomEchoMapScreen: React.FC = () => {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-
-
           <View style={styles.titleRow}>
-            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+            <TouchableOpacity
+              onPress={() => navigation.goBack()}
+              style={styles.backBtn}
+            >
               <Image
                 source={require('@assets/back-arrow.png')}
                 style={styles.backArrowImg}
@@ -120,34 +193,54 @@ const ReflectionRoomEchoMapScreen: React.FC = () => {
               />
             </TouchableOpacity>
             <Text style={styles.title}>ECHO MAP</Text>
-            <TouchableOpacity style={styles.infoBtn} onPress={() => { setShowInfo(true); setInfoPage(0); }}>              
-              <Text style={styles.infoIcon}>              
+            <TouchableOpacity
+              style={styles.infoBtn}
+              onPress={() => {
+                setShowInfo(true);
+                setInfoPage(0);
+              }}
+            >
+              <Text style={styles.infoIcon}>
                 <Image
-                source={require('@assets/rr-info-icon.png')}
-                style={styles.backArrowImg}
-                resizeMode="contain"
-              /></Text>
+                  source={require('@assets/rr-info-icon.png')}
+                  style={styles.backArrowImg}
+                  resizeMode="contain"
+                />
+              </Text>
             </TouchableOpacity>
           </View>
 
           <Text style={styles.subtitle}>
-            Patterns don't disappear when you ignore them. They change when you see them.
+            Patterns don't disappear when you ignore them. They change when you
+            see them.
           </Text>
 
           <View style={styles.mapWrapper}>
             <View style={styles.linesOverlay}>
-              <SvgXml xml={CONNECTING_LINES_SVG} width={MAP_WIDTH} height={MAP_HEIGHT} />
+              <SvgXml
+                xml={CONNECTING_LINES_SVG}
+                width={MAP_WIDTH}
+                height={MAP_HEIGHT}
+              />
             </View>
 
             <View style={styles.svgWrapper}>
-              <SvgXml xml={ECHO_MAP_SVG} width={RING_RENDER_SIZE} height={RING_RENDER_SIZE} />
+              <SvgXml
+                xml={ECHO_MAP_SVG}
+                width={RING_RENDER_SIZE}
+                height={RING_RENDER_SIZE}
+              />
             </View>
 
             {ECHO_NODES.map(node => (
               <TouchableOpacity
                 key={node.label}
                 activeOpacity={0.7}
-                onPress={() => setSelectedNode(selectedNode?.label === node.label ? null : node)}
+                onPress={() =>
+                  setSelectedNode(
+                    selectedNode?.label === node.label ? null : node,
+                  )
+                }
                 style={[
                   styles.echoNode,
                   {
@@ -159,20 +252,31 @@ const ReflectionRoomEchoMapScreen: React.FC = () => {
                   },
                 ]}
               >
-                <SvgXml xml={node.customSvg} width={NODE_SIZE} height={NODE_SIZE} />
+                <SvgXml
+                  xml={node.customSvg}
+                  width={NODE_SIZE}
+                  height={NODE_SIZE}
+                />
               </TouchableOpacity>
             ))}
 
             {selectedNode && (
-                <LinearGradient
-                  colors={['rgba(223, 227, 236, 0.85)', 'rgba(159, 171, 198, 0.85)']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 0, y: 1 }}
-                  style={[styles.popupCard, getPopupPosition(selectedNode)]}
-                >
-                  <SvgXml xml={selectedNode.iconSvg} width={POPUP_ICON_SIZE} height={POPUP_ICON_SIZE} />
-                  <Text style={styles.popupText}>{selectedNode.description}</Text>
-                </LinearGradient>
+              <LinearGradient
+                colors={[
+                  'rgba(223, 227, 236, 0.85)',
+                  'rgba(159, 171, 198, 0.85)',
+                ]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 0, y: 1 }}
+                style={[styles.popupCard, getPopupPosition(selectedNode)]}
+              >
+                <SvgXml
+                  xml={selectedNode.iconSvg}
+                  width={POPUP_ICON_SIZE}
+                  height={POPUP_ICON_SIZE}
+                />
+                <Text style={styles.popupText}>{selectedNode.description}</Text>
+              </LinearGradient>
             )}
           </View>
 
@@ -180,13 +284,12 @@ const ReflectionRoomEchoMapScreen: React.FC = () => {
             This map isn't you — it reflects what you're working through.
           </Text>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.ctaButton}
             onPress={() => navigation.navigate('ReflectionRoomMirrorMoment')}
           >
             <Text style={styles.ctaText}>MIRROR MOMENT</Text>
           </TouchableOpacity>
-
         </ScrollView>
       </SafeAreaView>
       {selectedNode && (
@@ -196,9 +299,18 @@ const ReflectionRoomEchoMapScreen: React.FC = () => {
         />
       )}
       {showInfo && (
-        <Pressable style={styles.infoOverlay} onPress={() => setShowInfo(false)}>
-          <Pressable style={styles.infoPopupContainer} onPress={e => e.stopPropagation()}>
-            <TouchableOpacity style={styles.infoCloseBtn} onPress={() => setShowInfo(false)}>
+        <Pressable
+          style={styles.infoOverlay}
+          onPress={() => setShowInfo(false)}
+        >
+          <Pressable
+            style={styles.infoPopupContainer}
+            onPress={e => e.stopPropagation()}
+          >
+            <TouchableOpacity
+              style={styles.infoCloseBtn}
+              onPress={() => setShowInfo(false)}
+            >
               <Text style={styles.infoCloseText}>×</Text>
             </TouchableOpacity>
             <Text style={styles.infoTitle}>{INFO_PAGES[infoPage].title}</Text>
@@ -209,16 +321,25 @@ const ReflectionRoomEchoMapScreen: React.FC = () => {
               <View style={styles.infoRichBody}>
                 <Text style={styles.infoItalicLine}>Distance = influence</Text>
                 <View style={styles.infoBullet}>
-                  <Text style={styles.infoBulletDot}>•  </Text>
-                  <Text style={styles.infoBody}><Text style={styles.infoBold}>Near YOU:</Text> Actively shaping how you feel, think, or react right now.</Text>
+                  <Text style={styles.infoBulletDot}>• </Text>
+                  <Text style={styles.infoBody}>
+                    <Text style={styles.infoBold}>Near YOU:</Text> Actively
+                    shaping how you feel, think, or react right now.
+                  </Text>
                 </View>
                 <View style={styles.infoBullet}>
-                  <Text style={styles.infoBulletDot}>•  </Text>
-                  <Text style={styles.infoBody}><Text style={styles.infoBold}>Middle orbit:</Text> Still present, but no longer in control.</Text>
+                  <Text style={styles.infoBulletDot}>• </Text>
+                  <Text style={styles.infoBody}>
+                    <Text style={styles.infoBold}>Middle orbit:</Text> Still
+                    present, but no longer in control.
+                  </Text>
                 </View>
                 <View style={styles.infoBullet}>
-                  <Text style={styles.infoBulletDot}>•  </Text>
-                  <Text style={styles.infoBody}><Text style={styles.infoBold}>Outer orbit:</Text> Easing. Less pull. Integration happening.</Text>
+                  <Text style={styles.infoBulletDot}>• </Text>
+                  <Text style={styles.infoBody}>
+                    <Text style={styles.infoBold}>Outer orbit:</Text> Easing.
+                    Less pull. Integration happening.
+                  </Text>
                 </View>
               </View>
             )}
@@ -226,14 +347,26 @@ const ReflectionRoomEchoMapScreen: React.FC = () => {
             <View style={styles.infoNavRow}>
               {infoPage > 0 ? (
                 <TouchableOpacity onPress={() => setInfoPage(infoPage - 1)}>
-                  <Image source={require('@assets/back-arrow.png')} style={styles.infoArrowImg} resizeMode="contain" />
+                  <Image
+                    source={require('@assets/back-arrow.png')}
+                    style={styles.infoArrowImg}
+                    resizeMode="contain"
+                  />
                 </TouchableOpacity>
-              ) : <View style={styles.infoArrowPlaceholder} />}
+              ) : (
+                <View style={styles.infoArrowPlaceholder} />
+              )}
               {infoPage < INFO_PAGES.length - 1 ? (
                 <TouchableOpacity onPress={() => setInfoPage(infoPage + 1)}>
-                  <Image source={require('@assets/right-arrow.png')} style={styles.infoArrowImg} resizeMode="contain" />
+                  <Image
+                    source={require('@assets/right-arrow.png')}
+                    style={styles.infoArrowImg}
+                    resizeMode="contain"
+                  />
                 </TouchableOpacity>
-              ) : <View style={styles.infoArrowPlaceholder} />}
+              ) : (
+                <View style={styles.infoArrowPlaceholder} />
+              )}
             </View>
           </Pressable>
         </Pressable>
@@ -457,8 +590,8 @@ const styles = StyleSheet.create({
     color: theme.colors.text.paragraph1,
     textAlign: 'center',
     letterSpacing: 1,
-    marginBottom: spacing.m,
-    marginTop: spacing.xs,
+    marginBottom: 16,
+    marginTop: 8,
     textShadowColor: textShadow.glowSubtle.color,
     textShadowOffset: textShadow.glowSubtle.offset,
     textShadowRadius: textShadow.glowSubtle.radius,

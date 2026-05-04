@@ -2,10 +2,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
   palette,
-  radius,
-  borderWidth,
   textShadow,
-  glassGradient,
   fontFamily,
   fontSize,
   fontWeight,
@@ -13,9 +10,9 @@ import {
   verticalScale,
   moderateScale,
 } from '@theme';
-import type { RootStackParamList } from '@types';
-import type { QuizSubmissionRequest } from '@types';
 import type { QuizQuestion } from '@types';
+import type { QuizSubmissionRequest } from '@types';
+import type { RootStackParamList } from '@types';
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -29,9 +26,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import questionsData from '@assets/questions.json';
 import BackgroundWrapper from '@components/BackgroundWrapper';
-import GradientButton from '@components/GradientButton';
+import Button from '@components/Button';
 import ImageOptionButton, {
   type ImageOptionSymbol,
 } from '@components/ImageOptionButton';
@@ -40,13 +36,12 @@ import OptionButton from '@components/OptionsButton';
 import ProgressBar from '@components/ProgressBar';
 import { quizApiService } from '@services/api/quiz';
 import { QuizStorageService } from '@services/quizStorageService';
-import {
-  calculateQuizResult,
-  createUserAnswer,
-  type QuizData,
-  type UserAnswer,
-} from '@utils/archetypeScoring';
-// Typography styles are now defined directly in component styles
+
+// Simple answer tracking for UI state
+interface SimpleAnswer {
+  questionId: number;
+  answerText: string;
+}
 
 type QuizQuestionsScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -58,12 +53,9 @@ const QuizQuestionsScreen = () => {
   const navigation = useNavigation<QuizQuestionsScreenNavigationProp>();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selected, setSelected] = useState<string | { icon: any } | null>(null);
-  const [answers, setAnswers] = useState<UserAnswer[]>([]);
+  const [answers, setAnswers] = useState<SimpleAnswer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
-
-  // Extract static data for fallback/archetype mapping
-  const quizData = questionsData as QuizData;
 
   // Reset state and fetch questions
   useEffect(() => {
@@ -80,12 +72,20 @@ const QuizQuestionsScreen = () => {
            console.log('Using questions from API');
            setQuestions(response.data);
         } else {
-           console.log('Using local questions (API response empty or invalid)');
-           setQuestions(quizData.questions);
+           console.error('Failed to load questions from API');
+           Alert.alert(
+             'Error',
+             'Unable to load quiz questions. Please check your connection and try again.',
+             [{ text: 'OK', onPress: () => navigation.goBack() }]
+           );
         }
       } catch (error) {
-        console.error('Failed to fetch questions, using fallback:', error);
-        setQuestions(quizData.questions);
+        console.error('Failed to fetch questions:', error);
+        Alert.alert(
+          'Error',
+          'Unable to load quiz questions. Please check your connection and try again.',
+          [{ text: 'OK', onPress: () => navigation.goBack() }]
+        );
       } finally {
         setIsLoading(false);
       }
@@ -96,7 +96,7 @@ const QuizQuestionsScreen = () => {
 
   if (isLoading) {
     return (
-      <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage}>
+      <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage} scrollable>
         <SafeAreaView style={styles.safe}>
           <StatusBar
             barStyle="light-content"
@@ -118,7 +118,7 @@ const QuizQuestionsScreen = () => {
   // Ensure questions exist
   if (!questions || questions.length === 0) {
     return (
-      <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage}>
+      <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage} scrollable>
         <SafeAreaView style={styles.safe}>
           <StatusBar
             barStyle="light-content"
@@ -126,7 +126,7 @@ const QuizQuestionsScreen = () => {
             backgroundColor="transparent"
           />
           <LogoHeader />
-          <View style={styles.container}>
+          <View style={styles.loadingContainer}>
             <Text style={styles.question}>Unable to load quiz. Please try again later.</Text>
           </View>
         </SafeAreaView>
@@ -145,7 +145,7 @@ const QuizQuestionsScreen = () => {
   const handleNext = async () => {
     if (!selected) return;
 
-    // Find the selected option to get archetype and other details
+    // Find the selected option
     const selectedOption = currentQuestion.options.find(option => {
       if (currentQuestion.type === 'text') {
         return option.text === selected;
@@ -156,108 +156,78 @@ const QuizQuestionsScreen = () => {
 
     if (!selectedOption) return;
 
-    // Find the option index
-    const optionIndex = currentQuestion.options.findIndex(option => {
-      if (currentQuestion.type === 'text') {
-        return option.text === selected;
-      } else {
-        return option.label === selected;
-      }
-    });
+    const answerText = selectedOption.text || selectedOption.label || '';
 
-    // Create proper UserAnswer object
-    const userAnswer = createUserAnswer(
-      currentQuestion.id,
-      currentQuestion.question,
-      selectedOption as any, // Cast to any to avoid type mismatch between API QuizOption and internal QuestionOption
-      optionIndex,
-    );
-
-    const newAnswers = [...answers, userAnswer];
+    // Store simple answer for backend submission
+    const newAnswers = [
+      ...answers,
+      {
+        questionId: currentQuestion.id,
+        answerText,
+      },
+    ];
     setAnswers(newAnswers);
     setSelected(null);
 
     if (isLast) {
-      // Use new scoring system to calculate quiz result
-      const quizResult = calculateQuizResult(newAnswers, quizData);
-
-      // Map archetype name to full archetype object from questions.json
-      const archetypeKey = quizResult.finalArchetype.toLowerCase();
-      const archetypeData = quizData.archetypes[archetypeKey];
-
-      // Static image mapping for React Native (dynamic require not supported)
-      const archetypeImages = {
-        'seeker-archetype.png': require('@assets/seeker-archetype.png'),
-        'guardian-archetype.png': require('@assets/guardian-archetype.png'),
-        'flamebearer-archetype.png': require('@assets/flamebearer-archetype.png'),
-        'weaver-archetype.png': require('@assets/weaver-archetype.png'),
-      };
-
-      const archetypeWithImage = {
-        ...archetypeData,
-        image:
-          archetypeImages[
-            archetypeData.imagePath as keyof typeof archetypeImages
-          ],
-      };
-
-      // Store quiz results temporarily until user registration
+      // Submit raw answers to backend for calculation
       try {
         const quizSubmission: QuizSubmissionRequest = {
+          quizType: 'archetype', // Quiz identifier for multi-quiz support
           answers: newAnswers.map(answer => ({
             questionId: answer.questionId,
-            question: answer.question,
-            answer:
-              answer.selectedOption.text || answer.selectedOption.label || '',
+            question: questions.find(q => q.id === answer.questionId)?.question || '',
+            answer: answer.answerText,
             answeredAt: new Date().toISOString(),
             type: questions.find(q => q.id === answer.questionId)?.type as
               | 'text'
               | 'image',
           })),
           completedAt: new Date().toISOString(),
-          archetypeResult: {
-            id: archetypeWithImage.id,
-            name: archetypeWithImage.name,
-            title: archetypeWithImage.title,
-          },
           quizVersion: '1.0',
-          // Transform the quiz result to match backend schema
-          detailedResult: {
-            primaryArchetype: quizResult.finalArchetype,
-            scores: quizResult.totalScores,
-            confidence: 0.85, // Default confidence for quiz-based results
-            analysis: {
-              strengths: [],
-              challenges: [],
-              recommendations: [],
-            },
-          },
         };
 
-        // Submit immediately (or queue for offline retry)
+        // Submit to backend (backend calculates the result)
         await QuizStorageService.submitAnonymousQuiz(quizSubmission);
+        
+        // Backend calculated and stored the result
+        // Fetch from storage which was set during submission
+        const storedQuiz = await QuizStorageService.getPendingQuizResults();
+        
+        if (storedQuiz?.backendResult) {
+          const { final_archetype, assignment_reason, total_scores, archetype_details } = storedQuiz.backendResult;
+          
+          // Static image mapping for React Native (dynamic require not supported)
+          const archetypeImages = {
+            'seeker-archetype.png': require('@assets/seeker-archetype.png'),
+            'guardian-archetype.png': require('@assets/guardian-archetype.png'),
+            'flamebearer-archetype.png': require('@assets/flamebearer-archetype.png'),
+            'weaver-archetype.png': require('@assets/weaver-archetype.png'),
+          };
 
-        // Navigate to tuning screen first, then Archetype
-        navigation.navigate('QuizTuning', {
-          archetype: archetypeWithImage,
-          quizResult, // Pass the full calculated result
-        });
+          const archetypeWithImage = {
+            ...archetype_details,
+            image: archetypeImages[archetype_details.imagePath as keyof typeof archetypeImages],
+          };
+
+          // Navigate with backend-calculated result
+          navigation.navigate('QuizTuning', {
+            archetype: archetypeWithImage,
+            quizResult: {
+              finalArchetype: final_archetype,
+              assignmentReason: assignment_reason,
+              totalScores: total_scores,
+            },
+          });
+        } else {
+          throw new Error('No backend result received');
+        }
       } catch (error) {
-        console.error('Failed to store quiz results temporarily:', error);
-        // Show error but still allow navigation
+        console.error('Failed to submit quiz results:', error);
+        // Show error - don't navigate to avoid showing incomplete data
         Alert.alert(
           t('quiz.quizQuestions.storageErrorTitle'),
           t('quiz.quizQuestions.storageErrorMessage'),
-          [
-            {
-              text: t('quiz.quizQuestions.continueButton'),
-              onPress: () =>
-                navigation.navigate('QuizTuning', {
-                  archetype: archetypeWithImage,
-                  quizResult,
-                }),
-            },
-          ],
         );
       }
     } else {
@@ -274,72 +244,78 @@ const QuizQuestionsScreen = () => {
           translucent
           backgroundColor="transparent"
         />
+      {/*
+        Layout shape (sticky-CTA pattern, only options scroll):
+          ┌─────────────────────────────┐
+          │ LogoHeader        (pinned)  │
+          │ ProgressBar       (pinned)  │
+          │ Question          (pinned)  │
+          ├─────────────────────────────┤
+          │ ScrollView (flex:1) — clips │
+          │   to its bounds. Options    │
+          │   scroll inside; nothing    │
+          │   bleeds into the button.   │
+          ├─────────────────────────────┤
+          │ NEXT button       (pinned)  │
+          └─────────────────────────────┘
+        Only the options list scrolls; question and CTA stay in place.
+        Card glow shadows render into the contentContainer's vertical
+        padding (16 top, 60 bottom = Figma gap to button) — no need for
+        overflow:visible on the ScrollView, so options can't render under
+        the button.
+      */}
       <LogoHeader />
-      <View style={styles.container}>
 
-        {/* Progress Bar - exact positioning from Figma */}
-        <View style={styles.progressWrap}>
-          <ProgressBar progress={(currentIndex + 1) / questions.length} />
-        </View>
+      {/* Figma: Progress bar at top:148 — w:345 (24px gutter). */}
+      <View style={styles.progressWrap}>
+        <ProgressBar progress={(currentIndex + 1) / questions.length} />
+      </View>
 
-        {/* Question */}
-        <Text style={styles.question}>{currentQuestion.question}</Text>
+      <Text style={styles.question}>{currentQuestion.question}</Text>
 
-        {/* Options */}
-        <View style={styles.contentArea}>
-          <View style={styles.optionsContainer}>
-            {currentQuestion.type === 'text' ? (
-              <ScrollView
-                style={styles.textOptionsScroll}
-                contentContainerStyle={styles.textOptionsList}
-                showsVerticalScrollIndicator={false}
-                scrollEnabled={true}
-                bounces={false}
-              >
-                {currentQuestion.options.map((item: any) => (
-                  <OptionButton
-                    key={item.text}
-                    label={item.text}
-                    selected={selected === item.text}
-                    onPress={() => setSelected(item.text)}
-                    style={styles.optionButton}
-                  />
-                ))}
-              </ScrollView>
-            ) : (
-              <View style={styles.imageGrid}>
-                {currentQuestion.options.map((item: any, index: number) => (
-                  <ImageOptionButton
-                    key={item.label || index}
-                    symbolType={symbolSequence[index % symbolSequence.length]}
-                    selected={selected === item.label}
-                    onPress={() => setSelected(item.label)}
-                  />
-                ))}
-              </View>
-            )}
+      <ScrollView
+        style={styles.scrollArea}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {currentQuestion.type === 'text' ? (
+          <View style={styles.textOptionsList}>
+            {currentQuestion.options.map((item: any) => (
+              <OptionButton
+                key={item.text}
+                label={item.text}
+                selected={selected === item.text}
+                onPress={() => setSelected(item.text)}
+              />
+            ))}
           </View>
-
-          <View style={styles.nextWrap}>
-            <GradientButton
-              title={
-                isLast
-                  ? t('quiz.quizQuestions.finishButton')
-                  : t('quiz.quizQuestions.nextButton')
-              }
-              onPress={handleNext}
-              disabled={!selected}
-              style={styles.glassButtonWrapper}
-              containerStyle={styles.glassButtonContainer}
-              contentStyle={styles.glassButtonContent}
-              textStyle={styles.glassButtonText}
-              gradientColors={[
-                glassGradient.button.start,
-                glassGradient.button.end,
-              ]}
-            />
+        ) : (
+          <View style={styles.imageGrid}>
+            {currentQuestion.options.map((item: any, index: number) => (
+              <ImageOptionButton
+                key={item.label || index}
+                symbolType={symbolSequence[index % symbolSequence.length]}
+                selected={selected === item.label}
+                onPress={() => setSelected(item.label)}
+              />
+            ))}
           </View>
-        </View>
+        )}
+      </ScrollView>
+
+      {/* Pinned CTA — always visible regardless of content size. */}
+      <View style={styles.buttonBar}>
+        <Button
+          variant="primary"
+          size="L"
+          active={!!selected}
+          title={(isLast
+            ? t('quiz.quizQuestions.finishButton')
+            : t('quiz.quizQuestions.nextButton')
+          ).toUpperCase()}
+          onPress={handleNext}
+          disabled={!selected}
+        />
       </View>
     </SafeAreaView>
   </BackgroundWrapper>
@@ -381,100 +357,83 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     backgroundColor: palette.neutral.overlay,
   },
-  container: {
-    paddingHorizontal: scale(40),  // Figma: 40px left/right margin
-    paddingBottom: verticalScale(20),  // Reduced from 30px to match Figma spacing
-    alignItems: 'center',
-    flex: 1,
-  },
-  imageGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-evenly',
-    alignItems: 'center',
-    rowGap: verticalScale(30),
-    columnGap: scale(30),
-    paddingVertical: verticalScale(30),
-    width: '100%',
-  },
-  question: {
-    fontFamily: fontFamily.heading,        // Figma: Cormorant Garamond
-    fontSize: moderateScale(fontSize.xl),  // Figma: 24px
-    fontWeight: fontWeight.regular,        // Figma: 400 (not 300!)
-    lineHeight: moderateScale(fontSize.xl) * 1.3,  // Figma: 31.2px (24 × 1.3)
-    letterSpacing: 0,
-    color: palette.gold.DEFAULT,           // Figma: #f2e2b1 rgb(242, 226, 177)
-    width: scale(313),
-    textAlign: 'center',
-    marginBottom: verticalScale(60),  // Figma: 60px gap to options
-    textShadowColor: palette.gold.warm,
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 8,
-  },
-  textOptionsScroll: {
-    width: '100%',
-    flexGrow: 0,
-  },
-  textOptionsList: {
-    alignItems: 'center',
-    gap: verticalScale(16), // Figma: gap-16px between options
-  },
-  optionButton: {
-    width: scale(313),
-  },
-  contentArea: {
-    flex: 1,
-    width: '100%',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  optionsContainer: {
-    width: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  nextWrap: {
-    width: '100%',
-    alignItems: 'center',
-  },
+  // Figma: Progress bar at top:148, w:345 (24px gutter — wider than content).
+  // Logo header bottom sits ≈ 30px above the bar (Figma 148 - 118).
   progressWrap: {
-    width: scale(313),
-    alignItems: 'center',
-    // iOS safe area top (~47px) vs Figma Android status bar (24px) = 23px extra consumed.
-    // Reducing from verticalScale(48) to verticalScale(25) lands the progress bar at the
-    // correct Figma position (148px from top) and frees space for the 60px button gap.
-    marginTop: verticalScale(25),
-    marginBottom: verticalScale(60),
+    width:      scale(345),
+    alignSelf:  'center',
+    marginTop:  verticalScale(30),
   },
-  nextButton: {
-    // GradientButton handles responsive sizing
+
+  // Question (203:2521) — pinned above the scroll area.
+  // alignSelf:'center' + Figma 60px gaps via marginTop / marginBottom.
+  question: {
+    fontFamily:        fontFamily.heading,
+    fontSize:          moderateScale(fontSize.xl),
+    fontWeight:        fontWeight.regular,
+    lineHeight:        moderateScale(fontSize.xl) * 1.3,
+    letterSpacing:     0,
+    color:             palette.gold.DEFAULT,
+    width:             scale(313),
+    alignSelf:         'center',
+    textAlign:         'center',
+    marginTop:         verticalScale(60),    // Figma 60px gap from progress bar
+    marginBottom:      verticalScale(44),    // 44 + scrollContent paddingTop:16 = 60 (Figma gap to first option)
+    textShadowColor:   textShadow.glow.color,
+    textShadowOffset:  textShadow.glow.offset,
+    textShadowRadius:  textShadow.glow.radius,
   },
-  glassButtonWrapper: {
-    backgroundColor: palette.neutral.transparent,
-    shadowOpacity: 0,
-    shadowRadius: 0,
-    elevation: 0,
-    borderRadius: radius.m,  // Match BEGIN button (16px)
+
+  // Scrollable area — only this scrolls. flex:1 takes remaining height
+  // between question and buttonBar. Default overflow (clip to bounds) so
+  // scrolling options never bleed into the button area below.
+  scrollArea: {
+    flex:  1,
+    width: '100%',
   },
-  glassButtonContainer: {
-    borderWidth: borderWidth.thin,
-    borderColor: palette.navy.light,
-    borderRadius: radius.m,  // Match BEGIN button (16px)
+  // contentContainer — top padding gives shadow room above first card,
+  // bottom padding is the Figma 60px gap to the button (when content fits)
+  // plus shadow room below last card. alignItems:center keeps the cards
+  // centered in the full-screen width so the gutter stays even.
+  scrollContent: {
+    flexGrow:      1,
+    alignItems:    'center',
+    paddingTop:    verticalScale(16),
+    paddingBottom: verticalScale(60),
   },
-  glassButtonContent: {
-    paddingVertical: verticalScale(12),
-    paddingHorizontal: scale(16),  // Match BEGIN button
-    minWidth: 0,
+
+  // Figma 203:2522 — flex-col gap:16 between option buttons.
+  // Explicit width: scale(313) is the single source of truth for card
+  // width. Cards inside have width:'100%' so they fill this exactly.
+  textOptionsList: {
+    width:      scale(313),
+    alignItems: 'stretch',
+    gap:        verticalScale(16),
   },
-  glassButtonText: {
-    fontFamily: fontFamily.heading,        // Figma: Cormorant Garamond
-    fontSize: moderateScale(fontSize.xl),  // Figma: 24px
-    fontWeight: fontWeight.regular,        // Figma: 400
-    lineHeight: moderateScale(fontSize.xl) * 1.3,  // Figma: 31.2px
-    letterSpacing: 0,
-    color: palette.gold.DEFAULT,           // Figma: #f2e2b1
-    textShadowColor: textShadow.warmGlow.color,
-    textShadowOffset: textShadow.warmGlow.offset,
-    textShadowRadius: textShadow.warmGlow.radius,
+
+  // Figma 203:2425 — 280×280 grid container, gap 40 row + col, 4× 120×120 items
+  // The +2 buffer is a sub-pixel rounding fix: scale(120)*2 + scale(40) is
+  // mathematically equal to scale(280), but on devices like iPhone 17 Pro
+  // floating-point drift in JS multiplication makes the row total exceed the
+  // container width by a fraction of a pixel, forcing each item onto its own
+  // row. The 2px headroom is invisible visually and breaks the tie.
+  imageGrid: {
+    flexDirection:  'row',
+    flexWrap:       'wrap',
+    justifyContent: 'center',
+    alignItems:     'center',
+    rowGap:         verticalScale(40),
+    columnGap:      scale(40),
+    width:          scale(280) + 2,
+    alignSelf:      'center',
+  },
+
+  // Pinned CTA bar at the bottom of the safe area. Width:100% so the Button
+  // (content-sized) can center via alignItems. paddingBottom matches the
+  // gap previously held by container's paddingBottom for safe-area separation.
+  buttonBar: {
+    width:         '100%',
+    alignItems:    'center',
+    paddingBottom: verticalScale(20),
   },
 });

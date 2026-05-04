@@ -16,7 +16,7 @@ export const theme = {
 export type Theme = typeof theme;
 
 // Re-export primitives for advanced use cases
-export { palette, spacing, radius, borderWidth, textShadow, glassGradient, modalColors, fontFamily, fontSize, lineHeight, fontWeight, shadows, elevation } from './tokens';
+export { palette, spacing, radius, borderWidth, textShadow, glassGradient, modalColors, fontFamily, fontSize, lineHeight, fontWeight, shadows, elevation, effects } from './tokens';
 export { semantic } from './semantic';
 export { ThemeProvider, useTheme } from './ThemeContext';
 export {

@@ -19,7 +19,16 @@ import { SvgXml } from 'react-native-svg';
 import { MOTIF_SVG } from '@assets/motifs-icons/MotifIconAssets';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
-import { borderWidth, fontFamily, glassGradient, modalColors, palette, spacing, textShadow, theme } from '@theme';
+import {
+  borderWidth,
+  fontFamily,
+  glassGradient,
+  modalColors,
+  palette,
+  spacing,
+  textShadow,
+  theme,
+} from '@theme';
 import type { RootStackParamList } from '@types';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('screen');
@@ -34,15 +43,18 @@ type PracticeChoice = {
 const PRACTICE_CHOICES: PracticeChoice[] = [
   {
     label: 'AGENCY',
-    instructions: 'Hand to heart.\nInhale for 4, exhale for 6.\nWhisper: "I can choose."',
+    instructions:
+      'Hand to heart.\nInhale for 4, exhale for 6.\nWhisper: "I can choose."',
   },
   {
     label: 'FLOW',
-    instructions: 'Hand to heart.\nInhale for 4, exhale for 6.\nWhisper: "I trust my pace."',
+    instructions:
+      'Hand to heart.\nInhale for 4, exhale for 6.\nWhisper: "I trust my pace."',
   },
   {
     label: 'SOFTEN GRIEF',
-    instructions: 'Hand to heart.\nInhale for 4, exhale for 6.\nWhisper: "I allow myself to soften."',
+    instructions:
+      'Hand to heart.\nInhale for 4, exhale for 6.\nWhisper: "I allow myself to soften."',
   },
 ];
 
@@ -74,7 +86,8 @@ const WAVE_SVG = `<svg width="345" height="161" viewBox="0 0 345 161" fill="none
 
 const ReflectionRoomMirrorMomentScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
-  const [selectedPractice, setSelectedPractice] = React.useState<PracticeChoice | null>(null);
+  const [selectedPractice, setSelectedPractice] =
+    React.useState<PracticeChoice | null>(null);
   const [showInfo, setShowInfo] = React.useState(false);
   const [infoPage, setInfoPage] = React.useState(0);
 
@@ -86,10 +99,11 @@ const ReflectionRoomMirrorMomentScreen: React.FC = () => {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-
-
           <View style={styles.titleRow}>
-            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+            <TouchableOpacity
+              onPress={() => navigation.goBack()}
+              style={styles.backBtn}
+            >
               <Image
                 source={require('@assets/back-arrow.png')}
                 style={styles.backArrowImg}
@@ -99,7 +113,13 @@ const ReflectionRoomMirrorMomentScreen: React.FC = () => {
             <Text style={styles.title}>MIRROR MOMENT</Text>
             <View style={styles.titleSpacer} />
           </View>
-          <TouchableOpacity style={styles.infoButton} onPress={() => { setShowInfo(true); setInfoPage(0); }}>
+          <TouchableOpacity
+            style={styles.infoButton}
+            onPress={() => {
+              setShowInfo(true);
+              setInfoPage(0);
+            }}
+          >
             <Image
               source={require('@assets/rr-info-icon.png')}
               style={styles.backArrowImg}
@@ -114,7 +134,8 @@ const ReflectionRoomMirrorMomentScreen: React.FC = () => {
           />
 
           <Text style={styles.description}>
-            A two-minute reset to help you calm your body, clear your head, and choose how you want to respond next.
+            A two-minute reset to help you calm your body, clear your head, and
+            choose how you want to respond next.
           </Text>
 
           <View style={styles.practiceChoices}>
@@ -125,7 +146,10 @@ const ReflectionRoomMirrorMomentScreen: React.FC = () => {
                 onPress={() => setSelectedPractice(choice)}
               >
                 <LinearGradient
-                  colors={[glassGradient.echoPrimary.start, glassGradient.echoPrimary.end]}
+                  colors={[
+                    glassGradient.echoPrimary.start,
+                    glassGradient.echoPrimary.end,
+                  ]}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 0, y: 1 }}
                   style={styles.choiceButton}
@@ -157,7 +181,10 @@ const ReflectionRoomMirrorMomentScreen: React.FC = () => {
           style={styles.popupOverlay}
           onPress={() => setSelectedPractice(null)}
         >
-          <Pressable style={styles.popupContainer} onPress={e => e.stopPropagation()}>
+          <Pressable
+            style={styles.popupContainer}
+            onPress={e => e.stopPropagation()}
+          >
             <LinearGradient
               colors={[palette.gold.glow, palette.gold.amber]}
               start={{ x: 0, y: 0 }}
@@ -166,9 +193,13 @@ const ReflectionRoomMirrorMomentScreen: React.FC = () => {
             >
               <Text style={styles.popupTitle}>TWO MINUTE PRACTICE</Text>
               <SvgXml xml={MOTIF_SVG.feather} width={40} height={40} />
-              <Text style={styles.popupInstructions}>{selectedPractice.instructions}</Text>
+              <Text style={styles.popupInstructions}>
+                {selectedPractice.instructions}
+              </Text>
             </LinearGradient>
-            <Text style={styles.popupSubtext}>{'Take a moment to notice how you feel.\nThe Mirror remembers'}</Text>
+            <Text style={styles.popupSubtext}>
+              {'Take a moment to notice how you feel.\nThe Mirror remembers'}
+            </Text>
             <TouchableOpacity
               style={styles.doneButton}
               onPress={() => setSelectedPractice(null)}
@@ -184,7 +215,10 @@ const ReflectionRoomMirrorMomentScreen: React.FC = () => {
           style={styles.popupOverlay}
           onPress={() => setShowInfo(false)}
         >
-          <Pressable style={styles.infoPopupContainer} onPress={e => e.stopPropagation()}>
+          <Pressable
+            style={styles.infoPopupContainer}
+            onPress={e => e.stopPropagation()}
+          >
             <TouchableOpacity
               style={styles.infoCloseBtn}
               onPress={() => setShowInfo(false)}
@@ -306,14 +340,14 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
     ...(Platform.OS === 'ios'
       ? {
-        shadowColor: theme.colors.text.paragraph1,
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.25,
-        shadowRadius: 16,
-      }
+          shadowColor: theme.colors.text.paragraph1,
+          shadowOffset: { width: 0, height: 0 },
+          shadowOpacity: 0.25,
+          shadowRadius: 16,
+        }
       : {
-        elevation: 8,
-      }),
+          elevation: 8,
+        }),
   },
   choiceText: {
     fontFamily: theme.typography.fontFamily.heading,
@@ -426,11 +460,11 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.background.overlay,
     ...(Platform.OS === 'ios'
       ? {
-        elevation: 12,
-      }
+          elevation: 12,
+        }
       : {
-        boxShadow: `0 0 12px 4px ${palette.gold.glow}`,
-      }),
+          boxShadow: `0 0 12px 4px ${palette.gold.glow}`,
+        }),
   },
   doneButtonText: {
     fontFamily: theme.typography.fontFamily.heading,

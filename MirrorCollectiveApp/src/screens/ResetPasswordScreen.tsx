@@ -1,7 +1,7 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { palette, theme } from '@theme';
+import { palette, theme, textShadow } from '@theme';
 import type { RootStackParamList } from '@types';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -20,8 +20,8 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
+import Button from '@components/Button';
 import LogoHeader from '@components/LogoHeader';
-import StarIcon from '@components/StarIcon';
 import TextInputField from '@components/TextInputField';
 import { useSession } from '@context/SessionContext';
 import { getApiErrorMessage } from '@utils/apiErrorUtils';
@@ -216,20 +216,19 @@ const ResetPasswordScreen = () => {
                     <Text style={styles.errorText}>{state.error}</Text>
                   )}
 
-                  {/* Reset Password Button */}
-                  <TouchableOpacity
-                    style={styles.enterButton}
-                    testID="reset-password-button"
+                  {/* Reset Password Button — auth-CTA pattern, 24px stars per Figma */}
+                  <Button
+                    variant="auth"
+                    title={
+                      isLoading
+                        ? t('auth.resetPassword.resettingButton')
+                        : t('auth.resetPassword.resetButton')
+                    }
                     onPress={handleResetPassword}
                     disabled={isLoading}
-                    activeOpacity={0.8}
-                  >
-                    <StarIcon width={24} height={24} />
-                    <Text style={styles.enterText}>
-                      {isLoading ? t('auth.resetPassword.resettingButton') : t('auth.resetPassword.resetButton')}
-                    </Text>
-                    <StarIcon width={24} height={24} />
-                  </TouchableOpacity>
+                    iconSize={24}
+                    testID="reset-password-button"
+                  />
                 </View>
 
                 {/* Back to Login */}
@@ -335,9 +334,9 @@ const styles = StyleSheet.create({
   },
   enterText: {
     ...theme.typography.styles.button,
-    textShadowColor: 'rgba(245, 230, 184, 0.50)',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 4,
+    textShadowColor: textShadow.glow.color,                // Glow: #F0D4A8 · 30%
+    textShadowOffset: textShadow.glow.offset,              // X:0 Y:0
+    textShadowRadius: textShadow.glow.radius,              // Blur:10
   },
   backLink: {
     marginTop: 20,

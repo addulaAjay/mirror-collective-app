@@ -1,0 +1,42 @@
+name: Figma token round-trip
+
+on:
+  pull_request:
+    paths:
+      - 'design/figma-tokens/**'
+      - 'design/style-dictionary.config.mjs'
+      - 'src/theme/generated/**'
+      - 'package.json'
+      - '.github/workflows/figma-tokens.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'design/figma-tokens/**'
+      - 'src/theme/generated/**'
+
+jobs:
+  verify:
+    name: Verify tokens.ts is in sync with Figma source
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install deps
+        run: npm ci --ignore-scripts
+
+      - name: Rebuild tokens from source
+        run: npm run tokens:build
+
+      - name: Fail if generated tokens drifted from source
+        run: |
+          if ! git diff --exit-code src/theme/generated/; then
+            echo ""
+            echo "::error::src/theme/generated/tokens.ts is out of sync with design/figma-tokens/tokens.json"
+            echo "::error::Run 'npm run tokens:build' locally and commit the result."
+            exit 1
+          fi

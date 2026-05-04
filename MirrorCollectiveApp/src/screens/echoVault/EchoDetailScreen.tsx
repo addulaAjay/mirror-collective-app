@@ -1,8 +1,8 @@
 // EchoDetailScreen.tsx
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { palette, textShadow } from '@theme';
 import { RootStackParamList } from '@types';
 import React, { useMemo, useState, useEffect } from 'react';
-import { palette } from '@theme';
 import {
   View,
   Text,
@@ -306,8 +306,8 @@ const styles = StyleSheet.create({
     }),
     maxWidth: '78%',
     textAlign: 'center',
-    textShadowColor: 'rgba(240, 212, 168, 0.4)',
-    textShadowOffset: { width: 0, height: 0 },
+    textShadowColor: textShadow.glowSubtle.color,
+    textShadowOffset: textShadow.glowSubtle.offset,
     textShadowRadius: 16,
   },
   titleRightSpacer: { width: 44, height: 44 },

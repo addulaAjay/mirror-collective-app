@@ -30,8 +30,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Circle, Path } from 'react-native-svg';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
+import Button from '@components/Button';
 import LogoHeader from '@components/LogoHeader';
-import StarIcon from '@components/StarIcon';
 import TextInputField from '@components/TextInputField';
 import { useSession } from '@context/SessionContext';
 import { getApiErrorMessage } from '@utils/apiErrorUtils';
@@ -119,16 +119,12 @@ const ForgotPasswordScreen = () => {
                     <Text style={styles.emailHighlight}>{email}</Text>
                   </Text>
 
-                  <TouchableOpacity
-                    style={styles.enterButton}
-                    testID="success-continue-button"
+                  <Button
+                    variant="auth"
+                    title={t('common.continue')}
                     onPress={() => navigation.navigate('ResetPassword', { email })}
-                    activeOpacity={0.8}
-                  >
-                    <StarIcon width={20} height={20} />
-                    <Text style={styles.enterText}>{t('common.continue')}</Text>
-                    <StarIcon width={20} height={20} />
-                  </TouchableOpacity>
+                    testID="success-continue-button"
+                  />
 
                   <TouchableOpacity
                     onPress={handleBackToLogin}
@@ -183,7 +179,7 @@ const ForgotPasswordScreen = () => {
                 <View style={styles.inputWrapper}>
                   <TextInputField
                     testID="email-input"
-                    size="S"
+                    size="M"
                     placeholder={t('auth.forgotPassword.emailPlaceholder')}
                     value={email}
                     onChangeText={setEmail}
@@ -205,22 +201,18 @@ const ForgotPasswordScreen = () => {
                   )}
                 </View>
 
-                {/* SEND LINK button — Figma: node 4116:521, stars 20×20, 2XL 28px */}
-                <TouchableOpacity
-                  style={styles.enterButton}
-                  testID="forgot-password-button"
+                {/* SEND LINK button — Figma: node 4116:521 (auth-CTA pattern) */}
+                <Button
+                  variant="auth"
+                  title={
+                    isLoading
+                      ? t('auth.forgotPassword.sendingButton')
+                      : t('auth.forgotPassword.sendButton')
+                  }
                   onPress={handleForgotPassword}
                   disabled={isLoading}
-                  activeOpacity={0.8}
-                >
-                  <StarIcon width={20} height={20} />
-                  <Text style={styles.enterText}>
-                    {isLoading
-                      ? t('auth.forgotPassword.sendingButton')
-                      : t('auth.forgotPassword.sendButton')}
-                  </Text>
-                  <StarIcon width={20} height={20} />
-                </TouchableOpacity>
+                  testID="forgot-password-button"
+                />
 
                 {/* Back to login — Figma: node 4116:526, Cormorant Italic L (20px), #fdfdf9 */}
                 <TouchableOpacity
@@ -274,8 +266,7 @@ const styles = StyleSheet.create({
     gap: verticalScale(40),
   },
 
-  // Figma: Heading/Heading L — Cormorant Regular 3XL (32px), lh:40 (XXL), #f2e2b1
-  // NOTE: No text shadow in Figma (unlike other screens)
+  // Figma: Heading/Heading L — Cormorant Regular 3XL (32px), lh:40 (XXL), #f2e2b1, glow shadow
   title: {
     fontFamily: fontFamily.heading,                       // CormorantGaramond-Regular
     fontSize: moderateScale(fontSize['3xl']),              // 32px — Figma: font/size/3XL
@@ -284,6 +275,9 @@ const styles = StyleSheet.create({
     letterSpacing: 0,
     color: palette.gold.DEFAULT,                           // #f2e2b1 — Figma: text/paragraph-1
     textAlign: 'center',
+    textShadowColor: textShadow.glow.color,                // Glow: #F0D4A8 · 30%
+    textShadowOffset: textShadow.glow.offset,              // X:0 Y:0
+    textShadowRadius: textShadow.glow.radius,              // Blur:10
   },
 
   // Figma: Heading/Heading XS — Cormorant Regular L (20px), lh:24px, #fdfdf9

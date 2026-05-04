@@ -68,21 +68,47 @@ export interface ArchetypeResult {
 }
 
 export interface QuizSubmissionRequest {
+  quizType?: string; // Quiz identifier (archetype, career_path, etc.)
   answers: QuizAnswer[];
   completedAt: string;
-  archetypeResult: ArchetypeResult;
   quizVersion?: string;
-  detailedResult?: any; // Store the complete QuizResult for later server submission
   anonymousId?: string; // For unauthenticated submissions
 }
 
 export interface QuizSubmissionResponse {
+  quiz_type: string; // Quiz identifier
   user_id: string;
-  initial_archetype: string;
+  final_archetype: string; // Backend calculated
+  assignment_reason: string; // core_override | highest_score | tie_break_*
+  total_scores: Record<string, number>; // Scores for all archetypes
+  archetype_details: {
+    id: string;
+    name: string;
+    title: string;
+    description: string;
+    imagePath: string;
+  };
   quiz_completed_at: string;
   quiz_version: string;
   profile_created: boolean;
   answers_stored: boolean;
+}
+
+// Cached quiz with backend-calculated result
+export interface CachedQuizResult extends QuizSubmissionRequest {
+  backendResult?: {
+    quiz_type: string; // Quiz identifier
+    final_archetype: string;
+    assignment_reason: string;
+    total_scores: Record<string, number>;
+    archetype_details: {
+      id: string;
+      name: string;
+      title: string;
+      description: string;
+      imagePath: string;
+    };
+  };
 }
 
 // MirrorGPT Session Types

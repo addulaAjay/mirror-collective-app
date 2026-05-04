@@ -15,7 +15,16 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
-import { borderWidth, fontFamily, modalColors, palette, radius, spacing, textShadow, theme } from '@theme';
+import {
+  borderWidth,
+  fontFamily,
+  modalColors,
+  palette,
+  radius,
+  spacing,
+  textShadow,
+  theme,
+} from '@theme';
 import type { RootStackParamList } from '@types';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('screen');
@@ -50,15 +59,18 @@ const ReflectionRoomLandingScreen: React.FC = () => {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          
-
           {/* Frame 600: 345x84, HORIZONTAL, pa=CENTER, ca=CENTER
               No back button. Title centered with info icon absolutely pinned right. */}
           <View style={styles.titleRow}>
             <Text style={styles.title}>REFLECTION ROOM</Text>
             {/* Frame 612: 24x84, vertically centered info icon */}
             <View style={styles.infoWrapper}>
-              <TouchableOpacity onPress={() => { setShowInfo(true); setInfoPage(0); }}>
+              <TouchableOpacity
+                onPress={() => {
+                  setShowInfo(true);
+                  setInfoPage(0);
+                }}
+              >
                 <Image
                   source={require('@assets/rr-info-icon.png')}
                   style={styles.infoIcon}
@@ -94,7 +106,9 @@ const ReflectionRoomLandingScreen: React.FC = () => {
 
           {/* Description: Inter 16 palette.gold.subtlest, 317w, centered */}
           <Text style={styles.description}>
-            {'Where awareness turns into real change.\nSmall moments. Real change. Over time.\nA quick reflection unlocks the room \nyou need right now.'}
+            {
+              'Where awareness turns into real change.\nSmall moments. Real change. Over time.\nA quick reflection unlocks the room \nyou need right now.'
+            }
           </Text>
 
           {/* START: Component 2 — 104x55, r=12, border=palette.navy.light 0.5 */}
@@ -121,9 +135,18 @@ const ReflectionRoomLandingScreen: React.FC = () => {
         </ScrollView>
       </SafeAreaView>
       {showInfo && (
-        <Pressable style={styles.infoOverlay} onPress={() => setShowInfo(false)}>
-          <Pressable style={styles.infoPopupContainer} onPress={e => e.stopPropagation()}>
-            <TouchableOpacity style={styles.infoCloseBtn} onPress={() => setShowInfo(false)}>
+        <Pressable
+          style={styles.infoOverlay}
+          onPress={() => setShowInfo(false)}
+        >
+          <Pressable
+            style={styles.infoPopupContainer}
+            onPress={e => e.stopPropagation()}
+          >
+            <TouchableOpacity
+              style={styles.infoCloseBtn}
+              onPress={() => setShowInfo(false)}
+            >
               <Text style={styles.infoCloseText}>×</Text>
             </TouchableOpacity>
             <Text style={styles.infoTitle}>{INFO_PAGES[infoPage].title}</Text>
@@ -134,16 +157,25 @@ const ReflectionRoomLandingScreen: React.FC = () => {
               <View style={styles.infoRichBody}>
                 <Text style={styles.infoItalicLine}>Distance = influence</Text>
                 <View style={styles.infoBullet}>
-                  <Text style={styles.infoBulletDot}>•  </Text>
-                  <Text style={styles.infoBody}><Text style={styles.infoBold}>Near YOU:</Text> Actively shaping how you feel, think, or react right now.</Text>
+                  <Text style={styles.infoBulletDot}>• </Text>
+                  <Text style={styles.infoBody}>
+                    <Text style={styles.infoBold}>Near YOU:</Text> Actively
+                    shaping how you feel, think, or react right now.
+                  </Text>
                 </View>
                 <View style={styles.infoBullet}>
-                  <Text style={styles.infoBulletDot}>•  </Text>
-                  <Text style={styles.infoBody}><Text style={styles.infoBold}>Middle orbit:</Text> Still present, but no longer in control.</Text>
+                  <Text style={styles.infoBulletDot}>• </Text>
+                  <Text style={styles.infoBody}>
+                    <Text style={styles.infoBold}>Middle orbit:</Text> Still
+                    present, but no longer in control.
+                  </Text>
                 </View>
                 <View style={styles.infoBullet}>
-                  <Text style={styles.infoBulletDot}>•  </Text>
-                  <Text style={styles.infoBody}><Text style={styles.infoBold}>Outer orbit:</Text> Easing. Less pull. Integration happening.</Text>
+                  <Text style={styles.infoBulletDot}>• </Text>
+                  <Text style={styles.infoBody}>
+                    <Text style={styles.infoBold}>Outer orbit:</Text> Easing.
+                    Less pull. Integration happening.
+                  </Text>
                 </View>
               </View>
             )}
@@ -151,14 +183,26 @@ const ReflectionRoomLandingScreen: React.FC = () => {
             <View style={styles.infoNavRow}>
               {infoPage > 0 ? (
                 <TouchableOpacity onPress={() => setInfoPage(infoPage - 1)}>
-                  <Image source={require('@assets/back-arrow.png')} style={styles.infoArrowImg} resizeMode="contain" />
+                  <Image
+                    source={require('@assets/back-arrow.png')}
+                    style={styles.infoArrowImg}
+                    resizeMode="contain"
+                  />
                 </TouchableOpacity>
-              ) : <View style={styles.infoArrowPlaceholder} />}
+              ) : (
+                <View style={styles.infoArrowPlaceholder} />
+              )}
               {infoPage < INFO_PAGES.length - 1 ? (
                 <TouchableOpacity onPress={() => setInfoPage(infoPage + 1)}>
-                  <Image source={require('@assets/right-arrow.png')} style={styles.infoArrowImg} resizeMode="contain" />
+                  <Image
+                    source={require('@assets/right-arrow.png')}
+                    style={styles.infoArrowImg}
+                    resizeMode="contain"
+                  />
                 </TouchableOpacity>
-              ) : <View style={styles.infoArrowPlaceholder} />}
+              ) : (
+                <View style={styles.infoArrowPlaceholder} />
+              )}
             </View>
           </Pressable>
         </Pressable>

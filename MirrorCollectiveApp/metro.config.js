@@ -8,7 +8,12 @@ const path = require('path');
  * @type {import('@react-native/metro-config').MetroConfig}
  */
 const config = {
+  transformer: {
+    babelTransformerPath: require.resolve('react-native-svg-transformer'),
+  },
   resolver: {
+    assetExts: getDefaultConfig(__dirname).resolver.assetExts.filter(ext => ext !== 'svg'),
+    sourceExts: [...getDefaultConfig(__dirname).resolver.sourceExts, 'svg'],
     extraNodeModules: {
       '@components': path.resolve(__dirname, 'src/components'),
       '@screens': path.resolve(__dirname, 'src/screens'),

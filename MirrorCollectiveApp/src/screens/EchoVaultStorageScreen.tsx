@@ -1,5 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { palette, textShadow } from '@theme';
 import React, { useState } from 'react';
 import {
   View,
@@ -18,7 +19,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
 import StarIcon from '@components/StarIcon';
-import { palette } from '@theme';
+
 import { RootStackParamList } from '@/types';
 
 type NavigationProp = NativeStackNavigationProp<
@@ -611,9 +612,9 @@ const styles = StyleSheet.create<{
       lineHeight: 31.2,
       color: palette.gold.DEFAULT,
       textAlign: 'center',
-      textShadowColor: 'rgba(229, 214, 176, 0.50)',
-      textShadowOffset: { width: 0, height: 0 },
-      textShadowRadius: 9,
+      textShadowColor: textShadow.warmGlow.color,
+      textShadowOffset: textShadow.warmGlow.offset,
+      textShadowRadius: textShadow.warmGlow.radius,
       includeFontPadding: false,
     },
 

@@ -1,6 +1,6 @@
-import { palette } from '@theme';
-import { useFocusEffect } from '@react-navigation/native';
+
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { palette, textShadow } from '@theme';
 import { RootStackParamList } from '@types';
 import React, { useState, useEffect, useCallback } from 'react';
 import {
@@ -255,8 +255,8 @@ const styles = StyleSheet.create({
       ios: 'CormorantGaramond-Regular',
       android: 'serif',
     }),
-    textShadowColor: 'rgba(240, 212, 168, 0.4)',
-    textShadowOffset: { width: 0, height: 0 },
+    textShadowColor: textShadow.glowSubtle.color,
+    textShadowOffset: textShadow.glowSubtle.offset,
     textShadowRadius: 16,
   },
 
@@ -352,9 +352,9 @@ const styles = StyleSheet.create({
       ios: 'CormorantGaramond-Medium',
       android: 'serif',
     }),
-    textShadowColor: 'rgba(229, 214, 176, 0.5)',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 8,
+    textShadowColor: textShadow.glowSubtle.color,
+    textShadowOffset: textShadow.glowSubtle.offset,
+    textShadowRadius: textShadow.glowSubtle.radius,
   },
   guardianCard: {
     width: '100%',

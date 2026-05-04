@@ -134,22 +134,35 @@ export const borderWidth = {
 } as const;
 
 // ---------------------------------------------------------------------------
-// Text shadows (from Figma Design System - Quiz screens)
+// Text shadows (from Figma Design System)
 // Note: React Native Text doesn't support separate shadow opacity,
 // so colors must include opacity in rgba() format
+// Figma "Glow Drop Shadow" variable properties:
+//   - X:0 Y:0 Blur:10 Spread:3 #F0D4A8 · 30% (primary shadow)
+//   - Second shadow (Blur:60) omitted due to React Native limitation
 // ---------------------------------------------------------------------------
 
 export const textShadow = {
+  // Figma "Glow Drop Shadow" — standard text glow for headings/titles
+  // Used across all screens for consistent branded typography
   glow: {
+    color: 'rgba(240, 212, 168, 0.3)',    // palette.gold.glow (#f0d4a8) @ 30%
+    offset: { width: 0, height: 0 },
+    radius: 10,                            // Blur:10 from Figma
+  },
+  // Stronger glow variant — for hero text or emphasized content
+  glowStrong: {
     color: 'rgba(240, 212, 168, 0.6)',    // palette.gold.glow (#f0d4a8) @ 60%
     offset: { width: 0, height: 0 },
     radius: 16,
   },
+  // Subtle glow variant — for secondary text that needs slight emphasis
   glowSubtle: {
     color: 'rgba(240, 212, 168, 0.3)',    // palette.gold.glow (#f0d4a8) @ 30%
     offset: { width: 0, height: 0 },
     radius: 8,
   },
+  // Warm glow variant — alternative aesthetic using warm gold
   warmGlow: {
     color: 'rgba(229, 214, 176, 0.5)',    // palette.gold.warm (#e5d6b0) @ 50%
     offset: { width: 0, height: 0 },
@@ -339,4 +352,26 @@ export const shadows = {
   HEAVY: elevation.surfaceRaised,
   CONTAINER: elevation.surfaceRaised,
   GLOW: elevation.surfaceRaised,
+} as const;
+
+// ---------------------------------------------------------------------------
+// Effects — frosted-glass / backdrop-blur surfaces
+// Single source of truth for any component using @react-native-community/blur.
+// Re-tune the `amount` here once and every consumer (Button, modals, inputs)
+// updates together.
+// ---------------------------------------------------------------------------
+
+// Figma BACKGROUND_BLUR radius:60 (gaussian σ) ≈ iOS UIBlurEffect amount:25.
+// Empirical mapping — gaussian σ and UIBlurEffectStyle aren't 1:1 equivalent,
+// so this value should be dialled in on a real iOS device against the Figma
+// reference, not the simulator (simulator over-blurs).
+export const effects = {
+  backgroundBlur: {
+    amount: 60,
+    type: 'dark' as const,
+    // Solid tint shown when iOS Reduce Transparency is on, or on Android
+    // where blur perf is unreliable. Matches the dark navy base so the
+    // surface still reads as a glass card without the blur effect.
+    fallbackColor: palette.navy.card,
+  },
 } as const;

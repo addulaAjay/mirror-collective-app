@@ -1,7 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { palette, textShadow } from '@theme';
 import React from 'react';
-import { palette } from '@theme';
 import {
   View,
   Text,
@@ -16,6 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
+
 import { RootStackParamList } from '@/types';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Checkout'>;
@@ -317,9 +318,9 @@ const styles = StyleSheet.create({
     color: CHECKOUT_COLORS.gold,
     textAlign: 'center',
     textDecorationLine: 'underline',
-    textShadowColor: 'rgba(229, 214, 176, 0.5)',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 9,
+    textShadowColor: textShadow.warmGlow.color,
+    textShadowOffset: textShadow.warmGlow.offset,
+    textShadowRadius: textShadow.warmGlow.radius,
   },
 
   // Divider
@@ -441,9 +442,9 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     color: CHECKOUT_COLORS.gold,
     textAlign: 'center',
-    textShadowColor: 'rgba(229, 214, 176, 0.5)',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 9,
+    textShadowColor: textShadow.warmGlow.color,
+    textShadowOffset: textShadow.warmGlow.offset,
+    textShadowRadius: textShadow.warmGlow.radius,
     letterSpacing: 1,
   },
 

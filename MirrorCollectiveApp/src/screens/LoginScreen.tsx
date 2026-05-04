@@ -6,6 +6,7 @@ import {
   moderateScale,
   scale,
   verticalScale,
+  textShadow,
 } from '@theme';
 import type { LoginScreenProps } from '@types';
 import React, { useEffect, useState } from 'react';
@@ -25,8 +26,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path, Circle } from 'react-native-svg';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
+import Button from '@components/Button';
 import LogoHeader from '@components/LogoHeader';
-import StarIcon from '@components/StarIcon';
 import TextInputField from '@components/TextInputField';
 import { useSession } from '@context/SessionContext';
 import { useUser } from '@context/UserContext';
@@ -129,7 +130,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                 {/* Form — inputs + error row. Figma: gap-12px, node 1886:2347 */}
                 <View style={styles.formContainer}>
                   <TextInputField
-                    size="normal"
+                    size="M"
                     placeholder={t('auth.login.usernamePlaceholder')}
                     value={email}
                     onChangeText={setEmail}
@@ -140,7 +141,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                   />
 
                   <TextInputField
-                    size="normal"
+                    size="M"
                     placeholder={t('auth.login.passwordPlaceholder')}
                     value={password}
                     onChangeText={setPassword}
@@ -181,21 +182,17 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                   </TouchableOpacity>
                 )}
 
-                {/* ENTER button — Figma: node 1886:2353 */}
-                <TouchableOpacity
-                  style={styles.enterButton}
+                {/* ENTER button — Figma: node 1886:2353 (auth-CTA pattern) */}
+                <Button
+                  variant="auth"
+                  title={
+                    isLoading
+                      ? t('auth.login.enteringButton')
+                      : t('auth.login.enterButton')
+                  }
                   onPress={handleSignIn}
                   disabled={isLoading}
-                  activeOpacity={0.8}
-                >
-                  <StarIcon width={20} height={20} />
-                  <Text style={styles.enterText}>
-                    {isLoading
-                      ? t('auth.login.enteringButton')
-                      : t('auth.login.enterButton')}
-                  </Text>
-                  <StarIcon width={20} height={20} />
-                </TouchableOpacity>
+                />
 
                 {/* Sign up section — Figma: node 1886:2357 */}
                 <View style={styles.signupContainer}>
@@ -245,7 +242,7 @@ const styles = StyleSheet.create({
     gap: verticalScale(40),            // Figma: gap-40px between sections
   },
 
-  // Figma: Heading/Heading L — Cormorant Regular 3XL (32px), #f2e2b1
+  // Figma: Heading/Heading L — Cormorant Regular 3XL (32px), #f2e2b1, glow shadow
   title: {
     fontFamily: fontFamily.heading,                       // CormorantGaramond-Regular (NOT Light)
     fontSize: moderateScale(fontSize['3xl']),              // 32px — Figma: font/size/3XL
@@ -254,6 +251,9 @@ const styles = StyleSheet.create({
     letterSpacing: 0,
     color: palette.gold.DEFAULT,                           // Figma: text/paragraph-1 (#f2e2b1)
     textAlign: 'center',
+    textShadowColor: textShadow.glow.color,                // Glow: #F0D4A8 · 30%
+    textShadowOffset: textShadow.glow.offset,              // X:0 Y:0
+    textShadowRadius: textShadow.glow.radius,              // Blur:10
   },
 
   // Figma: node 1259:1264 — flex col gap-12px
@@ -290,27 +290,6 @@ const styles = StyleSheet.create({
     color: palette.gold.subtlest,                          // #fdfdf9
     textDecorationLine: 'underline',
     textAlign: 'center',
-  },
-
-  // Figma: node 4042:1415 — flex row gap-16px, stars 20×20
-  enterButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: scale(16),
-    justifyContent: 'center',
-  },
-
-  // Figma: Heading/Heading M — Cormorant Regular 2XL (28px), #f2e2b1, shadow 0 0 4px warmGlow
-  enterText: {
-    fontFamily: fontFamily.heading,                        // CormorantGaramond-Regular
-    fontSize: moderateScale(fontSize['2xl']),               // 28px — Figma: font/size/2XL
-    fontWeight: fontWeight.regular,                         // 400
-    lineHeight: moderateScale(fontSize['2xl']) * 1.3,
-    letterSpacing: 0,
-    color: palette.gold.DEFAULT,                            // Figma: #f2e2b1 (NOT .warm)
-    textShadowColor: 'rgba(229,214,176,0.5)',               // warmGlow color
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 4,                                    // Figma: 4px (smaller than warmGlow token 9)
   },
 
   // Figma: node 203:2820 — flex col gap-8px, items center

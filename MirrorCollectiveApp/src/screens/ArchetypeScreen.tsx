@@ -8,6 +8,7 @@ import {
   scale,
   verticalScale,
   moderateScale,
+  textShadow,
 } from '@theme';
 import type { RootStackParamList } from '@types';
 import React from 'react';
@@ -25,6 +26,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
+import Button from '@components/Button';
 import LogoHeader from '@components/LogoHeader';
 import { QuizStorageService } from '@services/quizStorageService';
 
@@ -81,14 +83,14 @@ const ArchetypeScreen: React.FC<ArchetypeScreenProps> = ({ route }) => {
     );
   };
 
-  // Content from src/assets/questions.json → archetypes[key].description
+  // Archetype description from backend (via backendResult.archetype_details.description)
   // Format: "Para 1 text\n\n Para 2 text" — trim() removes leading space on para 2
   const descParts = archetype.description.split('\n\n');
   const para1 = descParts[0]?.trim() ?? archetype.description;
   const para2 = descParts[1]?.trim() ?? null;
 
   return (
-    <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage}>
+    <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage} scrollable>
       <SafeAreaView style={styles.safe}>
         <StatusBar
           barStyle="light-content"
@@ -102,12 +104,7 @@ const ArchetypeScreen: React.FC<ArchetypeScreenProps> = ({ route }) => {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          <TouchableOpacity
-            testID="archetype-container"
-            style={styles.container}
-            onPress={handleContinue}
-            activeOpacity={1}
-          >
+          <View testID="archetype-container" style={styles.container}>
             {/* Content column — gap-[24px] between all sections, Figma: node 205:457 */}
             <View style={styles.content}>
 
@@ -138,16 +135,23 @@ const ArchetypeScreen: React.FC<ArchetypeScreenProps> = ({ route }) => {
                 ) : null}
               </View>
 
-              {/* "Click anywhere to continue" — Figma: node 205:462 */}
-              <Text style={styles.hintText}>
-                Click anywhere to continue
-              </Text>
-
             </View>
-          </TouchableOpacity>
+          </View>
         </ScrollView>
 
-        {/* Dev-only retake button — not in Figma, hidden in production */}
+        {/* Pinned CTA — always visible regardless of how much description scrolled. */}
+        <View style={styles.continueBar}>
+          <Button
+            variant="link"
+            size="L"
+            title="Click anywhere to continue"
+            onPress={handleContinue}
+            testID="archetype-continue"
+          />
+        </View>
+
+        {/* Dev-only retake button — gated by __DEV__ so it only appears in
+            debug/dev builds, never in production (TestFlight/App Store). */}
         {__DEV__ && (
           <TouchableOpacity onPress={handleRetake} style={styles.retakeButton}>
             <Text style={styles.retakeText}>
@@ -174,13 +178,18 @@ const styles = StyleSheet.create({
     resizeMode: 'cover',
   },
 
+  // ScrollView holds the scrollable middle (title + image + description).
+  // The Continue CTA and dev-only retake live below as siblings, pinned.
   scrollView: {
     flex: 1,
   },
+  // No flexGrow on contentContainer — it would force the container to claim
+  // at least the viewport's height, which on iOS prevents the ScrollView
+  // from detecting overflow and disables scrolling. With natural sizing,
+  // content scrolls when it exceeds the visible scroll area.
   scrollContent: {
-    flexGrow: 1,
-    paddingTop: verticalScale(40),
-    paddingBottom: verticalScale(40),
+    paddingTop:    verticalScale(40),
+    paddingBottom: verticalScale(24),
   },
 
   // Figma: outer container left-[24px] w-[351px]
@@ -212,9 +221,9 @@ const styles = StyleSheet.create({
     letterSpacing: 0,
     color: palette.gold.warm,
     textAlign: 'center',
-    textShadowColor: palette.gold.warm,
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 8,
+    textShadowColor: textShadow.glowSubtle.color,
+    textShadowOffset: textShadow.glowSubtle.offset,
+    textShadowRadius: textShadow.glowSubtle.radius,
   },
 
   // Figma: node 205:460 — 240×240, shadow 0 0 44px rgba(0,0,0,0.2)
@@ -262,17 +271,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
-  // Figma: node 205:462 — Inter Italic S 16px, #f2e2b1, w-[284px]
-  hintText: {
-    fontFamily: fontFamily.bodyItalic,
-    fontStyle: 'italic',              // Required on iOS alongside fontFamily to trigger italic rendering
-    fontSize: moderateScale(fontSize.s),
-    fontWeight: fontWeight.regular,
-    lineHeight: moderateScale(fontSize.s * 1.5),
-    letterSpacing: 0,
-    color: palette.gold.DEFAULT,
-    textAlign: 'center',
-    width: scale(284),
+  // Pinned Continue CTA — sibling of ScrollView so it always stays visible.
+  continueBar: {
+    width:            '100%',
+    alignItems:       'center',
+    paddingHorizontal: scale(24),
   },
 
   // Dev-only — not in Figma

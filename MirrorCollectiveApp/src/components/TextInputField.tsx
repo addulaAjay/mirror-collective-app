@@ -29,10 +29,11 @@ import Svg, { G, Mask, Path, Rect } from 'react-native-svg';
 
 type FieldSize =
   | 'S'
+  | 'M'
   | 'L'
   | 'small'   // legacy → maps to S
-  | 'normal'  // legacy → maps to S
-  | 'medium'; // legacy → maps to S
+  | 'normal'  // legacy → maps to M (Login/ForgotPassword screens)
+  | 'medium'; // legacy → maps to M
 
 interface Props {
   // Figma slots
@@ -102,7 +103,10 @@ const TextInputField = ({
   const [isFocused, setIsFocused] = useState(false);
 
   const isEmpty = value.trim().length === 0;
-  const resolvedSize: 'S' | 'L' = size === 'L' ? 'L' : 'S';
+  const resolvedSize: 'S' | 'M' | 'L' = 
+    size === 'L' ? 'L' : 
+    size === 'M' || size === 'normal' || size === 'medium' ? 'M' : 
+    'S';
   const isMultiline = resolvedSize === 'L' || multiline === true;
 
   return (
@@ -115,6 +119,8 @@ const TextInputField = ({
         style={[
           styles.field,
           isFocused ? styles.fieldActive : styles.fieldInactive,
+          resolvedSize === 'S' && styles.fieldS,
+          resolvedSize === 'M' && styles.fieldM,
           resolvedSize === 'L' && styles.fieldL,
         ]}
       >
@@ -238,21 +244,21 @@ const styles = StyleSheet.create({
     gap: spacing.xs, // 8px between label, field, helper
   },
 
-  // ── Label — Figma: Cormorant Garamond Medium 20px, gold ────────────
+  // ── Label — Figma: Heading/Heading XS Bold (Cormorant Medium, L/XL 20/32)
   label: {
-    fontFamily: fontFamily.headingMedium,
-    fontSize: moderateScale(fontSize.l, 0.3), // 20 base
-    lineHeight: lineHeight.l,                 // 28
-    color: palette.gold.DEFAULT,
+    fontFamily: fontFamily.headingMedium,     // Cormorant-Medium (weight 500)
+    fontSize: moderateScale(fontSize.l, 0.3), // 20 base — font/size/L
+    lineHeight: lineHeight.xl,                // 32 — font/size/XL
+    color: palette.gold.subtlest,             // #fdfdf9 — Text/Paragraph-2
   },
 
   // ── Field container ────────────────────────────────────────────────
   field: {
-    borderRadius: radius.m,      // 16 — Figma: var(--radius/m,16px)
+    borderRadius: radius.m,       // 16 — Figma: Radius/M
     borderWidth: 0.5,
-    paddingHorizontal: spacing.m, // 16
-    paddingVertical: spacing.s,   // 12 — Figma: var(--spacing/s,12px)
-    minHeight: 40,                // Size S — Figma
+    paddingHorizontal: spacing.m, // 16 — Figma: Spacing/M
+    paddingVertical: spacing.s,   // 12 — Figma: Spacing/S
+    minHeight: 48,                // Figma: Hug (48px)
     flexDirection: 'row',
     alignItems: 'center',
     overflow: 'hidden',           // clips LinearGradient to borderRadius
@@ -260,11 +266,17 @@ const styles = StyleSheet.create({
     ...theme.shadows.input,
   },
   fieldInactive: {
-    borderColor: palette.navy.light,  // #a3b3cc — Figma inactive border
+    borderColor: palette.navy.light,  // #a3b3cc — Figma: Border/Subtle
   },
   fieldActive: {
-    borderColor: palette.gold.DEFAULT,
-    backgroundColor: palette.surface.active, // rgba(197,158,95,0.05) — Figma active bg
+    borderColor: palette.navy.light,  // #a3b3cc — Same as inactive (Border/Subtle)
+    backgroundColor: 'transparent',   // Figma: Transparent bg with blur+gradient only
+  },
+  fieldS: {
+    minHeight: 40,        // Size S — SignUp/smaller inputs
+  },
+  fieldM: {
+    // M size uses default 48px height - no override needed
   },
   fieldL: {
     minHeight: 120,       // Size L / multiline — Figma
@@ -272,7 +284,7 @@ const styles = StyleSheet.create({
   },
 
   // ── Custom placeholder overlay ─────────────────────────────────────
-  // Figma: Inter Regular 16px, #fdfdf9, no shadow
+  // Figma: Input/Input M — Inter Regular 16px, lh:24px, #a3b3cc (Text/Inverse Paragraph-2)
   placeholder: {
     position: 'absolute',
     left: 0,
@@ -290,24 +302,29 @@ const styles = StyleSheet.create({
   },
 
   // ── Text input ─────────────────────────────────────────────────────
-  // Figma: Inter Regular 16px
+  // Figma: Body S/Body S 16/24 (Inter Regular 16px, lineHeight 24, shadow 0 0 9px warmGlow)
   // NOTE: lineHeight intentionally omitted — setting lineHeight on TextInput
-  // causes vertical text clipping on iOS (known RN bug). Use minHeight on the
-  // field container to control height instead.
+  // causes vertical text misalignment on iOS/Android. Use minHeight on field
+  // container + textAlignVertical: 'center' for proper vertical centering.
   input: {
     flex: 1,
     fontFamily: fontFamily.body,                  // Inter-Regular
-    fontSize: moderateScale(fontSize.s, 0.3),     // 16 base
+    fontSize: moderateScale(fontSize.s, 0.3),     // 16 base — Figma: font/size/S
     fontWeight: '400',
     textAlign: 'left',
     textAlignVertical: 'center',
     includeFontPadding: false,
+    color: palette.gold.subtlest,                 // #fdfdf9 — Figma: Text/Paragraph-2
+    // Figma: Drop shadow 0 0 9px #E5D6B0 · 50%
+    textShadowColor: textShadow.warmGlow.color,   // rgba(229,214,176,0.5)
+    textShadowOffset: textShadow.warmGlow.offset, // {width: 0, height: 0}
+    textShadowRadius: textShadow.warmGlow.radius, // 9
   },
   inputInactive: {
-    color: palette.gold.subtlest, // #fdfdf9 — readable on dark bg when not focused
+    // No additional styles needed - base styles already match Figma
   },
   inputActive: {
-    color: palette.gold.DEFAULT,  // #f2e2b1 — Figma active text
+    // Active state uses same color as inactive - differentiation via field border only
   },
   inputGoldRegular: {
     // Legacy 'gold-regular' inputTextStyle — warm gold variant

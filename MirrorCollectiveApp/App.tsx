@@ -4,8 +4,6 @@ import 'react-native-url-polyfill/auto';
 
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { ThemeProvider } from '@theme';
-import type { RootStackParamList } from '@types';
 import React, { useCallback, useEffect, useState } from 'react';
 import { StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -16,10 +14,8 @@ import { SubscriptionProvider } from '@context/SubscriptionContext';
 import { UserProvider } from '@context/UserContext';
 import useAppStateHandler from '@hooks/useAppStateHandler';
 import useInactivityTimer from '@hooks/useInactivityTimer';
-import { OnboardingService } from '@services';
 // Import your screens
 import AboutScreen from '@screens/AboutScreen';
-import AppExplainerScreen from '@screens/AppExplainerScreen';
 import AppVideoScreen from '@screens/AppVideoScreen';
 import ArchetypeScreen from '@screens/ArchetypeScreen';
 import CheckoutScreen from '@screens/CheckoutScreen';
@@ -29,6 +25,7 @@ import ChooseRecipientScreen from '@screens/echoVault/ChooseRecipientScreen';
 import EchoAudioPlaybackScreen from '@screens/echoVault/EchoAudioPlaybackScreen';
 import EchoDetailScreen from '@screens/echoVault/EchoDetailScreen';
 import MirrorEchoVaultHomeScreen from '@screens/echoVault/EchoVaultHomeScreen';
+import EchoInboxScreen from '@screens/echoVault/EchoInboxScreen';
 import MirrorEchoVaultLibraryScreen from '@screens/echoVault/EchoVaultLibraryScreen';
 import EchoVideoPlaybackScreen from '@screens/echoVault/EchoVideoPlaybackScreen';
 import ManageGuardianScreen from '@screens/echoVault/ManageGuardianScreen';
@@ -47,6 +44,11 @@ import MirrorAnimationScreen from '@screens/MirrorAnimationScreen';
 import MirrorChatScreen from '@screens/MirrorChatScreen';
 import MirrorCodeLibraryCommingsoonScreen from '@screens/MirrorCodeLibraryCommingsoonScreen';
 import MirrorEchoCommingsoonScreen from '@screens/MirrorEchoCommingsoonScreen';
+import CausesCarouselScreen from '@screens/MirrorPledge/CausesCarouselScreen';
+import EchoLedgerScreen from '@screens/MirrorPledge/EchoLedgerScreen';
+import MirrorPledgeIntroScreen from '@screens/MirrorPledge/MirrorPledgeIntroScreen';
+import PledgeThankYouScreen from '@screens/MirrorPledge/PledgeThankYouScreen';
+import ViewAllCausesScreen from '@screens/MirrorPledge/ViewAllCausesScreen';
 import ProfileScreen from '@screens/ProfileScreen';
 import QuizQuestionsScreen from '@screens/QuizQuestionsScreen';
 import QuizTuningScreen from '@screens/QuizTuningScreen';
@@ -67,7 +69,16 @@ import TalkToMirrorScreen from '@screens/TalkToMirrorScreen';
 import TermsAndConditionsScreen from '@screens/TermsAndConditionsScreen';
 import TheMirrorPledgeCommingsoonScreen from '@screens/TheMirrorPledgeCommingsoonScreen';
 import VerifyEmailScreen from '@screens/VerifyEmailScreen';
+import { OnboardingService } from '@services';
 import PushNotificationService from '@services/PushNotificationService';
+import { ThemeProvider } from '@theme';
+import type { RootStackParamList } from '@types';
+
+// DEV-only: button visual QA + blur tuning screen. Loaded lazily so the
+// showcase code never executes outside __DEV__.
+const ButtonShowcaseScreen = __DEV__
+  ? require('./src/screens/_dev/ButtonShowcase').default
+  : null;
 
 import ErrorBoundary from './src/components/ErrorBoundary';
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -125,6 +136,12 @@ const AuthNavigator = () => (
       name="TheMirrorPledge"
       component={TheMirrorPledgeCommingsoonScreen}
     />
+    {/* Mirror Pledge flow — Figma Design-Master-File section 2169:1119 */}
+    <Stack.Screen name="MirrorPledgeIntro" component={MirrorPledgeIntroScreen} />
+    <Stack.Screen name="EchoLedger" component={EchoLedgerScreen} />
+    <Stack.Screen name="ViewAllCauses" component={ViewAllCausesScreen} />
+    <Stack.Screen name="CausesCarousel" component={CausesCarouselScreen} />
+    <Stack.Screen name="PledgeThankYou" component={PledgeThankYouScreen} />
     <Stack.Screen name="About" component={AboutScreen} />
     <Stack.Screen name="FAQ" component={FAQScreen} />
     <Stack.Screen
@@ -149,7 +166,6 @@ const AuthNavigator = () => (
     <Stack.Screen name="EchoVaultStorage" component={EchoVaultStorageScreen} />
     <Stack.Screen name="Splash" component={SplashScreen} />
     <Stack.Screen name="MirrorAnimation" component={MirrorAnimationScreen} />
-    <Stack.Screen name="AppExplanation" component={AppExplainerScreen} />
     {/* Quiz Flow (Pre-Auth) */}
     <Stack.Screen name="QuizWelcome" component={QuizWelcomeScreen} />
     <Stack.Screen name="QuizTuning" component={QuizTuningScreen} />
@@ -165,6 +181,11 @@ const AuthNavigator = () => (
       name="EmailConfirmation"
       component={EmailConfirmationScreen}
     />
+    {/* DEV-only: button showcase. Set initialRouteName="ButtonShowcase" above
+        for an iOS dev session, or navigate('ButtonShowcase') from anywhere. */}
+    {__DEV__ && ButtonShowcaseScreen && (
+      <Stack.Screen name="ButtonShowcase" component={ButtonShowcaseScreen} />
+    )}
   </Stack.Navigator>
 );
 
@@ -197,9 +218,16 @@ const AuthenticatedNavigator = ({ initialRouteName = 'EnterMirror' }: Authentica
     <Stack.Screen name="ReflectionRoomMirrorMoment" component={ReflectionRoomMirrorMomentScreen} />
     <Stack.Screen name="ReflectionRoomCore" component={ReflectionRoomCoreScreen} />
     <Stack.Screen name="TheMirrorPledge" component={TheMirrorPledgeCommingsoonScreen} />
+    {/* Mirror Pledge flow — Figma Design-Master-File section 2169:1119 */}
+    <Stack.Screen name="MirrorPledgeIntro" component={MirrorPledgeIntroScreen} />
+    <Stack.Screen name="EchoLedger" component={EchoLedgerScreen} />
+    <Stack.Screen name="ViewAllCauses" component={ViewAllCausesScreen} />
+    <Stack.Screen name="CausesCarousel" component={CausesCarouselScreen} />
+    <Stack.Screen name="PledgeThankYou" component={PledgeThankYouScreen} />
     {/* Echo Vault Screens */}
     <Stack.Screen name="MirrorEchoVaultHome" component={MirrorEchoVaultHomeScreen} />
     <Stack.Screen name="MirrorEchoVaultLibrary" component={MirrorEchoVaultLibraryScreen} />
+    <Stack.Screen name="EchoInboxScreen" component={EchoInboxScreen} />
     <Stack.Screen name="NewEchoScreen" component={NewEchoScreen} />
     <Stack.Screen name="NewEchoComposeScreen" component={NewEchoComposeScreen} />
     <Stack.Screen name="NewEchoAudioScreen" component={NewEchoAudioScreen} />

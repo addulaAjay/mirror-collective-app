@@ -1,0 +1,1669 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Button structural snapshots auth · - · 24px-icon 1`] = `
+<TouchableOpacity
+  activeOpacity={0.8}
+  onPress={[Function]}
+  style={
+    [
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+        "gap": 16,
+        "justifyContent": "center",
+      },
+      undefined,
+      undefined,
+    ]
+  }
+>
+  <Svg
+    fill="none"
+    height={24}
+    viewBox="0 0 28 28"
+    width={24}
+  >
+    <Defs>
+      <Filter
+        filterUnits="userSpaceOnUse"
+        height="28"
+        id="filter0_d_347_1243"
+        width="28"
+        x="0"
+        y="0"
+      >
+        <FeFlood
+          floodOpacity="0"
+          result="BackgroundImageFix"
+        />
+        <FeColorMatrix
+          in="SourceAlpha"
+          result="hardAlpha"
+          type="matrix"
+          values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+        />
+        <FeOffset />
+        <FeGaussianBlur
+          stdDeviation="2"
+        />
+        <FeComposite
+          in2="hardAlpha"
+          operator="out"
+        />
+        <FeColorMatrix
+          type="matrix"
+          values="0 0 0 0 0.898039 0 0 0 0 0.839216 0 0 0 0 0.690196 0 0 0 0.5 0"
+        />
+        <FeBlend
+          in2="BackgroundImageFix"
+          mode="normal"
+          result="effect1_dropShadow_347_1243"
+        />
+        <FeBlend
+          in="SourceGraphic"
+          in2="effect1_dropShadow_347_1243"
+          mode="normal"
+          result="shape"
+        />
+      </Filter>
+    </Defs>
+    <G
+      filter="url(#filter0_d_347_1243)"
+    >
+      <Path
+        d="M17.2489 16.5079C17.6067 16.2324 18.0089 16.0108 18.449 15.8651L24 14L18.449 12.1349C18.0089 11.9861 17.6067 11.7676 17.2489 11.4921C17.2837 11.4478 17.3154 11.4034 17.3502 11.3591L21.0709 6.92907L16.6409 10.6498C16.5966 10.6846 16.5522 10.7163 16.5079 10.7511C16.2324 10.3933 16.0108 9.99113 15.8651 9.55098L14 4L12.1349 9.55098C11.9861 9.99113 11.7676 10.3933 11.4921 10.7511C11.4477 10.7163 11.4034 10.6846 11.3591 10.6498L6.92906 6.92907L10.6498 11.3591C10.6846 11.4034 10.7163 11.4478 10.7511 11.4921C10.3933 11.7676 9.99114 11.9892 9.55098 12.1349L4 14L9.55098 15.8651C9.99114 16.0139 10.3933 16.2324 10.7511 16.5079C10.7163 16.5522 10.6846 16.5966 10.6498 16.6409L6.92906 21.0709L11.3591 17.3502C11.4034 17.3154 11.4477 17.2837 11.4921 17.2489C11.7676 17.6067 11.9892 18.0089 12.1349 18.449L14 24L15.8651 18.449C16.0139 18.0089 16.2324 17.6067 16.5079 17.2489C16.5522 17.2837 16.5966 17.3154 16.6409 17.3502L21.0709 21.0709L17.3502 16.6409C17.3154 16.5966 17.2837 16.5522 17.2489 16.5079Z"
+        fill="#e5d6b0"
+      />
+    </G>
+  </Svg>
+  <Text
+    style={
+      [
+        {
+          "color": "#f2e2b1",
+          "fontFamily": "CormorantGaramond-Regular",
+          "fontSize": 24,
+          "fontWeight": "400",
+          "includeFontPadding": false,
+          "lineHeight": 28,
+          "textShadowColor": "rgba(229, 214, 176, 0.5)",
+          "textShadowOffset": {
+            "height": 0,
+            "width": 0,
+          },
+          "textShadowRadius": 4,
+        },
+        undefined,
+      ]
+    }
+  >
+    TEXT
+  </Text>
+  <Svg
+    fill="none"
+    height={24}
+    viewBox="0 0 28 28"
+    width={24}
+  >
+    <Defs>
+      <Filter
+        filterUnits="userSpaceOnUse"
+        height="28"
+        id="filter0_d_347_1243"
+        width="28"
+        x="0"
+        y="0"
+      >
+        <FeFlood
+          floodOpacity="0"
+          result="BackgroundImageFix"
+        />
+        <FeColorMatrix
+          in="SourceAlpha"
+          result="hardAlpha"
+          type="matrix"
+          values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+        />
+        <FeOffset />
+        <FeGaussianBlur
+          stdDeviation="2"
+        />
+        <FeComposite
+          in2="hardAlpha"
+          operator="out"
+        />
+        <FeColorMatrix
+          type="matrix"
+          values="0 0 0 0 0.898039 0 0 0 0 0.839216 0 0 0 0 0.690196 0 0 0 0.5 0"
+        />
+        <FeBlend
+          in2="BackgroundImageFix"
+          mode="normal"
+          result="effect1_dropShadow_347_1243"
+        />
+        <FeBlend
+          in="SourceGraphic"
+          in2="effect1_dropShadow_347_1243"
+          mode="normal"
+          result="shape"
+        />
+      </Filter>
+    </Defs>
+    <G
+      filter="url(#filter0_d_347_1243)"
+    >
+      <Path
+        d="M17.2489 16.5079C17.6067 16.2324 18.0089 16.0108 18.449 15.8651L24 14L18.449 12.1349C18.0089 11.9861 17.6067 11.7676 17.2489 11.4921C17.2837 11.4478 17.3154 11.4034 17.3502 11.3591L21.0709 6.92907L16.6409 10.6498C16.5966 10.6846 16.5522 10.7163 16.5079 10.7511C16.2324 10.3933 16.0108 9.99113 15.8651 9.55098L14 4L12.1349 9.55098C11.9861 9.99113 11.7676 10.3933 11.4921 10.7511C11.4477 10.7163 11.4034 10.6846 11.3591 10.6498L6.92906 6.92907L10.6498 11.3591C10.6846 11.4034 10.7163 11.4478 10.7511 11.4921C10.3933 11.7676 9.99114 11.9892 9.55098 12.1349L4 14L9.55098 15.8651C9.99114 16.0139 10.3933 16.2324 10.7511 16.5079C10.7163 16.5522 10.6846 16.5966 10.6498 16.6409L6.92906 21.0709L11.3591 17.3502C11.4034 17.3154 11.4477 17.2837 11.4921 17.2489C11.7676 17.6067 11.9892 18.0089 12.1349 18.449L14 24L15.8651 18.449C16.0139 18.0089 16.2324 17.6067 16.5079 17.2489C16.5522 17.2837 16.5966 17.3154 16.6409 17.3502L21.0709 21.0709L17.3502 16.6409C17.3154 16.5966 17.2837 16.5522 17.2489 16.5079Z"
+        fill="#e5d6b0"
+      />
+    </G>
+  </Svg>
+</TouchableOpacity>
+`;
+
+exports[`Button structural snapshots auth · - · default 1`] = `
+<TouchableOpacity
+  activeOpacity={0.8}
+  onPress={[Function]}
+  style={
+    [
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+        "gap": 16,
+        "justifyContent": "center",
+      },
+      undefined,
+      undefined,
+    ]
+  }
+>
+  <Svg
+    fill="none"
+    height={20}
+    viewBox="0 0 28 28"
+    width={20}
+  >
+    <Defs>
+      <Filter
+        filterUnits="userSpaceOnUse"
+        height="28"
+        id="filter0_d_347_1243"
+        width="28"
+        x="0"
+        y="0"
+      >
+        <FeFlood
+          floodOpacity="0"
+          result="BackgroundImageFix"
+        />
+        <FeColorMatrix
+          in="SourceAlpha"
+          result="hardAlpha"
+          type="matrix"
+          values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+        />
+        <FeOffset />
+        <FeGaussianBlur
+          stdDeviation="2"
+        />
+        <FeComposite
+          in2="hardAlpha"
+          operator="out"
+        />
+        <FeColorMatrix
+          type="matrix"
+          values="0 0 0 0 0.898039 0 0 0 0 0.839216 0 0 0 0 0.690196 0 0 0 0.5 0"
+        />
+        <FeBlend
+          in2="BackgroundImageFix"
+          mode="normal"
+          result="effect1_dropShadow_347_1243"
+        />
+        <FeBlend
+          in="SourceGraphic"
+          in2="effect1_dropShadow_347_1243"
+          mode="normal"
+          result="shape"
+        />
+      </Filter>
+    </Defs>
+    <G
+      filter="url(#filter0_d_347_1243)"
+    >
+      <Path
+        d="M17.2489 16.5079C17.6067 16.2324 18.0089 16.0108 18.449 15.8651L24 14L18.449 12.1349C18.0089 11.9861 17.6067 11.7676 17.2489 11.4921C17.2837 11.4478 17.3154 11.4034 17.3502 11.3591L21.0709 6.92907L16.6409 10.6498C16.5966 10.6846 16.5522 10.7163 16.5079 10.7511C16.2324 10.3933 16.0108 9.99113 15.8651 9.55098L14 4L12.1349 9.55098C11.9861 9.99113 11.7676 10.3933 11.4921 10.7511C11.4477 10.7163 11.4034 10.6846 11.3591 10.6498L6.92906 6.92907L10.6498 11.3591C10.6846 11.4034 10.7163 11.4478 10.7511 11.4921C10.3933 11.7676 9.99114 11.9892 9.55098 12.1349L4 14L9.55098 15.8651C9.99114 16.0139 10.3933 16.2324 10.7511 16.5079C10.7163 16.5522 10.6846 16.5966 10.6498 16.6409L6.92906 21.0709L11.3591 17.3502C11.4034 17.3154 11.4477 17.2837 11.4921 17.2489C11.7676 17.6067 11.9892 18.0089 12.1349 18.449L14 24L15.8651 18.449C16.0139 18.0089 16.2324 17.6067 16.5079 17.2489C16.5522 17.2837 16.5966 17.3154 16.6409 17.3502L21.0709 21.0709L17.3502 16.6409C17.3154 16.5966 17.2837 16.5522 17.2489 16.5079Z"
+        fill="#e5d6b0"
+      />
+    </G>
+  </Svg>
+  <Text
+    style={
+      [
+        {
+          "color": "#f2e2b1",
+          "fontFamily": "CormorantGaramond-Regular",
+          "fontSize": 24,
+          "fontWeight": "400",
+          "includeFontPadding": false,
+          "lineHeight": 28,
+          "textShadowColor": "rgba(229, 214, 176, 0.5)",
+          "textShadowOffset": {
+            "height": 0,
+            "width": 0,
+          },
+          "textShadowRadius": 4,
+        },
+        undefined,
+      ]
+    }
+  >
+    TEXT
+  </Text>
+  <Svg
+    fill="none"
+    height={20}
+    viewBox="0 0 28 28"
+    width={20}
+  >
+    <Defs>
+      <Filter
+        filterUnits="userSpaceOnUse"
+        height="28"
+        id="filter0_d_347_1243"
+        width="28"
+        x="0"
+        y="0"
+      >
+        <FeFlood
+          floodOpacity="0"
+          result="BackgroundImageFix"
+        />
+        <FeColorMatrix
+          in="SourceAlpha"
+          result="hardAlpha"
+          type="matrix"
+          values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+        />
+        <FeOffset />
+        <FeGaussianBlur
+          stdDeviation="2"
+        />
+        <FeComposite
+          in2="hardAlpha"
+          operator="out"
+        />
+        <FeColorMatrix
+          type="matrix"
+          values="0 0 0 0 0.898039 0 0 0 0 0.839216 0 0 0 0 0.690196 0 0 0 0.5 0"
+        />
+        <FeBlend
+          in2="BackgroundImageFix"
+          mode="normal"
+          result="effect1_dropShadow_347_1243"
+        />
+        <FeBlend
+          in="SourceGraphic"
+          in2="effect1_dropShadow_347_1243"
+          mode="normal"
+          result="shape"
+        />
+      </Filter>
+    </Defs>
+    <G
+      filter="url(#filter0_d_347_1243)"
+    >
+      <Path
+        d="M17.2489 16.5079C17.6067 16.2324 18.0089 16.0108 18.449 15.8651L24 14L18.449 12.1349C18.0089 11.9861 17.6067 11.7676 17.2489 11.4921C17.2837 11.4478 17.3154 11.4034 17.3502 11.3591L21.0709 6.92907L16.6409 10.6498C16.5966 10.6846 16.5522 10.7163 16.5079 10.7511C16.2324 10.3933 16.0108 9.99113 15.8651 9.55098L14 4L12.1349 9.55098C11.9861 9.99113 11.7676 10.3933 11.4921 10.7511C11.4477 10.7163 11.4034 10.6846 11.3591 10.6498L6.92906 6.92907L10.6498 11.3591C10.6846 11.4034 10.7163 11.4478 10.7511 11.4921C10.3933 11.7676 9.99114 11.9892 9.55098 12.1349L4 14L9.55098 15.8651C9.99114 16.0139 10.3933 16.2324 10.7511 16.5079C10.7163 16.5522 10.6846 16.5966 10.6498 16.6409L6.92906 21.0709L11.3591 17.3502C11.4034 17.3154 11.4477 17.2837 11.4921 17.2489C11.7676 17.6067 11.9892 18.0089 12.1349 18.449L14 24L15.8651 18.449C16.0139 18.0089 16.2324 17.6067 16.5079 17.2489C16.5522 17.2837 16.5966 17.3154 16.6409 17.3502L21.0709 21.0709L17.3502 16.6409C17.3154 16.5966 17.2837 16.5522 17.2489 16.5079Z"
+        fill="#e5d6b0"
+      />
+    </G>
+  </Svg>
+</TouchableOpacity>
+`;
+
+exports[`Button structural snapshots auth · - · disabled 1`] = `
+<TouchableOpacity
+  activeOpacity={0.8}
+  disabled={true}
+  onPress={[Function]}
+  style={
+    [
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+        "gap": 16,
+        "justifyContent": "center",
+      },
+      {
+        "opacity": 0.5,
+      },
+      undefined,
+    ]
+  }
+>
+  <Svg
+    fill="none"
+    height={20}
+    viewBox="0 0 28 28"
+    width={20}
+  >
+    <Defs>
+      <Filter
+        filterUnits="userSpaceOnUse"
+        height="28"
+        id="filter0_d_347_1243"
+        width="28"
+        x="0"
+        y="0"
+      >
+        <FeFlood
+          floodOpacity="0"
+          result="BackgroundImageFix"
+        />
+        <FeColorMatrix
+          in="SourceAlpha"
+          result="hardAlpha"
+          type="matrix"
+          values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+        />
+        <FeOffset />
+        <FeGaussianBlur
+          stdDeviation="2"
+        />
+        <FeComposite
+          in2="hardAlpha"
+          operator="out"
+        />
+        <FeColorMatrix
+          type="matrix"
+          values="0 0 0 0 0.898039 0 0 0 0 0.839216 0 0 0 0 0.690196 0 0 0 0.5 0"
+        />
+        <FeBlend
+          in2="BackgroundImageFix"
+          mode="normal"
+          result="effect1_dropShadow_347_1243"
+        />
+        <FeBlend
+          in="SourceGraphic"
+          in2="effect1_dropShadow_347_1243"
+          mode="normal"
+          result="shape"
+        />
+      </Filter>
+    </Defs>
+    <G
+      filter="url(#filter0_d_347_1243)"
+    >
+      <Path
+        d="M17.2489 16.5079C17.6067 16.2324 18.0089 16.0108 18.449 15.8651L24 14L18.449 12.1349C18.0089 11.9861 17.6067 11.7676 17.2489 11.4921C17.2837 11.4478 17.3154 11.4034 17.3502 11.3591L21.0709 6.92907L16.6409 10.6498C16.5966 10.6846 16.5522 10.7163 16.5079 10.7511C16.2324 10.3933 16.0108 9.99113 15.8651 9.55098L14 4L12.1349 9.55098C11.9861 9.99113 11.7676 10.3933 11.4921 10.7511C11.4477 10.7163 11.4034 10.6846 11.3591 10.6498L6.92906 6.92907L10.6498 11.3591C10.6846 11.4034 10.7163 11.4478 10.7511 11.4921C10.3933 11.7676 9.99114 11.9892 9.55098 12.1349L4 14L9.55098 15.8651C9.99114 16.0139 10.3933 16.2324 10.7511 16.5079C10.7163 16.5522 10.6846 16.5966 10.6498 16.6409L6.92906 21.0709L11.3591 17.3502C11.4034 17.3154 11.4477 17.2837 11.4921 17.2489C11.7676 17.6067 11.9892 18.0089 12.1349 18.449L14 24L15.8651 18.449C16.0139 18.0089 16.2324 17.6067 16.5079 17.2489C16.5522 17.2837 16.5966 17.3154 16.6409 17.3502L21.0709 21.0709L17.3502 16.6409C17.3154 16.5966 17.2837 16.5522 17.2489 16.5079Z"
+        fill="#e5d6b0"
+      />
+    </G>
+  </Svg>
+  <Text
+    style={
+      [
+        {
+          "color": "#f2e2b1",
+          "fontFamily": "CormorantGaramond-Regular",
+          "fontSize": 24,
+          "fontWeight": "400",
+          "includeFontPadding": false,
+          "lineHeight": 28,
+          "textShadowColor": "rgba(229, 214, 176, 0.5)",
+          "textShadowOffset": {
+            "height": 0,
+            "width": 0,
+          },
+          "textShadowRadius": 4,
+        },
+        undefined,
+      ]
+    }
+  >
+    TEXT
+  </Text>
+  <Svg
+    fill="none"
+    height={20}
+    viewBox="0 0 28 28"
+    width={20}
+  >
+    <Defs>
+      <Filter
+        filterUnits="userSpaceOnUse"
+        height="28"
+        id="filter0_d_347_1243"
+        width="28"
+        x="0"
+        y="0"
+      >
+        <FeFlood
+          floodOpacity="0"
+          result="BackgroundImageFix"
+        />
+        <FeColorMatrix
+          in="SourceAlpha"
+          result="hardAlpha"
+          type="matrix"
+          values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+        />
+        <FeOffset />
+        <FeGaussianBlur
+          stdDeviation="2"
+        />
+        <FeComposite
+          in2="hardAlpha"
+          operator="out"
+        />
+        <FeColorMatrix
+          type="matrix"
+          values="0 0 0 0 0.898039 0 0 0 0 0.839216 0 0 0 0 0.690196 0 0 0 0.5 0"
+        />
+        <FeBlend
+          in2="BackgroundImageFix"
+          mode="normal"
+          result="effect1_dropShadow_347_1243"
+        />
+        <FeBlend
+          in="SourceGraphic"
+          in2="effect1_dropShadow_347_1243"
+          mode="normal"
+          result="shape"
+        />
+      </Filter>
+    </Defs>
+    <G
+      filter="url(#filter0_d_347_1243)"
+    >
+      <Path
+        d="M17.2489 16.5079C17.6067 16.2324 18.0089 16.0108 18.449 15.8651L24 14L18.449 12.1349C18.0089 11.9861 17.6067 11.7676 17.2489 11.4921C17.2837 11.4478 17.3154 11.4034 17.3502 11.3591L21.0709 6.92907L16.6409 10.6498C16.5966 10.6846 16.5522 10.7163 16.5079 10.7511C16.2324 10.3933 16.0108 9.99113 15.8651 9.55098L14 4L12.1349 9.55098C11.9861 9.99113 11.7676 10.3933 11.4921 10.7511C11.4477 10.7163 11.4034 10.6846 11.3591 10.6498L6.92906 6.92907L10.6498 11.3591C10.6846 11.4034 10.7163 11.4478 10.7511 11.4921C10.3933 11.7676 9.99114 11.9892 9.55098 12.1349L4 14L9.55098 15.8651C9.99114 16.0139 10.3933 16.2324 10.7511 16.5079C10.7163 16.5522 10.6846 16.5966 10.6498 16.6409L6.92906 21.0709L11.3591 17.3502C11.4034 17.3154 11.4477 17.2837 11.4921 17.2489C11.7676 17.6067 11.9892 18.0089 12.1349 18.449L14 24L15.8651 18.449C16.0139 18.0089 16.2324 17.6067 16.5079 17.2489C16.5522 17.2837 16.5966 17.3154 16.6409 17.3502L21.0709 21.0709L17.3502 16.6409C17.3154 16.5966 17.2837 16.5522 17.2489 16.5079Z"
+        fill="#e5d6b0"
+      />
+    </G>
+  </Svg>
+</TouchableOpacity>
+`;
+
+exports[`Button structural snapshots link · L · default 1`] = `
+<TouchableOpacity
+  activeOpacity={0.7}
+  onPress={[Function]}
+  style={
+    [
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+        "justifyContent": "center",
+        "minHeight": 40,
+      },
+      {
+        "gap": 8,
+      },
+      undefined,
+      undefined,
+    ]
+  }
+>
+  <Text
+    style={
+      [
+        {
+          "color": "#f2e2b1",
+          "fontFamily": "CormorantGaramond-Regular",
+          "fontWeight": "400",
+          "includeFontPadding": false,
+          "textAlign": "center",
+          "textShadowColor": "rgba(229, 214, 176, 0.5)",
+          "textShadowOffset": {
+            "height": 0,
+            "width": 0,
+          },
+          "textShadowRadius": 9,
+        },
+        {
+          "fontSize": 23.670229007633587,
+          "lineHeight": 28,
+        },
+        undefined,
+      ]
+    }
+  >
+    TEXT
+  </Text>
+</TouchableOpacity>
+`;
+
+exports[`Button structural snapshots link · L · disabled 1`] = `
+<TouchableOpacity
+  activeOpacity={0.7}
+  disabled={true}
+  onPress={[Function]}
+  style={
+    [
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+        "justifyContent": "center",
+        "minHeight": 40,
+      },
+      {
+        "gap": 8,
+      },
+      {
+        "opacity": 0.5,
+      },
+      undefined,
+    ]
+  }
+>
+  <Text
+    style={
+      [
+        {
+          "color": "#f2e2b1",
+          "fontFamily": "CormorantGaramond-Regular",
+          "fontWeight": "400",
+          "includeFontPadding": false,
+          "textAlign": "center",
+          "textShadowColor": "rgba(229, 214, 176, 0.5)",
+          "textShadowOffset": {
+            "height": 0,
+            "width": 0,
+          },
+          "textShadowRadius": 9,
+        },
+        {
+          "fontSize": 23.670229007633587,
+          "lineHeight": 28,
+        },
+        undefined,
+      ]
+    }
+  >
+    TEXT
+  </Text>
+</TouchableOpacity>
+`;
+
+exports[`Button structural snapshots link · S · default 1`] = `
+<TouchableOpacity
+  activeOpacity={0.7}
+  onPress={[Function]}
+  style={
+    [
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+        "justifyContent": "center",
+        "minHeight": 40,
+      },
+      {
+        "gap": 8,
+      },
+      undefined,
+      undefined,
+    ]
+  }
+>
+  <Text
+    style={
+      [
+        {
+          "color": "#f2e2b1",
+          "fontFamily": "CormorantGaramond-Regular",
+          "fontWeight": "400",
+          "includeFontPadding": false,
+          "textAlign": "center",
+          "textShadowColor": "rgba(229, 214, 176, 0.5)",
+          "textShadowOffset": {
+            "height": 0,
+            "width": 0,
+          },
+          "textShadowRadius": 9,
+        },
+        {
+          "fontSize": 19.72519083969466,
+          "lineHeight": 26,
+        },
+        undefined,
+      ]
+    }
+  >
+    TEXT
+  </Text>
+</TouchableOpacity>
+`;
+
+exports[`Button structural snapshots link · S · disabled 1`] = `
+<TouchableOpacity
+  activeOpacity={0.7}
+  disabled={true}
+  onPress={[Function]}
+  style={
+    [
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+        "justifyContent": "center",
+        "minHeight": 40,
+      },
+      {
+        "gap": 8,
+      },
+      {
+        "opacity": 0.5,
+      },
+      undefined,
+    ]
+  }
+>
+  <Text
+    style={
+      [
+        {
+          "color": "#f2e2b1",
+          "fontFamily": "CormorantGaramond-Regular",
+          "fontWeight": "400",
+          "includeFontPadding": false,
+          "textAlign": "center",
+          "textShadowColor": "rgba(229, 214, 176, 0.5)",
+          "textShadowOffset": {
+            "height": 0,
+            "width": 0,
+          },
+          "textShadowRadius": 9,
+        },
+        {
+          "fontSize": 19.72519083969466,
+          "lineHeight": 26,
+        },
+        undefined,
+      ]
+    }
+  >
+    TEXT
+  </Text>
+</TouchableOpacity>
+`;
+
+exports[`Button structural snapshots primary · L · active 1`] = `
+<View
+  style={
+    [
+      {
+        "alignSelf": "center",
+      },
+      undefined,
+      undefined,
+    ]
+  }
+>
+  <View
+    pointerEvents="none"
+    style={
+      {
+        "backgroundColor": "#1a1f2e",
+        "borderRadius": 16,
+        "elevation": 10,
+        "shadowColor": "#f0d4a8",
+        "shadowOffset": {
+          "height": 0,
+          "width": 0,
+        },
+        "shadowOpacity": 0.3,
+        "shadowRadius": 13,
+      }
+    }
+  />
+  <TouchableOpacity
+    activeOpacity={0.85}
+    onPress={[Function]}
+    style={
+      [
+        {
+          "alignItems": "center",
+          "backgroundColor": "#1a1f2e",
+          "borderColor": "#a3b3cc",
+          "borderWidth": 0.5,
+          "flexDirection": "row",
+          "justifyContent": "center",
+          "overflow": "hidden",
+        },
+        {
+          "borderRadius": 16,
+          "gap": 8,
+          "minHeight": 52,
+          "paddingHorizontal": 16,
+          "paddingVertical": 12,
+        },
+      ]
+    }
+  >
+    <Text
+      style={
+        [
+          {
+            "color": "#f2e2b1",
+            "fontFamily": "CormorantGaramond-Regular",
+            "fontWeight": "400",
+            "includeFontPadding": false,
+            "textAlign": "center",
+            "textShadowColor": "rgba(229, 214, 176, 0.5)",
+            "textShadowOffset": {
+              "height": 0,
+              "width": 0,
+            },
+            "textShadowRadius": 9,
+          },
+          {
+            "fontSize": 23.670229007633587,
+            "lineHeight": 28,
+          },
+          undefined,
+        ]
+      }
+    >
+      TEXT
+    </Text>
+  </TouchableOpacity>
+</View>
+`;
+
+exports[`Button structural snapshots primary · L · default 1`] = `
+<View
+  style={
+    [
+      {
+        "alignSelf": "center",
+      },
+      undefined,
+      undefined,
+    ]
+  }
+>
+  <TouchableOpacity
+    activeOpacity={0.85}
+    onPress={[Function]}
+    style={
+      [
+        {
+          "alignItems": "center",
+          "backgroundColor": "#1a1f2e",
+          "borderColor": "#a3b3cc",
+          "borderWidth": 0.5,
+          "flexDirection": "row",
+          "justifyContent": "center",
+          "overflow": "hidden",
+        },
+        {
+          "borderRadius": 16,
+          "gap": 8,
+          "minHeight": 52,
+          "paddingHorizontal": 16,
+          "paddingVertical": 12,
+        },
+      ]
+    }
+  >
+    <Text
+      style={
+        [
+          {
+            "color": "#f2e2b1",
+            "fontFamily": "CormorantGaramond-Regular",
+            "fontWeight": "400",
+            "includeFontPadding": false,
+            "textAlign": "center",
+            "textShadowColor": "rgba(229, 214, 176, 0.5)",
+            "textShadowOffset": {
+              "height": 0,
+              "width": 0,
+            },
+            "textShadowRadius": 9,
+          },
+          {
+            "fontSize": 23.670229007633587,
+            "lineHeight": 28,
+          },
+          undefined,
+        ]
+      }
+    >
+      TEXT
+    </Text>
+  </TouchableOpacity>
+</View>
+`;
+
+exports[`Button structural snapshots primary · L · disabled 1`] = `
+<View
+  style={
+    [
+      {
+        "alignSelf": "center",
+      },
+      {
+        "opacity": 0.5,
+      },
+      undefined,
+    ]
+  }
+>
+  <TouchableOpacity
+    activeOpacity={0.85}
+    disabled={true}
+    onPress={[Function]}
+    style={
+      [
+        {
+          "alignItems": "center",
+          "backgroundColor": "#1a1f2e",
+          "borderColor": "#a3b3cc",
+          "borderWidth": 0.5,
+          "flexDirection": "row",
+          "justifyContent": "center",
+          "overflow": "hidden",
+        },
+        {
+          "borderRadius": 16,
+          "gap": 8,
+          "minHeight": 52,
+          "paddingHorizontal": 16,
+          "paddingVertical": 12,
+        },
+      ]
+    }
+  >
+    <Text
+      style={
+        [
+          {
+            "color": "#f2e2b1",
+            "fontFamily": "CormorantGaramond-Regular",
+            "fontWeight": "400",
+            "includeFontPadding": false,
+            "textAlign": "center",
+            "textShadowColor": "rgba(229, 214, 176, 0.5)",
+            "textShadowOffset": {
+              "height": 0,
+              "width": 0,
+            },
+            "textShadowRadius": 9,
+          },
+          {
+            "fontSize": 23.670229007633587,
+            "lineHeight": 28,
+          },
+          undefined,
+        ]
+      }
+    >
+      TEXT
+    </Text>
+  </TouchableOpacity>
+</View>
+`;
+
+exports[`Button structural snapshots primary · S · active 1`] = `
+<View
+  style={
+    [
+      {
+        "alignSelf": "center",
+      },
+      undefined,
+      undefined,
+    ]
+  }
+>
+  <View
+    pointerEvents="none"
+    style={
+      {
+        "backgroundColor": "#1a1f2e",
+        "borderRadius": 16,
+        "elevation": 10,
+        "shadowColor": "#f0d4a8",
+        "shadowOffset": {
+          "height": 0,
+          "width": 0,
+        },
+        "shadowOpacity": 0.3,
+        "shadowRadius": 13,
+      }
+    }
+  />
+  <TouchableOpacity
+    activeOpacity={0.85}
+    onPress={[Function]}
+    style={
+      [
+        {
+          "alignItems": "center",
+          "backgroundColor": "#1a1f2e",
+          "borderColor": "#a3b3cc",
+          "borderWidth": 0.5,
+          "flexDirection": "row",
+          "justifyContent": "center",
+          "overflow": "hidden",
+        },
+        {
+          "borderRadius": 16,
+          "gap": 8,
+          "minHeight": 42,
+          "paddingHorizontal": 12,
+          "paddingVertical": 8,
+        },
+      ]
+    }
+  >
+    <Text
+      style={
+        [
+          {
+            "color": "#f2e2b1",
+            "fontFamily": "CormorantGaramond-Regular",
+            "fontWeight": "400",
+            "includeFontPadding": false,
+            "textAlign": "center",
+            "textShadowColor": "rgba(229, 214, 176, 0.5)",
+            "textShadowOffset": {
+              "height": 0,
+              "width": 0,
+            },
+            "textShadowRadius": 9,
+          },
+          {
+            "fontSize": 19.72519083969466,
+            "lineHeight": 26,
+          },
+          undefined,
+        ]
+      }
+    >
+      TEXT
+    </Text>
+  </TouchableOpacity>
+</View>
+`;
+
+exports[`Button structural snapshots primary · S · default 1`] = `
+<View
+  style={
+    [
+      {
+        "alignSelf": "center",
+      },
+      undefined,
+      undefined,
+    ]
+  }
+>
+  <TouchableOpacity
+    activeOpacity={0.85}
+    onPress={[Function]}
+    style={
+      [
+        {
+          "alignItems": "center",
+          "backgroundColor": "#1a1f2e",
+          "borderColor": "#a3b3cc",
+          "borderWidth": 0.5,
+          "flexDirection": "row",
+          "justifyContent": "center",
+          "overflow": "hidden",
+        },
+        {
+          "borderRadius": 16,
+          "gap": 8,
+          "minHeight": 42,
+          "paddingHorizontal": 12,
+          "paddingVertical": 8,
+        },
+      ]
+    }
+  >
+    <Text
+      style={
+        [
+          {
+            "color": "#f2e2b1",
+            "fontFamily": "CormorantGaramond-Regular",
+            "fontWeight": "400",
+            "includeFontPadding": false,
+            "textAlign": "center",
+            "textShadowColor": "rgba(229, 214, 176, 0.5)",
+            "textShadowOffset": {
+              "height": 0,
+              "width": 0,
+            },
+            "textShadowRadius": 9,
+          },
+          {
+            "fontSize": 19.72519083969466,
+            "lineHeight": 26,
+          },
+          undefined,
+        ]
+      }
+    >
+      TEXT
+    </Text>
+  </TouchableOpacity>
+</View>
+`;
+
+exports[`Button structural snapshots primary · S · disabled 1`] = `
+<View
+  style={
+    [
+      {
+        "alignSelf": "center",
+      },
+      {
+        "opacity": 0.5,
+      },
+      undefined,
+    ]
+  }
+>
+  <TouchableOpacity
+    activeOpacity={0.85}
+    disabled={true}
+    onPress={[Function]}
+    style={
+      [
+        {
+          "alignItems": "center",
+          "backgroundColor": "#1a1f2e",
+          "borderColor": "#a3b3cc",
+          "borderWidth": 0.5,
+          "flexDirection": "row",
+          "justifyContent": "center",
+          "overflow": "hidden",
+        },
+        {
+          "borderRadius": 16,
+          "gap": 8,
+          "minHeight": 42,
+          "paddingHorizontal": 12,
+          "paddingVertical": 8,
+        },
+      ]
+    }
+  >
+    <Text
+      style={
+        [
+          {
+            "color": "#f2e2b1",
+            "fontFamily": "CormorantGaramond-Regular",
+            "fontWeight": "400",
+            "includeFontPadding": false,
+            "textAlign": "center",
+            "textShadowColor": "rgba(229, 214, 176, 0.5)",
+            "textShadowOffset": {
+              "height": 0,
+              "width": 0,
+            },
+            "textShadowRadius": 9,
+          },
+          {
+            "fontSize": 19.72519083969466,
+            "lineHeight": 26,
+          },
+          undefined,
+        ]
+      }
+    >
+      TEXT
+    </Text>
+  </TouchableOpacity>
+</View>
+`;
+
+exports[`Button structural snapshots secondary · L · active 1`] = `
+<View
+  style={
+    [
+      {
+        "alignSelf": "center",
+      },
+      undefined,
+      undefined,
+    ]
+  }
+>
+  <View
+    pointerEvents="none"
+    style={
+      {
+        "backgroundColor": "#1a1f2e",
+        "borderRadius": 16,
+        "elevation": 10,
+        "shadowColor": "#f0d4a8",
+        "shadowOffset": {
+          "height": 0,
+          "width": 0,
+        },
+        "shadowOpacity": 0.3,
+        "shadowRadius": 13,
+      }
+    }
+  />
+  <TouchableOpacity
+    activeOpacity={0.85}
+    onPress={[Function]}
+    style={
+      [
+        {
+          "alignItems": "center",
+          "backgroundColor": "#1a1f2e",
+          "borderColor": "#a3b3cc",
+          "borderWidth": 0.5,
+          "flexDirection": "row",
+          "justifyContent": "center",
+          "overflow": "hidden",
+        },
+        {
+          "backgroundColor": "transparent",
+        },
+        {
+          "borderRadius": 16,
+          "gap": 8,
+          "minHeight": 52,
+          "paddingHorizontal": 16,
+          "paddingVertical": 12,
+        },
+      ]
+    }
+  >
+    <LinearGradient
+      colors={
+        [
+          "rgba(253, 253, 249, 0.03)",
+          "rgba(253, 253, 249, 0.20)",
+        ]
+      }
+      end={
+        {
+          "x": 0,
+          "y": 1,
+        }
+      }
+      pointerEvents="none"
+      start={
+        {
+          "x": 0,
+          "y": 0,
+        }
+      }
+    />
+    <Text
+      style={
+        [
+          {
+            "color": "#f2e2b1",
+            "fontFamily": "CormorantGaramond-Regular",
+            "fontWeight": "400",
+            "includeFontPadding": false,
+            "textAlign": "center",
+          },
+          {
+            "fontSize": 23.670229007633587,
+            "lineHeight": 28,
+          },
+          undefined,
+        ]
+      }
+    >
+      TEXT
+    </Text>
+  </TouchableOpacity>
+</View>
+`;
+
+exports[`Button structural snapshots secondary · L · default 1`] = `
+<View
+  style={
+    [
+      {
+        "alignSelf": "center",
+      },
+      undefined,
+      undefined,
+    ]
+  }
+>
+  <TouchableOpacity
+    activeOpacity={0.85}
+    onPress={[Function]}
+    style={
+      [
+        {
+          "alignItems": "center",
+          "backgroundColor": "#1a1f2e",
+          "borderColor": "#a3b3cc",
+          "borderWidth": 0.5,
+          "flexDirection": "row",
+          "justifyContent": "center",
+          "overflow": "hidden",
+        },
+        {
+          "backgroundColor": "transparent",
+        },
+        {
+          "borderRadius": 16,
+          "gap": 8,
+          "minHeight": 52,
+          "paddingHorizontal": 16,
+          "paddingVertical": 12,
+        },
+      ]
+    }
+  >
+    <LinearGradient
+      colors={
+        [
+          "rgba(253, 253, 249, 0.03)",
+          "rgba(253, 253, 249, 0.20)",
+        ]
+      }
+      end={
+        {
+          "x": 0,
+          "y": 1,
+        }
+      }
+      pointerEvents="none"
+      start={
+        {
+          "x": 0,
+          "y": 0,
+        }
+      }
+    />
+    <Text
+      style={
+        [
+          {
+            "color": "#f2e2b1",
+            "fontFamily": "CormorantGaramond-Regular",
+            "fontWeight": "400",
+            "includeFontPadding": false,
+            "textAlign": "center",
+          },
+          {
+            "fontSize": 23.670229007633587,
+            "lineHeight": 28,
+          },
+          undefined,
+        ]
+      }
+    >
+      TEXT
+    </Text>
+  </TouchableOpacity>
+</View>
+`;
+
+exports[`Button structural snapshots secondary · L · disabled 1`] = `
+<View
+  style={
+    [
+      {
+        "alignSelf": "center",
+      },
+      {
+        "opacity": 0.5,
+      },
+      undefined,
+    ]
+  }
+>
+  <TouchableOpacity
+    activeOpacity={0.85}
+    disabled={true}
+    onPress={[Function]}
+    style={
+      [
+        {
+          "alignItems": "center",
+          "backgroundColor": "#1a1f2e",
+          "borderColor": "#a3b3cc",
+          "borderWidth": 0.5,
+          "flexDirection": "row",
+          "justifyContent": "center",
+          "overflow": "hidden",
+        },
+        {
+          "backgroundColor": "transparent",
+        },
+        {
+          "borderRadius": 16,
+          "gap": 8,
+          "minHeight": 52,
+          "paddingHorizontal": 16,
+          "paddingVertical": 12,
+        },
+      ]
+    }
+  >
+    <LinearGradient
+      colors={
+        [
+          "rgba(253, 253, 249, 0.03)",
+          "rgba(253, 253, 249, 0.20)",
+        ]
+      }
+      end={
+        {
+          "x": 0,
+          "y": 1,
+        }
+      }
+      pointerEvents="none"
+      start={
+        {
+          "x": 0,
+          "y": 0,
+        }
+      }
+    />
+    <Text
+      style={
+        [
+          {
+            "color": "#f2e2b1",
+            "fontFamily": "CormorantGaramond-Regular",
+            "fontWeight": "400",
+            "includeFontPadding": false,
+            "textAlign": "center",
+          },
+          {
+            "fontSize": 23.670229007633587,
+            "lineHeight": 28,
+          },
+          undefined,
+        ]
+      }
+    >
+      TEXT
+    </Text>
+  </TouchableOpacity>
+</View>
+`;
+
+exports[`Button structural snapshots secondary · S · active 1`] = `
+<View
+  style={
+    [
+      {
+        "alignSelf": "center",
+      },
+      undefined,
+      undefined,
+    ]
+  }
+>
+  <View
+    pointerEvents="none"
+    style={
+      {
+        "backgroundColor": "#1a1f2e",
+        "borderRadius": 16,
+        "elevation": 10,
+        "shadowColor": "#f0d4a8",
+        "shadowOffset": {
+          "height": 0,
+          "width": 0,
+        },
+        "shadowOpacity": 0.3,
+        "shadowRadius": 13,
+      }
+    }
+  />
+  <TouchableOpacity
+    activeOpacity={0.85}
+    onPress={[Function]}
+    style={
+      [
+        {
+          "alignItems": "center",
+          "backgroundColor": "#1a1f2e",
+          "borderColor": "#a3b3cc",
+          "borderWidth": 0.5,
+          "flexDirection": "row",
+          "justifyContent": "center",
+          "overflow": "hidden",
+        },
+        {
+          "backgroundColor": "transparent",
+        },
+        {
+          "borderRadius": 16,
+          "gap": 8,
+          "minHeight": 42,
+          "paddingHorizontal": 12,
+          "paddingVertical": 8,
+        },
+      ]
+    }
+  >
+    <LinearGradient
+      colors={
+        [
+          "rgba(253, 253, 249, 0.03)",
+          "rgba(253, 253, 249, 0.20)",
+        ]
+      }
+      end={
+        {
+          "x": 0,
+          "y": 1,
+        }
+      }
+      pointerEvents="none"
+      start={
+        {
+          "x": 0,
+          "y": 0,
+        }
+      }
+    />
+    <Text
+      style={
+        [
+          {
+            "color": "#f2e2b1",
+            "fontFamily": "CormorantGaramond-Regular",
+            "fontWeight": "400",
+            "includeFontPadding": false,
+            "textAlign": "center",
+          },
+          {
+            "fontSize": 19.72519083969466,
+            "lineHeight": 26,
+          },
+          undefined,
+        ]
+      }
+    >
+      TEXT
+    </Text>
+  </TouchableOpacity>
+</View>
+`;
+
+exports[`Button structural snapshots secondary · S · default 1`] = `
+<View
+  style={
+    [
+      {
+        "alignSelf": "center",
+      },
+      undefined,
+      undefined,
+    ]
+  }
+>
+  <TouchableOpacity
+    activeOpacity={0.85}
+    onPress={[Function]}
+    style={
+      [
+        {
+          "alignItems": "center",
+          "backgroundColor": "#1a1f2e",
+          "borderColor": "#a3b3cc",
+          "borderWidth": 0.5,
+          "flexDirection": "row",
+          "justifyContent": "center",
+          "overflow": "hidden",
+        },
+        {
+          "backgroundColor": "transparent",
+        },
+        {
+          "borderRadius": 16,
+          "gap": 8,
+          "minHeight": 42,
+          "paddingHorizontal": 12,
+          "paddingVertical": 8,
+        },
+      ]
+    }
+  >
+    <LinearGradient
+      colors={
+        [
+          "rgba(253, 253, 249, 0.03)",
+          "rgba(253, 253, 249, 0.20)",
+        ]
+      }
+      end={
+        {
+          "x": 0,
+          "y": 1,
+        }
+      }
+      pointerEvents="none"
+      start={
+        {
+          "x": 0,
+          "y": 0,
+        }
+      }
+    />
+    <Text
+      style={
+        [
+          {
+            "color": "#f2e2b1",
+            "fontFamily": "CormorantGaramond-Regular",
+            "fontWeight": "400",
+            "includeFontPadding": false,
+            "textAlign": "center",
+          },
+          {
+            "fontSize": 19.72519083969466,
+            "lineHeight": 26,
+          },
+          undefined,
+        ]
+      }
+    >
+      TEXT
+    </Text>
+  </TouchableOpacity>
+</View>
+`;
+
+exports[`Button structural snapshots secondary · S · disabled 1`] = `
+<View
+  style={
+    [
+      {
+        "alignSelf": "center",
+      },
+      {
+        "opacity": 0.5,
+      },
+      undefined,
+    ]
+  }
+>
+  <TouchableOpacity
+    activeOpacity={0.85}
+    disabled={true}
+    onPress={[Function]}
+    style={
+      [
+        {
+          "alignItems": "center",
+          "backgroundColor": "#1a1f2e",
+          "borderColor": "#a3b3cc",
+          "borderWidth": 0.5,
+          "flexDirection": "row",
+          "justifyContent": "center",
+          "overflow": "hidden",
+        },
+        {
+          "backgroundColor": "transparent",
+        },
+        {
+          "borderRadius": 16,
+          "gap": 8,
+          "minHeight": 42,
+          "paddingHorizontal": 12,
+          "paddingVertical": 8,
+        },
+      ]
+    }
+  >
+    <LinearGradient
+      colors={
+        [
+          "rgba(253, 253, 249, 0.03)",
+          "rgba(253, 253, 249, 0.20)",
+        ]
+      }
+      end={
+        {
+          "x": 0,
+          "y": 1,
+        }
+      }
+      pointerEvents="none"
+      start={
+        {
+          "x": 0,
+          "y": 0,
+        }
+      }
+    />
+    <Text
+      style={
+        [
+          {
+            "color": "#f2e2b1",
+            "fontFamily": "CormorantGaramond-Regular",
+            "fontWeight": "400",
+            "includeFontPadding": false,
+            "textAlign": "center",
+          },
+          {
+            "fontSize": 19.72519083969466,
+            "lineHeight": 26,
+          },
+          undefined,
+        ]
+      }
+    >
+      TEXT
+    </Text>
+  </TouchableOpacity>
+</View>
+`;

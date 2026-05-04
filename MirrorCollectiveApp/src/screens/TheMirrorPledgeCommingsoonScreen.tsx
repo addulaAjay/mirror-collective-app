@@ -7,6 +7,7 @@ import {
   scale,
   verticalScale,
   moderateScale,
+  textShadow,
 } from '@theme';
 import {
   StyleSheet,
@@ -31,20 +32,22 @@ const TheMirrorPledgeCommingsoonScreen: React.FC = () => {
 
         {/* Content */}
         <View style={styles.content}>
-          {/* Title */}
-          <Text style={styles.title}>THE MIRROR PLEDGE</Text>
+          {/* Title - matches QuizWelcomeScreen WELCOME styling */}
+          <View style={styles.titleContainer}>
+            <Text style={styles.title}>THE MIRROR PLEDGE</Text>
+          </View>
 
-          {/* Illustration Placeholder */}
+          {/* Golden Hand Holding Heart Illustration */}
           <View style={styles.imageContainer}>
             <Image
-              source={require('@assets/mirror-pledge-illustration.png')}
+              source={require('@assets/pledge/golden-hand-heart.png')}
               style={styles.image}
               resizeMode="contain"
               accessibilityIgnoresInvertColors
             />
           </View>
 
-          {/* Description */}
+          {/* Description Card */}
           <View style={styles.descriptionContainer}>
             <Text style={styles.description}>
               2% of your subscription is added to the Mirror Giving Pool. Each quarter, the collective votes on causes to support— and we show you exactly where it goes.
@@ -72,6 +75,7 @@ const styles = StyleSheet.create<{
   bgImage: ImageStyle;
   safe: ViewStyle;
   content: ViewStyle;
+  titleContainer: ViewStyle;
   title: TextStyle;
   imageContainer: ViewStyle;
   image: ImageStyle;
@@ -99,25 +103,30 @@ const styles = StyleSheet.create<{
     maxWidth: scale(345),
     alignSelf: 'center',
     paddingHorizontal: scale(24),
-    paddingTop: verticalScale(40),
+    paddingTop: verticalScale(20),
     paddingBottom: verticalScale(40),
     alignItems: 'center',
-    gap: verticalScale(40),
+    gap: verticalScale(24),
+  },
+  titleContainer: {
+    alignItems: 'center',
+    width: '100%',
   },
   title: {
     fontFamily: fontFamily.heading,
-    fontSize: moderateScale(fontSize['2xl']),
+    fontSize: fontSize['3xl'], // Matches QuizWelcomeScreen WELCOME
     fontWeight: fontWeight.regular,
+    letterSpacing: 0,
     color: palette.gold.DEFAULT,
     textAlign: 'center',
-    lineHeight: lineHeight.xl,
-    textShadowColor: palette.gold.warm,
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 8,
+    textShadowColor: textShadow.glow.color,
+    textShadowOffset: textShadow.glow.offset,
+    textShadowRadius: textShadow.glow.radius,
+    textTransform: 'uppercase',
   },
   imageContainer: {
-    width: scale(207),
-    height: verticalScale(200),
+    width: scale(280),
+    height: verticalScale(280),
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -154,8 +163,8 @@ const styles = StyleSheet.create<{
     color: palette.gold.DEFAULT,
     textAlign: 'center',
     lineHeight: lineHeight.l,
-    textShadowColor: palette.gold.warm,
-    textShadowOffset: { width: 0, height: 0 },
+    textShadowColor: textShadow.glowSubtle.color,
+    textShadowOffset: textShadow.glowSubtle.offset,
     textShadowRadius: 4,
   },
 });

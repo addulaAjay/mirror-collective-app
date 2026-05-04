@@ -3,10 +3,7 @@ import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
   palette,
-  radius,
-  borderWidth,
   textShadow,
-  glassGradient,
   fontFamily,
   fontSize,
   fontWeight,
@@ -197,7 +194,7 @@ const VerifyEmailScreen = () => {
           <View style={styles.messageContainer}>
             {/* Header */}
             <View style={styles.headerSection}>
-              <Text style={styles.title}>We've sent a whisper to your inbox</Text>
+              <Text style={styles.title}>We've sent a code to your inbox</Text>
               <Text style={styles.subtitle}>
                 Please enter the 6-digit verification code from your email to confirm your entry.
               </Text>
@@ -219,18 +216,12 @@ const VerifyEmailScreen = () => {
               />
 
               <Button
-                variant="gradient"
+                variant="primary"
+                size="L"
+                active={!isVerifying && verificationCode.trim().length === VERIFICATION_CODE_LENGTH}
                 title={isVerifying ? 'Verifying...' : 'Verify'}
                 onPress={handleVerifyCode}
                 disabled={isVerifying || verificationCode.trim().length !== VERIFICATION_CODE_LENGTH}
-                style={styles.buttonWrapper}
-                containerStyle={styles.buttonContainer}
-                contentStyle={styles.buttonContent}
-                textStyle={styles.buttonText}
-                gradientColors={[
-                  glassGradient.button.start,
-                  glassGradient.button.end,
-                ]}
               />
             </View>
 
@@ -241,7 +232,9 @@ const VerifyEmailScreen = () => {
               </Text>
 
               <Button
-                variant="gradient"
+                variant="primary"
+                size="L"
+                active={countdown === 0 && !isResending}
                 title={
                   countdown > 0
                     ? `Resend (${countdown}s)`
@@ -251,14 +244,6 @@ const VerifyEmailScreen = () => {
                 }
                 onPress={handleResendEmail}
                 disabled={countdown > 0 || isResending}
-                style={styles.buttonWrapper}
-                containerStyle={styles.buttonContainer}
-                contentStyle={styles.buttonContent}
-                textStyle={styles.buttonText}
-                gradientColors={[
-                  glassGradient.button.start,
-                  glassGradient.button.end,
-                ]}
               />
             </View>
 
@@ -267,7 +252,7 @@ const VerifyEmailScreen = () => {
               onPress={() => navigation.goBack()}
               style={styles.backButton}
               accessibilityRole="button"
-              accessibilityLabel="Back to Sign up"
+              accessibilityLabel="Back to sign up"
               accessibilityHint="Returns to the sign up screen"
             >
               <Text style={styles.backButtonText}>
@@ -317,6 +302,9 @@ const styles = StyleSheet.create({
     fontWeight: fontWeight.regular,
     lineHeight: lineHeight.xl,
     textAlign: 'center',
+    textShadowColor: textShadow.glow.color,                // Glow: #F0D4A8 · 30%
+    textShadowOffset: textShadow.glow.offset,              // X:0 Y:0
+    textShadowRadius: textShadow.glow.radius,              // Blur:10
   },
   subtitle: {
     alignSelf: 'stretch',
@@ -341,35 +329,6 @@ const styles = StyleSheet.create({
     color: palette.gold.subtlest,                         // #fdfdf9 (text/paragraph-2)
     textShadowColor: 'transparent',                       // No shadow
     textShadowRadius: 0,
-  },
-  buttonWrapper: {
-    backgroundColor: palette.neutral.transparent,
-    shadowOpacity: 0,
-    shadowRadius: 0,
-    elevation: 0,
-    borderRadius: radius.m,
-  },
-  buttonContainer: {
-    borderWidth: borderWidth.thin,
-    borderColor: palette.navy.light,
-    borderRadius: radius.m,
-  },
-  buttonContent: {
-    paddingVertical: verticalScale(12),
-    paddingHorizontal: scale(16),
-    minWidth: 0,
-  },
-  buttonText: {
-    fontFamily: fontFamily.heading,
-    fontSize: moderateScale(fontSize.xl),
-    fontWeight: fontWeight.regular,
-    lineHeight: moderateScale(fontSize.xl) * 1.3,
-    letterSpacing: 0,
-    color: palette.gold.DEFAULT,
-    textShadowColor: textShadow.warmGlow.color,
-    textShadowOffset: textShadow.warmGlow.offset,
-    textShadowRadius: textShadow.warmGlow.radius,
-    textTransform: 'none',
   },
   resendSection: {
     alignItems: 'center',

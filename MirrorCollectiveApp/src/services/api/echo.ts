@@ -27,6 +27,14 @@ export interface EchoResponse {
     name: string;
     email: string;
     motif?: string;
+    profile_image_url?: string;   // uploaded photo, shown in vault list
+  };
+  /** Present on inbox echoes — the user who created and sent the echo. */
+  sender?: {
+    user_id: string;
+    name: string;
+    email: string;
+    motif?: string;
   };
   scheduled_at?: string; // ISO date string
 }
@@ -65,6 +73,7 @@ export interface CreateRecipientRequest {
   email: string;
   relationship?: string;
   motif?: string;
+  profile_image_url?: string;   // S3 URL after upload, not a local file:// URI
 }
 
 export class EchoApiService extends BaseApiService {
@@ -131,13 +140,33 @@ export class EchoApiService extends BaseApiService {
     return ApiErrorHandler.handleApiResponse(response, 'Echo deleted');
   }
 
-  async getUploadUrl(fileType: string, echoId: string): Promise<ApiResponse<UploadUrlResponse>> {
-    // fileType should be MIME type like 'audio/m4a' or 'video/mp4'
+  /**
+   * Get a presigned S3 upload URL.
+   *
+   * @param fileType   MIME type e.g. 'audio/m4a', 'video/mp4', 'image/jpeg'
+   * @param echoId     Required for echo media (audio/video/text attachments).
+   *                   Omit for non-echo uploads (e.g. profile images) — backend
+   *                   generates the URL without an echo association.
+   * @param uploadType Hint to the backend: 'echo' (default) | 'profile'.
+   *                   Allows the backend to apply appropriate S3 path/policy.
+   *
+   * All callers share the same endpoint and the same uploadMedia() utility,
+   * so no separate API is needed for profile images.
+   */
+  async getUploadUrl(
+    fileType: string,
+    echoId?: string,
+    uploadType: 'echo' | 'profile' = 'echo',
+  ): Promise<ApiResponse<UploadUrlResponse>> {
     const response = await this.makeRequest<UploadUrlResponse>(
       '/api/echoes/upload-url',
       'POST',
-      { file_type: fileType, echo_id: echoId },
-      true
+      {
+        file_type:   fileType,
+        upload_type: uploadType,
+        ...(echoId ? { echo_id: echoId } : {}),
+      },
+      true,
     );
     return ApiErrorHandler.handleApiResponse(response, 'Upload URL retrieved');
   }

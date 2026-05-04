@@ -4,3 +4,4 @@ export * from './base';
 export * from './quiz';
 export * from './session';
 export * from './echo';
+export * from './user';

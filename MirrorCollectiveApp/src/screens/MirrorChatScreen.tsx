@@ -1,5 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
-import { theme, palette, spacing, shadows } from '@theme';
+import { theme, palette, spacing, shadows, textShadow } from '@theme';
 import React, { useEffect } from 'react';
 import {
   View,
@@ -170,9 +170,9 @@ const styles = StyleSheet.create({
     color: palette.gold.chat,
     paddingTop: 24,
     textAlign: 'center',
-    textShadowColor: 'rgba(230, 211, 163, 0.8)',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 9,
+    textShadowColor: textShadow.warmGlow.color,
+    textShadowOffset: textShadow.warmGlow.offset,
+    textShadowRadius: textShadow.warmGlow.radius,
   },
 
   chatContainer: {

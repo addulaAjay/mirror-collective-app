@@ -1,4 +1,5 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { palette, textShadow } from '@theme';
 import { RootStackParamList } from '@types';
 import React, { useState, useEffect, useCallback } from 'react';
 import {
@@ -14,8 +15,6 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-
-import { palette } from '@theme';
 import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -217,8 +216,8 @@ const styles = StyleSheet.create({
       ios: 'CormorantGaramond-Regular',
       android: 'serif',
     }),
-    textShadowColor: 'rgba(240, 212, 168, 0.4)',
-    textShadowOffset: { width: 0, height: 0 },
+    textShadowColor: textShadow.glowSubtle.color,
+    textShadowOffset: textShadow.glowSubtle.offset,
     textShadowRadius: 16,
   },
 

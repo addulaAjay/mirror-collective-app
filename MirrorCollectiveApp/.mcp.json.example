@@ -1,0 +1,11 @@
+{
+  "_comment": "Copy to .mcp.json (gitignored) ONLY if you need a project-scoped MCP server. The official Figma Dev Mode MCP is configured at the user level (Figma desktop app → Preferences → Enable Dev Mode MCP Server) and runs on http://127.0.0.1:3845/mcp — no token required. You probably do not need this file.",
+  "mcpServers": {
+    "_template_figma_developer_mcp": {
+      "command": "figma-developer-mcp",
+      "env": {
+        "FIGMA_ACCESS_TOKEN": "${FIGMA_ACCESS_TOKEN}"
+      }
+    }
+  }
+}
