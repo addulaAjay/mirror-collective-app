@@ -12,7 +12,7 @@
 
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Image,
   Pressable,
@@ -43,7 +43,6 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const ReflectionRoomQuizEntryScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
-  const [ambientOn, setAmbientOn] = useState(false);
 
   return (
     <BackgroundWrapper style={styles.bg}>
@@ -97,19 +96,6 @@ const ReflectionRoomQuizEntryScreen: React.FC = () => {
           >
             <Text style={styles.startText}>START</Text>
           </Pressable>
-
-          <View style={styles.ambientRow}>
-            <Text style={styles.ambientLabel}>{QUIZ_ENTRY.ambientToggle}</Text>
-            <Pressable
-              onPress={() => setAmbientOn(v => !v)}
-              accessibilityRole="switch"
-              accessibilityLabel="Ambient Sounds"
-              accessibilityState={{ checked: ambientOn }}
-              style={[styles.toggle, ambientOn && styles.toggleOn]}
-            >
-              <View style={[styles.thumb, ambientOn && styles.thumbOn]} />
-            </Pressable>
-          </View>
         </ScrollView>
       </SafeAreaView>
     </BackgroundWrapper>

@@ -16,6 +16,12 @@ import { SvgXml } from 'react-native-svg';
 import { MOTIF_SVG } from '@assets/motifs-icons/MotifIconAssets';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
+import {
+  displayMotifUpper,
+  LANDING,
+} from '@features/reflection-room/copy/strings';
+import { useJourney } from '@features/reflection-room/state/JourneyContext';
+import type { MotifId } from '@features/reflection-room/types/ids';
 import { glassGradient, palette, radius, spacing, theme } from '@theme';
 import type { RootStackParamList } from '@types';
 
@@ -23,8 +29,32 @@ const { width: screenWidth, height: screenHeight } = Dimensions.get('screen');
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
+const MOTIF_ROOM_COPY: Record<MotifId, string> = {
+  compass: 'Find your true north. Trust the direction you already know.',
+  mirror: 'See yourself clearly — without distortion, without judgment.',
+  blocks: 'Set steady boundaries that protect your energy and keep you grounded.',
+  spiral: 'Growth isn’t linear. Each return brings deeper understanding.',
+  radiant_burst: 'Clarity is breaking through. Let yourself see what’s emerging.',
+  feather: 'Release what’s been weighing you down. Move forward lighter.',
+  waves: 'Let emotion move. Flow, express, and breathe again.',
+  pyramid: 'Focus your energy. Precision brings calm and control.',
+  water_drop: 'Feel honestly. Emotion isn’t weakness — it’s information.',
+  brick_stack: 'Build one solid step at a time. Self-trust creates stability.',
+  sprout: 'Something new is forming. Growth has already begun.',
+};
+
+function motifSvgFor(motifId: MotifId | undefined) {
+  if (!motifId) return MOTIF_SVG.spiral;
+  return MOTIF_SVG[motifId] ?? MOTIF_SVG[motifId.replace('_', '-')] ?? MOTIF_SVG.spiral;
+}
+
 const ReflectionRoomCoreScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
+  const { motif } = useJourney();
+  const motifId = motif?.motif_id;
+  const motifName = motifId ? displayMotifUpper(motifId) : LANDING.eyebrow;
+  const motifCopy =
+    motifId != null ? MOTIF_ROOM_COPY[motifId] : LANDING.subhead;
 
   return (
     <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage}>
@@ -34,14 +64,22 @@ const ReflectionRoomCoreScreen: React.FC = () => {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
+          <Text style={styles.motifName}>{motifName}</Text>
           <Text style={styles.title}>REFLECTION ROOM</Text>
-          <Text style={styles.subtitle}>See it. Choose what comes next.</Text>
+          <Text style={styles.subtitle}>{motifCopy}</Text>
 
           <TouchableOpacity
             onPress={() => navigation.navigate('ReflectionRoomEchoSignature' as never)}
             activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel="View Signature"
           >
-            <SvgXml xml={MOTIF_SVG.spiral} width={160} height={160} style={styles.motifSvg} />
+            <SvgXml
+              xml={motifSvgFor(motifId)}
+              width={160}
+              height={160}
+              style={styles.motifSvg}
+            />
           </TouchableOpacity>
 
           <Text style={styles.tapHint}>
@@ -52,6 +90,8 @@ const ReflectionRoomCoreScreen: React.FC = () => {
             <TouchableOpacity
               onPress={() => navigation.navigate('ReflectionRoomEchoMap' as never)}
               activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel="Open Echo Map"
             >
               <LinearGradient
                 colors={[glassGradient.echoSecondary.start, glassGradient.echoSecondary.end]}
@@ -66,6 +106,8 @@ const ReflectionRoomCoreScreen: React.FC = () => {
             <TouchableOpacity
               onPress={() => navigation.navigate('ReflectionRoomMirrorMoment' as never)}
               activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel="Mirror Moment"
             >
               <LinearGradient
                 colors={[glassGradient.echoSecondary.start, glassGradient.echoSecondary.end]}
@@ -80,6 +122,8 @@ const ReflectionRoomCoreScreen: React.FC = () => {
             <TouchableOpacity
               onPress={() => navigation.navigate('EnterMirror')}
               activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel="Homepage"
             >
               <LinearGradient
                 colors={[glassGradient.echoSecondary.start, glassGradient.echoSecondary.end]}
@@ -125,6 +169,14 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     letterSpacing: 1,
     marginTop: Math.max(16, screenHeight * 0.02),
+    marginBottom: spacing.xs,
+  },
+  motifName: {
+    fontFamily: theme.typography.fontFamily.heading,
+    fontSize: theme.typography.sizes['3xl'],
+    color: theme.colors.text.paragraph1,
+    textAlign: 'center',
+    letterSpacing: 2,
     marginBottom: spacing.xs,
   },
   subtitle: {

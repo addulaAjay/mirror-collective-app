@@ -16,8 +16,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
-import { getReflectionRoomClient } from '@features/reflection-room/api';
-import { ReflectionRoomApiError } from '@features/reflection-room/api/types';
+import {
+  QUIZ_ENTRY,
+  WELCOME_OVERLAYS,
+} from '@features/reflection-room/copy/strings';
 import { useJourney } from '@features/reflection-room/state/JourneyContext';
 import {
   borderWidth,
@@ -34,78 +36,26 @@ import type { RootStackParamList } from '@types';
 const { width: screenWidth, height: screenHeight } = Dimensions.get('screen');
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
-type ScreenStatus = 'loading' | 'active' | 'no_session' | 'error';
 
-const INFO_PAGES = [
-  {
-    title: 'WHAT IS THE\nECHO MAP?',
-    body: 'The Echo Map shows how your inner patterns move over time \u2014 stress, clarity, grief, confidence, pressure. The closer a pattern is to you, the more it\u2019s influencing your mood, energy, and decisions right now.  As it softens, it moves outward.\n\nThis isn\u2019t a score.  It\u2019s awareness \u2014 made visible.',
-    sub: 'If you can see the pattern, you can change it. If you can\u2019t, it quietly runs the show.',
-  },
-  {
-    title: 'HOW TO READ\nYOUR ECHO MAP',
-    body: null,
-    richBody: true,
-    sub: 'Patterns move as you do.\nSmall shifts add up.\nThis map isn\u2019t you \u2014 it reflects what you\u2019re working through.',
-  },
-];
+const INFO_PAGES = WELCOME_OVERLAYS.map(page => ({
+  title: page.eyebrow,
+  body: `${page.headline}\n\n${page.body}`,
+  sub: page.tagline,
+}));
 
 const ReflectionRoomLandingScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
-  const { sessionId, motif, welcomeChecked, welcomeSeen, setSnapshot } =
-    useJourney();
-  const [ambientOn, setAmbientOn] = useState(false);
+  const { welcomeChecked, welcomeSeen } = useJourney();
   const [showInfo, setShowInfo] = useState(false);
   const [infoPage, setInfoPage] = useState(0);
-  const [status, setStatus] = useState<ScreenStatus>('loading');
-
-  const refresh = useCallback(async () => {
-    setStatus('loading');
-    if (!sessionId || !motif) {
-      setStatus('no_session');
-      return;
-    }
-
-    try {
-      const snap = await getReflectionRoomClient().getSnapshot(sessionId);
-      setSnapshot(snap);
-      setStatus('active');
-    } catch (err) {
-      if (
-        err instanceof ReflectionRoomApiError &&
-        err.code === 'SESSION_NOT_FOUND'
-      ) {
-        setStatus('no_session');
-      } else {
-        setStatus('error');
-      }
-    }
-  }, [sessionId, motif, setSnapshot]);
 
   useFocusEffect(
     useCallback(() => {
       if (welcomeChecked && !welcomeSeen) {
         navigation.replace('ReflectionRoomWelcome');
-        return;
       }
-
-      void refresh();
-    }, [welcomeChecked, welcomeSeen, navigation, refresh]),
+    }, [welcomeChecked, welcomeSeen, navigation]),
   );
-
-  const handleStart = () => {
-    if (status === 'active') {
-      navigation.navigate('ReflectionRoomCore');
-      return;
-    }
-
-    if (status === 'error') {
-      void refresh();
-      return;
-    }
-
-    navigation.navigate('ReflectionRoomQuizEntry');
-  };
 
   return (
     <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage}>
@@ -162,34 +112,19 @@ const ReflectionRoomLandingScreen: React.FC = () => {
 
           {/* Description: Inter 16 palette.gold.subtlest, 317w, centered */}
           <Text style={styles.description}>
-            {
-              'Where awareness turns into real change.\nSmall moments. Real change. Over time.\nA quick reflection unlocks the room \nyou need right now.'
-            }
+            {QUIZ_ENTRY.body}
           </Text>
 
           {/* START: Component 2 — 104x55, r=12, border=palette.navy.light 0.5 */}
           <TouchableOpacity
             style={styles.startButton}
-            onPress={handleStart}
+            onPress={() => navigation.navigate('ReflectionRoomQuiz')}
             activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel="Start reflection"
           >
-            <Text style={styles.startText}>
-              {status === 'active' ? 'OPEN' : status === 'error' ? 'RETRY' : 'START'}
-            </Text>
+            <Text style={styles.startText}>START</Text>
           </TouchableOpacity>
-
-          {/* Frame 95: 345x32, HORIZONTAL, gap=20, pa=CENTER — centered together */}
-          <View style={styles.ambientRow}>
-            <Text style={styles.ambientLabel}>Ambient Sounds</Text>
-            {/* Custom toggle: 60x32, bg=palette.navy.light, r=16, border=palette.navy.border 1px */}
-            <TouchableOpacity
-              style={[styles.toggle, ambientOn && styles.toggleOn]}
-              onPress={() => setAmbientOn(v => !v)}
-              activeOpacity={0.9}
-            >
-              <View style={[styles.thumb, ambientOn && styles.thumbOn]} />
-            </TouchableOpacity>
-          </View>
         </ScrollView>
       </SafeAreaView>
       <Modal
@@ -214,35 +149,7 @@ const ReflectionRoomLandingScreen: React.FC = () => {
               <Text style={styles.infoCloseText}>×</Text>
             </TouchableOpacity>
             <Text style={styles.infoTitle}>{INFO_PAGES[infoPage].title}</Text>
-            {INFO_PAGES[infoPage].body && (
-              <Text style={styles.infoBody}>{INFO_PAGES[infoPage].body}</Text>
-            )}
-            {INFO_PAGES[infoPage].richBody && (
-              <View style={styles.infoRichBody}>
-                <Text style={styles.infoItalicLine}>Distance = influence</Text>
-                <View style={styles.infoBullet}>
-                  <Text style={styles.infoBulletDot}>• </Text>
-                  <Text style={styles.infoBody}>
-                    <Text style={styles.infoBold}>Near YOU:</Text> Actively
-                    shaping how you feel, think, or react right now.
-                  </Text>
-                </View>
-                <View style={styles.infoBullet}>
-                  <Text style={styles.infoBulletDot}>• </Text>
-                  <Text style={styles.infoBody}>
-                    <Text style={styles.infoBold}>Middle orbit:</Text> Still
-                    present, but no longer in control.
-                  </Text>
-                </View>
-                <View style={styles.infoBullet}>
-                  <Text style={styles.infoBulletDot}>• </Text>
-                  <Text style={styles.infoBody}>
-                    <Text style={styles.infoBold}>Outer orbit:</Text> Easing.
-                    Less pull. Integration happening.
-                  </Text>
-                </View>
-              </View>
-            )}
+            <Text style={styles.infoBody}>{INFO_PAGES[infoPage].body}</Text>
             <Text style={styles.infoSub}>{INFO_PAGES[infoPage].sub}</Text>
             <View style={styles.infoNavRow}>
               {infoPage > 0 ? (

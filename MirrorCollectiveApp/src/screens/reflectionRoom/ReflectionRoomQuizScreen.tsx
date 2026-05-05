@@ -109,7 +109,10 @@ const IconOptions: React.FC<QuestionViewProps> = ({
     <View style={styles.iconGrid} accessibilityRole="radiogroup">
       {question.options.map(option => {
         const isSelected = selectedValue === option.value;
-        const xml = MOTIF_SVG[option.motifKey] ?? '';
+        const xml =
+          MOTIF_SVG[option.motifKey] ??
+          MOTIF_SVG[option.motifKey.replace('_', '-')] ??
+          '';
         return (
           <Pressable
             key={option.value}
