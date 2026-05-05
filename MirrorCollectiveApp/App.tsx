@@ -53,6 +53,7 @@ import ProfileScreen from '@screens/ProfileScreen';
 import QuizQuestionsScreen from '@screens/QuizQuestionsScreen';
 import QuizTuningScreen from '@screens/QuizTuningScreen';
 import QuizWelcomeScreen from '@screens/QuizWelcomeScreen';
+import ReflectionRoomCoreScreen from '@screens/reflectionRoom/ReflectionRoomCoreScreen';
 import ReflectionRoomEchoMapScreen from '@screens/reflectionRoom/ReflectionRoomEchoMapScreen';
 import ReflectionRoomEchoSignatureScreen from '@screens/reflectionRoom/ReflectionRoomEchoSignatureScreen';
 import ReflectionRoomLandingScreen from '@screens/reflectionRoom/ReflectionRoomLandingScreen';
@@ -162,6 +163,7 @@ const AuthNavigator = () => (
     <Stack.Screen name="ReflectionRoomEchoSignature" component={ReflectionRoomEchoSignatureScreen} />
     <Stack.Screen name="ReflectionRoomEchoMap" component={ReflectionRoomEchoMapScreen} />
     <Stack.Screen name="ReflectionRoomMirrorMoment" component={ReflectionRoomMirrorMomentScreen} />
+    <Stack.Screen name="ReflectionRoomCore" component={ReflectionRoomCoreScreen} />
     <Stack.Screen name="ReflectionRoomPracticeOverlay" component={ReflectionRoomPracticeOverlayScreen} />
     <Stack.Screen name="ReflectionRoomPracticeComplete" component={ReflectionRoomPracticeCompleteScreen} />
     <Stack.Screen name="MirrorEcho" component={MirrorEchoCommingsoonScreen} />
@@ -226,6 +228,7 @@ const AuthenticatedNavigator = ({ initialRouteName = 'EnterMirror' }: Authentica
     <Stack.Screen name="ReflectionRoomEchoSignature" component={ReflectionRoomEchoSignatureScreen} />
     <Stack.Screen name="ReflectionRoomEchoMap" component={ReflectionRoomEchoMapScreen} />
     <Stack.Screen name="ReflectionRoomMirrorMoment" component={ReflectionRoomMirrorMomentScreen} />
+    <Stack.Screen name="ReflectionRoomCore" component={ReflectionRoomCoreScreen} />
     <Stack.Screen name="ReflectionRoomPracticeOverlay" component={ReflectionRoomPracticeOverlayScreen} />
     <Stack.Screen name="ReflectionRoomPracticeComplete" component={ReflectionRoomPracticeCompleteScreen} />
     <Stack.Screen name="TheMirrorPledge" component={TheMirrorPledgeCommingsoonScreen} />

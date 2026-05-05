@@ -1,66 +1,62 @@
-/**
- * Reflection Room — Landing tile (§12.2, Figma node 4791-2304).
- *
- * The journey-entry screen rendered when the user taps the Reflection Room
- * tile from the app home. Three states:
- *
- *  - First-time user (no `welcomeSeen` flag) → routes to Welcome onboarding.
- *  - Active session in JourneyContext (or fresh fetch) → motif glyph +
- *    "OPEN ECHO MAP" + "MIRROR MOMENT" CTAs. Tapping the motif opens
- *    Echo Signature.
- *  - No session yet → routes to Quiz Entry to start one.
- *  - Fail state → archway + RESULTS NOT AVAILABLE + TRY AGAIN.
- *
- * Loading state: motif placeholder + spinner.
- */
-
-import { getReflectionRoomClient } from '@features/reflection-room/api';
-import { ReflectionRoomApiError } from '@features/reflection-room/api/types';
-import { LANDING } from '@features/reflection-room/copy/strings';
-import { useJourney } from '@features/reflection-room/state/JourneyContext';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import {
-  borderWidth,
-  fontFamily,
-  fontSize,
-  lineHeight,
-  palette,
-  radius,
-  spacing,
-  textShadow,
-} from '@theme';
-import type { RootStackParamList } from '@types';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useCallback, useState } from 'react';
 import {
-  ActivityIndicator,
+  Dimensions,
   Image,
+  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { SvgXml } from 'react-native-svg';
 
-import { MOTIF_SVG } from '@assets/motifs-icons/MotifIconAssets';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
+import { getReflectionRoomClient } from '@features/reflection-room/api';
+import { ReflectionRoomApiError } from '@features/reflection-room/api/types';
+import { useJourney } from '@features/reflection-room/state/JourneyContext';
+import {
+  borderWidth,
+  fontFamily,
+  modalColors,
+  palette,
+  radius,
+  spacing,
+  textShadow,
+  theme,
+} from '@theme';
+import type { RootStackParamList } from '@types';
 
+const { width: screenWidth, height: screenHeight } = Dimensions.get('screen');
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
-
 type ScreenStatus = 'loading' | 'active' | 'no_session' | 'error';
+
+const INFO_PAGES = [
+  {
+    title: 'WHAT IS THE\nECHO MAP?',
+    body: 'The Echo Map shows how your inner patterns move over time \u2014 stress, clarity, grief, confidence, pressure. The closer a pattern is to you, the more it\u2019s influencing your mood, energy, and decisions right now.  As it softens, it moves outward.\n\nThis isn\u2019t a score.  It\u2019s awareness \u2014 made visible.',
+    sub: 'If you can see the pattern, you can change it. If you can\u2019t, it quietly runs the show.',
+  },
+  {
+    title: 'HOW TO READ\nYOUR ECHO MAP',
+    body: null,
+    richBody: true,
+    sub: 'Patterns move as you do.\nSmall shifts add up.\nThis map isn\u2019t you \u2014 it reflects what you\u2019re working through.',
+  },
+];
 
 const ReflectionRoomLandingScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
-  // Pull only the fields/setters we use. Keep the consuming hook deps
-  // stable — JourneyContext state changes (e.g. setSnapshot) MUST NOT
-  // re-create the refresh callback, or the useFocusEffect re-fires and
-  // we end up in an infinite "Maximum update depth exceeded" loop.
   const { sessionId, motif, welcomeChecked, welcomeSeen, setSnapshot } =
     useJourney();
+  const [ambientOn, setAmbientOn] = useState(false);
+  const [showInfo, setShowInfo] = useState(false);
+  const [infoPage, setInfoPage] = useState(0);
   const [status, setStatus] = useState<ScreenStatus>('loading');
 
   const refresh = useCallback(async () => {
@@ -69,12 +65,16 @@ const ReflectionRoomLandingScreen: React.FC = () => {
       setStatus('no_session');
       return;
     }
+
     try {
       const snap = await getReflectionRoomClient().getSnapshot(sessionId);
       setSnapshot(snap);
       setStatus('active');
     } catch (err) {
-      if (err instanceof ReflectionRoomApiError && err.code === 'SESSION_NOT_FOUND') {
+      if (
+        err instanceof ReflectionRoomApiError &&
+        err.code === 'SESSION_NOT_FOUND'
+      ) {
         setStatus('no_session');
       } else {
         setStatus('error');
@@ -84,314 +84,256 @@ const ReflectionRoomLandingScreen: React.FC = () => {
 
   useFocusEffect(
     useCallback(() => {
-      // First-time gate: route to Welcome before showing the landing.
       if (welcomeChecked && !welcomeSeen) {
         navigation.replace('ReflectionRoomWelcome');
         return;
       }
+
       void refresh();
     }, [welcomeChecked, welcomeSeen, navigation, refresh]),
   );
 
-  if (status === 'loading' || !welcomeChecked) {
-    return <LandingLoading />;
-  }
+  const handleStart = () => {
+    if (status === 'active') {
+      navigation.navigate('ReflectionRoomCore');
+      return;
+    }
 
-  if (status === 'error') {
-    return <LandingFail onRetry={() => void refresh()} />;
-  }
+    if (status === 'error') {
+      void refresh();
+      return;
+    }
 
-  if (status === 'no_session' || !motif) {
-    return <LandingNoSession onStart={() => navigation.navigate('ReflectionRoomQuizEntry')} />;
-  }
+    navigation.navigate('ReflectionRoomQuizEntry');
+  };
 
   return (
-    <BackgroundWrapper style={styles.bg}>
+    <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage}>
       <SafeAreaView style={styles.safe}>
         <LogoHeader />
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          <Text
-            style={styles.eyebrow}
-            accessibilityRole="header"
-            accessibilityLabel={LANDING.eyebrow}
-          >
-            {LANDING.eyebrow}
-          </Text>
-          <Text style={styles.subhead}>{LANDING.subhead}</Text>
-
-          <Pressable
-            onPress={() => navigation.navigate('ReflectionRoomEchoSignature')}
-            accessibilityRole="button"
-            accessibilityLabel={`${motif.motif_name} — view your current Echo Signature`}
-            style={({ pressed }) => [
-              styles.motifTouchable,
-              pressed && styles.pressed,
-            ]}
-          >
-            <View style={styles.motifGlyph}>
-              <SvgXml
-                xml={MOTIF_SVG[motif.motif_id] || ''}
-                width="100%"
-                height="100%"
-              />
+          {/* Frame 600: 345x84, HORIZONTAL, pa=CENTER, ca=CENTER
+              No back button. Title centered with info icon absolutely pinned right. */}
+          <View style={styles.titleRow}>
+            <Text style={styles.title}>REFLECTION ROOM</Text>
+            {/* Frame 612: 24x84, vertically centered info icon */}
+            <View style={styles.infoWrapper}>
+              <TouchableOpacity
+                onPress={() => {
+                  setShowInfo(true);
+                  setInfoPage(0);
+                }}
+              >
+                <Image
+                  source={require('@assets/rr-info-icon.png')}
+                  style={styles.infoIcon}
+                  resizeMode="contain"
+                />
+              </TouchableOpacity>
             </View>
-          </Pressable>
+          </View>
 
-          <Text style={styles.tapHint}>{LANDING.motifTapHint}</Text>
+          {/* Frame 486: 317x300 archway illustration */}
+          <View style={styles.imageContainer}>
+            <Image
+              source={require('@assets/reflection-room-arch-1.png')}
+              style={styles.archLayer1}
+              resizeMode="contain"
+            />
+            <Image
+              source={require('@assets/reflection-room-arch-2.png')}
+              style={styles.archLayer2}
+              resizeMode="contain"
+            />
+            <Image
+              source={require('@assets/reflection-room-stairs.png')}
+              style={styles.stairsImage}
+              resizeMode="contain"
+            />
+            <Image
+              source={require('@assets/reflection-room-arch-3.png')}
+              style={styles.archLayer3}
+              resizeMode="contain"
+            />
+          </View>
 
-          <View style={styles.ctaStack}>
-            <Pressable
-              onPress={() => navigation.navigate('ReflectionRoomEchoMap')}
-              accessibilityRole="button"
-              accessibilityLabel={LANDING.ctaOpenEchoMap}
-              style={({ pressed }) => [
-                styles.ctaButton,
-                pressed && styles.pressed,
-              ]}
+          {/* Description: Inter 16 palette.gold.subtlest, 317w, centered */}
+          <Text style={styles.description}>
+            {
+              'Where awareness turns into real change.\nSmall moments. Real change. Over time.\nA quick reflection unlocks the room \nyou need right now.'
+            }
+          </Text>
+
+          {/* START: Component 2 — 104x55, r=12, border=palette.navy.light 0.5 */}
+          <TouchableOpacity
+            style={styles.startButton}
+            onPress={handleStart}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.startText}>
+              {status === 'active' ? 'OPEN' : status === 'error' ? 'RETRY' : 'START'}
+            </Text>
+          </TouchableOpacity>
+
+          {/* Frame 95: 345x32, HORIZONTAL, gap=20, pa=CENTER — centered together */}
+          <View style={styles.ambientRow}>
+            <Text style={styles.ambientLabel}>Ambient Sounds</Text>
+            {/* Custom toggle: 60x32, bg=palette.navy.light, r=16, border=palette.navy.border 1px */}
+            <TouchableOpacity
+              style={[styles.toggle, ambientOn && styles.toggleOn]}
+              onPress={() => setAmbientOn(v => !v)}
+              activeOpacity={0.9}
             >
-              <Text style={styles.ctaText}>{LANDING.ctaOpenEchoMap}</Text>
-            </Pressable>
-            <Pressable
-              onPress={() => navigation.navigate('ReflectionRoomMirrorMoment')}
-              accessibilityRole="button"
-              accessibilityLabel={LANDING.ctaMirrorMoment}
-              style={({ pressed }) => [
-                styles.ctaButton,
-                pressed && styles.pressed,
-              ]}
-            >
-              <Text style={styles.ctaText}>{LANDING.ctaMirrorMoment}</Text>
-            </Pressable>
+              <View style={[styles.thumb, ambientOn && styles.thumbOn]} />
+            </TouchableOpacity>
           </View>
         </ScrollView>
       </SafeAreaView>
+      <Modal
+        visible={showInfo}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={() => setShowInfo(false)}
+      >
+        <View style={styles.infoModalRoot}>
+          <Pressable
+            style={styles.infoBackdrop}
+            onPress={() => setShowInfo(false)}
+            accessibilityLabel="Close info"
+            accessibilityRole="button"
+          />
+          <View style={styles.infoPopupContainer}>
+            <TouchableOpacity
+              style={styles.infoCloseBtn}
+              onPress={() => setShowInfo(false)}
+            >
+              <Text style={styles.infoCloseText}>×</Text>
+            </TouchableOpacity>
+            <Text style={styles.infoTitle}>{INFO_PAGES[infoPage].title}</Text>
+            {INFO_PAGES[infoPage].body && (
+              <Text style={styles.infoBody}>{INFO_PAGES[infoPage].body}</Text>
+            )}
+            {INFO_PAGES[infoPage].richBody && (
+              <View style={styles.infoRichBody}>
+                <Text style={styles.infoItalicLine}>Distance = influence</Text>
+                <View style={styles.infoBullet}>
+                  <Text style={styles.infoBulletDot}>• </Text>
+                  <Text style={styles.infoBody}>
+                    <Text style={styles.infoBold}>Near YOU:</Text> Actively
+                    shaping how you feel, think, or react right now.
+                  </Text>
+                </View>
+                <View style={styles.infoBullet}>
+                  <Text style={styles.infoBulletDot}>• </Text>
+                  <Text style={styles.infoBody}>
+                    <Text style={styles.infoBold}>Middle orbit:</Text> Still
+                    present, but no longer in control.
+                  </Text>
+                </View>
+                <View style={styles.infoBullet}>
+                  <Text style={styles.infoBulletDot}>• </Text>
+                  <Text style={styles.infoBody}>
+                    <Text style={styles.infoBold}>Outer orbit:</Text> Easing.
+                    Less pull. Integration happening.
+                  </Text>
+                </View>
+              </View>
+            )}
+            <Text style={styles.infoSub}>{INFO_PAGES[infoPage].sub}</Text>
+            <View style={styles.infoNavRow}>
+              {infoPage > 0 ? (
+                <TouchableOpacity onPress={() => setInfoPage(infoPage - 1)}>
+                  <Image
+                    source={require('@assets/back-arrow.png')}
+                    style={styles.infoArrowImg}
+                    resizeMode="contain"
+                  />
+                </TouchableOpacity>
+              ) : (
+                <View style={styles.infoArrowPlaceholder} />
+              )}
+              {infoPage < INFO_PAGES.length - 1 ? (
+                <TouchableOpacity onPress={() => setInfoPage(infoPage + 1)}>
+                  <Image
+                    source={require('@assets/right-arrow.png')}
+                    style={styles.infoArrowImg}
+                    resizeMode="contain"
+                  />
+                </TouchableOpacity>
+              ) : (
+                <View style={styles.infoArrowPlaceholder} />
+              )}
+            </View>
+          </View>
+        </View>
+      </Modal>
     </BackgroundWrapper>
   );
 };
 
 export default ReflectionRoomLandingScreen;
 
-// ---------------------------------------------------------------------------
-// Sub-views: loading / fail / no-session
-// ---------------------------------------------------------------------------
-
-const LandingLoading: React.FC = () => (
-  <BackgroundWrapper style={styles.bg}>
-    <SafeAreaView style={styles.safe}>
-      <LogoHeader />
-      <View style={styles.centerView}>
-        <Text style={styles.eyebrow}>{LANDING.eyebrow}</Text>
-        <View style={styles.motifSkeleton}>
-          <ActivityIndicator size="large" color={palette.gold.DEFAULT} />
-        </View>
-      </View>
-    </SafeAreaView>
-  </BackgroundWrapper>
-);
-
-const LandingNoSession: React.FC<{ onStart: () => void }> = ({ onStart }) => (
-  <BackgroundWrapper style={styles.bg}>
-    <SafeAreaView style={styles.safe}>
-      <LogoHeader />
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        <Text style={styles.eyebrow}>{LANDING.eyebrow}</Text>
-        <Text style={styles.subhead}>{LANDING.subhead}</Text>
-        <View style={styles.archStack} accessibilityElementsHidden>
-          <Image
-            source={require('@assets/reflection-room-arch-1.png')}
-            style={styles.archLayer1}
-            resizeMode="contain"
-          />
-          <Image
-            source={require('@assets/reflection-room-arch-2.png')}
-            style={styles.archLayer2}
-            resizeMode="contain"
-          />
-          <Image
-            source={require('@assets/reflection-room-stairs.png')}
-            style={styles.stairsImage}
-            resizeMode="contain"
-          />
-          <Image
-            source={require('@assets/reflection-room-arch-3.png')}
-            style={styles.archLayer3}
-            resizeMode="contain"
-          />
-        </View>
-        <Pressable
-          onPress={onStart}
-          accessibilityRole="button"
-          accessibilityLabel="Begin reflection"
-          style={({ pressed }) => [
-            styles.ctaButton,
-            pressed && styles.pressed,
-          ]}
-        >
-          <Text style={styles.ctaText}>BEGIN REFLECTION</Text>
-        </Pressable>
-      </ScrollView>
-    </SafeAreaView>
-  </BackgroundWrapper>
-);
-
-const LandingFail: React.FC<{ onRetry: () => void }> = ({ onRetry }) => (
-  <BackgroundWrapper style={styles.bg}>
-    <SafeAreaView style={styles.safe}>
-      <LogoHeader />
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        <Text
-          style={styles.eyebrow}
-          accessibilityRole="header"
-          accessibilityLabel={LANDING.failHeader}
-        >
-          {LANDING.failHeader}
-        </Text>
-        <View style={styles.archStack} accessibilityElementsHidden>
-          <Image
-            source={require('@assets/reflection-room-arch-1.png')}
-            style={styles.archLayer1}
-            resizeMode="contain"
-          />
-          <Image
-            source={require('@assets/reflection-room-arch-2.png')}
-            style={styles.archLayer2}
-            resizeMode="contain"
-          />
-          <Image
-            source={require('@assets/reflection-room-stairs.png')}
-            style={styles.stairsImage}
-            resizeMode="contain"
-          />
-          <Image
-            source={require('@assets/reflection-room-arch-3.png')}
-            style={styles.archLayer3}
-            resizeMode="contain"
-          />
-        </View>
-        <Text style={styles.body}>{LANDING.failBody}</Text>
-        <Pressable
-          onPress={onRetry}
-          accessibilityRole="button"
-          accessibilityLabel={LANDING.failRetry}
-          style={({ pressed }) => [
-            styles.ctaButton,
-            pressed && styles.pressed,
-          ]}
-        >
-          <Text style={styles.ctaText}>{LANDING.failRetry}</Text>
-        </Pressable>
-      </ScrollView>
-    </SafeAreaView>
-  </BackgroundWrapper>
-);
-
-// ---------------------------------------------------------------------------
-// Styles — every value flows through theme tokens
-// ---------------------------------------------------------------------------
+const CONTENT_WIDTH = Math.min(screenWidth - 40, 345);
 
 const styles = StyleSheet.create({
-  bg: { flex: 1, backgroundColor: palette.navy.deep },
-  safe: { flex: 1 },
+  bg: {
+    flex: 1,
+    backgroundColor: palette.navy.deep,
+  },
+  bgImage: {
+    resizeMode: 'cover',
+  },
+  safe: {
+    flex: 1,
+    backgroundColor: 'transparent',
+  },
+  // Frame 527: VERTICAL, gap=40, pa=SPACE_BETWEEN, ca=CENTER
   scrollContent: {
     alignItems: 'center',
-    paddingHorizontal: spacing.l,
-    paddingBottom: spacing.xxxl,
-    gap: spacing.l,
-    flexGrow: 1,
+    paddingHorizontal: Math.max(20, screenWidth * 0.051),
+    paddingBottom: Math.max(40, screenHeight * 0.05),
+    gap: spacing.xxxl,
   },
-  centerView: {
-    flex: 1,
+
+  // Frame 600: 345x84, title centered, info icon absolute right
+  titleRow: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: spacing.l,
-    gap: spacing.l,
+    width: CONTENT_WIDTH,
+    height: 84,
   },
-  eyebrow: {
-    fontFamily: fontFamily.heading,
-    fontSize: fontSize['3xl'],
-    lineHeight: lineHeight.xl,
-    color: palette.gold.DEFAULT,
+  // Title: Figma 217x84 — fixed width forces 2-line wrap, centered in row
+  title: {
+    fontFamily: theme.typography.fontFamily.heading,
+    fontSize: theme.typography.sizes['4xl'],
+    fontWeight: theme.typography.weights.regular,
+    color: theme.colors.text.paragraph1,
     textAlign: 'center',
-    letterSpacing: 1,
-    textShadowColor: textShadow.glow.color,
-    textShadowOffset: textShadow.glow.offset,
-    textShadowRadius: textShadow.glow.radius,
+    lineHeight: 38,
+    width: 217,
   },
-  subhead: {
-    fontFamily: fontFamily.body,
-    fontSize: fontSize.s,
-    lineHeight: lineHeight.m,
-    color: palette.gold.subtlest,
-    textAlign: 'center',
-  },
-  body: {
-    fontFamily: fontFamily.body,
-    fontSize: fontSize.s,
-    lineHeight: lineHeight.m,
-    color: palette.gold.subtlest,
-    textAlign: 'center',
-    width: 317,
-  },
-  motifTouchable: {
-    alignSelf: 'center',
-    marginVertical: spacing.l,
-  },
-  motifGlyph: {
-    width: 240,
-    height: 240,
-    alignItems: 'center',
+  // Frame 612: 24x84, absolute top-right — separate from title text
+  infoWrapper: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    width: 24,
+    height: 84,
     justifyContent: 'center',
-  },
-  motifSkeleton: {
-    width: 240,
-    height: 240,
     alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: radius.full,
-    borderWidth: borderWidth.thin,
-    borderColor: 'rgba(242, 226, 177, 0.2)',
   },
-  tapHint: {
-    fontFamily: fontFamily.bodyItalic,
-    fontSize: fontSize.s,
-    lineHeight: lineHeight.m,
-    color: palette.gold.subtlest,
-    textAlign: 'center',
-    marginBottom: spacing.l,
+  infoIcon: {
+    width: 24,
+    height: 24,
   },
-  ctaStack: {
-    width: '100%',
-    alignItems: 'center',
-    gap: spacing.s,
-  },
-  ctaButton: {
-    minWidth: 240,
-    paddingVertical: spacing.s,
-    paddingHorizontal: spacing.xl,
-    borderRadius: radius.s,
-    borderWidth: borderWidth.thin,
-    borderColor: palette.navy.light,
-    backgroundColor: palette.neutral.transparent,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  ctaText: {
-    fontFamily: fontFamily.heading,
-    fontSize: fontSize.xl,
-    color: palette.gold.DEFAULT,
-    letterSpacing: 1,
-  },
-  pressed: { opacity: 0.7 },
-  archStack: {
+
+  // Frame 486: 317x300
+  imageContainer: {
     width: 317,
     height: 300,
     position: 'relative',
@@ -427,5 +369,184 @@ const styles = StyleSheet.create({
     transform: [{ translateX: -76.5 }],
     width: 183,
     height: 172,
+  },
+
+  // Description: Inter 16 palette.gold.subtlest, 317w, centered
+  description: {
+    fontFamily: theme.typography.fontFamily.body,
+    fontSize: theme.typography.sizes.base,
+    fontWeight: theme.typography.weights.regular,
+    color: theme.colors.text.paragraph2,
+    textAlign: 'center',
+    lineHeight: theme.typography.lineHeights.lg,
+    width: 317,
+  },
+
+  // START: 104x55, r=12, border=palette.navy.light 0.5
+  startButton: {
+    width: 104,
+    height: 55,
+    borderRadius: radius.s,
+    borderWidth: 0.5,
+    borderColor: theme.colors.border.subtle,
+    backgroundColor: palette.neutral.transparent,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  startText: {
+    fontFamily: theme.typography.fontFamily.heading,
+    fontSize: theme.typography.sizes['2xl'],
+    fontWeight: theme.typography.weights.regular,
+    color: theme.colors.text.paragraph1,
+    letterSpacing: 1,
+  },
+
+  // Frame 95: 345x32, HORIZONTAL, gap=20, pa=CENTER (items centered together)
+  ambientRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 32,
+    gap: 20,
+  },
+  ambientLabel: {
+    fontFamily: theme.typography.fontFamily.heading,
+    fontSize: theme.typography.sizes.xl,
+    fontWeight: theme.typography.weights.regular,
+    color: theme.colors.secondary['secondary-color-2'],
+  },
+
+  // Custom toggle: 60x32, bg=palette.navy.light, r=16, border=palette.navy.border 1px, padding=4
+  toggle: {
+    width: 60,
+    height: 32,
+    borderRadius: radius.xl,
+    backgroundColor: theme.colors.border.subtle,
+    borderWidth: borderWidth.regular,
+    borderColor: palette.navy.border,
+    padding: spacing.xxs,
+    justifyContent: 'center',
+  },
+  toggleOn: {
+    backgroundColor: theme.colors.text.heading,
+    borderColor: theme.colors.text.heading,
+  },
+  // Thumb: Ellipse 1 — 24x24, paragraph-2
+  thumb: {
+    width: 24,
+    height: 24,
+    borderRadius: radius.xl / 2,
+    backgroundColor: theme.colors.text.paragraph2,
+    alignSelf: 'flex-start',
+  },
+  thumbOn: {
+    alignSelf: 'flex-end',
+  },
+  infoModalRoot: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  infoBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: modalColors.navyDeep60,
+  },
+  infoPopupContainer: {
+    width: 329,
+    backgroundColor: modalColors.card,
+    borderRadius: radius.m - 3,
+    borderWidth: borderWidth.hairline,
+    borderColor: palette.navy.muted,
+    padding: spacing.xl,
+    shadowColor: theme.colors.text.paragraph1,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  infoCloseBtn: {
+    position: 'absolute',
+    top: 12,
+    right: 16,
+    zIndex: 2,
+  },
+  infoCloseText: {
+    fontSize: 28,
+    color: theme.colors.text.paragraph1,
+    fontWeight: theme.typography.weights.light,
+  },
+  infoTitle: {
+    fontFamily: theme.typography.fontFamily.heading,
+    fontSize: theme.typography.sizes['3xl'],
+    color: theme.colors.text.paragraph1,
+    textAlign: 'center',
+    letterSpacing: 1,
+    marginBottom: spacing.m,
+    marginTop: spacing.xs,
+    textShadowColor: textShadow.glowSubtle.color,
+    textShadowOffset: textShadow.glowSubtle.offset,
+    textShadowRadius: textShadow.glowSubtle.radius,
+  },
+  infoBody: {
+    fontFamily: theme.typography.fontFamily.body,
+    fontSize: theme.typography.sizes.base,
+    color: palette.neutral.white,
+    textAlign: 'center',
+    lineHeight: theme.typography.lineHeights.lg,
+    marginBottom: spacing.m,
+  },
+  infoSub: {
+    fontFamily: fontFamily.bodyItalic,
+    fontSize: 15,
+    color: theme.colors.text.paragraph1,
+    textAlign: 'center',
+    lineHeight: 22,
+    marginTop: spacing.xs,
+    marginBottom: spacing.m,
+  },
+  infoRichBody: {
+    alignItems: 'flex-start',
+    width: '100%',
+    marginBottom: 8,
+  },
+  infoItalicLine: {
+    fontFamily: fontFamily.bodyItalic,
+    fontSize: theme.typography.sizes.lg,
+    color: palette.neutral.white,
+    textAlign: 'center',
+    width: '100%',
+    marginBottom: 16,
+  },
+  infoBullet: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+    paddingHorizontal: 4,
+  },
+  infoBulletDot: {
+    fontFamily: theme.typography.fontFamily.body,
+    fontSize: theme.typography.sizes.base,
+    color: palette.neutral.white,
+    lineHeight: theme.typography.lineHeights.lg,
+  },
+  infoBold: {
+    fontFamily: fontFamily.bodyBold,
+    fontSize: theme.typography.sizes.base,
+    color: palette.neutral.white,
+  },
+  infoNavRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: spacing.xl,
+  },
+  infoArrowImg: {
+    width: 28,
+    height: 28,
+    tintColor: theme.colors.text.paragraph1,
+  },
+  infoArrowPlaceholder: {
+    width: 28,
+    height: 28,
   },
 });
