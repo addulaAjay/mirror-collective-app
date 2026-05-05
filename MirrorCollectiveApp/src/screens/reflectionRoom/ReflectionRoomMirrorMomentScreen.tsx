@@ -15,8 +15,31 @@
  * States: loading | active | empty | error.
  */
 
+import { getReflectionRoomClient } from '@features/reflection-room/api';
+import { firePracticeExpand } from '@features/reflection-room/api/telemetry';
+import {
+  ReflectionRoomApiError,
+  type LoopState,
+} from '@features/reflection-room/api/types';
+import InfoOverlay, {
+  type InfoPage,
+} from '@features/reflection-room/components/InfoOverlay';
+import { MIRROR_MOMENT } from '@features/reflection-room/copy/strings';
+import { useJourney } from '@features/reflection-room/state/JourneyContext';
+import { labelFor } from '@features/reflection-room/utils/labelFor';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import {
+  borderWidth,
+  fontFamily,
+  fontSize,
+  lineHeight,
+  palette,
+  radius,
+  spacing,
+  textShadow,
+} from '@theme';
+import type { RootStackParamList } from '@types';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -33,30 +56,7 @@ import { SvgXml } from 'react-native-svg';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
-import {
-  borderWidth,
-  fontFamily,
-  fontSize,
-  lineHeight,
-  palette,
-  radius,
-  spacing,
-  textShadow,
-} from '@theme';
-import type { RootStackParamList } from '@types';
 
-import { getReflectionRoomClient } from '@features/reflection-room/api';
-import { firePracticeExpand } from '@features/reflection-room/api/telemetry';
-import {
-  ReflectionRoomApiError,
-  type LoopState,
-} from '@features/reflection-room/api/types';
-import InfoOverlay, {
-  type InfoPage,
-} from '@features/reflection-room/components/InfoOverlay';
-import { MIRROR_MOMENT } from '@features/reflection-room/copy/strings';
-import { useJourney } from '@features/reflection-room/state/JourneyContext';
-import { labelFor } from '@features/reflection-room/utils/labelFor';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type Status = 'loading' | 'active' | 'empty' | 'error';
@@ -87,23 +87,22 @@ const INFO_PAGES: InfoPage[] = [
 
 const ReflectionRoomMirrorMomentScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
-  const journey = useJourney();
+  // Stable destructure — see Landing/EchoSignature for the rationale.
+  const { sessionId, snapshot, setSnapshot } = useJourney();
   const [status, setStatus] = useState<Status>(
-    journey.snapshot ? 'active' : 'loading',
+    snapshot ? 'active' : 'loading',
   );
   const [showInfo, setShowInfo] = useState(false);
 
   const fetchSnapshot = useCallback(async () => {
-    if (!journey.sessionId) {
+    if (!sessionId) {
       setStatus('error');
       return;
     }
     setStatus('loading');
     try {
-      const snap = await getReflectionRoomClient().getSnapshot(
-        journey.sessionId,
-      );
-      journey.setSnapshot(snap);
+      const snap = await getReflectionRoomClient().getSnapshot(sessionId);
+      setSnapshot(snap);
       setStatus(snap.loops.length === 0 ? 'empty' : 'active');
     } catch (err) {
       if (
@@ -115,20 +114,20 @@ const ReflectionRoomMirrorMomentScreen: React.FC = () => {
         setStatus('error');
       }
     }
-  }, [journey]);
+  }, [sessionId, setSnapshot]);
 
   useFocusEffect(
     useCallback(() => {
-      if (journey.snapshot) {
-        setStatus(journey.snapshot.loops.length === 0 ? 'empty' : 'active');
+      if (snapshot) {
+        setStatus(snapshot.loops.length === 0 ? 'empty' : 'active');
         return;
       }
       void fetchSnapshot();
-    }, [fetchSnapshot, journey.snapshot]),
+    }, [fetchSnapshot, snapshot]),
   );
 
   useEffect(() => {
-    if (!journey.snapshot && status === 'loading') {
+    if (!snapshot && status === 'loading') {
       void fetchSnapshot();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -143,7 +142,7 @@ const ReflectionRoomMirrorMomentScreen: React.FC = () => {
     });
   };
 
-  const top3 = (journey.snapshot?.loops ?? []).slice(0, 3);
+  const top3 = (snapshot?.loops ?? []).slice(0, 3);
 
   return (
     <BackgroundWrapper style={styles.bg}>

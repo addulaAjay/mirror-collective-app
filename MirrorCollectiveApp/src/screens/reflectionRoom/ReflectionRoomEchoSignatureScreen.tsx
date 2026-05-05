@@ -17,8 +17,26 @@
  *  - error   → §12.8 RESULTS NOT AVAILABLE + TRY AGAIN CTA
  */
 
+import { getReflectionRoomClient } from '@features/reflection-room/api';
+import { firePracticeExpand } from '@features/reflection-room/api/telemetry';
+import { ReflectionRoomApiError } from '@features/reflection-room/api/types';
+import type { LoopState } from '@features/reflection-room/api/types';
+import EchoSignatureCard from '@features/reflection-room/components/EchoSignatureCard';
+import { ECHO_SIGNATURE, LANDING } from '@features/reflection-room/copy/strings';
+import { useJourney } from '@features/reflection-room/state/JourneyContext';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import {
+  borderWidth,
+  fontFamily,
+  fontSize,
+  lineHeight,
+  palette,
+  radius,
+  spacing,
+  textShadow,
+} from '@theme';
+import type { RootStackParamList } from '@types';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -33,25 +51,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
-import {
-  borderWidth,
-  fontFamily,
-  fontSize,
-  lineHeight,
-  palette,
-  radius,
-  spacing,
-  textShadow,
-} from '@theme';
-import type { RootStackParamList } from '@types';
 
-import { getReflectionRoomClient } from '@features/reflection-room/api';
-import { firePracticeExpand } from '@features/reflection-room/api/telemetry';
-import { ReflectionRoomApiError } from '@features/reflection-room/api/types';
-import type { LoopState } from '@features/reflection-room/api/types';
-import EchoSignatureCard from '@features/reflection-room/components/EchoSignatureCard';
-import { ECHO_SIGNATURE, LANDING } from '@features/reflection-room/copy/strings';
-import { useJourney } from '@features/reflection-room/state/JourneyContext';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -59,21 +59,23 @@ type Status = 'loading' | 'active' | 'empty' | 'error';
 
 const ReflectionRoomEchoSignatureScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
-  const journey = useJourney();
+  // Pull stable fields/setters only — `journey` as a whole has a fresh
+  // ref every time JourneyContext state changes (including our own
+  // setSnapshot call), which would re-create fetchSnapshot, re-fire
+  // useFocusEffect, and loop forever.
+  const { sessionId, snapshot, setSnapshot } = useJourney();
   const [status, setStatus] = useState<Status>(
-    journey.snapshot ? 'active' : 'loading',
+    snapshot ? 'active' : 'loading',
   );
 
   const fetchSnapshot = useCallback(async () => {
-    if (!journey.sessionId) {
+    if (!sessionId) {
       setStatus('error');
       return;
     }
     try {
-      const snap = await getReflectionRoomClient().getSnapshot(
-        journey.sessionId,
-      );
-      journey.setSnapshot(snap);
+      const snap = await getReflectionRoomClient().getSnapshot(sessionId);
+      setSnapshot(snap);
       setStatus(snap.loops.length === 0 ? 'empty' : 'active');
     } catch (err) {
       if (
@@ -85,21 +87,21 @@ const ReflectionRoomEchoSignatureScreen: React.FC = () => {
         setStatus('error');
       }
     }
-  }, [journey]);
+  }, [sessionId, setSnapshot]);
 
   useFocusEffect(
     useCallback(() => {
-      if (journey.snapshot) {
-        setStatus(journey.snapshot.loops.length === 0 ? 'empty' : 'active');
+      if (snapshot) {
+        setStatus(snapshot.loops.length === 0 ? 'empty' : 'active');
         return;
       }
       void fetchSnapshot();
-    }, [fetchSnapshot, journey.snapshot]),
+    }, [fetchSnapshot, snapshot]),
   );
 
   // First-load fallback in environments where useFocusEffect doesn't fire.
   useEffect(() => {
-    if (!journey.snapshot && status === 'loading') {
+    if (!snapshot && status === 'loading') {
       void fetchSnapshot();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -160,9 +162,9 @@ const ReflectionRoomEchoSignatureScreen: React.FC = () => {
           {status === 'empty' && (
             <EmptyBlock onGoHome={() => navigation.navigate('ReflectionRoom')} />
           )}
-          {status === 'active' && journey.snapshot && (
+          {status === 'active' && snapshot && (
             <View style={styles.cards}>
-              {journey.snapshot.loops.slice(0, 3).map(loop => (
+              {snapshot.loops.slice(0, 3).map(loop => (
                 <EchoSignatureCard
                   key={loop.loop_id}
                   loop={loop}

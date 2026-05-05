@@ -14,9 +14,24 @@
  * Loading state: motif placeholder + spinner.
  */
 
+import { getReflectionRoomClient } from '@features/reflection-room/api';
+import { ReflectionRoomApiError } from '@features/reflection-room/api/types';
+import { LANDING } from '@features/reflection-room/copy/strings';
+import { useJourney } from '@features/reflection-room/state/JourneyContext';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import React, { useCallback, useEffect, useState } from 'react';
+import {
+  borderWidth,
+  fontFamily,
+  fontSize,
+  lineHeight,
+  palette,
+  radius,
+  spacing,
+  textShadow,
+} from '@theme';
+import type { RootStackParamList } from '@types';
+import React, { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
@@ -32,22 +47,7 @@ import { SvgXml } from 'react-native-svg';
 import { MOTIF_SVG } from '@assets/motifs-icons/MotifIconAssets';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
-import {
-  borderWidth,
-  fontFamily,
-  fontSize,
-  lineHeight,
-  palette,
-  radius,
-  spacing,
-  textShadow,
-} from '@theme';
-import type { RootStackParamList } from '@types';
 
-import { getReflectionRoomClient } from '@features/reflection-room/api';
-import { ReflectionRoomApiError } from '@features/reflection-room/api/types';
-import { LANDING } from '@features/reflection-room/copy/strings';
-import { useJourney } from '@features/reflection-room/state/JourneyContext';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -55,18 +55,23 @@ type ScreenStatus = 'loading' | 'active' | 'no_session' | 'error';
 
 const ReflectionRoomLandingScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
-  const journey = useJourney();
+  // Pull only the fields/setters we use. Keep the consuming hook deps
+  // stable — JourneyContext state changes (e.g. setSnapshot) MUST NOT
+  // re-create the refresh callback, or the useFocusEffect re-fires and
+  // we end up in an infinite "Maximum update depth exceeded" loop.
+  const { sessionId, motif, welcomeChecked, welcomeSeen, setSnapshot } =
+    useJourney();
   const [status, setStatus] = useState<ScreenStatus>('loading');
 
   const refresh = useCallback(async () => {
     setStatus('loading');
-    if (!journey.sessionId || !journey.motif) {
+    if (!sessionId || !motif) {
       setStatus('no_session');
       return;
     }
     try {
-      const snap = await getReflectionRoomClient().getSnapshot(journey.sessionId);
-      journey.setSnapshot(snap);
+      const snap = await getReflectionRoomClient().getSnapshot(sessionId);
+      setSnapshot(snap);
       setStatus('active');
     } catch (err) {
       if (err instanceof ReflectionRoomApiError && err.code === 'SESSION_NOT_FOUND') {
@@ -75,27 +80,20 @@ const ReflectionRoomLandingScreen: React.FC = () => {
         setStatus('error');
       }
     }
-  }, [journey]);
+  }, [sessionId, motif, setSnapshot]);
 
   useFocusEffect(
     useCallback(() => {
       // First-time gate: route to Welcome before showing the landing.
-      if (journey.welcomeChecked && !journey.welcomeSeen) {
+      if (welcomeChecked && !welcomeSeen) {
         navigation.replace('ReflectionRoomWelcome');
         return;
       }
       void refresh();
-    }, [journey.welcomeChecked, journey.welcomeSeen, navigation, refresh]),
+    }, [welcomeChecked, welcomeSeen, navigation, refresh]),
   );
 
-  // Re-run loading once welcomeChecked flips true.
-  useEffect(() => {
-    if (!journey.welcomeChecked) return;
-    if (!journey.welcomeSeen) return;
-    void refresh();
-  }, [journey.welcomeChecked, journey.welcomeSeen, refresh]);
-
-  if (status === 'loading' || !journey.welcomeChecked) {
+  if (status === 'loading' || !welcomeChecked) {
     return <LandingLoading />;
   }
 
@@ -103,7 +101,7 @@ const ReflectionRoomLandingScreen: React.FC = () => {
     return <LandingFail onRetry={() => void refresh()} />;
   }
 
-  if (status === 'no_session' || !journey.motif) {
+  if (status === 'no_session' || !motif) {
     return <LandingNoSession onStart={() => navigation.navigate('ReflectionRoomQuizEntry')} />;
   }
 
@@ -127,7 +125,7 @@ const ReflectionRoomLandingScreen: React.FC = () => {
           <Pressable
             onPress={() => navigation.navigate('ReflectionRoomEchoSignature')}
             accessibilityRole="button"
-            accessibilityLabel={`${journey.motif.motif_name} — view your current Echo Signature`}
+            accessibilityLabel={`${motif.motif_name} — view your current Echo Signature`}
             style={({ pressed }) => [
               styles.motifTouchable,
               pressed && styles.pressed,
@@ -135,7 +133,7 @@ const ReflectionRoomLandingScreen: React.FC = () => {
           >
             <View style={styles.motifGlyph}>
               <SvgXml
-                xml={MOTIF_SVG[journey.motif.motif_id] || ''}
+                xml={MOTIF_SVG[motif.motif_id] || ''}
                 width="100%"
                 height="100%"
               />

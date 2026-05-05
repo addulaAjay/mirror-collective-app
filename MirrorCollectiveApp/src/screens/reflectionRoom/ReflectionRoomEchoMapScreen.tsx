@@ -17,8 +17,32 @@
  * 10s pulse for the prefers-motion case.
  */
 
+import { getReflectionRoomClient } from '@features/reflection-room/api';
+import {
+  ReflectionRoomApiError,
+  type LoopState,
+} from '@features/reflection-room/api/types';
+import InfoOverlay, {
+  type InfoPage,
+} from '@features/reflection-room/components/InfoOverlay';
+import { loopNodeXml } from '@features/reflection-room/components/loopNodeIcons';
+import LoopOverlay from '@features/reflection-room/components/LoopOverlay';
+import { toneColor } from '@features/reflection-room/components/toneColors';
+import { ECHO_MAP, LANDING } from '@features/reflection-room/copy/strings';
+import { useJourney } from '@features/reflection-room/state/JourneyContext';
+import type { LoopId } from '@features/reflection-room/types/ids';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import {
+  borderWidth,
+  fontFamily,
+  fontSize,
+  lineHeight,
+  palette,
+  radius,
+  spacing,
+  textShadow,
+} from '@theme';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -38,32 +62,8 @@ import {
 } from '@assets/reflection-room-ech0-map-assets/ReflectionRoomEchoMapAssets';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
-import {
-  borderWidth,
-  fontFamily,
-  fontSize,
-  lineHeight,
-  palette,
-  radius,
-  spacing,
-  textShadow,
-} from '@theme';
 import type { RootStackParamList } from '@types';
 
-import { getReflectionRoomClient } from '@features/reflection-room/api';
-import {
-  ReflectionRoomApiError,
-  type LoopState,
-} from '@features/reflection-room/api/types';
-import InfoOverlay, {
-  type InfoPage,
-} from '@features/reflection-room/components/InfoOverlay';
-import { loopNodeXml } from '@features/reflection-room/components/loopNodeIcons';
-import LoopOverlay from '@features/reflection-room/components/LoopOverlay';
-import { toneColor } from '@features/reflection-room/components/toneColors';
-import { ECHO_MAP, LANDING } from '@features/reflection-room/copy/strings';
-import { useJourney } from '@features/reflection-room/state/JourneyContext';
-import type { LoopId } from '@features/reflection-room/types/ids';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type Status = 'loading' | 'active' | 'empty' | 'error';
@@ -138,24 +138,23 @@ const INFO_PAGES: InfoPage[] = [
 
 const ReflectionRoomEchoMapScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
-  const journey = useJourney();
+  // Stable destructure — see Landing/EchoSignature for the rationale.
+  const { sessionId, snapshot, setSnapshot } = useJourney();
   const [status, setStatus] = useState<Status>(
-    journey.snapshot ? 'active' : 'loading',
+    snapshot ? 'active' : 'loading',
   );
   const [selectedLoop, setSelectedLoop] = useState<LoopState | null>(null);
   const [showInfo, setShowInfo] = useState(false);
 
   const fetchSnapshot = useCallback(async () => {
-    if (!journey.sessionId) {
+    if (!sessionId) {
       setStatus('error');
       return;
     }
     setStatus('loading');
     try {
-      const snap = await getReflectionRoomClient().getSnapshot(
-        journey.sessionId,
-      );
-      journey.setSnapshot(snap);
+      const snap = await getReflectionRoomClient().getSnapshot(sessionId);
+      setSnapshot(snap);
       setStatus(snap.loops.length === 0 ? 'empty' : 'active');
     } catch (err) {
       if (
@@ -167,29 +166,27 @@ const ReflectionRoomEchoMapScreen: React.FC = () => {
         setStatus('error');
       }
     }
-  }, [journey]);
+  }, [sessionId, setSnapshot]);
 
   useFocusEffect(
     useCallback(() => {
-      if (journey.snapshot) {
-        setStatus(journey.snapshot.loops.length === 0 ? 'empty' : 'active');
+      if (snapshot) {
+        setStatus(snapshot.loops.length === 0 ? 'empty' : 'active');
         return;
       }
       void fetchSnapshot();
-    }, [fetchSnapshot, journey.snapshot]),
+    }, [fetchSnapshot, snapshot]),
   );
 
   useEffect(() => {
-    if (!journey.snapshot && status === 'loading') {
+    if (!snapshot && status === 'loading') {
       void fetchSnapshot();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const layout =
-    status === 'active' && journey.snapshot
-      ? nodePositions(journey.snapshot.loops)
-      : [];
+    status === 'active' && snapshot ? nodePositions(snapshot.loops) : [];
 
   return (
     <BackgroundWrapper style={styles.bg}>
