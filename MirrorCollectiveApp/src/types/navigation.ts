@@ -1,3 +1,13 @@
+import type {
+  LoopId as RRLoopId,
+  ToneState as RRToneState,
+  PracticeSurface as RRPracticeSurface,
+} from '@features/reflection-room/types/ids';
+import type {
+  QuizAnswers as RRQuizAnswers,
+  RRApiErrorCode,
+} from '@features/reflection-room/api/types';
+
 type ArchetypeRouteParams = {
   archetype: {
     name: string;
@@ -20,13 +30,21 @@ export type RootStackParamList = {
   EchoVaultStorage: undefined;
   MirrorEcho: undefined;
   ReflectionRoom: undefined;
+  ReflectionRoomWelcome: undefined;
+  ReflectionRoomQuizEntry: undefined;
   ReflectionRoomQuiz: undefined;
-  ReflectionRoomLoading: undefined;
-  ReflectionRoomTodaysMotif: undefined;
+  ReflectionRoomLoading: { answers: RRQuizAnswers };
+  ReflectionRoomTodaysMotif: { error?: boolean; errorCode?: RRApiErrorCode } | undefined;
   ReflectionRoomEchoSignature: undefined;
   ReflectionRoomEchoMap: undefined;
   ReflectionRoomMirrorMoment: undefined;
   ReflectionRoomCore: undefined;
+  ReflectionRoomPracticeOverlay: {
+    loopId: RRLoopId;
+    toneState: RRToneState;
+    surface: RRPracticeSurface;
+  };
+  ReflectionRoomPracticeComplete: { completionId: string } | undefined;
   MirrorCodeLibrary: undefined;
   TheMirrorPledge: undefined;
   About: undefined;
@@ -120,4 +138,3 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 export type ScreenName = keyof RootStackParamList;
 
 export type LoginScreenProps = NativeStackScreenProps<RootStackParamList, 'Login'>;
-

@@ -1,8 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '@types';
 import React from 'react';
-import { palette } from '@theme';
 import {
   Dimensions,
   ScrollView,
@@ -18,13 +16,45 @@ import { SvgXml } from 'react-native-svg';
 import { MOTIF_SVG } from '@assets/motifs-icons/MotifIconAssets';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
+import {
+  displayMotifUpper,
+  LANDING,
+} from '@features/reflection-room/copy/strings';
+import { useJourney } from '@features/reflection-room/state/JourneyContext';
+import type { MotifId } from '@features/reflection-room/types/ids';
+import { glassGradient, palette, radius, spacing, theme } from '@theme';
+import type { RootStackParamList } from '@types';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('screen');
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
+const MOTIF_ROOM_COPY: Record<MotifId, string> = {
+  compass: 'Find your true north. Trust the direction you already know.',
+  mirror: 'See yourself clearly — without distortion, without judgment.',
+  blocks: 'Set steady boundaries that protect your energy and keep you grounded.',
+  spiral: 'Growth isn’t linear. Each return brings deeper understanding.',
+  radiant_burst: 'Clarity is breaking through. Let yourself see what’s emerging.',
+  feather: 'Release what’s been weighing you down. Move forward lighter.',
+  waves: 'Let emotion move. Flow, express, and breathe again.',
+  pyramid: 'Focus your energy. Precision brings calm and control.',
+  water_drop: 'Feel honestly. Emotion isn’t weakness — it’s information.',
+  brick_stack: 'Build one solid step at a time. Self-trust creates stability.',
+  sprout: 'Something new is forming. Growth has already begun.',
+};
+
+function motifSvgFor(motifId: MotifId | undefined) {
+  if (!motifId) return MOTIF_SVG.spiral;
+  return MOTIF_SVG[motifId] ?? MOTIF_SVG[motifId.replace('_', '-')] ?? MOTIF_SVG.spiral;
+}
+
 const ReflectionRoomCoreScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
+  const { motif } = useJourney();
+  const motifId = motif?.motif_id;
+  const motifName = motifId ? displayMotifUpper(motifId) : LANDING.eyebrow;
+  const motifCopy =
+    motifId != null ? MOTIF_ROOM_COPY[motifId] : LANDING.subhead;
 
   return (
     <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage}>
@@ -34,16 +64,22 @@ const ReflectionRoomCoreScreen: React.FC = () => {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          
-
+          <Text style={styles.motifName}>{motifName}</Text>
           <Text style={styles.title}>REFLECTION ROOM</Text>
-          <Text style={styles.subtitle}>See it. Choose what comes next.</Text>
+          <Text style={styles.subtitle}>{motifCopy}</Text>
 
           <TouchableOpacity
             onPress={() => navigation.navigate('ReflectionRoomEchoSignature' as never)}
             activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel="View Signature"
           >
-            <SvgXml xml={MOTIF_SVG.spiral} width={160} height={160} style={styles.motifSvg} />
+            <SvgXml
+              xml={motifSvgFor(motifId)}
+              width={160}
+              height={160}
+              style={styles.motifSvg}
+            />
           </TouchableOpacity>
 
           <Text style={styles.tapHint}>
@@ -54,9 +90,11 @@ const ReflectionRoomCoreScreen: React.FC = () => {
             <TouchableOpacity
               onPress={() => navigation.navigate('ReflectionRoomEchoMap' as never)}
               activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel="Open Echo Map"
             >
               <LinearGradient
-                colors={['rgba(253, 253, 249, 0.02)', 'rgba(253, 253, 249, 0.00)']}
+                colors={[glassGradient.echoSecondary.start, glassGradient.echoSecondary.end]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 0, y: 1 }}
                 style={styles.ctaButton}
@@ -68,9 +106,11 @@ const ReflectionRoomCoreScreen: React.FC = () => {
             <TouchableOpacity
               onPress={() => navigation.navigate('ReflectionRoomMirrorMoment' as never)}
               activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel="Mirror Moment"
             >
               <LinearGradient
-                colors={['rgba(253, 253, 249, 0.02)', 'rgba(253, 253, 249, 0.00)']}
+                colors={[glassGradient.echoSecondary.start, glassGradient.echoSecondary.end]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 0, y: 1 }}
                 style={styles.ctaButton}
@@ -82,9 +122,11 @@ const ReflectionRoomCoreScreen: React.FC = () => {
             <TouchableOpacity
               onPress={() => navigation.navigate('EnterMirror')}
               activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel="Homepage"
             >
               <LinearGradient
-                colors={['rgba(253, 253, 249, 0.02)', 'rgba(253, 253, 249, 0.00)']}
+                colors={[glassGradient.echoSecondary.start, glassGradient.echoSecondary.end]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 0, y: 1 }}
                 style={styles.ctaButton}
@@ -121,20 +163,28 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   title: {
-    fontFamily: 'CormorantGaramond-Regular',
-    fontSize: 32,
-    color: palette.gold.DEFAULT,
+    fontFamily: theme.typography.fontFamily.heading,
+    fontSize: theme.typography.sizes['4xl'],
+    color: theme.colors.text.paragraph1,
     textAlign: 'center',
     letterSpacing: 1,
     marginTop: Math.max(16, screenHeight * 0.02),
-    marginBottom: 8,
+    marginBottom: spacing.xs,
+  },
+  motifName: {
+    fontFamily: theme.typography.fontFamily.heading,
+    fontSize: theme.typography.sizes['3xl'],
+    color: theme.colors.text.paragraph1,
+    textAlign: 'center',
+    letterSpacing: 2,
+    marginBottom: spacing.xs,
   },
   subtitle: {
-    fontFamily: 'Inter',
-    fontSize: 16,
-    color: palette.gold.subtlest,
+    fontFamily: theme.typography.fontFamily.body,
+    fontSize: theme.typography.sizes.base,
+    color: theme.colors.text.paragraph2,
     textAlign: 'center',
-    lineHeight: 24,
+    lineHeight: theme.typography.lineHeights.lg,
     marginBottom: Math.max(28, screenHeight * 0.035),
   },
   motifSvg: {
@@ -144,36 +194,36 @@ const styles = StyleSheet.create({
     marginBottom: Math.max(20, screenHeight * 0.025),
   },
   tapHint: {
-    fontFamily: 'Inter-Regular',
+    fontFamily: theme.typography.fontFamily.body,
     fontStyle: 'italic',
-    fontSize: 18,
-    color: palette.gold.DEFAULT,
+    fontSize: theme.typography.sizes.lg,
+    color: theme.colors.text.paragraph1,
     textAlign: 'center',
     lineHeight: 26,
     marginBottom: Math.max(28, screenHeight * 0.035),
-    paddingHorizontal: 16,
+    paddingHorizontal: spacing.m,
   },
   buttonsContainer: {
     width: '100%',
-    gap: 12,
+    gap: spacing.s,
     alignItems: 'center',
   },
   ctaButton: {
     width: 270,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    paddingVertical: spacing.s,
+    paddingHorizontal: spacing.m,
     borderWidth: 0.5,
-    borderColor: palette.navy.light,
-    borderRadius: 12,
+    borderColor: theme.colors.border.subtle,
+    borderRadius: radius.s,
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 8,
+    gap: spacing.xs,
     alignSelf: 'stretch',
   },
   ctaText: {
-    fontFamily: 'CormorantGaramond-Regular',
-    fontSize: 24,
-    color: palette.gold.DEFAULT,
+    fontFamily: theme.typography.fontFamily.heading,
+    fontSize: theme.typography.sizes['2xl'],
+    color: theme.colors.text.paragraph1,
     letterSpacing: 2,
   },
 });

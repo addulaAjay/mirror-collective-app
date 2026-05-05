@@ -65,6 +65,9 @@
       ],
       "@i18n": [
         "src/i18n/index"
+      ],
+      "@features/*": [
+        "src/features/*"
       ]
     }
   }

@@ -20,6 +20,7 @@ export class BaseApiService {
     method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' = 'GET',
     data?: any,
     requiresAuth: boolean = false,
+    extraHeaders?: Record<string, string>,
   ): Promise<ApiResponse<T>> {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.timeout);
@@ -28,6 +29,7 @@ export class BaseApiService {
     try {
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
+        ...(extraHeaders ?? {}),
       };
 
       if (requiresAuth) {
@@ -118,19 +120,19 @@ export class BaseApiService {
     };
   }
 
-  protected async get<T = any>(endpoint: string, requiresAuth: boolean = true): Promise<ApiResponse<T>> {
-    return this.makeRequest<T>(endpoint, 'GET', undefined, requiresAuth);
+  protected async get<T = any>(endpoint: string, requiresAuth: boolean = true, extraHeaders?: Record<string, string>): Promise<ApiResponse<T>> {
+    return this.makeRequest<T>(endpoint, 'GET', undefined, requiresAuth, extraHeaders);
   }
 
-  protected async post<T = any>(endpoint: string, data?: any, requiresAuth: boolean = true): Promise<ApiResponse<T>> {
-    return this.makeRequest<T>(endpoint, 'POST', data, requiresAuth);
+  protected async post<T = any>(endpoint: string, data?: any, requiresAuth: boolean = true, extraHeaders?: Record<string, string>): Promise<ApiResponse<T>> {
+    return this.makeRequest<T>(endpoint, 'POST', data, requiresAuth, extraHeaders);
   }
 
-  protected async put<T = any>(endpoint: string, data?: any, requiresAuth: boolean = true): Promise<ApiResponse<T>> {
-    return this.makeRequest<T>(endpoint, 'PUT', data, requiresAuth);
+  protected async put<T = any>(endpoint: string, data?: any, requiresAuth: boolean = true, extraHeaders?: Record<string, string>): Promise<ApiResponse<T>> {
+    return this.makeRequest<T>(endpoint, 'PUT', data, requiresAuth, extraHeaders);
   }
 
-  protected async delete<T = any>(endpoint: string, requiresAuth: boolean = true): Promise<ApiResponse<T>> {
-    return this.makeRequest<T>(endpoint, 'DELETE', undefined, requiresAuth);
+  protected async delete<T = any>(endpoint: string, requiresAuth: boolean = true, extraHeaders?: Record<string, string>): Promise<ApiResponse<T>> {
+    return this.makeRequest<T>(endpoint, 'DELETE', undefined, requiresAuth, extraHeaders);
   }
 }
