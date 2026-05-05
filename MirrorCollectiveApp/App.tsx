@@ -53,14 +53,19 @@ import ProfileScreen from '@screens/ProfileScreen';
 import QuizQuestionsScreen from '@screens/QuizQuestionsScreen';
 import QuizTuningScreen from '@screens/QuizTuningScreen';
 import QuizWelcomeScreen from '@screens/QuizWelcomeScreen';
-import ReflectionRoomCoreScreen from '@screens/reflectionRoom/ReflectionRoomCoreScreen';
 import ReflectionRoomEchoMapScreen from '@screens/reflectionRoom/ReflectionRoomEchoMapScreen';
 import ReflectionRoomEchoSignatureScreen from '@screens/reflectionRoom/ReflectionRoomEchoSignatureScreen';
 import ReflectionRoomLandingScreen from '@screens/reflectionRoom/ReflectionRoomLandingScreen';
 import ReflectionRoomLoadingScreen from '@screens/reflectionRoom/ReflectionRoomLoadingScreen';
 import ReflectionRoomMirrorMomentScreen from '@screens/reflectionRoom/ReflectionRoomMirrorMomentScreen';
+import ReflectionRoomPracticeCompleteScreen from '@screens/reflectionRoom/ReflectionRoomPracticeCompleteScreen';
+import ReflectionRoomPracticeOverlayScreen from '@screens/reflectionRoom/ReflectionRoomPracticeOverlayScreen';
+import ReflectionRoomQuizEntryScreen from '@screens/reflectionRoom/ReflectionRoomQuizEntryScreen';
 import ReflectionRoomQuizScreen from '@screens/reflectionRoom/ReflectionRoomQuizScreen';
 import ReflectionRoomTodaysMotifScreen from '@screens/reflectionRoom/ReflectionRoomTodaysMotifScreen';
+import ReflectionRoomWelcomeScreen from '@screens/reflectionRoom/ReflectionRoomWelcomeScreen';
+
+import { JourneyProvider } from '@features/reflection-room/state/JourneyContext';
 import ResetPasswordScreen from '@screens/ResetPasswordScreen';
 import SignUpScreen from '@screens/SignUpScreen';
 import SplashScreen from '@screens/SplashScreen';
@@ -149,13 +154,16 @@ const AuthNavigator = () => (
       component={MirrorCodeLibraryCommingsoonScreen}
     />
     <Stack.Screen name="ReflectionRoom" component={ReflectionRoomLandingScreen} />
+    <Stack.Screen name="ReflectionRoomWelcome" component={ReflectionRoomWelcomeScreen} />
+    <Stack.Screen name="ReflectionRoomQuizEntry" component={ReflectionRoomQuizEntryScreen} />
     <Stack.Screen name="ReflectionRoomQuiz" component={ReflectionRoomQuizScreen} />
     <Stack.Screen name="ReflectionRoomLoading" component={ReflectionRoomLoadingScreen} />
     <Stack.Screen name="ReflectionRoomTodaysMotif" component={ReflectionRoomTodaysMotifScreen} />
     <Stack.Screen name="ReflectionRoomEchoSignature" component={ReflectionRoomEchoSignatureScreen} />
     <Stack.Screen name="ReflectionRoomEchoMap" component={ReflectionRoomEchoMapScreen} />
     <Stack.Screen name="ReflectionRoomMirrorMoment" component={ReflectionRoomMirrorMomentScreen} />
-    <Stack.Screen name="ReflectionRoomCore" component={ReflectionRoomCoreScreen} />
+    <Stack.Screen name="ReflectionRoomPracticeOverlay" component={ReflectionRoomPracticeOverlayScreen} />
+    <Stack.Screen name="ReflectionRoomPracticeComplete" component={ReflectionRoomPracticeCompleteScreen} />
     <Stack.Screen name="MirrorEcho" component={MirrorEchoCommingsoonScreen} />
     <Stack.Screen
       name="TermsAndConditions"
@@ -210,13 +218,16 @@ const AuthenticatedNavigator = ({ initialRouteName = 'EnterMirror' }: Authentica
     {/* Menu Screens */}
     <Stack.Screen name="MirrorCodeLibrary" component={MirrorCodeLibraryCommingsoonScreen} />
     <Stack.Screen name="ReflectionRoom" component={ReflectionRoomLandingScreen} />
+    <Stack.Screen name="ReflectionRoomWelcome" component={ReflectionRoomWelcomeScreen} />
+    <Stack.Screen name="ReflectionRoomQuizEntry" component={ReflectionRoomQuizEntryScreen} />
     <Stack.Screen name="ReflectionRoomQuiz" component={ReflectionRoomQuizScreen} />
     <Stack.Screen name="ReflectionRoomLoading" component={ReflectionRoomLoadingScreen} />
     <Stack.Screen name="ReflectionRoomTodaysMotif" component={ReflectionRoomTodaysMotifScreen} />
     <Stack.Screen name="ReflectionRoomEchoSignature" component={ReflectionRoomEchoSignatureScreen} />
     <Stack.Screen name="ReflectionRoomEchoMap" component={ReflectionRoomEchoMapScreen} />
     <Stack.Screen name="ReflectionRoomMirrorMoment" component={ReflectionRoomMirrorMomentScreen} />
-    <Stack.Screen name="ReflectionRoomCore" component={ReflectionRoomCoreScreen} />
+    <Stack.Screen name="ReflectionRoomPracticeOverlay" component={ReflectionRoomPracticeOverlayScreen} />
+    <Stack.Screen name="ReflectionRoomPracticeComplete" component={ReflectionRoomPracticeCompleteScreen} />
     <Stack.Screen name="TheMirrorPledge" component={TheMirrorPledgeCommingsoonScreen} />
     {/* Mirror Pledge flow — Figma Design-Master-File section 2169:1119 */}
     <Stack.Screen name="MirrorPledgeIntro" component={MirrorPledgeIntroScreen} />
@@ -346,14 +357,16 @@ const App = () => {
         <SessionProvider>
           <UserProvider>
             <SubscriptionProvider>
-              <React.Fragment>
-                <StatusBar
-                  translucent
-                  backgroundColor="transparent"
-                  barStyle="light-content"
-                />
-                <AppNavigator />
-              </React.Fragment>
+              <JourneyProvider>
+                <React.Fragment>
+                  <StatusBar
+                    translucent
+                    backgroundColor="transparent"
+                    barStyle="light-content"
+                  />
+                  <AppNavigator />
+                </React.Fragment>
+              </JourneyProvider>
             </SubscriptionProvider>
           </UserProvider>
         </SessionProvider>
