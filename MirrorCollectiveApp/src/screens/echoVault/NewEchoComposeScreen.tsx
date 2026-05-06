@@ -615,106 +615,110 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
           )}
           {mode === 'video' && (
             <>
-              <LinearGradient
-                colors={['rgba(253,253,249,0.08)', 'rgba(253,253,249,0.03)']}
-                start={{ x: 0.5, y: 0 }}
-                end={{ x: 0.5, y: 1 }}
-                style={styles.bigBoxShell}
-              >
-                <View style={[styles.bigBoxInnerBorder, styles.videoBigBox]}>
-                  {mediaUri && mediaFile ? (
-                    <>
-                      <Video
-                        source={{ uri: mediaUri }}
+              {/* Wrapper gives us a stacking context; record button sits outside
+                  the Camera view so native touch handling can't block it */}
+              <View style={styles.videoWrapper}>
+                <LinearGradient
+                  colors={['rgba(253,253,249,0.08)', 'rgba(253,253,249,0.03)']}
+                  start={{ x: 0.5, y: 0 }}
+                  end={{ x: 0.5, y: 1 }}
+                  style={styles.bigBoxShell}
+                >
+                  <View style={[styles.bigBoxInnerBorder, styles.videoBigBox]}>
+                    {mediaUri && mediaFile ? (
+                      <>
+                        <Video
+                          source={{ uri: mediaUri }}
+                          style={StyleSheet.absoluteFill}
+                          resizeMode="contain"
+                          paused={videoPaused}
+                          controls={false}
+                          repeat={false}
+                          onEnd={() => setVideoPaused(true)}
+                        />
+                        {/* Top scrim: filename + remove */}
+                        <LinearGradient
+                          colors={['rgba(0,0,0,0.65)', 'transparent']}
+                          style={styles.videoTopScrim}
+                        >
+                          <Text style={styles.videoPickedName} numberOfLines={1}>
+                            {mediaFile.name}
+                          </Text>
+                          <TouchableOpacity
+                            style={styles.videoRemoveBtn}
+                            onPress={() => {
+                              setVideoPaused(true);
+                              setMediaUri(null);
+                              setMediaFile(null);
+                            }}
+                          >
+                            <Text style={styles.videoRemoveBtnText}>&#x2715;</Text>
+                          </TouchableOpacity>
+                        </LinearGradient>
+                        {/* Center tap to play/pause */}
+                        <TouchableOpacity
+                          style={styles.videoCenterPlayBtn}
+                          activeOpacity={0.8}
+                          onPress={() => setVideoPaused(p => !p)}
+                        >
+                          {videoPaused && (
+                            <Image
+                              source={require('@assets/play_circle.png')}
+                              style={styles.videoPlayIconImg}
+                              resizeMode="contain"
+                            />
+                          )}
+                        </TouchableOpacity>
+                      </>
+                    ) : device && hasCamPermission ? (
+                      <Camera
+                        ref={camera}
                         style={StyleSheet.absoluteFill}
-                        resizeMode="contain"
-                        paused={videoPaused}
-                        controls={false}
-                        repeat={false}
-                        onEnd={() => setVideoPaused(true)}
+                        device={device}
+                        isActive={true}
+                        video={true}
+                        audio={hasMicPermission}
                       />
-                      {/* Top scrim: filename + remove */}
-                      <LinearGradient
-                        colors={['rgba(0,0,0,0.65)', 'transparent']}
-                        style={styles.videoTopScrim}
-                      >
-                        <Text style={styles.videoPickedName} numberOfLines={1}>
-                          {mediaFile.name}
+                    ) : (
+                      <View style={styles.videoPreviewPlaceholder}>
+                        <Text style={styles.previewHint}>
+                          {!hasCamPermission ? 'Camera Permission Required' : 'No Camera Device'}
                         </Text>
-                        <TouchableOpacity
-                          style={styles.videoRemoveBtn}
-                          onPress={() => {
-                            setVideoPaused(true);
-                            setMediaUri(null);
-                            setMediaFile(null);
-                          }}
-                        >
-                          <Text style={styles.videoRemoveBtnText}>&#x2715;</Text>
-                        </TouchableOpacity>
-                      </LinearGradient>
-                      {/* Center tap to play/pause */}
-                      <TouchableOpacity
-                        style={styles.videoCenterPlayBtn}
-                        activeOpacity={0.8}
-                        onPress={() => setVideoPaused(p => !p)}
-                      >
-                        {videoPaused && (
-                          <Image
-                            source={require('@assets/play_circle.png')}
-                            style={styles.videoPlayIconImg}
-                            resizeMode="contain"
-                          />
+                        {!hasCamPermission && (
+                          <TouchableOpacity
+                            onPress={async () => {
+                              const granted = await requestCamPermission();
+                              if (!granted) Linking.openSettings();
+                            }}
+                            style={styles.grantPermissionBtn}
+                          >
+                            <Text style={styles.removeMediaText}>Grant Permission</Text>
+                          </TouchableOpacity>
                         )}
-                      </TouchableOpacity>
-                    </>
-                  ) : device && hasCamPermission ? (
-                    <Camera
-                      ref={camera}
-                      style={StyleSheet.absoluteFill}
-                      device={device}
-                      isActive={true}
-                      video={true}
-                      audio={hasMicPermission}
-                      pointerEvents="none"
-                    />
-                  ) : (
-                    <View style={styles.videoPreviewPlaceholder}>
-                      <Text style={styles.previewHint}>
-                        {!hasCamPermission ? 'Camera Permission Required' : 'No Camera Device'}
-                      </Text>
-                      {!hasCamPermission && (
-                        <TouchableOpacity
-                          onPress={async () => {
-                            const granted = await requestCamPermission();
-                            if (!granted) Linking.openSettings();
-                          }}
-                          style={styles.grantPermissionBtn}
-                        >
-                          <Text style={styles.removeMediaText}>Grant Permission</Text>
-                        </TouchableOpacity>
-                      )}
-                    </View>
-                  )}
+                      </View>
+                    )}
+                  </View>
+                </LinearGradient>
 
-                  {/* Record button — hidden when media is picked */}
-                  {!mediaUri && (
-                    <TouchableOpacity
-                      style={styles.videoOverlayBtn}
-                      activeOpacity={0.8}
-                      onPress={toggleVideoRecording}
-                    >
-                      <CircleIcon
-                        icon={
-                          isRecording
-                            ? require('@assets/pause_circle.png')
-                            : require('@assets/videocam_2.png')
-                        }
-                        fullSize={isRecording}
-                      />
-                    </TouchableOpacity>
-                  )}
-                </View>
-              </LinearGradient>
+                {/* Record button outside Camera container — Camera native view
+                    intercepts touches from its children; sibling placement fixes this */}
+                {!mediaUri && (
+                  <TouchableOpacity
+                    style={styles.videoOverlayBtn}
+                    activeOpacity={0.8}
+                    onPress={toggleVideoRecording}
+                  >
+                    <CircleIcon
+                      icon={
+                        isRecording
+                          ? require('@assets/pause_circle.png')
+                          : require('@assets/videocam_2.png')
+                      }
+                      fullSize={isRecording}
+                    />
+                  </TouchableOpacity>
+                )}
+              </View>
 
               <View style={styles.bottomButtonsRow}>
                 <Button variant="primary" size="L" title="UPLOAD" onPress={onUpload} />
@@ -957,9 +961,16 @@ const styles = StyleSheet.create({
   videoBigBox: {
     overflow: 'hidden',
   },
+  // Stacking context wrapper — record button is a sibling of the Camera view,
+  // not a child, so Camera's native touch handling cannot block it
+  videoWrapper: {
+    flex: 1,
+    width: '100%',
+    position: 'relative',
+  },
   videoOverlayBtn: {
     position: 'absolute',
-    bottom: 20,
+    bottom: verticalScale(spacing.m),
     left: 0,
     right: 0,
     alignItems: 'center',
