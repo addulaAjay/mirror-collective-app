@@ -33,7 +33,6 @@ import { Camera, useCameraDevice, useCameraPermission, useMicrophonePermission }
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import Button from '@components/Button';
 import LogoHeader from '@components/LogoHeader';
-import StarIcon from '@components/StarIcon';
 import { echoApiService } from '@services/api';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'NewEchoComposeScreen'>;
@@ -530,8 +529,8 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
               </View>
 
               <View style={styles.bottomButtonsRow}>
-                <Button variant="secondary" size="L" title="UPLOAD" onPress={onUpload} style={styles.halfBtn} />
-                <Button variant="secondary" size="L" title={isSaving ? 'SAVING...' : 'SAVE'} onPress={onSave} disabled={isSaving} style={styles.halfBtn} />
+                <Button variant="secondary" size="L" title="UPLOAD" onPress={onUpload} />
+                <Button variant="secondary" size="L" title={isSaving ? 'SAVING...' : 'SAVE'} onPress={onSave} disabled={isSaving} />
               </View>
             </>
           )}
@@ -609,8 +608,8 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
               )}
 
               <View style={styles.bottomButtonsRow}>
-                <Button variant="secondary" size="L" title="UPLOAD" onPress={onUpload} style={styles.halfBtn} />
-                <Button variant="secondary" size="L" title={isSaving ? 'SAVING...' : 'SAVE'} onPress={onSave} disabled={isSaving} style={styles.halfBtn} />
+                <Button variant="secondary" size="L" title="UPLOAD" onPress={onUpload} />
+                <Button variant="secondary" size="L" title={isSaving ? 'SAVING...' : 'SAVE'} onPress={onSave} disabled={isSaving} />
               </View>
             </>
           )}
@@ -717,8 +716,8 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
               </LinearGradient>
 
               <View style={styles.bottomButtonsRow}>
-                <Button variant="secondary" size="L" title="UPLOAD" onPress={onUpload} style={styles.halfBtn} />
-                <Button variant="secondary" size="L" title={isSaving ? 'SAVING...' : 'SAVE'} onPress={onSave} disabled={isSaving} style={styles.halfBtn} />
+                <Button variant="secondary" size="L" title="UPLOAD" onPress={onUpload} />
+                <Button variant="secondary" size="L" title={isSaving ? 'SAVING...' : 'SAVE'} onPress={onSave} disabled={isSaving} />
               </View>
             </>
           )}
@@ -974,11 +973,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginTop: verticalScale(spacing.m),
     marginBottom: verticalScale(spacing.m),
-    alignSelf: 'stretch',
+    alignItems: 'center',
+    justifyContent: 'center',
     gap: scale(spacing.m),
-  },
-  halfBtn: {
-    flex: 1,
   },
   disabled: {
     opacity: 0.5,
