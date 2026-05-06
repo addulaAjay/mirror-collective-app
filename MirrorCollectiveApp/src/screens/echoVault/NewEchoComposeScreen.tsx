@@ -43,9 +43,9 @@ const SURFACE_BORDER = 'rgba(253, 253, 249, 0.18)';
 
 const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
   const mode = route.params?.mode ?? 'text';
-  const { recipientName, title, category, recipientId, guardianId, lockDate, unlockOnDeath } = route.params || {};
+  const { recipientName, title, category, recipientId, guardianId, lockDate, unlockOnDeath, editEchoId, initialContent } = route.params || {};
 
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState(initialContent ?? '');
   const [showUploadSheet, setShowUploadSheet] = useState(false);
   
   // Media State
@@ -281,64 +281,73 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
 
   const onSave = async () => {
     if (mode === 'text' && !message.trim()) {
-       Alert.alert('Empty Echo', 'Please write something.');
-       return;
+      Alert.alert('Empty Echo', 'Please write something.');
+      return;
     }
-    if ((mode === 'audio' || mode === 'video') && !mediaUri) {
-       Alert.alert('No Recording', 'Please record a message first.');
-       return;
+    if ((mode === 'audio' || mode === 'video') && !mediaUri && !editEchoId) {
+      Alert.alert('No Recording', 'Please record a message first.');
+      return;
     }
 
     setIsSaving(true);
-    let echoId: string | null = null;
     try {
-       // 1. Create Echo Metadata
-       const createResponse = await echoApiService.createEcho({
-         title: title || 'Untitled Echo',
-         category: category || 'General',
-         echo_type: mode === 'text' ? 'TEXT' : mode === 'audio' ? 'AUDIO' : 'VIDEO',
-         recipient_id: recipientId,
-         ...(guardianId && { guardian_id: guardianId }),
-         ...(lockDate && { release_date: lockDate }),
-         ...(unlockOnDeath !== undefined && { unlock_on_death: unlockOnDeath }),
-         content: mode === 'text' ? message : undefined,
-       });
-
-       if (!createResponse.success || !createResponse.data) {
-         throw new Error('Failed to create echo. Please check your connection and try again.');
-       }
-       echoId = createResponse.data.echo_id;
-
-        // 2. Upload Media if applicable
-        if (mode !== 'text' && mediaUri && echoId) {
+      // ── Edit mode: PATCH existing echo ───────────────────────────────────
+      if (editEchoId) {
+        const updateData: Record<string, any> = {};
+        if (mode === 'text') updateData.content = message;
+        if (mediaUri && mode !== 'text') {
           const contentType = mediaFile?.type || (mode === 'audio' ? 'audio/mp4' : 'video/mp4');
-          
-          const uploadUrlResponse = await echoApiService.getUploadUrl(contentType, echoId);
+          const uploadUrlResponse = await echoApiService.getUploadUrl(contentType, editEchoId);
           if (!uploadUrlResponse.success || !uploadUrlResponse.data) {
             throw new Error('Could not get upload URL. Please try again.');
           }
-
-          await echoApiService.uploadMedia(
-            uploadUrlResponse.data.upload_url,
-            mediaUri,
-            contentType
-          );
-
-          await echoApiService.updateEcho(echoId, {
-            media_url: uploadUrlResponse.data.media_url,
-          });
+          await echoApiService.uploadMedia(uploadUrlResponse.data.upload_url, mediaUri, contentType);
+          updateData.media_url = uploadUrlResponse.data.media_url;
         }
+        const updateResponse = await echoApiService.updateEcho(editEchoId, updateData);
+        if (!updateResponse.success) throw new Error('Failed to update echo.');
+        Alert.alert('Success', 'Echo updated!', [
+          { text: 'OK', onPress: () => navigation.goBack() },
+        ]);
+        return;
+      }
 
-       Alert.alert('Success', 'Echo saved to vault!', [
-         { text: 'OK', onPress: () => navigation.navigate('MirrorEchoVaultLibrary' as any) }
-       ]);
+      // ── Create mode: POST new echo ────────────────────────────────────────
+      const createResponse = await echoApiService.createEcho({
+        title: title || 'Untitled Echo',
+        category: category || 'General',
+        echo_type: mode === 'text' ? 'TEXT' : mode === 'audio' ? 'AUDIO' : 'VIDEO',
+        recipient_id: recipientId,
+        ...(guardianId && { guardian_id: guardianId }),
+        ...(lockDate && { release_date: lockDate }),
+        ...(unlockOnDeath !== undefined && { unlock_on_death: unlockOnDeath }),
+        content: mode === 'text' ? message : undefined,
+      });
+
+      if (!createResponse.success || !createResponse.data) {
+        throw new Error('Failed to create echo. Please check your connection and try again.');
+      }
+      const newEchoId = createResponse.data.echo_id;
+
+      if (mode !== 'text' && mediaUri && newEchoId) {
+        const contentType = mediaFile?.type || (mode === 'audio' ? 'audio/mp4' : 'video/mp4');
+        const uploadUrlResponse = await echoApiService.getUploadUrl(contentType, newEchoId);
+        if (!uploadUrlResponse.success || !uploadUrlResponse.data) {
+          throw new Error('Could not get upload URL. Please try again.');
+        }
+        await echoApiService.uploadMedia(uploadUrlResponse.data.upload_url, mediaUri, contentType);
+        await echoApiService.updateEcho(newEchoId, { media_url: uploadUrlResponse.data.media_url });
+      }
+
+      Alert.alert('Success', 'Echo saved to vault!', [
+        { text: 'OK', onPress: () => navigation.navigate('MirrorEchoVaultLibrary' as any) },
+      ]);
 
     } catch (error: any) {
-       console.error('Save failed:', error);
-       const errMsg = error?.message || 'Failed to save echo. Please try again.';
-       Alert.alert('Error', errMsg);
+      console.error('Save failed:', error);
+      Alert.alert('Error', error?.message || 'Failed to save echo. Please try again.');
     } finally {
-       setIsSaving(false);
+      setIsSaving(false);
     }
   };
 

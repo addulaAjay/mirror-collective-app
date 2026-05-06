@@ -15,6 +15,7 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
+  Share,
 } from 'react-native';
 import AudioRecorderPlayer from 'react-native-audio-recorder-player';
 import LinearGradient from 'react-native-linear-gradient';
@@ -40,6 +41,8 @@ const EchoAudioPlaybackScreen: React.FC<Props> = ({ navigation, route }) => {
   const [echo, setEcho] = useState<EchoResponse | null>(null);
   const [loading, setLoading] = useState(true);
   
+  const isRecipient = !!echo?.sender;
+  const [vaulting, setVaulting] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
   const [currentPosition, setCurrentPosition] = useState(0);
@@ -58,6 +61,49 @@ const EchoAudioPlaybackScreen: React.FC<Props> = ({ navigation, route }) => {
       stopPlayback();
     };
   }, [echoId]);
+
+  const handleDownload = async () => {
+    if (!echo) return;
+    try {
+      const content = echo.media_url
+        ? { url: echo.media_url, message: echo.title }
+        : { message: echo.content || echo.title };
+      await Share.share(content);
+    } catch { /* dismissed */ }
+  };
+
+  const handleVault = async () => {
+    if (!echo || vaulting) return;
+    setVaulting(true);
+    try {
+      const res = await echoApiService.createEcho({
+        title: echo.title,
+        category: echo.category,
+        echo_type: echo.echo_type,
+      });
+      if (!res.success || !res.data) throw new Error('Failed to save to vault.');
+      if (echo.media_url) {
+        await echoApiService.updateEcho(res.data.echo_id, { media_url: echo.media_url });
+      }
+      Alert.alert('Saved', 'Echo added to your vault.');
+    } catch (e: any) {
+      Alert.alert('Error', e.message || 'Failed to add to vault.');
+    } finally {
+      setVaulting(false);
+    }
+  };
+
+  const handleEdit = () => {
+    if (!echo) return;
+    navigation.navigate('NewEchoComposeScreen', {
+      mode: 'audio',
+      title: echo.title,
+      category: echo.category,
+      editEchoId: echo.echo_id,
+      recipientId: echo.recipient?.recipient_id,
+      recipientName: echo.recipient?.name,
+    });
+  };
 
   const fetchEchoDetails = async () => {
     try {
@@ -213,9 +259,11 @@ const EchoAudioPlaybackScreen: React.FC<Props> = ({ navigation, route }) => {
 
         {/* Bottom actions */}
         <View style={[styles.actionsRow, { width: contentWidth }]}>
-          <ActionIconButton icon={require('@assets/download.png')} onPress={() => {}} />
-          <ActionPrimaryButton label="VAULT" onPress={() => {}} />
-          <ActionIconButton icon={require('@assets/edit-icon.png')} onPress={() => {}} />
+          <ActionIconButton icon={require('@assets/download.png')} onPress={handleDownload} />
+          <ActionPrimaryButton label={vaulting ? 'SAVING...' : 'VAULT'} onPress={handleVault} />
+          {!isRecipient && (
+            <ActionIconButton icon={require('@assets/edit-icon.png')} onPress={handleEdit} />
+          )}
         </View>
       </SafeAreaView>
     </BackgroundWrapper>

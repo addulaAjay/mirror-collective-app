@@ -17,6 +17,7 @@ import {
   Pressable,
   ActivityIndicator,
   Alert,
+  Share,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -43,6 +44,10 @@ const EchoDetailScreen: React.FC<Props> = ({ navigation, route }) => {
   const [loading, setLoading] = useState(true);
 
   const [folderModalOpen, setFolderModalOpen] = useState(false);
+  const [vaulting, setVaulting] = useState(false);
+
+  // Recipient if the echo has a sender field (they sent it to us)
+  const isRecipient = !!echo?.sender;
 
   const contentWidth = useMemo(() => Math.min(W * 0.88, 360), []);
   const textBoxHeight = useMemo(() => Math.min(H * 0.65, 515), []);
@@ -50,6 +55,45 @@ const EchoDetailScreen: React.FC<Props> = ({ navigation, route }) => {
   useEffect(() => {
     fetchEchoDetails();
   }, [echoId]);
+
+  const handleDownload = async () => {
+    if (!echo) return;
+    try {
+      await Share.share({ message: echo.content || echo.title });
+    } catch { /* user dismissed */ }
+  };
+
+  const handleVault = async () => {
+    if (!echo || vaulting) return;
+    setVaulting(true);
+    try {
+      const res = await echoApiService.createEcho({
+        title: echo.title,
+        category: echo.category,
+        echo_type: echo.echo_type,
+        content: echo.content,
+      });
+      if (!res.success) throw new Error('Failed to save to vault.');
+      Alert.alert('Saved', 'Echo added to your vault.');
+    } catch (e: any) {
+      Alert.alert('Error', e.message || 'Failed to add to vault.');
+    } finally {
+      setVaulting(false);
+    }
+  };
+
+  const handleEdit = () => {
+    if (!echo) return;
+    navigation.navigate('NewEchoComposeScreen', {
+      mode: echo.echo_type.toLowerCase() as 'text' | 'audio' | 'video',
+      title: echo.title,
+      category: echo.category,
+      editEchoId: echo.echo_id,
+      initialContent: echo.content,
+      recipientId: echo.recipient?.recipient_id,
+      recipientName: echo.recipient?.name,
+    });
+  };
 
   const fetchEchoDetails = async () => {
     try {
@@ -134,12 +178,14 @@ const EchoDetailScreen: React.FC<Props> = ({ navigation, route }) => {
 
         {/* Bottom actions */}
         <View style={[styles.actionsRow, { width: contentWidth }]}>
-          <ActionIconButton icon={require('@assets/download.png')} onPress={() => {}} />
+          <ActionIconButton icon={require('@assets/download.png')} onPress={handleDownload} />
           <ActionPrimaryButton
-            label="VAULT"
-            onPress={() => setFolderModalOpen(true)}
+            label={vaulting ? 'SAVING...' : 'VAULT'}
+            onPress={handleVault}
           />
-          <ActionIconButton icon={require('@assets/edit-icon.png')} onPress={() => {}} />
+          {!isRecipient && (
+            <ActionIconButton icon={require('@assets/edit-icon.png')} onPress={handleEdit} />
+          )}
         </View>
 
         {/* Folder modal sheet */}

@@ -97,6 +97,9 @@ export type RootStackParamList = {
     guardianName?: string;
     lockDate?: string;
     unlockOnDeath?: boolean;
+    /** Edit mode: pre-fill compose with existing echo and PATCH on save */
+    editEchoId?: string;
+    initialContent?: string;
   };
   NewEchoAudioScreen: {
     recipientId?: string;

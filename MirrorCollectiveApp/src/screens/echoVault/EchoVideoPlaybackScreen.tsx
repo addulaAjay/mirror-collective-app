@@ -13,6 +13,7 @@ import {
   Platform,
   Alert,
   ActivityIndicator,
+  Share,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -36,6 +37,8 @@ const EchoVideoPlaybackScreen: React.FC<Props> = ({ navigation, route }) => {
   const { echoId, title } = route.params; // Expect echoId passed in params
   const [echo, setEcho] = useState<EchoResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const isRecipient = !!echo?.sender;
+  const [vaulting, setVaulting] = useState(false);
   const [paused, setPaused] = useState(false);
   const [buffering, setBuffering] = useState(false);
   const videoRef = useRef<VideoRef>(null);
@@ -64,6 +67,46 @@ const EchoVideoPlaybackScreen: React.FC<Props> = ({ navigation, route }) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDownload = async () => {
+    if (!echo) return;
+    try {
+      await Share.share({ url: echo.media_url ?? '', message: echo.title });
+    } catch { /* dismissed */ }
+  };
+
+  const handleVault = async () => {
+    if (!echo || vaulting) return;
+    setVaulting(true);
+    try {
+      const res = await echoApiService.createEcho({
+        title: echo.title,
+        category: echo.category,
+        echo_type: 'VIDEO',
+      });
+      if (!res.success || !res.data) throw new Error('Failed to save to vault.');
+      if (echo.media_url) {
+        await echoApiService.updateEcho(res.data.echo_id, { media_url: echo.media_url });
+      }
+      Alert.alert('Saved', 'Echo added to your vault.');
+    } catch (e: any) {
+      Alert.alert('Error', e.message || 'Failed to add to vault.');
+    } finally {
+      setVaulting(false);
+    }
+  };
+
+  const handleEdit = () => {
+    if (!echo) return;
+    navigation.navigate('NewEchoComposeScreen', {
+      mode: 'video',
+      title: echo.title,
+      category: echo.category,
+      editEchoId: echo.echo_id,
+      recipientId: echo.recipient?.recipient_id,
+      recipientName: echo.recipient?.name,
+    });
   };
 
   const onBuffer = ({ isBuffering }: { isBuffering: boolean }) => {
@@ -167,9 +210,11 @@ const EchoVideoPlaybackScreen: React.FC<Props> = ({ navigation, route }) => {
 
         {/* Bottom actions */}
         <View style={[styles.actionsRow, { width: contentWidth }]}>
-          <ActionIconButton icon={require('@assets/download.png')} />
-          <ActionPrimaryButton label="VAULT" />
-          <ActionIconButton icon={require('@assets/edit-icon.png')} />
+          <ActionIconButton icon={require('@assets/download.png')} onPress={handleDownload} />
+          <ActionPrimaryButton label={vaulting ? 'SAVING...' : 'VAULT'} onPress={handleVault} />
+          {!isRecipient && (
+            <ActionIconButton icon={require('@assets/edit-icon.png')} onPress={handleEdit} />
+          )}
         </View>
       </SafeAreaView>
     </BackgroundWrapper>
@@ -180,8 +225,8 @@ export default EchoVideoPlaybackScreen;
 
 /* ---------- Action Buttons ---------- */
 
-const ActionIconButton = ({ icon }: { icon: ReturnType<typeof require> }) => (
-  <TouchableOpacity activeOpacity={0.9}>
+const ActionIconButton = ({ icon, onPress }: { icon: ReturnType<typeof require>; onPress: () => void }) => (
+  <TouchableOpacity activeOpacity={0.9} onPress={onPress}>
     <LinearGradient
       colors={['rgba(253,253,249,0.04)', 'rgba(253,253,249,0.01)']}
       start={{ x: 0.5, y: 0 }}
@@ -193,8 +238,8 @@ const ActionIconButton = ({ icon }: { icon: ReturnType<typeof require> }) => (
   </TouchableOpacity>
 );
 
-const ActionPrimaryButton = ({ label }: { label: string }) => (
-  <TouchableOpacity activeOpacity={0.9}>
+const ActionPrimaryButton = ({ label, onPress }: { label: string; onPress: () => void }) => (
+  <TouchableOpacity activeOpacity={0.9} onPress={onPress}>
     <LinearGradient
       colors={['rgba(253,253,249,0.04)', 'rgba(253,253,249,0.01)']}
       start={{ x: 0.5, y: 0 }}
