@@ -941,7 +941,7 @@ const styles = StyleSheet.create({
   bigBoxShell: {
     width: '100%',
     height: Math.min(520, Math.max(420, W * 1.3)) + scale(spacing.xs) * 2,
-    borderRadius: radius.xxs,
+    borderRadius: radius.xs,
     borderWidth: 0.2,
     borderColor: '#bfc7d9',
     backgroundColor: 'rgba(197,158,95,0.05)',
@@ -955,7 +955,7 @@ const styles = StyleSheet.create({
   // Figma 211:1272 — inner camera viewport; flex:1 fills bigBoxShell minus padding
   bigBoxInnerBorder: {
     flex: 1,
-    borderRadius: radius.xxs,
+    borderRadius: radius.xs,
     borderWidth: borderWidth.thin,
     borderColor: palette.navy.DEFAULT,
     backgroundColor: 'rgba(163,179,204,0.05)',
