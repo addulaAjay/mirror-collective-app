@@ -529,7 +529,7 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
               </View>
 
               <View style={styles.bottomButtonsRow}>
-                <Button variant="secondary" size="L" title="UPLOAD" onPress={onUpload} />
+                <Button variant="primary" size="L" title="UPLOAD" onPress={onUpload} />
                 <Button variant="secondary" size="L" title={isSaving ? 'SAVING...' : 'SAVE'} onPress={onSave} disabled={isSaving} />
               </View>
             </>
@@ -608,7 +608,7 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
               )}
 
               <View style={styles.bottomButtonsRow}>
-                <Button variant="secondary" size="L" title="UPLOAD" onPress={onUpload} />
+                <Button variant="primary" size="L" title="UPLOAD" onPress={onUpload} />
                 <Button variant="secondary" size="L" title={isSaving ? 'SAVING...' : 'SAVE'} onPress={onSave} disabled={isSaving} />
               </View>
             </>
@@ -716,7 +716,7 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
               </LinearGradient>
 
               <View style={styles.bottomButtonsRow}>
-                <Button variant="secondary" size="L" title="UPLOAD" onPress={onUpload} />
+                <Button variant="primary" size="L" title="UPLOAD" onPress={onUpload} />
                 <Button variant="secondary" size="L" title={isSaving ? 'SAVING...' : 'SAVE'} onPress={onSave} disabled={isSaving} />
               </View>
             </>
