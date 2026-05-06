@@ -775,17 +775,26 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
 
 /** ---------- Small UI bits (pure RN, no extra deps) ---------- */
 
+// Figma 220:2073 — two states:
+// idle  (fullSize=false): 80px dark circle + glow, 40px icon inside
+// active (fullSize=true):  flat pause_circle / play_circle icon at 80px, no container
 const CircleIcon = ({ label, icon, fullSize }: { label?: string; icon?: any; fullSize?: boolean }) => {
+  if (fullSize) {
+    return (
+      <Image
+        source={icon}
+        style={{ width: scale(80), height: scale(80), tintColor: palette.gold.DEFAULT }}
+        resizeMode="contain"
+      />
+    );
+  }
   return (
     <View style={styles.circleGlow}>
-      <View style={[styles.circleOuter, fullSize && { overflow: 'hidden', padding: 0 }]}>
+      <View style={styles.circleOuter}>
         {icon ? (
           <Image
             source={icon}
-            style={fullSize
-              ? { width: scale(80), height: scale(80), borderRadius: scale(40) }
-              : { width: scale(40), height: scale(40), tintColor: palette.gold.DEFAULT }
-            }
+            style={{ width: scale(40), height: scale(40), tintColor: palette.gold.DEFAULT }}
             resizeMode="contain"
           />
         ) : (
@@ -1027,22 +1036,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  // Figma 211:1391 — 88px circle (40px icon + 24px padding each side)
-  // glow: 0px 0px 24px 0px rgba(242,226,177,0.5), border 0.2px navy.light
+  // Figma 220:2073 — idle mic/video button: 80px circle, bg 0.05, glow 15px/0.3
   circleOuter: {
-    width: scale(88),
-    height: scale(88),
+    width: scale(80),
+    height: scale(80),
     borderRadius: radius.full,
     borderWidth: 0.2,
     borderColor: palette.navy.light,
-    backgroundColor: 'rgba(253,253,249,0.01)',
+    backgroundColor: 'rgba(253,253,249,0.05)',
     alignItems: 'center',
     justifyContent: 'center',
-    boxShadow: '0px 0px 24px 0px rgba(242,226,177,0.5)',
+    boxShadow: '0px 0px 15px 0px rgba(242,226,177,0.3)',
     shadowColor: palette.gold.DEFAULT,
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.5,
-    shadowRadius: 24,
+    shadowOpacity: 0.3,
+    shadowRadius: 15,
   },
   circleIcon: {
     color: 'rgba(215,192,138,0.92)',
