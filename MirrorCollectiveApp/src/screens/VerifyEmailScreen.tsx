@@ -2,27 +2,27 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
-  palette,
-  textShadow,
   fontFamily,
   fontSize,
   fontWeight,
   lineHeight,
-  scale,
-  verticalScale,
   moderateScale,
+  palette,
+  scale,
+  textShadow,
+  verticalScale,
 } from '@theme';
 import type { RootStackParamList } from '@types';
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
   Alert,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
 } from 'react-native';
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import Button from '@components/Button/Button';
@@ -31,6 +31,7 @@ import TextInputField from '@components/TextInputField';
 import { authApiService } from '@services/api';
 import { QuizStorageService } from '@services/quizStorageService';
 import { getApiErrorMessage } from '@utils/apiErrorUtils';
+import { clearPendingVerification } from '@utils/verificationState';
 
 type VerifyEmailScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -68,17 +69,17 @@ const VerifyEmailScreen = () => {
     const trimmedCode = verificationCode.trim();
 
     if (!normalizedEmail) {
-      Alert.alert(t('common.error'), 'Please enter your email address');
-      return;
-    }
-
-    if (!trimmedCode) {
-      Alert.alert(t('common.error'), 'Please enter the verification code');
+      Alert.alert(
+        t('auth.verifyEmail.missingEmailTitle'),
+        t('auth.verifyEmail.missingEmailBody'),
+      );
       return;
     }
 
     if (trimmedCode.length !== VERIFICATION_CODE_LENGTH) {
-      Alert.alert(t('common.error'), `Verification code must be ${VERIFICATION_CODE_LENGTH} digits`);
+      // UI gates the Verify button until the code is exactly 6 digits, so this
+      // should be unreachable in practice — but keep a defensive guard.
+      Alert.alert(t('common.error'), t('auth.verifyEmail.codePlaceholder'));
       return;
     }
 
@@ -101,6 +102,10 @@ const VerifyEmailScreen = () => {
       });
 
       if (response.success) {
+        // Email verified — clear the recovery record so app launch routes
+        // back to its normal flow.
+        await clearPendingVerification();
+
         // Auto sign-in so the user has tokens before reaching the trial screen
         if (password) {
           try {
@@ -158,7 +163,10 @@ const VerifyEmailScreen = () => {
     }
 
     if (!normalizedEmail) {
-      Alert.alert(t('common.error'), 'Please enter your email address');
+      Alert.alert(
+        t('auth.verifyEmail.missingEmailTitle'),
+        t('auth.verifyEmail.missingEmailBody'),
+      );
       return;
     }
 
@@ -170,8 +178,8 @@ const VerifyEmailScreen = () => {
       if (response.success) {
         setCountdown(RESEND_COOLDOWN_SECONDS);
         Alert.alert(
-          t('auth.forgotPassword.successTitle'),
-          t('auth.verifyEmail.title'),
+          t('auth.verifyEmail.resendSuccessTitle'),
+          t('auth.verifyEmail.resendSuccessBody'),
         );
       } else {
         Alert.alert(t('common.error'), getApiErrorMessage(response, t));
@@ -194,9 +202,15 @@ const VerifyEmailScreen = () => {
           <View style={styles.messageContainer}>
             {/* Header */}
             <View style={styles.headerSection}>
-              <Text style={styles.title}>We've sent a code to your inbox</Text>
+              <Text
+                style={styles.title}
+                accessibilityRole="header"
+                accessibilityLabel={t('auth.verifyEmail.title')}
+              >
+                {t('auth.verifyEmail.title')}
+              </Text>
               <Text style={styles.subtitle}>
-                Please enter the 6-digit verification code from your email to confirm your entry.
+                {t('auth.verifyEmail.subtitle')}
               </Text>
             </View>
 
@@ -204,22 +218,24 @@ const VerifyEmailScreen = () => {
             <View style={styles.codeSection}>
               <TextInputField
                 testID="verification-code-input"
-                placeholder="Enter 6-digit code"
+                placeholder={t('auth.verifyEmail.codePlaceholder')}
                 placeholderAlign="center"
                 textAlign="center"
                 value={verificationCode}
                 onChangeText={setVerificationCode}
                 keyboardType="numeric"
                 autoCapitalize="none"
+                autoComplete="one-time-code"
                 maxLength={VERIFICATION_CODE_LENGTH}
-                placeholderStyle={styles.inputPlaceholder}
               />
 
               <Button
                 variant="primary"
                 size="L"
                 active={!isVerifying && verificationCode.trim().length === VERIFICATION_CODE_LENGTH}
-                title={isVerifying ? 'Verifying...' : 'Verify'}
+                title={isVerifying
+                  ? t('auth.verifyEmail.verifyingButton')
+                  : t('auth.verifyEmail.verifyButton')}
                 onPress={handleVerifyCode}
                 disabled={isVerifying || verificationCode.trim().length !== VERIFICATION_CODE_LENGTH}
               />
@@ -228,7 +244,7 @@ const VerifyEmailScreen = () => {
             {/* Resend Section */}
             <View style={styles.resendSection}>
               <Text style={styles.resendText}>
-                Didn't get an email?
+                {t('auth.verifyEmail.resendPrompt')}
               </Text>
 
               <Button
@@ -237,28 +253,42 @@ const VerifyEmailScreen = () => {
                 active={countdown === 0 && !isResending}
                 title={
                   countdown > 0
-                    ? `Resend (${countdown}s)`
+                    ? t('auth.verifyEmail.resendButtonWithTimer', { count: countdown })
                     : isResending
-                    ? 'Sending...'
-                    : 'Resend'
+                    ? t('auth.verifyEmail.sendingButton')
+                    : t('auth.verifyEmail.resendButton')
                 }
                 onPress={handleResendEmail}
                 disabled={countdown > 0 || isResending}
               />
             </View>
 
-            {/* Back to Sign Up */}
-            <TouchableOpacity
-              onPress={() => navigation.goBack()}
-              style={styles.backButton}
-              accessibilityRole="button"
-              accessibilityLabel="Back to sign up"
+            {/* Back to sign up — underlined gold link per Figma node 2936-446 */}
+            <Pressable
+              onPress={() => {
+                // Prefer popTo so we land on the SignUp instance still in
+                // the stack (preserves any form values via React state).
+                // popTo throws if SignUp is absent (e.g. recovered into
+                // VerifyEmail from app launch); fall back to navigate.
+                try {
+                  navigation.popTo('SignUp');
+                } catch {
+                  navigation.navigate('SignUp');
+                }
+              }}
+              style={({ pressed }) => [
+                styles.backLinkWrap,
+                pressed && styles.backLinkPressed,
+              ]}
+              accessibilityRole="link"
+              accessibilityLabel={t('auth.verifyEmail.backToSignUp')}
               accessibilityHint="Returns to the sign up screen"
+              hitSlop={8}
             >
-              <Text style={styles.backButtonText}>
-                Back to Sign up
+              <Text style={styles.backLink}>
+                {t('auth.verifyEmail.backToSignUp')}
               </Text>
-            </TouchableOpacity>
+            </Pressable>
           </View>
         </View>
       </SafeAreaView>
@@ -345,18 +375,21 @@ const styles = StyleSheet.create({
     lineHeight: lineHeight.m,
     textAlign: 'center',
   },
-  backButton: {
-    padding: moderateScale(12),
-    alignSelf: 'stretch',
-    alignItems: 'center',
+  // Back to sign up — matches the "Sign up here" link on LoginScreen
+  // (Figma node 203:2821 / 1886:2357). Cormorant Garamond Regular 24px,
+  // gold default, native textDecorationLine underline.
+  backLinkWrap: {
+    alignSelf: 'center',
   },
-  backButtonText: {
-    color: palette.navy.light,
-    fontFamily: fontFamily.bodyItalic,
-    fontSize: moderateScale(fontSize.s),
-    fontWeight: fontWeight.regular,
-    fontStyle: 'italic',
-    lineHeight: lineHeight.m,
+  backLinkPressed: {
+    opacity: 0.7,
+  },
+  backLink: {
+    fontFamily: fontFamily.heading,                       // CormorantGaramond-Regular
+    fontSize: moderateScale(fontSize.xl),                 // 24px — Figma: font/size/XL
+    lineHeight: moderateScale(fontSize.xl) * 1.3,
+    color: palette.gold.DEFAULT,                          // #f2e2b1
+    textDecorationLine: 'underline',
     textAlign: 'center',
   },
 });

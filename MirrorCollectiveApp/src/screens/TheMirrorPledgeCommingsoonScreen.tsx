@@ -1,3 +1,4 @@
+import React from 'react';
 import {
   palette,
   fontFamily,
@@ -8,21 +9,25 @@ import {
   verticalScale,
   moderateScale,
   textShadow,
+  spacing,
 } from '@theme';
 import {
   StyleSheet,
   Text,
   View,
-  Image,
   type ViewStyle,
   type TextStyle,
   type ImageStyle,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import GoldenHandHeartSvg from '@assets/pledge/golden-hand-heart.svg';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
 import StarIcon from '@components/StarIcon';
+
+const ILLUSTRATION_WIDTH  = scale(240);
+const ILLUSTRATION_HEIGHT = verticalScale(280);
 
 const TheMirrorPledgeCommingsoonScreen: React.FC = () => {
   return (
@@ -30,24 +35,20 @@ const TheMirrorPledgeCommingsoonScreen: React.FC = () => {
       <SafeAreaView style={styles.safe}>
         <LogoHeader />
 
-        {/* Content */}
         <View style={styles.content}>
-          {/* Title - matches QuizWelcomeScreen WELCOME styling */}
-          <View style={styles.titleContainer}>
-            <Text style={styles.title}>THE MIRROR PLEDGE</Text>
-          </View>
+          {/* Title */}
+          <Text style={styles.title}>THE MIRROR PLEDGE</Text>
 
-          {/* Golden Hand Holding Heart Illustration */}
-          <View style={styles.imageContainer}>
-            <Image
-              source={require('@assets/pledge/golden-hand-heart.png')}
-              style={styles.image}
-              resizeMode="contain"
-              accessibilityIgnoresInvertColors
+          {/* Illustration */}
+          <View style={styles.illustrationContainer}>
+            <GoldenHandHeartSvg
+              testID="pledge-illustration"
+              width={ILLUSTRATION_WIDTH}
+              height={ILLUSTRATION_HEIGHT}
             />
           </View>
 
-          {/* Description Card */}
+          {/* Description */}
           <View style={styles.descriptionContainer}>
             <Text style={styles.description}>
               2% of your subscription is added to the Mirror Giving Pool. Each quarter, the collective votes on causes to support— and we show you exactly where it goes.
@@ -58,9 +59,9 @@ const TheMirrorPledgeCommingsoonScreen: React.FC = () => {
 
           {/* Coming soon footer */}
           <View style={styles.footerContainer}>
-            <StarIcon width={20} height={20} />
+            <StarIcon width={scale(20)} height={scale(20)} color={palette.gold.DEFAULT} />
             <Text style={styles.footerText}>COMING SOON</Text>
-            <StarIcon width={20} height={20} />
+            <StarIcon width={scale(20)} height={scale(20)} color={palette.gold.DEFAULT} />
           </View>
         </View>
       </SafeAreaView>
@@ -75,10 +76,8 @@ const styles = StyleSheet.create<{
   bgImage: ImageStyle;
   safe: ViewStyle;
   content: ViewStyle;
-  titleContainer: ViewStyle;
   title: TextStyle;
-  imageContainer: ViewStyle;
-  image: ImageStyle;
+  illustrationContainer: ViewStyle;
   descriptionContainer: ViewStyle;
   description: TextStyle;
   spacer: ViewStyle;
@@ -94,49 +93,44 @@ const styles = StyleSheet.create<{
   },
   safe: {
     flex: 1,
-    backgroundColor: palette.neutral.transparent,
+    backgroundColor: 'transparent',
     width: '100%',
   },
+
   content: {
     flex: 1,
     width: '100%',
     maxWidth: scale(345),
     alignSelf: 'center',
-    paddingHorizontal: scale(24),
-    paddingTop: verticalScale(20),
-    paddingBottom: verticalScale(40),
+    paddingHorizontal: scale(spacing.xl),
+    paddingTop: verticalScale(spacing.xxl),
+    paddingBottom: verticalScale(spacing.xl),
     alignItems: 'center',
-    gap: verticalScale(24),
+    gap: verticalScale(spacing.xl),
   },
-  titleContainer: {
-    alignItems: 'center',
-    width: '100%',
-  },
+
   title: {
     fontFamily: fontFamily.heading,
-    fontSize: fontSize['3xl'], // Matches QuizWelcomeScreen WELCOME
+    fontSize: moderateScale(fontSize['2xl']),
     fontWeight: fontWeight.regular,
-    letterSpacing: 0,
+    lineHeight: lineHeight.xl,
     color: palette.gold.DEFAULT,
     textAlign: 'center',
+    letterSpacing: 2,
     textShadowColor: textShadow.glow.color,
     textShadowOffset: textShadow.glow.offset,
     textShadowRadius: textShadow.glow.radius,
-    textTransform: 'uppercase',
   },
-  imageContainer: {
-    width: scale(280),
-    height: verticalScale(280),
-    justifyContent: 'center',
+
+  illustrationContainer: {
+    width: ILLUSTRATION_WIDTH,
+    height: ILLUSTRATION_HEIGHT,
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  image: {
-    width: '100%',
-    height: '100%',
-  },
+
   descriptionContainer: {
-    width: '100%',
-    maxWidth: scale(345),
+    alignSelf: 'stretch',
     alignItems: 'center',
   },
   description: {
@@ -147,24 +141,24 @@ const styles = StyleSheet.create<{
     color: palette.neutral.white,
     textAlign: 'center',
   },
-  spacer: {
-    flex: 1,
-  },
+
+  spacer: { flex: 1 },
+
   footerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: scale(16),
+    gap: scale(spacing.m),
   },
   footerText: {
     fontFamily: fontFamily.heading,
     fontSize: moderateScale(fontSize.xl),
     fontWeight: fontWeight.regular,
+    lineHeight: lineHeight.l,
     color: palette.gold.DEFAULT,
     textAlign: 'center',
-    lineHeight: lineHeight.l,
-    textShadowColor: textShadow.glowSubtle.color,
-    textShadowOffset: textShadow.glowSubtle.offset,
-    textShadowRadius: 4,
+    textShadowColor: textShadow.warmGlow.color,
+    textShadowOffset: textShadow.warmGlow.offset,
+    textShadowRadius: textShadow.warmGlow.radius,
   },
 });

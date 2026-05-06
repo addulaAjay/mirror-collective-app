@@ -13,15 +13,18 @@ import PushNotificationService from '@services/PushNotificationService';
 import { useSession } from './SessionContext';
 
 // Types
-interface UserProfile {
+export interface UserProfile {
   id: string;
   email: string;
   fullName: string;
   isVerified: boolean;
+  profileImageUrl?: string;
+  phoneNumber?: string;
 }
 
 interface UserContextType {
   user: UserProfile | null;
+  isUserLoading: boolean;
   refreshUser: () => Promise<void>;
   setUser: (user: UserProfile | null) => void;
 }
@@ -37,15 +40,25 @@ interface UserProviderProps {
 export const UserProvider = ({ children }: UserProviderProps) => {
   const { state: sessionState } = useSession();
   const [user, setUser] = useState<UserProfile | null>(null);
+  // True while the auth-triggered profile fetch is in-flight. App.tsx gates
+  // the authenticated navigator behind this flag so TalkToMirrorScreen (and
+  // every other authenticated screen) never renders with user === null.
+  const [isUserLoading, setIsUserLoading] = useState(false);
 
   const refreshUser = useCallback(async () => {
     try {
       const profileResponse = await authApiService.getUserProfile();
       if (profileResponse.success && profileResponse.data?.user) {
-        setUser(profileResponse.data.user);
+        const raw = profileResponse.data.user;
+        setUser({
+          id: raw.id || raw.sub || '',
+          email: raw.email || '',
+          fullName: raw.display_name || raw.fullName || `${raw.firstName || ''} ${raw.lastName || ''}`.trim(),
+          isVerified: raw.isVerified ?? raw.emailVerified ?? false,
+          profileImageUrl: raw.profile_image_url ?? undefined,
+          phoneNumber: raw.phone_number ?? undefined,
+        });
       } else {
-        // If we can't get the user profile, but think we're authenticated, 
-        // it might be a token issue. 
         console.warn('Refresh user failed:', profileResponse.message);
       }
     } catch (error) {
@@ -53,30 +66,31 @@ export const UserProvider = ({ children }: UserProviderProps) => {
     }
   }, []);
 
-  // React to session changes
+  // React to session changes — always fetch when auth state becomes true so
+  // the full profile (image, phone) is ready before authenticated screens render.
   useEffect(() => {
     if (sessionState.isAuthenticated) {
-       // If we authenticated but don't have user data, fetch it
-       // Optimization: fetch only if user is null
-       if (!user) {
-          refreshUser();
-       } else {
-          // Initialize push notification handlers once user is available
-          // Ensure we don't re-initialize unnecessarily if user object reference changes but ID is same
-          PushNotificationService.initialize(user.id).catch((err: any) => {
-            console.error('Failed to initialize push notification service:', err);
-          });
-       }
+      setIsUserLoading(true);
+      refreshUser().finally(() => setIsUserLoading(false));
     } else {
-      // If not authenticated, clear user data
-      if (user) {
-        setUser(null);
-      }
+      setUser(null);
+      setIsUserLoading(false);
     }
-  }, [sessionState.isAuthenticated, user, refreshUser]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionState.isAuthenticated]);
+
+  // Init push notifications once user is available
+  useEffect(() => {
+    if (user?.id) {
+      PushNotificationService.initialize(user.id).catch((err: unknown) => {
+        console.error('Failed to initialize push notification service:', err);
+      });
+    }
+  }, [user?.id]);
 
   const contextValue: UserContextType = {
     user,
+    isUserLoading,
     refreshUser,
     setUser,
   };

@@ -152,6 +152,18 @@ export class AuthApiService extends BaseApiService {
     return this.makeRequest('/api/auth/me', 'GET', null, true);
   }
 
+  async updateUserProfile(data: {
+    profileImageUrl?: string;
+    displayName?: string;
+    phoneNumber?: string;
+  }): Promise<ApiResponse> {
+    return this.makeRequest('/api/auth/me', 'PATCH', {
+      ...(data.profileImageUrl !== undefined && { profile_image_url: data.profileImageUrl }),
+      ...(data.displayName !== undefined && { display_name: data.displayName }),
+      ...(data.phoneNumber !== undefined && { phone_number: data.phoneNumber }),
+    }, true);
+  }
+
   async refreshToken(): Promise<ApiResponse<AuthResponse>> {
     const refreshToken = await AsyncStorage.getItem('refreshToken');
     if (!refreshToken) {

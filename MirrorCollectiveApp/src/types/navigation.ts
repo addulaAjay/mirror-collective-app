@@ -1,12 +1,12 @@
 import type {
+  QuizAnswers as RRQuizAnswers,
+  RRApiErrorCode,
+} from '@features/reflection-room/api/types';
+import type {
   LoopId as RRLoopId,
   ToneState as RRToneState,
   PracticeSurface as RRPracticeSurface,
 } from '@features/reflection-room/types/ids';
-import type {
-  QuizAnswers as RRQuizAnswers,
-  RRApiErrorCode,
-} from '@features/reflection-room/api/types';
 
 type ArchetypeRouteParams = {
   archetype: {
@@ -30,6 +30,7 @@ export type RootStackParamList = {
   EchoVaultStorage: undefined;
   MirrorEcho: undefined;
   ReflectionRoom: undefined;
+  ReflectionRoomCommingsoon: undefined;
   ReflectionRoomWelcome: undefined;
   ReflectionRoomQuizEntry: undefined;
   ReflectionRoomQuiz: undefined;
@@ -51,7 +52,6 @@ export type RootStackParamList = {
   Profile: undefined;
   MirrorAnimation: undefined;
   EnterMirror: undefined;
-  EmailConfirmation: undefined;
   AppVideo: undefined;
   TalkToMirror: undefined;
   Login: undefined;

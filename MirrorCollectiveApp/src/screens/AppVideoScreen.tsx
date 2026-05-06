@@ -1,5 +1,6 @@
 import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { OnboardingService } from '@services';
 import {
   palette,
   fontFamily,
@@ -49,6 +50,10 @@ const AppVideoScreen: React.FC<Props> = ({ navigation }) => {
   );
 
   const handleNext = useCallback(() => {
+    // First-login flow consumed: mark onboarding complete so subsequent
+    // app launches route the user directly to TalkToMirror (handled in
+    // App.tsx via OnboardingService.hasCompletedOnboarding()).
+    void OnboardingService.markOnboardingComplete();
     navigation.navigate('MirrorChat');
   }, [navigation]);
 

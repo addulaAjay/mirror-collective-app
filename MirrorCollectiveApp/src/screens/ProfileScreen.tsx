@@ -1,28 +1,50 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { palette, textShadow } from '@theme';
-import type { RootStackParamList } from '@types';
-import React, { useState } from 'react';
 import {
-  Dimensions,
+  borderWidth,
+  fontFamily,
+  fontSize,
+  fontWeight,
+  lineHeight,
+  moderateScale,
+  palette,
+  scale,
+  spacing,
+  textShadow,
+  verticalScale,
+} from '@theme';
+import type { RootStackParamList } from '@types';
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  Image,
+  Keyboard,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
   TouchableWithoutFeedback,
-  Keyboard,
+  View,
+  type ViewStyle,
+  type TextStyle,
+  type ImageStyle,
 } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
+import { launchImageLibrary } from 'react-native-image-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
+import Button from '@components/Button/Button';
 import LogoHeader from '@components/LogoHeader';
 import TextInputField from '@components/TextInputField';
+import { useUser } from '@context/UserContext';
+import { authApiService } from '@services/api';
+import { echoApiService } from '@services/api/echo';
 
-const { width: screenWidth, height: screenHeight } = Dimensions.get('screen');
+const AVATAR_SIZE = moderateScale(160);
 
+// Mirrors SignUpScreen — stores E.164 internally, displays formatted
 const formatPhoneDisplay = (e164: string): string => {
   const digits = e164.startsWith('+1') ? e164.slice(2) : '';
   if (digits.length === 0) return '+1';
@@ -33,79 +55,159 @@ const formatPhoneDisplay = (e164: string): string => {
 
 const ProfileScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const { user, refreshUser } = useUser();
+
+  // E.164 stored internally — displayed via formatPhoneDisplay (matches SignUpScreen)
   const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('+1');
+  const [phone, setPhone] = useState('+1');
+  const [localImageUri, setLocalImageUri] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [refreshed, setRefreshed] = useState(false);
+  const [initialized, setInitialized] = useState(false);
+
+  // Fetch fresh profile data on mount (UserContext only calls refreshUser once
+  // on first login; subsequent navigation to this screen gets stale data)
+  useEffect(() => {
+    void refreshUser().finally(() => setRefreshed(true));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Initialize local state only AFTER the fresh refresh completes, so
+  // phone/image from the backend are available before we snapshot them
+  useEffect(() => {
+    if (refreshed && user && !initialized) {
+      setName(user.fullName ?? '');
+      setPhone(user.phoneNumber ?? '+1');
+      setInitialized(true);
+    }
+  }, [refreshed, user, initialized]);
 
   const handlePhoneChange = (text: string) => {
     let digits = text.replace(/\D/g, '');
-    if (digits.startsWith('1')) {
-      digits = digits.slice(1);
-    }
+    if (digits.startsWith('1')) digits = digits.slice(1);
     digits = digits.slice(0, 10);
-    setPhoneNumber(digits.length === 0 ? '+1' : `+1${digits}`);
+    setPhone(digits.length === 0 ? '+1' : `+1${digits}`);
   };
 
-  const handleSave = () => {
-    // Handle save logic
-    console.log('Save profile:', { name, email, phoneNumber });
-  };
+  const profileImageSource = localImageUri
+    ? { uri: localImageUri }
+    : user?.profileImageUrl
+    ? { uri: user.profileImageUrl }
+    : null;
+
+  const handlePickImage = useCallback(async () => {
+    const result = await launchImageLibrary({
+      mediaType: 'photo',
+      quality: 0.8,
+      maxWidth: 400,
+      maxHeight: 400,
+    });
+    if (!result.didCancel && result.assets?.[0]?.uri) {
+      setLocalImageUri(result.assets[0].uri);
+    }
+  }, []);
+
+  const handleSave = useCallback(async () => {
+    setIsSaving(true);
+    try {
+      let profileImageUrl: string | undefined;
+
+      if (localImageUri) {
+        const urlRes = await echoApiService.getUploadUrl('image/jpeg', undefined, 'profile');
+        if (!urlRes.success || !urlRes.data) throw new Error('Could not get upload URL');
+        await echoApiService.uploadMedia(urlRes.data.upload_url, localImageUri, 'image/jpeg');
+        profileImageUrl = urlRes.data.media_url;
+      }
+
+      // Always send name and phone when they have values — avoids empty-body 400
+      const updatePayload: {
+        profileImageUrl?: string;
+        displayName?: string;
+        phoneNumber?: string;
+      } = {};
+      if (profileImageUrl) updatePayload.profileImageUrl = profileImageUrl;
+      if (name.trim()) updatePayload.displayName = name.trim();
+      if (phone.trim()) updatePayload.phoneNumber = phone.trim();
+
+      if (Object.keys(updatePayload).length > 0) {
+        await authApiService.updateUserProfile(updatePayload);
+      }
+
+      await refreshUser();
+      setLocalImageUri(null);
+      Alert.alert('Saved', 'Your profile has been updated.');
+    } catch (error: unknown) {
+      Alert.alert('Error', error instanceof Error ? error.message : 'Failed to save profile');
+    } finally {
+      setIsSaving(false);
+    }
+  }, [localImageUri, name, phone, refreshUser]);
 
   return (
     <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage}>
       <SafeAreaView style={styles.safe}>
         <LogoHeader />
         <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.contentContainer}
+          style={styles.scroll}
+          contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <View style={styles.sectionWrapper}>
+            <View style={styles.inner}>
 
-            {/* Title Section */}
-            <View style={styles.headerSection}>
-              <Text style={styles.title}>YOUR PROFILE</Text>
-              <Text style={styles.subtitle}>
-                Update your profile and notification {'\n'} preferences
-              </Text>
-            </View>
-
-            {/* Profile Image */}
-            <View style={styles.profileImageContainer}>
-              <View style={styles.profileImageWrapper}>
-                <View style={styles.profileImageCircle}>
-                  {/* Default Avatar Icon */}
-                  <Svg width="120" height="120" viewBox="0 0 60 50" fill="none">
+              {/* Back arrow + PROFILE title */}
+              <View style={styles.titleRow}>
+                <TouchableOpacity
+                  style={styles.backBtn}
+                  onPress={() => navigation.goBack()}
+                  accessibilityRole="button"
+                  accessibilityLabel="Go back"
+                  hitSlop={8}
+                >
+                  <Svg width={scale(20)} height={scale(20)} viewBox="0 0 24 24" fill="none">
                     <Path
-                      d="M30 30C37.18 30 43 24.18 43 17C43 9.82 37.18 4 30 4C22.82 4 17 9.82 17 17C17 24.18 22.82 30 30 30ZM30 37C21.33 37 4 41.34 4 50V56H56V50C56 41.34 38.67 37 30 37Z"
-                      fill={palette.navy.light}
-                    />
-                  </Svg>
-                </View>
-                {/* Plus Icon Badge */}
-                <TouchableOpacity style={styles.editBadge}>
-                  <Svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                    <Path
-                      d="M10 4V16M4 10H16"
-                      stroke={palette.navy.deep}
+                      d="M19 12H5M5 12L12 19M5 12L12 5"
+                      stroke={palette.gold.DEFAULT}
                       strokeWidth="2"
                       strokeLinecap="round"
+                      strokeLinejoin="round"
                     />
                   </Svg>
                 </TouchableOpacity>
+                <Text style={styles.title}>PROFILE</Text>
               </View>
-            </View>
 
-            {/* Form Section */}
-            <View style={styles.formSection}>
-              {/* Name Field */}
-              <View style={styles.fieldContainer}>
-                <Text style={styles.fieldLabel}>Name</Text>
+              {/* Subtitle */}
+              <Text style={styles.subtitle}>
+                Personalize your account with a photo.{'\n'}You can always change it later.
+              </Text>
+
+              {/* Profile photo */}
+              <TouchableOpacity
+                onPress={handlePickImage}
+                activeOpacity={0.85}
+                accessibilityRole="button"
+                accessibilityLabel="Add or change profile photo"
+              >
+                <View style={styles.avatarRing}>
+                  {profileImageSource ? (
+                    <Image
+                      source={profileImageSource}
+                      style={styles.avatarImage}
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <Text style={styles.avatarPlaceholder}>Add Image</Text>
+                  )}
+                </View>
+              </TouchableOpacity>
+
+              {/* Form — use TextInputField's label prop so typography matches design system */}
+              <View style={styles.form}>
                 <TextInputField
-                  size="medium"
-                  placeholder="Enter your name"
+                  label="Change Name"
+                  placeholder="Enter your preferred name here"
                   value={name}
                   onChangeText={setName}
                   autoCapitalize="words"
@@ -113,78 +215,34 @@ const ProfileScreen: React.FC = () => {
                   placeholderAlign="left"
                   placeholderFontFamily="regular"
                   inputTextStyle="gold-regular"
-                  placeholderStyle={styles.customPlaceholder}
                 />
-              </View>
 
-              {/* Email Field */}
-              <View style={styles.fieldContainer}>
-                <Text style={styles.fieldLabel}>Email Address</Text>
                 <TextInputField
-                  size="medium"
-                  placeholder="Enter your email"
-                  value={email}
-                  onChangeText={setEmail}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  autoComplete="email"
-                  placeholderAlign="left"
-                  placeholderFontFamily="regular"
-                  inputTextStyle="gold-regular"
-                  placeholderStyle={styles.customPlaceholder}
-                />
-              </View>
-
-              {/* Phone Number Field */}
-              <View style={styles.fieldContainer}>
-                <Text style={styles.fieldLabel}>Phone Number</Text>
-                <TextInputField
-                  size="medium"
-                  placeholder="(555) 123-4567"
-                  value={formatPhoneDisplay(phoneNumber)}
+                  label="Change Phone Number"
+                  placeholder="+1 (555) 123-4567"
+                  value={formatPhoneDisplay(phone)}
                   onChangeText={handlePhoneChange}
                   keyboardType="phone-pad"
                   autoCapitalize="none"
                   placeholderAlign="left"
                   placeholderFontFamily="regular"
                   inputTextStyle="gold-regular"
-                  placeholderStyle={styles.customPlaceholder}
                 />
               </View>
-            </View>
 
-            {/* Save Button */}
-            <TouchableOpacity
-              style={styles.saveButtonWrapper}
-              onPress={handleSave}
-              activeOpacity={0.8}
-            >
-              <LinearGradient
-                colors={[
-                  'rgba(253, 253, 249, 0.04)',
-                  'rgba(253, 253, 249, 0.01)',
-                ]}
-                start={{ x: 0.5, y: 0 }}
-                end={{ x: 0.5, y: 1 }}
-                style={styles.saveButton}
-              >
-                <Text style={styles.saveText}>SAVE</Text>
-              </LinearGradient>
-            </TouchableOpacity>
-
-            {/* Developer Tools */}
-            {__DEV__ && (
-              <View style={styles.devSection}>
-                <Text style={styles.devTitle}>Developer Tools</Text>
-                <TouchableOpacity
-                  style={styles.devButton}
-                  onPress={() => navigation.navigate('ComponentDemo')}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.devButtonText}>🎨 View Component Demo</Text>
-                </TouchableOpacity>
-              </View>
-            )}
+              {/* Save — no active prop so button renders in default (inactive) state */}
+              {!refreshed ? (
+                <ActivityIndicator color={palette.gold.DEFAULT} style={styles.loader} />
+              ) : isSaving ? (
+                <ActivityIndicator color={palette.gold.DEFAULT} style={styles.loader} />
+              ) : (
+                <Button
+                  variant="primary"
+                  size="S"
+                  title="SAVE"
+                  onPress={handleSave}
+                />
+              )}
 
             </View>
           </TouchableWithoutFeedback>
@@ -194,43 +252,47 @@ const ProfileScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  bg: {
-    flex: 1,
-    backgroundColor: palette.navy.deep,
-  },
-  bgImage: {
-    resizeMode: 'cover',
-  },
-  safe: {
-    flex: 1,
-    backgroundColor: 'transparent',
-    width: '100%',
-  },
-  scrollView: {
-    flex: 1,
-  },
-  contentContainer: {
-    paddingHorizontal: Math.max(20, screenWidth * 0.051),
-    paddingTop: 0,
-    paddingBottom: Math.max(100, screenHeight * 0.12),
+const styles = StyleSheet.create<{
+  bg: ViewStyle; bgImage: ImageStyle; safe: ViewStyle;
+  scroll: ViewStyle; scrollContent: ViewStyle; inner: ViewStyle;
+  titleRow: ViewStyle; backBtn: ViewStyle; title: TextStyle;
+  subtitle: TextStyle; avatarRing: ViewStyle;
+  avatarImage: ImageStyle; avatarPlaceholder: TextStyle;
+  form: ViewStyle; loader: ViewStyle;
+}>({
+  bg:   { flex: 1, backgroundColor: palette.navy.deep },
+  bgImage: { resizeMode: 'cover' },
+  safe: { flex: 1, backgroundColor: 'transparent' },
+  scroll: { flex: 1 },
+  scrollContent: {
+    paddingHorizontal: scale(spacing.xl),
+    paddingBottom: verticalScale(spacing.xxxl * 2),
     alignItems: 'center',
   },
-  sectionWrapper: {
-    gap: 24,
+  inner: {
     width: '100%',
     alignItems: 'center',
+    gap: verticalScale(spacing.xl),
   },
-  headerSection: {
+
+  // ── Title row ──────────────────────────────────────────────────────────────
+  titleRow: {
+    width: '100%',
+    flexDirection: 'row',
     alignItems: 'center',
-    gap: 24,
-    marginTop: 30, // Reduced from Math.max(80, screenHeight * 0.1)
+    justifyContent: 'center',
+    marginTop: verticalScale(spacing.l),
+    position: 'relative',
+  },
+  backBtn: {
+    position: 'absolute',
+    left: 0,
   },
   title: {
-    fontFamily: 'CormorantGaramond-Light',
-    fontSize: Math.min(screenWidth * 0.082, 32),
-    fontWeight: '400',
-    lineHeight: Math.min(screenWidth * 0.082 * 1.3, 41.6),
+    fontFamily: fontFamily.heading,
+    fontSize: moderateScale(fontSize['2xl']),
+    fontWeight: fontWeight.regular,
+    lineHeight: moderateScale(lineHeight.l),
     color: palette.gold.DEFAULT,
     textAlign: 'center',
     textShadowColor: textShadow.glow.color,
@@ -238,123 +300,61 @@ const styles = StyleSheet.create({
     textShadowRadius: textShadow.glow.radius,
     letterSpacing: 4,
   },
+
+  // ── Subtitle ───────────────────────────────────────────────────────────────
   subtitle: {
-    fontFamily: 'Inter',
-    fontSize: Math.min(screenWidth * 0.041, 16),
-    fontWeight: '300',
-    lineHeight: 24,
-    color: palette.gold.subtlest,
+    fontFamily: fontFamily.body,
+    fontSize: moderateScale(fontSize.s),
+    fontWeight: fontWeight.regular,
+    lineHeight: moderateScale(lineHeight.m),
+    color: palette.neutral.white,
     textAlign: 'center',
-    alignSelf: 'stretch',
   },
-  profileImageContainer: {
-    alignItems: 'center',
-    marginTop: 24,
-    marginBottom: 24,
+
+  // ── Avatar — mirrors AddNewProfileScreen photoCircle exactly ─────────────
+  // boxShadow (RN 0.80 CSS property) renders outside the element's paint area
+  // so it is NOT clipped by overflow:hidden — no wrapper View needed.
+  avatarRing: {
+    width:           AVATAR_SIZE,
+    height:          AVATAR_SIZE,
+    borderRadius:    AVATAR_SIZE / 2,
+    borderWidth:     borderWidth.thin,
+    borderColor:     palette.gold.warm,
+    backgroundColor: 'rgba(229,214,176,0.04)',
+    alignItems:      'center',
+    justifyContent:  'center',
+    overflow:        'hidden',
+    boxShadow:       '0px 0px 25px 0px rgba(229,214,176,0.3)',
+    shadowColor:     palette.gold.warm,
+    shadowOffset:    { width: 0, height: 0 },
+    shadowOpacity:   0.3,
+    shadowRadius:    25,
+    elevation:       8,
   },
-  profileImageWrapper: {
-    position: 'relative',
-  },
-  profileImageCircle: {
-    width: 120,
-    height: 120,
-    aspectRatio: 1 / 1,
-    borderRadius: 100,
-    backgroundColor: palette.navy.light,
-    justifyContent: 'center',
-    alignItems: 'center',
-    overflow: 'hidden',
-  },
-  editBadge: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: palette.navy.light,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 3,
-    borderColor: palette.navy.deep,
-  },
-  formSection: {
+  avatarImage: {
     width: '100%',
-    gap: 24,
-    maxWidth: 360,
+    height: '100%',
   },
-  fieldContainer: {
+  // "Add Image" — Cormorant Regular 20px, gold, warm glow (matches AddNewProfileScreen)
+  avatarPlaceholder: {
+    fontFamily:       fontFamily.heading,
+    fontSize:         moderateScale(fontSize.l),
+    fontWeight:       fontWeight.regular,
+    lineHeight:       moderateScale(lineHeight.m),
+    color:            palette.gold.DEFAULT,
+    textAlign:        'center',
+    textShadowColor:  textShadow.warmGlow.color,
+    textShadowOffset: textShadow.warmGlow.offset,
+    textShadowRadius: textShadow.warmGlow.radius,
+  },
+
+  // ── Form ──────────────────────────────────────────────────────────────────
+  form: {
     width: '100%',
-    gap: 8,
+    gap: verticalScale(spacing.l),
   },
-  fieldLabel: {
-    fontFamily: 'CormorantGaramond-Light',
-    fontSize: 20,
-    fontWeight: '300',
-    color: palette.gold.DEFAULT,
-    paddingLeft: 4,
-  },
-  customPlaceholder: {
-    color: palette.navy.light,
-    fontFamily: 'CormorantGaramond-Italic',
-    fontSize: 20,
-    fontWeight: '400',
-    lineHeight: 26,
-  },
-  saveButtonWrapper: {
-    marginTop: 24,
-    borderRadius: 12,
-    borderWidth: 0.5,
-    borderColor: palette.navy.light,
-    overflow: 'hidden',
-    alignSelf: 'center',
-  },
-  saveButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-  },
-  saveText: {
-    fontFamily: 'CormorantGaramond-Medium',
-    fontSize: 24,
-    fontWeight: '500',
-    color: palette.gold.warm,
-    textShadowColor: textShadow.glowSubtle.color,
-    textShadowOffset: textShadow.glowSubtle.offset,
-    textShadowRadius: textShadow.glowSubtle.radius,
-    letterSpacing: 2,
-  },
-  devSection: {
-    marginTop: 40,
-    paddingTop: 20,
-    borderTopWidth: 1,
-    borderTopColor: palette.navy.light + '40',
-    width: '100%',
-    alignItems: 'center',
-    gap: 12,
-  },
-  devTitle: {
-    fontFamily: 'CormorantGaramond-Light',
-    fontSize: 18,
-    color: palette.navy.light,
-    marginBottom: 8,
-  },
-  devButton: {
-    backgroundColor: palette.navy.light + '20',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: palette.navy.light + '40',
-  },
-  devButtonText: {
-    fontFamily: 'CormorantGaramond-Medium',
-    fontSize: 16,
-    color: palette.gold.DEFAULT,
-  },
+
+  loader: { marginVertical: verticalScale(spacing.m) },
 });
 
 export default ProfileScreen;

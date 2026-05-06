@@ -76,14 +76,14 @@ export class BaseApiService {
           authEvents.emitSessionExpired();
         }
         if (ApiErrorHandler.shouldHandleGracefully(endpoint, response.status)) {
-          return responseData;
+          return { ...responseData, statusCode: response.status };
         }
         // Extract error message from response data
         const errorMessage = responseData?.error || responseData?.message || `Server error: ${response.status}`;
         throw this.createApiError(errorMessage, response.status);
       }
 
-      return responseData;
+      return { ...responseData, statusCode: response.status };
     } catch (error: any) {
       clearTimeout(timeoutId);
 

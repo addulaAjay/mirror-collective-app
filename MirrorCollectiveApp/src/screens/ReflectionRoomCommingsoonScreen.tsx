@@ -1,76 +1,83 @@
 import React from 'react';
-import { palette, textShadow } from '@theme';
-import { Dimensions, Image, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import {
+  fontFamily,
+  fontSize,
+  fontWeight,
+  lineHeight,
+  moderateScale,
+  palette,
+  scale,
+  textShadow,
+  verticalScale,
+  spacing,
+} from '@theme';
+import {
+  Image,
+  StyleSheet,
+  Text,
+  View,
+  type ViewStyle,
+  type TextStyle,
+  type ImageStyle,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
 import StarIcon from '@components/StarIcon';
 
-const { width: screenWidth, height: screenHeight } = Dimensions.get('screen');
-
 const ReflectionRoomCommingsoonScreen: React.FC = () => {
-  const navigation = useNavigation();
-
   return (
     <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage}>
       <SafeAreaView style={styles.safe}>
-        <View style={styles.container}>
-          <LogoHeader />
+        <LogoHeader />
 
-          {/* Title Row */}
-          <View style={styles.titleRow}>
-            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-              <Text style={styles.backArrow}>←</Text>
-            </TouchableOpacity>
-            <Text style={styles.title}>REFLECTION {'\n'}ROOM</Text>
-            <View style={{ width: 30 }} />
-          </View>
+        <View style={styles.content}>
+          {/* Title */}
+          <Text style={styles.title}>REFLECTION ROOM</Text>
 
-          {/* Illustration */}
+          {/* Layered arch + stairs illustration */}
           <View style={styles.imageContainer}>
-            {/* Background archway (largest) - Layer 1 */}
             <Image
               source={require('@assets/reflection-room-arch-1.png')}
               style={styles.archLayer1}
               resizeMode="contain"
+              accessibilityIgnoresInvertColors
             />
-
-            {/* Middle archway - Layer 2 */}
             <Image
               source={require('@assets/reflection-room-arch-2.png')}
               style={styles.archLayer2}
               resizeMode="contain"
+              accessibilityIgnoresInvertColors
             />
-
-            {/* Stairs */}
             <Image
               source={require('@assets/reflection-room-stairs.png')}
               style={styles.stairsImage}
               resizeMode="contain"
+              accessibilityIgnoresInvertColors
             />
-
-            {/* Front archway (smallest) - Layer 3 */}
             <Image
               source={require('@assets/reflection-room-arch-3.png')}
               style={styles.archLayer3}
               resizeMode="contain"
+              accessibilityIgnoresInvertColors
             />
           </View>
 
           {/* Description */}
           <View style={styles.descriptionContainer}>
             <Text style={styles.description}>
-              This is where your thoughts are held gently, {'\n'} reflected back with care, and allowed to {'\n'} settle knowing.
+              This is where your thoughts are held gently, reflected back with care, and allowed to settle knowing.
             </Text>
           </View>
 
+          <View style={styles.spacer} />
+
           {/* Coming soon footer */}
           <View style={styles.footerContainer}>
-            <StarIcon width={24} height={24} />
+            <StarIcon width={scale(20)} height={scale(20)} color={palette.gold.DEFAULT} />
             <Text style={styles.footerText}>COMING SOON</Text>
-            <StarIcon width={24} height={24} />
+            <StarIcon width={scale(20)} height={scale(20)} color={palette.gold.DEFAULT} />
           </View>
         </View>
       </SafeAreaView>
@@ -80,49 +87,46 @@ const ReflectionRoomCommingsoonScreen: React.FC = () => {
 
 export default ReflectionRoomCommingsoonScreen;
 
-const styles = StyleSheet.create({
-  bg: {
+// Illustration layer dimensions — scaled from Figma source values
+const ARCH1_W  = scale(263);
+const ARCH1_H  = verticalScale(300);
+const ARCH2_W  = scale(238);
+const ARCH2_H  = verticalScale(282);
+const ARCH3_W  = scale(213);
+const ARCH3_H  = verticalScale(265);
+const STAIR_W  = scale(183);
+const STAIR_H  = verticalScale(172);
+
+const styles = StyleSheet.create<{
+  bg: ViewStyle; bgImage: ImageStyle; safe: ViewStyle; content: ViewStyle;
+  title: TextStyle; imageContainer: ViewStyle;
+  archLayer1: ImageStyle; archLayer2: ImageStyle;
+  archLayer3: ImageStyle; stairsImage: ImageStyle;
+  descriptionContainer: ViewStyle; description: TextStyle;
+  spacer: ViewStyle; footerContainer: ViewStyle; footerText: TextStyle;
+}>({
+  bg:     { flex: 1, backgroundColor: palette.navy.deep },
+  bgImage: { resizeMode: 'cover' },
+  safe:   { flex: 1, backgroundColor: 'transparent', width: '100%' },
+
+  content: {
     flex: 1,
-    backgroundColor: palette.navy.deep,
-  },
-  bgImage: {
-    resizeMode: 'cover',
-  },
-  safe: {
-    flex: 1,
-    backgroundColor: 'transparent',
     width: '100%',
-  },
-  container: {
-    flex: 1,
-    paddingHorizontal: Math.max(20, screenWidth * 0.051),
-    paddingTop: 20,
-    paddingBottom: Math.max(30, screenHeight * 0.035),
+    maxWidth: scale(345),
+    alignSelf: 'center',
+    paddingHorizontal: scale(spacing.xl),
+    paddingTop: verticalScale(spacing.xxl),
+    paddingBottom: verticalScale(spacing.xl),
     alignItems: 'center',
+    gap: verticalScale(spacing.xl),
   },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    width: '100%',
-    paddingHorizontal: 20,
-    marginTop: Math.max(40, screenHeight * 0.05),
-    marginBottom: Math.max(48, screenHeight * 0.06),
-  },
-  backBtn: {
-    width: 30,
-    height: 30,
-    justifyContent: 'center',
-  },
-  backArrow: {
-    fontSize: 24,
-    color: palette.gold.DEFAULT,
-    fontWeight: '300',
-  },
+
+  // ── Title ──────────────────────────────────────────────────────────────────
   title: {
-    fontFamily: 'CormorantGaramond-Light',
-    fontSize: Math.min(screenWidth * 0.06, 24),
-    fontWeight: '400',
+    fontFamily: fontFamily.heading,
+    fontSize: moderateScale(fontSize['2xl']),
+    fontWeight: fontWeight.regular,
+    lineHeight: lineHeight.xl,
     color: palette.gold.DEFAULT,
     textAlign: 'center',
     textShadowColor: textShadow.glow.color,
@@ -130,78 +134,76 @@ const styles = StyleSheet.create({
     textShadowRadius: textShadow.glow.radius,
     letterSpacing: 2,
   },
+
+  // ── Layered illustration ────────────────────────────────────────────────────
   imageContainer: {
-    width: 317,
-    height: 300,
-    justifyContent: 'center',
+    width: scale(317),
+    height: verticalScale(300),
     alignItems: 'center',
+    justifyContent: 'flex-end',
     position: 'relative',
-    aspectRatio: 56 / 53,
   },
   archLayer1: {
     position: 'absolute',
-    width: 263.35,
-    height: 300,
+    width: ARCH1_W,
+    height: ARCH1_H,
     bottom: 0,
-    left: '50%',
-    transform: [{ translateX: -131.675 }],
+    left: (scale(317) - ARCH1_W) / 2,
   },
   archLayer2: {
     position: 'absolute',
-    width: 238.164,
-    height: 282.201,
+    width: ARCH2_W,
+    height: ARCH2_H,
     bottom: 0,
-    left: '50%',
-    transform: [{ translateX: -119.082 }],
-  },
-  archLayer3: {
-    position: 'absolute',
-    width: 213.045,
-    height: 264.877,
-    bottom: 0,
-    left: '50%',
-    transform: [{ translateX: -106.5225 }],
+    left: (scale(317) - ARCH2_W) / 2,
   },
   stairsImage: {
     position: 'absolute',
+    width: STAIR_W,
+    height: STAIR_H,
     bottom: 0,
-    left: '50%',
-    transform: [{ translateX: -76.66 }],
-    width: 183.184,
-    height: 172.041,
+    left: (scale(317) - STAIR_W) / 2,
   },
+  archLayer3: {
+    position: 'absolute',
+    width: ARCH3_W,
+    height: ARCH3_H,
+    bottom: 0,
+    left: (scale(317) - ARCH3_W) / 2,
+  },
+
+  // ── Description ────────────────────────────────────────────────────────────
   descriptionContainer: {
-    width: Math.min(screenWidth * 0.95, 370),
-    alignItems: 'center',
-    marginTop: Math.max(48, screenHeight * 0.06),
+    alignSelf: 'stretch',   // overrides parent's alignItems:'center' so text
+    alignItems: 'center',   // gets the full content column width, not the image width
   },
   description: {
-    fontFamily: 'Inter',
-    fontSize: Math.min(screenWidth * 0.041, 16),
-    fontWeight: '300',
-    lineHeight: 20,
-    color: palette.gold.subtlest,
+    fontFamily: fontFamily.body,
+    fontSize: moderateScale(fontSize.s),
+    fontWeight: fontWeight.regular,
+    lineHeight: lineHeight.m,
+    color: palette.neutral.white,
     textAlign: 'center',
   },
+
+  spacer: { flex: 1 },
+
+  // ── Footer ─────────────────────────────────────────────────────────────────
   footerContainer: {
-    position: 'absolute',
-    bottom: Math.max(80, screenHeight * 0.11),
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    columnGap: 16,
-    alignSelf: 'center',
+    gap: scale(spacing.m),
   },
   footerText: {
-    fontFamily: 'CormorantGaramond-Regular',
-    fontSize: Math.min(screenWidth * 0.082, 32),
-    fontWeight: '400',
+    fontFamily: fontFamily.heading,
+    fontSize: moderateScale(fontSize.xl),
+    fontWeight: fontWeight.regular,
+    lineHeight: lineHeight.l,
     color: palette.gold.DEFAULT,
     textAlign: 'center',
-    lineHeight: Math.min(screenWidth * 0.082 * 1.3, 41.6),
-    textShadowColor: textShadow.glowSubtle.color,
-    textShadowOffset: textShadow.glowSubtle.offset,
-    textShadowRadius: 4,
-    marginHorizontal: 12,
+    textShadowColor: textShadow.warmGlow.color,
+    textShadowOffset: textShadow.warmGlow.offset,
+    textShadowRadius: textShadow.warmGlow.radius,
   },
 });

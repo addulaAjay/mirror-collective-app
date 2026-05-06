@@ -53,7 +53,7 @@ type MirrorSideMenuProps = {
 const PRIMARY_ITEMS = [
   { label: 'MirrorGPT',       route: 'MirrorChat' },
   { label: 'Echo Vault',      route: 'MirrorEchoVaultHome' },
-  { label: 'Reflection Room', route: 'ReflectionRoom' },
+  { label: 'Reflection Room', route: 'ReflectionRoomCommingsoon' },
   { label: 'Code Library',    route: 'MirrorCodeLibrary' },
   { label: 'Pledge',          route: 'TheMirrorPledge' },
 ] as const;

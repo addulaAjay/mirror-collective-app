@@ -19,11 +19,14 @@ import { OnboardingService } from '@services';
 import {
   palette,
   fontFamily,
+  fontSize,
   fontWeight,
+  lineHeight,
   radius,
   borderWidth,
   textShadow,
   spacing,
+  glassGradient,
   scale,
   verticalScale,
   moderateScale,
@@ -45,12 +48,12 @@ import {
 import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import IconCodeLibrary from '@assets/talk-to-mirror/icon-code-library.svg';
-import IconMirrorEcho from '@assets/talk-to-mirror/icon-mirror-echo.svg';
-import IconReflectionRoom from '@assets/talk-to-mirror/icon-reflection-room.svg';
 import OvalMirrorSvg from '@assets/talk-to-mirror/oval-mirror.svg';
 import BackgroundWrapper from '@components/BackgroundWrapper';
+import CodeLibraryIcon from '@components/icons/CodeLibraryIcon';
+import MirrorEchoIcon from '@components/icons/MirrorEchoIcon';
 import MirrorPledgeIcon from '@components/icons/MirrorPledgeIcon';
+import ReflectionRoomIcon from '@components/icons/ReflectionRoomIcon';
 import LogoHeader from '@components/LogoHeader';
 import StarIcon from '@components/StarIcon';
 import { useUser } from '@context/UserContext';
@@ -71,9 +74,9 @@ const ICON_RING   = moderateScale(100);
 // Figma 4326:2337 — horizontal scroll category list
 const CATEGORIES = [
   { key: 'mirror-echo',     label: 'MIRROR ECHO',     route: 'MirrorEchoVaultHome' as const },
-  { key: 'reflection-room', label: 'REFLECTION ROOM', route: 'ReflectionRoom' as const },
+  { key: 'reflection-room', label: 'REFLECTION ROOM', route: 'ReflectionRoomCommingsoon' as const },
   { key: 'code-library',    label: 'CODE LIBRARY',    route: 'MirrorCodeLibrary' as const },
-  { key: 'mirror-pledge',   label: 'MIRROR PLEDGE',   route: 'MirrorPledgeIntro' as const },
+  { key: 'mirror-pledge',   label: 'MIRROR PLEDGE',   route: 'TheMirrorPledge' as const },
 ];
 
 /** Figma 4326:2339-2393 — 100×100 full-circle SVG + 20px label.
@@ -117,11 +120,11 @@ const TalkToMirrorScreen: React.FC<Props> = ({ navigation }) => {
   const renderCategoryIcon = (key: string) => {
     switch (key) {
       case 'mirror-echo':
-        return <IconMirrorEcho width={ICON_RING} height={ICON_RING} />;
+        return <MirrorEchoIcon size={ICON_RING} />;
       case 'reflection-room':
-        return <IconReflectionRoom width={ICON_RING} height={ICON_RING} />;
+        return <ReflectionRoomIcon size={ICON_RING} />;
       case 'code-library':
-        return <IconCodeLibrary width={ICON_RING} height={ICON_RING} />;
+        return <CodeLibraryIcon size={ICON_RING} />;
       case 'mirror-pledge':
         return <MirrorPledgeIcon size={ICON_RING} />;
       default:
@@ -144,13 +147,15 @@ const TalkToMirrorScreen: React.FC<Props> = ({ navigation }) => {
 
             {/* Figma 4326:2302 — gap:16, items-center, justify-center */}
             <View style={styles.greetingRow}>
-              <View style={styles.avatarRing}>
-                <Image
-                  source={AVATAR_IMAGE}
-                  style={styles.avatarImage}
-                  resizeMode="cover"
-                  accessibilityIgnoresInvertColors
-                />
+              <View style={styles.avatarGlow}>
+                <View style={styles.avatarRing}>
+                  <Image
+                    source={user?.profileImageUrl ? { uri: user.profileImageUrl } : AVATAR_IMAGE}
+                    style={styles.avatarImage}
+                    resizeMode="cover"
+                    accessibilityIgnoresInvertColors
+                  />
+                </View>
               </View>
               <Text style={styles.greeting} numberOfLines={2}>
                 Welcome back, {firstName}
@@ -163,8 +168,8 @@ const TalkToMirrorScreen: React.FC<Props> = ({ navigation }) => {
             {/* Figma 4326:2332 — talk button row (gap:16, stars flanking) */}
             <View style={styles.talkRow}>
               <StarIcon
-                width={moderateScale(20)}
-                height={moderateScale(20)}
+                width={moderateScale(fontSize.l)}
+                height={moderateScale(fontSize.l)}
                 color={palette.gold.DEFAULT}
               />
               <TouchableOpacity
@@ -175,7 +180,7 @@ const TalkToMirrorScreen: React.FC<Props> = ({ navigation }) => {
                 accessibilityLabel="Talk to Mirror"
               >
                 <LinearGradient
-                  colors={['rgba(253,253,249,0.01)', 'rgba(253,253,249,0)']}
+                  colors={[glassGradient.echoSecondary.start, glassGradient.echoSecondary.end]}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 0, y: 1 }}
                   style={StyleSheet.absoluteFill}
@@ -184,8 +189,8 @@ const TalkToMirrorScreen: React.FC<Props> = ({ navigation }) => {
                 <Text style={styles.talkText}>TALK TO MIRROR</Text>
               </TouchableOpacity>
               <StarIcon
-                width={moderateScale(20)}
-                height={moderateScale(20)}
+                width={moderateScale(fontSize.l)}
+                height={moderateScale(fontSize.l)}
                 color={palette.gold.DEFAULT}
               />
             </View>
@@ -226,6 +231,7 @@ const styles = StyleSheet.create<{
   scrollContent: ViewStyle;
   content: ViewStyle;
   greetingRow: ViewStyle;
+  avatarGlow: ViewStyle;
   avatarRing: ViewStyle;
   avatarImage: ImageStyle;
   greeting: TextStyle;
@@ -266,19 +272,27 @@ const styles = StyleSheet.create<{
     gap:           scale(spacing.m),
     width:         '100%',
   },
-  // Figma 4326:2303 — 50×50, border 1px gold, glow shadow
+  // Figma 4326:2303 — 50×50, gold border, glow (mirrors EchoVaultLibraryScreen avatar)
+  // Glow wrapper: shadow lives here — overflow:hidden on the ring would clip it
+  avatarGlow: {
+    width:         AVATAR_SIZE,
+    height:        AVATAR_SIZE,
+    borderRadius:  AVATAR_SIZE / 2,
+    boxShadow:     '0px 0px 10px 3px rgba(240, 212, 168, 0.3)',
+    shadowColor:   palette.gold.glow,
+    shadowOffset:  { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius:  10,
+    elevation:     6,
+  },
+  // Ring: overflow:hidden clips image to circle
   avatarRing: {
-    width:           AVATAR_SIZE,
-    height:          AVATAR_SIZE,
+    width:           '100%',
+    height:          '100%',
     borderRadius:    AVATAR_SIZE / 2,
     borderWidth:     borderWidth.regular,
     borderColor:     palette.gold.DEFAULT,
     overflow:        'hidden',
-    shadowColor:     palette.gold.glow,
-    shadowOffset:    { width: 0, height: 0 },
-    shadowOpacity:   0.6,
-    shadowRadius:    moderateScale(10),
-    elevation:       6,
     backgroundColor: palette.navy.deep,
   },
   avatarImage: {
@@ -288,14 +302,14 @@ const styles = StyleSheet.create<{
     top:      -moderateScale(3),
     left:     0,
   },
-  // Figma 4326:2305 — Cormorant Garamond Light Italic 28px, lh 1.3, white, glow
+  // Figma 4326:2305 — Cormorant Garamond Light Italic 28px (2xl), lh 1.3, white, glow
   greeting: {
     flexShrink:        1,
     width:             scale(210),             // Figma 4326:2304: w-[210px]
     fontFamily:        fontFamily.headingLightItalic,
     fontStyle:         'italic',
-    fontSize:          moderateScale(28),
-    lineHeight:        moderateScale(28) * 1.3,
+    fontSize:          moderateScale(fontSize['2xl']),
+    lineHeight:        moderateScale(fontSize['2xl']) * 1.3,
     fontWeight:        fontWeight.light,
     color:             palette.neutral.white,
     textAlign:         'center',
@@ -313,59 +327,57 @@ const styles = StyleSheet.create<{
     gap:           scale(spacing.m),
     width:         '100%',
   },
-  // Figma 4407:2755 — bordered pill, radius 16, padding 16h/12v, gradient bg
+  // Figma 4407:2755 — bordered pill, radius:m (16), padding 16h/12v, gradient bg
   talkButton: {
-    overflow:        'hidden',
-    borderRadius:    radius.m,                 // 16
-    borderWidth:     borderWidth.thin,         // 0.5
-    borderColor:     palette.navy.light,       // Border/Subtle #a3b3cc
+    overflow:          'hidden',
+    borderRadius:      radius.m,
+    borderWidth:       borderWidth.thin,
+    borderColor:       palette.navy.light,
     paddingHorizontal: scale(spacing.m),
     paddingVertical:   verticalScale(spacing.s),
-    backgroundColor: 'rgba(253,253,249,0.005)',// average of gradient stops
-    alignItems:      'center',
-    justifyContent:  'center',
+    backgroundColor:   palette.neutral.transparent,
+    alignItems:        'center',
+    justifyContent:    'center',
   },
-  // Figma I4407:2755;125:342 — Cormorant Regular 24px, lh 28, gold, warm glow
+  // Figma I4407:2755;125:342 — Cormorant Regular XL (24px), lh:l (28), gold, warm glow
   talkText: {
-    fontFamily:        fontFamily.heading,
-    fontSize:          moderateScale(24),
-    lineHeight:        moderateScale(28),
-    fontWeight:        fontWeight.regular,
-    color:             palette.gold.DEFAULT,
-    textAlign:         'center',
-    textTransform:     'uppercase',
-    textShadowColor:   textShadow.warmGlow.color,
-    textShadowOffset:  textShadow.warmGlow.offset,
-    textShadowRadius:  textShadow.warmGlow.radius,
+    fontFamily:       fontFamily.heading,
+    fontSize:         moderateScale(fontSize.xl),
+    lineHeight:       moderateScale(lineHeight.l),
+    fontWeight:       fontWeight.regular,
+    color:            palette.gold.DEFAULT,
+    textAlign:        'center',
+    textTransform:    'uppercase',
+    textShadowColor:  textShadow.warmGlow.color,
+    textShadowOffset: textShadow.warmGlow.offset,
+    textShadowRadius: textShadow.warmGlow.radius,
   },
 
   // ── Category row ─────────────────────────────────────────────────────────
-  // Figma 4326:2338 — horizontal scroll, gap 24
+  // Figma 4326:2338 — horizontal scroll, gap:xl (24)
   categoryScrollContent: {
-    gap:               scale(spacing.l),       // 24
+    gap:               scale(spacing.xl),
     paddingHorizontal: scale(spacing.xs),
     alignItems:        'center',
   },
-  // Figma 4326:2339 — flex-col gap:12 items-center
+  // Figma 4326:2339 — flex-col gap:s (12) items-center
   categoryCard: {
-    alignItems:    'center',
-    justifyContent:'center',
-    gap:           verticalScale(spacing.s),   // 12
+    alignItems:     'center',
+    justifyContent: 'center',
+    gap:            verticalScale(spacing.s),
   },
-  // Figma 4326:2340 — 100×100 SVG box. SVG already includes ring + content,
-  // so this is just a positional wrapper. No border/background/shadow on the
-  // wrapper — those are baked into the SVG.
+  // Figma 4326:2340 — 100×100 SVG box. SVG includes ring + content.
   categoryIconBox: {
-    width:        ICON_RING,
-    height:       ICON_RING,
-    alignItems:   'center',
+    width:          ICON_RING,
+    height:         ICON_RING,
+    alignItems:     'center',
     justifyContent: 'center',
   },
-  // Figma 4326:2343/2360/2382/2393 — Cormorant Regular 20px, lh 24, gold, center
+  // Figma 4326:2343/2360/2382/2393 — Cormorant Regular L (20px), lh:m (24), gold, center
   categoryLabel: {
     fontFamily:    fontFamily.heading,
-    fontSize:      moderateScale(20),
-    lineHeight:    moderateScale(24),
+    fontSize:      moderateScale(fontSize.l),
+    lineHeight:    moderateScale(lineHeight.m),
     fontWeight:    fontWeight.regular,
     color:         palette.gold.DEFAULT,
     textAlign:     'center',

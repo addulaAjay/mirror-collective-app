@@ -35,7 +35,9 @@ import BackgroundWrapper from '@components/BackgroundWrapper';
 import Button from '@components/Button/Button';
 import LogoHeader from '@components/LogoHeader';
 import { useSession } from '@context/SessionContext';
+import { authApiService } from '@services/api';
 import { getApiErrorMessage } from '@utils/apiErrorUtils';
+import { setPendingVerification } from '@utils/verificationState';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'TermsAndConditions'>;
 type ScreenRouteProp = RouteProp<RootStackParamList, 'TermsAndConditions'>;
@@ -230,15 +232,32 @@ const TermsAndConditionsScreen = () => {
             </TouchableOpacity>
 
             <Button
-              variant="secondary"
+              variant="primary"
               size="L"
               active={agreed && !isLoading}
               title={isLoading ? 'CREATING...' : 'CONTINUE'}
               onPress={async () => {
                 if (!agreed || isLoading) return;
                 setIsLoading(true);
+                const termsAcceptedAt = new Date().toISOString();
+                const goToVerify = () => {
+                  void setPendingVerification({
+                    email,
+                    fullName: fullName ?? null,
+                    termsAcceptedAt,
+                  });
+                  // Explicitly resend the verification code so it is reliably
+                  // delivered — Cognito does not always send a fresh code when
+                  // re-registering an unconfirmed account via sign_up.
+                  void authApiService.resendVerificationCode(email).catch(() => {});
+                  navigation.replace('VerifyEmail', {
+                    email,
+                    fullName,
+                    password,
+                    termsAcceptedAt,
+                  });
+                };
                 try {
-                  const termsAcceptedAt = new Date().toISOString();
                   await signUp(
                     fullName,
                     email,
@@ -249,20 +268,26 @@ const TermsAndConditionsScreen = () => {
                   Alert.alert(
                     t('auth.signup.alerts.welcomeTitle'),
                     t('auth.signup.alerts.welcomeMessage'),
-                    [
-                      {
-                        text: t('auth.validation.continue'),
-                        onPress: () =>
-                          navigation.navigate('VerifyEmail', {
-                            email,
-                            fullName,
-                            password,
-                            termsAcceptedAt,
-                          }),
-                      },
-                    ],
+                    [{ text: t('auth.validation.continue'), onPress: goToVerify }],
                   );
                 } catch (error: unknown) {
+                  const err = error as { statusCode?: number; errorCode?: string; message?: string };
+                  // USER_ALREADY_EXISTS (409) — email is registered (confirmed
+                  // or unconfirmed). Route to Login; LoginScreen handles the
+                  // unconfirmed case via UserNotConfirmedException → VerifyEmail.
+                  if (err.errorCode === 'USER_ALREADY_EXISTS' || err.statusCode === 409) {
+                    Alert.alert(
+                      t('auth.signup.alerts.failedTitle'),
+                      t('auth.signup.alerts.emailInUse'),
+                      [
+                        {
+                          text: t('auth.validation.continue'),
+                          onPress: () => navigation.navigate('Login'),
+                        },
+                      ],
+                    );
+                    return;
+                  }
                   Alert.alert(
                     t('auth.signup.alerts.failedTitle'),
                     getApiErrorMessage(error, t),
@@ -445,7 +470,10 @@ const styles = StyleSheet.create<{
   checkboxRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    width: '100%',
+    // Match the cardShadow container width above (scale(313)) and center,
+    // so the checkbox + label align flush with the card's left edge.
+    width: scale(313),
+    alignSelf: 'center',
   },
   checkboxBox: {
     width: scale(20),

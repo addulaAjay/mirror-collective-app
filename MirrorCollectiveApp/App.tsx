@@ -5,13 +5,13 @@ import 'react-native-url-polyfill/auto';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React, { useCallback, useEffect, useState } from 'react';
-import { StatusBar, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { ChatErrorBoundary } from '@components/error';
 import { SessionProvider, useSession } from '@context/SessionContext';
 import { SubscriptionProvider } from '@context/SubscriptionContext';
-import { UserProvider } from '@context/UserContext';
+import { UserProvider, useUser } from '@context/UserContext';
 import useAppStateHandler from '@hooks/useAppStateHandler';
 import useInactivityTimer from '@hooks/useInactivityTimer';
 // Import your screens
@@ -35,7 +35,6 @@ import NewEchoComposeScreen from '@screens/echoVault/NewEchoComposeScreen';
 import NewEchoScreen from '@screens/echoVault/NewEchoVaultScreen';
 import NewEchoVideoScreen from '@screens/echoVault/NewEchoVideoScreen';
 import EchoVaultStorageScreen from '@screens/EchoVaultStorageScreen';
-import EmailConfirmationScreen from '@screens/EmailConfirmationScreen';
 import EnterMirrorScreen from '@screens/EnterMirrorScreen';
 import FAQScreen from '@screens/FAQScreen';
 import ForgotPasswordScreen from '@screens/ForgotPasswordScreen';
@@ -43,6 +42,7 @@ import LoginScreen from '@screens/LoginScreen';
 import MirrorAnimationScreen from '@screens/MirrorAnimationScreen';
 import MirrorChatScreen from '@screens/MirrorChatScreen';
 import MirrorCodeLibraryCommingsoonScreen from '@screens/MirrorCodeLibraryCommingsoonScreen';
+import ReflectionRoomCommingsoonScreen from '@screens/ReflectionRoomCommingsoonScreen';
 import MirrorEchoCommingsoonScreen from '@screens/MirrorEchoCommingsoonScreen';
 import CausesCarouselScreen from '@screens/MirrorPledge/CausesCarouselScreen';
 import EchoLedgerScreen from '@screens/MirrorPledge/EchoLedgerScreen';
@@ -154,6 +154,7 @@ const AuthNavigator = () => (
       component={MirrorCodeLibraryCommingsoonScreen}
     />
     <Stack.Screen name="ReflectionRoom" component={ReflectionRoomLandingScreen} />
+    <Stack.Screen name="ReflectionRoomCommingsoon" component={ReflectionRoomCommingsoonScreen} />
     <Stack.Screen name="ReflectionRoomWelcome" component={ReflectionRoomWelcomeScreen} />
     <Stack.Screen name="ReflectionRoomQuizEntry" component={ReflectionRoomQuizEntryScreen} />
     <Stack.Screen name="ReflectionRoomQuiz" component={ReflectionRoomQuizScreen} />
@@ -185,10 +186,6 @@ const AuthNavigator = () => (
     <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
     <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
     <Stack.Screen name="VerifyEmail" component={VerifyEmailScreen} />
-    <Stack.Screen
-      name="EmailConfirmation"
-      component={EmailConfirmationScreen}
-    />
     {/* DEV-only: button showcase. Set initialRouteName="ButtonShowcase" above
         for an iOS dev session, or navigate('ButtonShowcase') from anywhere. */}
     {__DEV__ && ButtonShowcaseScreen && (
@@ -218,6 +215,7 @@ const AuthenticatedNavigator = ({ initialRouteName = 'EnterMirror' }: Authentica
     {/* Menu Screens */}
     <Stack.Screen name="MirrorCodeLibrary" component={MirrorCodeLibraryCommingsoonScreen} />
     <Stack.Screen name="ReflectionRoom" component={ReflectionRoomLandingScreen} />
+    <Stack.Screen name="ReflectionRoomCommingsoon" component={ReflectionRoomCommingsoonScreen} />
     <Stack.Screen name="ReflectionRoomWelcome" component={ReflectionRoomWelcomeScreen} />
     <Stack.Screen name="ReflectionRoomQuizEntry" component={ReflectionRoomQuizEntryScreen} />
     <Stack.Screen name="ReflectionRoomQuiz" component={ReflectionRoomQuizScreen} />
@@ -261,6 +259,7 @@ const AuthenticatedNavigator = ({ initialRouteName = 'EnterMirror' }: Authentica
 const AppNavigator = () => {
   const { state, signOut } = useSession();
   const { isAuthenticated } = state;
+  const { isUserLoading } = useUser();
   const [initialRoute, setInitialRoute] = useState<keyof RootStackParamList>('EnterMirror');
 
   const handleInactivityTimeout = useCallback(async () => {
@@ -297,15 +296,23 @@ const AppNavigator = () => {
       }}
     >
       {isAuthenticated ? (
-        <View
-          style={styles.fill}
-          onStartShouldSetResponderCapture={() => {
-            resetTimer();
-            return false; // Don't consume — let children handle the touch
-          }}
-        >
-          <AuthenticatedNavigator initialRouteName={initialRoute} />
-        </View>
+        isUserLoading ? (
+          // Block authenticated screens until the user profile (image, phone, etc.)
+          // is fully fetched so TalkToMirrorScreen never renders with user === null.
+          <View style={styles.loadingScreen}>
+            <ActivityIndicator size="large" color="#f2e2b1" />
+          </View>
+        ) : (
+          <View
+            style={styles.fill}
+            onStartShouldSetResponderCapture={() => {
+              resetTimer();
+              return false;
+            }}
+          >
+            <AuthenticatedNavigator initialRouteName={initialRoute} />
+          </View>
+        )
       ) : (
         <AuthNavigator />
       )}
@@ -315,6 +322,12 @@ const AppNavigator = () => {
 
 const styles = StyleSheet.create({
   fill: { flex: 1 },
+  loadingScreen: {
+    flex: 1,
+    backgroundColor: '#0b0f1c', // palette.navy.deep — no theme import needed here
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });
 
 const App = () => {

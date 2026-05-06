@@ -60,7 +60,9 @@ export interface Recipient {
   email: string;
   relationship?: string;
   motif?: string;
+  profile_image_url?: string;
   created_at: string;
+  has_shared_echoes?: boolean;
 }
 
 export interface CreateGuardianRequest {

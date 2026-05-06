@@ -119,18 +119,18 @@ const styles = StyleSheet.create<{
     textShadowRadius: textShadow.glowSubtle.radius,
   },
   imageContainer: {
-    width: scale(200),
-    height: verticalScale(278),
+    width: scale(240),
+    height: verticalScale(300),
     justifyContent: 'center',
     alignItems: 'center',
   },
   image: {
     width: '100%',
     height: '100%',
+    resizeMode: 'contain',
   },
   descriptionContainer: {
-    width: '100%',
-    maxWidth: scale(338),
+    alignSelf: 'stretch',
     alignItems: 'center',
   },
   description: {
