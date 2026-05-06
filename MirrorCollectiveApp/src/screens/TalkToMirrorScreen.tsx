@@ -62,9 +62,6 @@ interface Props {
   navigation: NativeStackNavigationProp<RootStackParamList, 'TalkToMirror'>;
 }
 
-// Raster avatar (the only PNG that didn't have a vector equivalent in Figma).
-const AVATAR_IMAGE = require('@assets/talk-to-mirror/user-avatar.png');
-
 // Sizing constants — referenced by both the screen markup and styles below.
 const AVATAR_SIZE = moderateScale(50);
 const MIRROR_W    = moderateScale(183);
@@ -149,12 +146,14 @@ const TalkToMirrorScreen: React.FC<Props> = ({ navigation }) => {
             <View style={styles.greetingRow}>
               <View style={styles.avatarGlow}>
                 <View style={styles.avatarRing}>
-                  <Image
-                    source={user?.profileImageUrl ? { uri: user.profileImageUrl } : AVATAR_IMAGE}
-                    style={styles.avatarImage}
-                    resizeMode="cover"
-                    accessibilityIgnoresInvertColors
-                  />
+                  {user?.profileImageUrl ? (
+                    <Image
+                      source={{ uri: user.profileImageUrl }}
+                      style={styles.avatarImage}
+                      resizeMode="cover"
+                      accessibilityIgnoresInvertColors
+                    />
+                  ) : null}
                 </View>
               </View>
               <Text style={styles.greeting} numberOfLines={2}>

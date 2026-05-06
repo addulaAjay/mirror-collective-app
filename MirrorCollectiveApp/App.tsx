@@ -11,7 +11,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ChatErrorBoundary } from '@components/error';
 import { SessionProvider, useSession } from '@context/SessionContext';
 import { SubscriptionProvider } from '@context/SubscriptionContext';
-import { UserProvider, useUser } from '@context/UserContext';
+import { UserProvider } from '@context/UserContext';
 import useAppStateHandler from '@hooks/useAppStateHandler';
 import useInactivityTimer from '@hooks/useInactivityTimer';
 // Import your screens
@@ -262,7 +262,6 @@ const AuthenticatedNavigator = ({ initialRouteName = 'EnterMirror' }: Authentica
 const AppNavigator = () => {
   const { state, signOut } = useSession();
   const { isAuthenticated } = state;
-  const { isUserLoading } = useUser();
   const [initialRoute, setInitialRoute] = useState<keyof RootStackParamList>('EnterMirror');
 
   const handleInactivityTimeout = useCallback(async () => {
@@ -299,23 +298,15 @@ const AppNavigator = () => {
       }}
     >
       {isAuthenticated ? (
-        isUserLoading ? (
-          // Block authenticated screens until the user profile (image, phone, etc.)
-          // is fully fetched so TalkToMirrorScreen never renders with user === null.
-          <View style={styles.loadingScreen}>
-            <ActivityIndicator size="large" color="#f2e2b1" />
-          </View>
-        ) : (
-          <View
-            style={styles.fill}
-            onStartShouldSetResponderCapture={() => {
-              resetTimer();
-              return false;
-            }}
-          >
-            <AuthenticatedNavigator initialRouteName={initialRoute} />
-          </View>
-        )
+        <View
+          style={styles.fill}
+          onStartShouldSetResponderCapture={() => {
+            resetTimer();
+            return false;
+          }}
+        >
+          <AuthenticatedNavigator initialRouteName={initialRoute} />
+        </View>
       ) : (
         <AuthNavigator />
       )}
