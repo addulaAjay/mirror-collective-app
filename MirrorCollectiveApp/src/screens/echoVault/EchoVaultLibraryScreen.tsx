@@ -149,27 +149,15 @@ export function EchoLibraryContent() {
   };
 
   return (
-    <BackgroundWrapper style={styles.bg} scrollable>
+    <BackgroundWrapper style={styles.bg}>
       <SafeAreaView style={styles.safe}>
         <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
         <LogoHeader navigation={navigation} />
 
-        {/*
-          Figma 211:1450 — outer column:
-          flex-col gap:40, h:762, left:24, top:48, w:345
-          gap between sections is 12 (1457) and 16 (title group 1441)
-        */}
-        <ScrollView
-          style={styles.scroll}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-        >
-          {/* ── Title + Subtitle ─────────────────────────────────────── */}
-          {/*
-            Figma 211:1223/1224 — items-center, gap:16
-            Title wrapper (243:1341): justify-center so title is centered.
-            Subtitle (211:1225): text-center Inter Regular 16/24.
-          */}
+        {/* Fixed outer column — does NOT scroll */}
+        <View style={styles.outerColumn}>
+
+          {/* ── Title + Subtitle — fixed ─────────────────────────────── */}
           <View style={styles.titleGroup}>
             <Text style={styles.title}>MY ECHO LIBRARY</Text>
             <Text style={styles.subtitle}>
@@ -177,8 +165,7 @@ export function EchoLibraryContent() {
             </Text>
           </View>
 
-          {/* ── Echo Inbox link ───────────────────────────────────────── */}
-          {/* Figma 1441:1943 — border-bottom 0.5px #a3b3cc, gap:16 */}
+          {/* ── Echo Inbox link — fixed ───────────────────────────────── */}
           <TouchableOpacity
             style={styles.inboxRow}
             onPress={() => navigation.navigate('EchoInboxScreen')}
@@ -190,11 +177,10 @@ export function EchoLibraryContent() {
               style={styles.mailIcon}
               resizeMode="contain"
             />
-            {/* Heading M: Cormorant Regular 28/32, #f2e1b0 */}
             <Text style={styles.inboxText}>Echo Inbox</Text>
           </TouchableOpacity>
 
-          {/* ── Content area — empty OR filled ───────────────────────── */}
+          {/* ── Content area — only THIS scrolls ─────────────────────── */}
           {loading ? (
             <View style={styles.stateBox}>
               <ActivityIndicator size="large" color={palette.gold.DEFAULT} />
@@ -207,11 +193,6 @@ export function EchoLibraryContent() {
               </TouchableOpacity>
             </View>
           ) : echoes.length === 0 ? (
-            /*
-              Empty state — Figma 211:1233: ONE single card, no outer wrapper.
-              border 0.5px #60739f (border-inverse-1), radius 16,
-              padding 20v/16h, gap 32, items-center, text-center.
-            */
             <View style={styles.emptyCard}>
               <Text style={styles.emptyCardTitle}>NO ECHOES YET.</Text>
               <Text style={styles.emptyCardBody}>
@@ -219,10 +200,6 @@ export function EchoLibraryContent() {
               </Text>
             </View>
           ) : (
-            /*
-              Filled state — Figma 211:1468: outer card with gradient bg,
-              border 0.25px #a3b3cc, tabs, then list rows.
-            */
             <View style={[styles.cardGlow, styles.cardGlowFlex]}>
               <LinearGradient
                 colors={['rgba(253,253,249,0.01)', 'rgba(253,253,249,0)']}
@@ -231,6 +208,7 @@ export function EchoLibraryContent() {
                 style={StyleSheet.absoluteFill}
                 pointerEvents="none"
               />
+              {/* Tabs — fixed inside card */}
               <View style={styles.tabs}>
                 {(['RECIPIENT', 'CATEGORY'] as const).map(tab => (
                   <TouchableOpacity
@@ -248,45 +226,48 @@ export function EchoLibraryContent() {
                   </TouchableOpacity>
                 ))}
               </View>
-              {echoes.map((item, index) => {
-                const isLast = index === echoes.length - 1;
-                const isLocked = !!item.scheduled_at;
-                const rightLabel = activeTab === 'RECIPIENT'
-                  ? (item.recipient?.name?.toUpperCase() || 'UNASSIGNED')
-                  : (item.category?.toUpperCase() || 'UNCATEGORIZED');
-                return (
-                  <TouchableOpacity
-                    key={item.echo_id}
-                    activeOpacity={0.9}
-                    onPress={() => handleOpenItem(item)}
-                    style={[styles.row, !isLast && styles.rowBorder]}
-                  >
-                    <View style={styles.rowLeft}>
-                      <EchoAvatar motif={item.recipient?.motif} profileImage={item.recipient?.profile_image_url} />
-                      <View style={styles.rowText}>
-                        <Text style={styles.rowTitle} numberOfLines={1}>{item.title}</Text>
-                        <Text style={styles.rowSub} numberOfLines={1}>
-                          {isLocked
-                            ? `Unlocks ${formatDate(item.scheduled_at!)}`
-                            : `Saved ${formatDate(item.created_at)}`}
-                        </Text>
+              {/* Echo rows — scrollable */}
+              <ScrollView
+                showsVerticalScrollIndicator={false}
+                style={styles.listScroll}
+                contentContainerStyle={styles.listScrollContent}
+              >
+                {echoes.map((item, index) => {
+                  const isLast = index === echoes.length - 1;
+                  const isLocked = !!item.scheduled_at;
+                  const rightLabel = activeTab === 'RECIPIENT'
+                    ? (item.recipient?.name?.toUpperCase() || 'UNASSIGNED')
+                    : (item.category?.toUpperCase() || 'UNCATEGORIZED');
+                  return (
+                    <TouchableOpacity
+                      key={item.echo_id}
+                      activeOpacity={0.9}
+                      onPress={() => handleOpenItem(item)}
+                      style={[styles.row, !isLast && styles.rowBorder]}
+                    >
+                      <View style={styles.rowLeft}>
+                        <EchoAvatar motif={item.recipient?.motif} profileImage={item.recipient?.profile_image_url} />
+                        <View style={styles.rowText}>
+                          <Text style={styles.rowTitle} numberOfLines={1}>{item.title}</Text>
+                          <Text style={styles.rowSub} numberOfLines={1}>
+                            {isLocked
+                              ? `Unlocks ${formatDate(item.scheduled_at!)}`
+                              : `Saved ${formatDate(item.created_at)}`}
+                          </Text>
+                        </View>
                       </View>
-                    </View>
-                    <View style={styles.rowRight}>
-                      <Text style={styles.rowLabel}>{rightLabel}</Text>
-                      {isLocked && <LockIcon />}
-                    </View>
-                  </TouchableOpacity>
-                );
-              })}
+                      <View style={styles.rowRight}>
+                        <Text style={styles.rowLabel}>{rightLabel}</Text>
+                        {isLocked && <LockIcon />}
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
             </View>
           )}
 
-          {/* ── Buttons ───────────────────────────────────────────────── */}
-          {/*
-            Empty state (211:1236): single "CREATE ECHO" button
-            Filled state (791:3866): "CREATE AN ECHO" + "MANAGE RECIPIENTS"
-          */}
+          {/* ── Buttons — fixed at bottom ─────────────────────────────── */}
           <View style={styles.btnGroup}>
             <Button
               variant="primary"
@@ -305,7 +286,8 @@ export function EchoLibraryContent() {
               />
             )}
           </View>
-        </ScrollView>
+
+        </View>
       </SafeAreaView>
     </BackgroundWrapper>
   );
@@ -321,8 +303,9 @@ export default function MirrorEchoVaultLibraryScreen() {
 const styles = StyleSheet.create<{
   bg: ViewStyle;
   safe: ViewStyle;
-  scroll: ViewStyle;
-  scrollContent: ViewStyle;
+  outerColumn: ViewStyle;
+  listScroll: ViewStyle;
+  listScrollContent: ViewStyle;
   titleGroup: ViewStyle;
   title: TextStyle;
   subtitle: TextStyle;
@@ -364,16 +347,17 @@ const styles = StyleSheet.create<{
   bg:   { flex: 1, backgroundColor: palette.navy.deep },
   safe: { flex: 1, backgroundColor: palette.neutral.transparent },
 
-  scroll: { flex: 1 },
-  // Figma 211:1221 outer column: gap-[30px] between LogoHeader and inner content
-  // Figma 211:1222 inner column: gap-[24px] between titleGroup / inboxRow / card / button
-  scrollContent: {
-    paddingHorizontal: scale(spacing.xl),        // 24px — Figma left:24
-    paddingTop:        verticalScale(30),         // 30px — Figma outer gap-[30px]
-    paddingBottom:     verticalScale(spacing.xxxl),
-    gap:               verticalScale(spacing.xl), // 24px — Figma inner gap-[24px]
-    flexGrow:          1,
+  // Fixed outer column — page does not scroll; only the echo list inside scrolls
+  outerColumn: {
+    flex:              1,
+    paddingHorizontal: scale(spacing.xl),        // 24px
+    paddingTop:        verticalScale(30),
+    paddingBottom:     verticalScale(spacing.xl),
+    gap:               verticalScale(spacing.xl), // 24px between sections
   },
+  // Inner ScrollView — only the echo rows scroll
+  listScroll: { flex: 1 },
+  listScrollContent: { flexGrow: 1 },
 
   // ── Title + Subtitle ───────────────────────────────────────────────────────
   // Figma 211:1223 — flex-col gap:16, items-center

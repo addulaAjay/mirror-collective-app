@@ -61,7 +61,7 @@ const PRIMARY_ITEMS = [
 // Figma node 2336:3816 — secondary items, no dividers
 const SECONDARY_ITEMS = [
   { label: 'Profile',      route: 'Profile' },
-  { label: 'Subscription', route: 'Subscription' },
+  //{ label: 'Subscription', route: 'Subscription' },
   { label: 'About Us',     route: 'About' },
   { label: 'FAQ',          route: 'FAQ' },
 ] as const;

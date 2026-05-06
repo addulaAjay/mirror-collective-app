@@ -192,7 +192,7 @@ const ManageRecipientScreen: React.FC<Props> = ({ navigation }) => {
           {/* Add Recipient button */}
           <View style={styles.addButtonWrap}>
             <Button
-              variant="secondary"
+              variant="primary"
               size="L"
               title="ADD RECIPIENT"
               onPress={() => navigation.navigate('AddNewProfileScreen')}
