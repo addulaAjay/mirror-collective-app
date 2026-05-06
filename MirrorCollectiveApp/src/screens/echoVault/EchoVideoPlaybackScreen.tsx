@@ -1,5 +1,9 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { palette, textShadow } from '@theme';
+import {
+  palette, fontFamily, fontSize, fontWeight, lineHeight,
+  spacing, radius, borderWidth, textShadow,
+  scale, verticalScale, moderateScale,
+} from '@theme';
 import { RootStackParamList } from '@types';
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import {
@@ -20,6 +24,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Video, { VideoRef } from 'react-native-video';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
+import Button from '@components/Button';
 import LogoHeader from '@components/LogoHeader';
 import { echoApiService, EchoResponse } from '@services/api/echo';
 
@@ -211,7 +216,7 @@ const EchoVideoPlaybackScreen: React.FC<Props> = ({ navigation, route }) => {
         {/* Bottom actions */}
         <View style={[styles.actionsRow, { width: contentWidth }]}>
           <ActionIconButton icon={require('@assets/download.png')} onPress={handleDownload} />
-          <ActionPrimaryButton label={vaulting ? 'SAVING...' : 'VAULT'} onPress={handleVault} />
+          <Button variant="primary" size="L" title={vaulting ? 'SAVING...' : 'VAULT'} onPress={handleVault} style={styles.vaultBtn} />
           {!isRecipient && (
             <ActionIconButton icon={require('@assets/edit-icon.png')} onPress={handleEdit} />
           )}
@@ -238,18 +243,6 @@ const ActionIconButton = ({ icon, onPress }: { icon: ReturnType<typeof require>;
   </TouchableOpacity>
 );
 
-const ActionPrimaryButton = ({ label, onPress }: { label: string; onPress: () => void }) => (
-  <TouchableOpacity activeOpacity={0.9} onPress={onPress}>
-    <LinearGradient
-      colors={['rgba(253,253,249,0.04)', 'rgba(253,253,249,0.01)']}
-      start={{ x: 0.5, y: 0 }}
-      end={{ x: 0.5, y: 1 }}
-      style={styles.primaryBtnShell}
-    >
-      <Text style={styles.primaryBtnText}>{label}</Text>
-    </LinearGradient>
-  </TouchableOpacity>
-);
 
 /* ---------- Styles ---------- */
 
@@ -358,41 +351,31 @@ const styles = StyleSheet.create({
 
   /* Actions */
   actionsRow: {
-    marginTop: 18,
+    marginTop: verticalScale(spacing.m),
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: scale(spacing.xl),   // Figma: gap 24px
     justifyContent: 'center',
-    paddingBottom: 18,
+    paddingBottom: verticalScale(spacing.m),
   },
+  // Same padding as Button size="L" so icon buttons match VAULT height
   iconBtnShell: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    borderWidth: 0.5,
+    paddingVertical: verticalScale(spacing.s),
+    paddingHorizontal: scale(spacing.m),
+    borderRadius: radius.s,
+    borderWidth: borderWidth.thin,
     borderColor: palette.navy.light,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: 'rgba(253,253,249,0.03)',
   },
-  iconBtnImg: { width: 22, height: 22, tintColor: GOLD },
-
-  primaryBtnShell: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    borderWidth: 0.5,
-    borderColor: palette.navy.light,
-    alignItems: 'center',
-    justifyContent: 'center',
+  iconBtnImg: {
+    width: scale(24),
+    height: scale(24),
+    tintColor: palette.gold.DEFAULT,
   },
-  primaryBtnText: {
-    color: GOLD,
-    fontSize: 18,
-    letterSpacing: 1.4,
-    fontFamily: Platform.select({
-      ios: 'CormorantGaramond-Regular',
-      android: 'serif',
-    }),
+  vaultBtn: {
+    minWidth: scale(110),
   },
   
   playOverlay: {
