@@ -937,11 +937,10 @@ const styles = StyleSheet.create({
     paddingVertical: verticalScale(spacing.xs),
     width: '100%',
   },
-  // Figma 211:1271 — outer video container
-  // border/subtler (#bfc7d9), bg/surface-active rgba(197,158,95,0.05),
-  // shadow 0px 0px 12px rgba(229,214,176,0.3) = the gold container glow
+  // Figma 211:1271 — outer video container with gold glow
   bigBoxShell: {
     width: '100%',
+    height: Math.min(520, Math.max(420, W * 1.3)) + scale(spacing.xs) * 2,
     borderRadius: radius.xxs,
     borderWidth: 0.2,
     borderColor: '#bfc7d9',
@@ -953,24 +952,23 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 12,
   },
-  // Figma 211:1272 — inner camera viewport
-  // bg/surface rgba(163,179,204,0.05), border/inverse #1a2238, items-end justify-center
+  // Figma 211:1272 — inner camera viewport; flex:1 fills bigBoxShell minus padding
   bigBoxInnerBorder: {
+    flex: 1,
     borderRadius: radius.xxs,
     borderWidth: borderWidth.thin,
     borderColor: palette.navy.DEFAULT,
     backgroundColor: 'rgba(163,179,204,0.05)',
-    height: Math.min(520, Math.max(420, W * 1.3)),
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    paddingBottom: verticalScale(spacing.m),
-  },
-  videoBigBox: {
     overflow: 'hidden',
   },
-  // bigBoxInnerBorder uses justifyContent:'flex-end' so no absolute positioning needed
+  videoBigBox: {},
   videoOverlayBtn: {
+    position: 'absolute',
+    bottom: verticalScale(spacing.m),
+    left: 0,
+    right: 0,
     alignItems: 'center',
+    zIndex: 10,
   },
   bigTextInput: {
     flex: 1,
@@ -1062,10 +1060,6 @@ const styles = StyleSheet.create({
 
   videoPreviewPlaceholder: {
     flex: 1,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: 'rgba(253,253,249,0.10)',
-    backgroundColor: 'rgba(253,253,249,0.03)',
     alignItems: 'center',
     justifyContent: 'center',
   },
