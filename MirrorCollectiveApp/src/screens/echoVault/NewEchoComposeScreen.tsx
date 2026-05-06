@@ -615,12 +615,7 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
           )}
           {mode === 'video' && (
             <>
-              <LinearGradient
-                colors={['rgba(253,253,249,0.08)', 'rgba(253,253,249,0.03)']}
-                start={{ x: 0.5, y: 0 }}
-                end={{ x: 0.5, y: 1 }}
-                style={styles.bigBoxShell}
-              >
+              <View style={styles.bigBoxShell}>
                 <View style={[styles.bigBoxInnerBorder, styles.videoBigBox]}>
                   {mediaUri && mediaFile ? (
                     <>
@@ -713,7 +708,7 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
                     </TouchableOpacity>
                   )}
                 </View>
-              </LinearGradient>
+              </View>
 
               <View style={styles.bottomButtonsRow}>
                 <Button variant="primary" size="L" title="UPLOAD" onPress={onUpload} />
@@ -942,32 +937,40 @@ const styles = StyleSheet.create({
     paddingVertical: verticalScale(spacing.xs),
     width: '100%',
   },
+  // Figma 211:1271 — outer video container
+  // border/subtler (#bfc7d9), bg/surface-active rgba(197,158,95,0.05),
+  // shadow 0px 0px 12px rgba(229,214,176,0.3) = the gold container glow
   bigBoxShell: {
     width: '100%',
-    borderRadius: radius.m,
-    borderWidth: borderWidth.thin,
-    borderColor: palette.navy.light,
+    borderRadius: radius.xxs,
+    borderWidth: 0.2,
+    borderColor: '#bfc7d9',
+    backgroundColor: 'rgba(197,158,95,0.05)',
+    padding: scale(spacing.xs),
+    boxShadow: '0px 0px 12px 0px rgba(229,214,176,0.3)',
+    shadowColor: '#e5d6b0',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
   },
+  // Figma 211:1272 — inner camera viewport
+  // bg/surface rgba(163,179,204,0.05), border/inverse #1a2238, items-end justify-center
   bigBoxInnerBorder: {
-    borderRadius: radius.s,
+    borderRadius: radius.xxs,
     borderWidth: borderWidth.thin,
-    borderColor: SURFACE_BORDER,
-    backgroundColor: 'rgba(7,9,14,0.35)',
-    paddingHorizontal: scale(spacing.m),
-    paddingVertical: verticalScale(spacing.s),
+    borderColor: palette.navy.DEFAULT,
+    backgroundColor: 'rgba(163,179,204,0.05)',
     height: Math.min(520, Math.max(420, W * 1.3)),
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    paddingBottom: verticalScale(spacing.m),
   },
   videoBigBox: {
-    padding: 10,
     overflow: 'hidden',
   },
+  // bigBoxInnerBorder uses justifyContent:'flex-end' so no absolute positioning needed
   videoOverlayBtn: {
-    position: 'absolute',
-    bottom: 20,
-    left: 0,
-    right: 0,
     alignItems: 'center',
-    zIndex: 10,
   },
   bigTextInput: {
     flex: 1,
