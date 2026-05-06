@@ -221,37 +221,44 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
                 {/* Inline recipient list */}
                 {dropdownOpen && (
                   <View style={styles.dropdownList}>
-                    {loading ? (
-                      <View style={styles.listState}>
-                        <ActivityIndicator size="small" color={palette.gold.DEFAULT} />
-                      </View>
-                    ) : recipients.length === 0 ? (
-                      <View style={styles.listState}>
-                        <Text style={styles.emptyText}>No recipients yet</Text>
-                      </View>
-                    ) : (
-                      recipients.map((r, idx) => {
-                        const isLast = idx === recipients.length - 1;
-                        return (
-                          <TouchableOpacity
-                            key={r.recipient_id}
-                            style={[styles.dropdownOption, isLast && styles.dropdownOptionLast]}
-                            activeOpacity={0.85}
-                            onPress={() => { setSelectedRecipient(r); setDropdownOpen(false); }}
-                          >
-                            <Text style={styles.optionName}>{r.name}</Text>
-                            <Text style={styles.optionEmail}>{r.email}</Text>
-                          </TouchableOpacity>
-                        );
-                      })
-                    )}
-                    <TouchableOpacity
-                      style={styles.addNewRow}
-                      activeOpacity={0.85}
-                      onPress={() => { setDropdownOpen(false); navigation.navigate('AddNewProfileScreen'); }}
+                    <ScrollView
+                      nestedScrollEnabled
+                      showsVerticalScrollIndicator={false}
+                      keyboardShouldPersistTaps="handled"
+                      bounces={false}
                     >
-                      <Text style={styles.addNewText}>+ Add New Recipient</Text>
-                    </TouchableOpacity>
+                      {loading ? (
+                        <View style={styles.listState}>
+                          <ActivityIndicator size="small" color={palette.gold.DEFAULT} />
+                        </View>
+                      ) : recipients.length === 0 ? (
+                        <View style={styles.listState}>
+                          <Text style={styles.emptyText}>No recipients yet</Text>
+                        </View>
+                      ) : (
+                        recipients.map((r, idx) => {
+                          const isLast = idx === recipients.length - 1;
+                          return (
+                            <TouchableOpacity
+                              key={r.recipient_id}
+                              style={[styles.dropdownOption, isLast && styles.dropdownOptionLast]}
+                              activeOpacity={0.85}
+                              onPress={() => { setSelectedRecipient(r); setDropdownOpen(false); }}
+                            >
+                              <Text style={styles.optionName}>{r.name}</Text>
+                              <Text style={styles.optionEmail}>{r.email}</Text>
+                            </TouchableOpacity>
+                          );
+                        })
+                      )}
+                      <TouchableOpacity
+                        style={styles.addNewRow}
+                        activeOpacity={0.85}
+                        onPress={() => { setDropdownOpen(false); navigation.navigate('AddNewProfileScreen'); }}
+                      >
+                        <Text style={styles.addNewText}>+ Add New Recipient</Text>
+                      </TouchableOpacity>
+                    </ScrollView>
                   </View>
                 )}
               </View>
@@ -448,7 +455,7 @@ const styles = StyleSheet.create<{
     zIndex:   -1,
   },
 
-  // Inline list
+  // Inline list — ScrollView inside handles overflow; maxHeight caps visible area
   dropdownList: {
     width:       '100%',
     borderWidth: borderWidth.hairline,
@@ -457,7 +464,7 @@ const styles = StyleSheet.create<{
     borderBottomLeftRadius:  8,
     borderBottomRightRadius: 8,
     overflow: 'hidden',
-    maxHeight: verticalScale(220),
+    maxHeight: verticalScale(260),   // fits ~3 items + Add New without clipping
   },
   dropdownOption: {
     backgroundColor:   'rgba(253,253,249,0.05)',
