@@ -588,11 +588,11 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
                   </View>
                 </View>
               ) : (
-                <>
+                <View style={styles.audioBody}>
                   <View style={styles.audioWaveWrap}>
                     <Waveform />
                   </View>
-                  <View style={styles.centerIconWrap}>
+                  <View style={styles.micRow}>
                     <TouchableOpacity onPress={toggleAudioRecording}>
                       <CircleIcon
                         icon={
@@ -604,7 +604,7 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
                       />
                     </TouchableOpacity>
                   </View>
-                </>
+                </View>
               )}
 
               <View style={styles.bottomButtonsRow}>
@@ -783,10 +783,10 @@ const CircleIcon = ({ label, icon, fullSize }: { label?: string; icon?: any; ful
           <Image
             source={icon}
             style={fullSize
-              ? { width: 72, height: 72, borderRadius: 36 }
-              : { width: 24, height: 24, tintColor: 'rgba(215,192,138,0.92)' }
+              ? { width: scale(80), height: scale(80), borderRadius: scale(40) }
+              : { width: scale(40), height: scale(40), tintColor: palette.gold.DEFAULT }
             }
-            resizeMode="cover"
+            resizeMode="contain"
           />
         ) : (
           <Text style={styles.circleIcon}>{label}</Text>
@@ -981,18 +981,30 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
 
+  // Audio idle state layout — waveform fills space, mic pinned to bottom
+  audioBody: {
+    flex: 1,
+    width: '100%',
+    justifyContent: 'space-between',
+  },
   audioWaveWrap: {
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'stretch',
-    paddingTop: 14,
+    paddingHorizontal: scale(spacing.m),
   },
+  micRow: {
+    height: verticalScale(88),
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: scale(spacing.l),
+  },
+
   waveContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 16,
+    paddingHorizontal: scale(spacing.s),
+    paddingVertical: verticalScale(spacing.m),
   },
   waveRow: {
     flexDirection: 'row',
@@ -1004,41 +1016,29 @@ const styles = StyleSheet.create({
   waveBar: {
     flex: 1,
     borderRadius: 2,
-    backgroundColor: 'rgba(253,253,249,0.92)',
+    backgroundColor: palette.neutral.white,
   },
 
-  centerIconWrap: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 24,
-  },
   circleGlow: {
     alignItems: 'center',
     justifyContent: 'center',
   },
+  // Figma 211:1391 — 88px circle (40px icon + 24px padding each side)
+  // glow: 0px 0px 24px 0px rgba(242,226,177,0.5), border 0.2px navy.light
   circleOuter: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+    width: scale(88),
+    height: scale(88),
+    borderRadius: radius.full,
     borderWidth: 0.2,
-    borderColor: palette.navy.muted,
-    backgroundColor: 'rgba(242, 226, 177, 0.06)',
+    borderColor: palette.navy.light,
+    backgroundColor: 'rgba(253,253,249,0.01)',
     alignItems: 'center',
     justifyContent: 'center',
-    ...Platform.select({
-      ios: {
-        // iOS uses shadowColor for blur glow
-        shadowColor: palette.gold.DEFAULT,
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.5,
-        shadowRadius: 24,
-        elevation: 5,
-      },
-      android: {
-        // RN 0.76+ boxShadow â€” respects borderRadius, no octagon artifact
-        boxShadow: '0px 0px 24px 8px rgba(242, 226, 177, 0.50)',
-      },
-    }),
+    boxShadow: '0px 0px 24px 0px rgba(242,226,177,0.5)',
+    shadowColor: palette.gold.DEFAULT,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 24,
   },
   circleIcon: {
     color: 'rgba(215,192,138,0.92)',
