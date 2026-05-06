@@ -134,7 +134,7 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
   };
 
   return (
-    <BackgroundWrapper style={styles.bg} scrollable>
+    <BackgroundWrapper style={styles.bg}>
       <SafeAreaView style={styles.safe}>
         <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
         <LogoHeader navigation={navigation} />
@@ -148,6 +148,7 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="on-drag"
           >
             <View style={styles.content}>
 
