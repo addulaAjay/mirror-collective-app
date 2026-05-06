@@ -44,7 +44,7 @@ const SURFACE_BORDER = 'rgba(253, 253, 249, 0.18)';
 
 const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
   const mode = route.params?.mode ?? 'text';
-  const { recipientName, title, category, hasRecipient, recipientId, guardianId, lockDate, unlockOnDeath } = route.params || {};
+  const { recipientName, title, category, recipientId, guardianId, lockDate, unlockOnDeath } = route.params || {};
 
   const [message, setMessage] = useState('');
   const [showUploadSheet, setShowUploadSheet] = useState(false);
@@ -530,8 +530,8 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
               </View>
 
               <View style={styles.bottomButtonsRow}>
-                <Button variant="secondary" size="L" title="UPLOAD" onPress={onUpload} />
-                <Button variant="secondary" size="L" title={isSaving ? 'SAVING...' : 'SAVE'} onPress={onSave} disabled={isSaving} />
+                <Button variant="secondary" size="L" title="UPLOAD" onPress={onUpload} style={styles.halfBtn} />
+                <Button variant="secondary" size="L" title={isSaving ? 'SAVING...' : 'SAVE'} onPress={onSave} disabled={isSaving} style={styles.halfBtn} />
               </View>
             </>
           )}
@@ -609,8 +609,8 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
               )}
 
               <View style={styles.bottomButtonsRow}>
-                <Button variant="secondary" size="L" title="UPLOAD" onPress={onUpload} />
-                <Button variant="secondary" size="L" title={isSaving ? 'SAVING...' : 'SAVE'} onPress={onSave} disabled={isSaving} />
+                <Button variant="secondary" size="L" title="UPLOAD" onPress={onUpload} style={styles.halfBtn} />
+                <Button variant="secondary" size="L" title={isSaving ? 'SAVING...' : 'SAVE'} onPress={onSave} disabled={isSaving} style={styles.halfBtn} />
               </View>
             </>
           )}
@@ -717,8 +717,8 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
               </LinearGradient>
 
               <View style={styles.bottomButtonsRow}>
-                <Button variant="secondary" size="L" title="UPLOAD" onPress={onUpload} />
-                <Button variant="secondary" size="L" title={isSaving ? 'SAVING...' : 'SAVE'} onPress={onSave} disabled={isSaving} />
+                <Button variant="secondary" size="L" title="UPLOAD" onPress={onUpload} style={styles.halfBtn} />
+                <Button variant="secondary" size="L" title={isSaving ? 'SAVING...' : 'SAVE'} onPress={onSave} disabled={isSaving} style={styles.halfBtn} />
               </View>
             </>
           )}
@@ -974,9 +974,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginTop: verticalScale(spacing.m),
     marginBottom: verticalScale(spacing.m),
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignSelf: 'stretch',
     gap: scale(spacing.m),
+  },
+  halfBtn: {
+    flex: 1,
   },
   disabled: {
     opacity: 0.5,
