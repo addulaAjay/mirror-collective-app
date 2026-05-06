@@ -1,5 +1,13 @@
+import {
+  displayMotifUpper,
+  LANDING,
+} from '@features/reflection-room/copy/strings';
+import { useJourney } from '@features/reflection-room/state/JourneyContext';
+import type { MotifId } from '@features/reflection-room/types/ids';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { glassGradient, palette, radius, spacing, theme } from '@theme';
+import type { RootStackParamList } from '@types';
 import React from 'react';
 import {
   Dimensions,
@@ -16,14 +24,6 @@ import { SvgXml } from 'react-native-svg';
 import { MOTIF_SVG } from '@assets/motifs-icons/MotifIconAssets';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
-import {
-  displayMotifUpper,
-  LANDING,
-} from '@features/reflection-room/copy/strings';
-import { useJourney } from '@features/reflection-room/state/JourneyContext';
-import type { MotifId } from '@features/reflection-room/types/ids';
-import { glassGradient, palette, radius, spacing, theme } from '@theme';
-import type { RootStackParamList } from '@types';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('screen');
 

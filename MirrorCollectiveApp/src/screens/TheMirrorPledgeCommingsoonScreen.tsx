@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   palette,
   fontFamily,
@@ -11,6 +10,7 @@ import {
   textShadow,
   spacing,
 } from '@theme';
+import React from 'react';
 import {
   StyleSheet,
   Text,
