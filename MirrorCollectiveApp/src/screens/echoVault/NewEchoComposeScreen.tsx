@@ -1,5 +1,9 @@
 ﻿import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { palette, textShadow } from '@theme';
+import {
+  palette, fontFamily, fontSize, fontWeight, lineHeight,
+  spacing, radius, borderWidth, textShadow,
+  scale, verticalScale, moderateScale,
+} from '@theme';
 import { RootStackParamList } from '@types';
 import React, { useState, useMemo } from 'react';
 import {
@@ -27,6 +31,7 @@ import Video from 'react-native-video';
 import { Camera, useCameraDevice, useCameraPermission, useMicrophonePermission } from 'react-native-vision-camera';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
+import Button from '@components/Button';
 import LogoHeader from '@components/LogoHeader';
 import StarIcon from '@components/StarIcon';
 import { echoApiService } from '@services/api';
@@ -35,10 +40,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'NewEchoComposeScreen'>;
 
 const { width: W } = Dimensions.get('window');
 
-const GOLD = palette.gold.mid;
-const OFFWHITE = 'rgba(253, 253, 249, 0.92)';
 const SURFACE_BORDER = 'rgba(253, 253, 249, 0.18)';
-const SURFACE_BORDER_2 = 'rgba(253, 253, 249, 0.08)';
 
 const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
   const mode = route.params?.mode ?? 'text';
@@ -519,7 +521,7 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
                     value={message}
                     onChangeText={setMessage}
                     placeholder="Write message here"
-                    placeholderTextColor={palette.navy.medium}
+                    placeholderTextColor={palette.navy.light}
                     style={styles.bigTextInput}
                     multiline
                     textAlignVertical="top"
@@ -528,27 +530,8 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
               </View>
 
               <View style={styles.bottomButtonsRow}>
-                <SmallPillButton label="Upload File" onPress={onUpload} />
-                <TouchableOpacity
-                  activeOpacity={0.85}
-                  style={[styles.saveWrap, isSaving && styles.disabled]}
-                  onPress={onSave}
-                  disabled={isSaving}
-                >
-                  <LinearGradient
-                    colors={[
-                      'rgba(253,253,249,0.04)',
-                      'rgba(253,253,249,0.01)',
-                    ]}
-                    start={{ x: 0.5, y: 0 }}
-                    end={{ x: 0.5, y: 1 }}
-                    style={styles.saveGradient}
-                  >
-                    <Text style={styles.saveActionText}>
-                      {isSaving ? 'SAVING...' : 'SAVE'}
-                    </Text>
-                  </LinearGradient>
-                </TouchableOpacity>
+                <Button variant="secondary" size="L" title="UPLOAD" onPress={onUpload} />
+                <Button variant="secondary" size="L" title={isSaving ? 'SAVING...' : 'SAVE'} onPress={onSave} disabled={isSaving} />
               </View>
             </>
           )}
@@ -626,27 +609,8 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
               )}
 
               <View style={styles.bottomButtonsRow}>
-                <SmallPillButton label="Upload File" onPress={onUpload} />
-                <TouchableOpacity
-                  activeOpacity={0.85}
-                  style={[styles.saveWrap, isSaving && styles.disabled]}
-                  onPress={onSave}
-                  disabled={isSaving}
-                >
-                  <LinearGradient
-                    colors={[
-                      'rgba(253,253,249,0.04)',
-                      'rgba(253,253,249,0.01)',
-                    ]}
-                    start={{ x: 0.5, y: 0 }}
-                    end={{ x: 0.5, y: 1 }}
-                    style={styles.saveGradient}
-                  >
-                    <Text style={styles.saveActionText}>
-                      {isSaving ? 'SAVING...' : 'SAVE'}
-                    </Text>
-                  </LinearGradient>
-                </TouchableOpacity>
+                <Button variant="secondary" size="L" title="UPLOAD" onPress={onUpload} />
+                <Button variant="secondary" size="L" title={isSaving ? 'SAVING...' : 'SAVE'} onPress={onSave} disabled={isSaving} />
               </View>
             </>
           )}
@@ -753,27 +717,8 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
               </LinearGradient>
 
               <View style={styles.bottomButtonsRow}>
-                <SmallPillButton label="Upload File" onPress={onUpload} />
-                <TouchableOpacity
-                  activeOpacity={0.85}
-                  style={[styles.saveWrap, isSaving && styles.disabled]}
-                  onPress={onSave}
-                  disabled={isSaving}
-                >
-                  <LinearGradient
-                    colors={[
-                      'rgba(253,253,249,0.04)',
-                      'rgba(253,253,249,0.01)',
-                    ]}
-                    start={{ x: 0.5, y: 0 }}
-                    end={{ x: 0.5, y: 1 }}
-                    style={styles.saveGradient}
-                  >
-                    <Text style={styles.saveActionText}>
-                      {isSaving ? 'SAVING...' : 'SAVE'}
-                    </Text>
-                  </LinearGradient>
-                </TouchableOpacity>
+                <Button variant="secondary" size="L" title="UPLOAD" onPress={onUpload} />
+                <Button variant="secondary" size="L" title={isSaving ? 'SAVING...' : 'SAVE'} onPress={onSave} disabled={isSaving} />
               </View>
             </>
           )}
@@ -830,27 +775,6 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
 };
 
 /** ---------- Small UI bits (pure RN, no extra deps) ---------- */
-
-const SmallPillButton = ({
-  label,
-  onPress,
-}: {
-  label: string;
-  onPress: () => void;
-}) => {
-  return (
-    <TouchableOpacity activeOpacity={0.9} onPress={onPress} style={{}}>
-      <LinearGradient
-        colors={['rgba(253,253,249,0.03)', 'rgba(253,253,249,0.20)']}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
-        style={styles.pillShell}
-      >
-        <Text style={styles.pillText}>{label}</Text>
-      </LinearGradient>
-    </TouchableOpacity>
-  );
-};
 
 const CircleIcon = ({ label, icon, fullSize }: { label?: string; icon?: any; fullSize?: boolean }) => {
   return (
@@ -915,7 +839,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  iconText: { color: OFFWHITE, fontSize: 24, opacity: 0.9 },
+  iconText: { color: palette.neutral.white, fontSize: 24, opacity: 0.9 },
 
   brandWrap: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   logoCircle: {
@@ -928,7 +852,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: 'rgba(215,192,138,0.10)',
   },
-  logoMark: { color: GOLD, fontSize: 16 },
+  logoMark: { color: palette.gold.DEFAULT, fontSize: 16 },
   brandTextWrap: { alignItems: 'center' },
   brandTop: {
     color: 'rgba(215,192,138,0.85)',
@@ -945,37 +869,39 @@ const styles = StyleSheet.create({
   headerRightSpacer: { width: 44, height: 44 },
 
   titleRow: {
-    marginTop: 20,
+    marginTop: verticalScale(spacing.m),
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
   backBtn: {
-    width: 44,
-    height: 44,
+    width: scale(44),
+    height: scale(44),
     justifyContent: 'center',
     alignItems: 'flex-start',
   },
   backIcon: {
-    color: 'rgba(215,192,138,0.9)',
-    fontSize: 30,
+    color: palette.gold.DEFAULT,
+    fontSize: moderateScale(fontSize.xl),
     marginLeft: 2,
   },
   backArrowImg: {
-    width: 20,
-    height: 20,
-    tintColor: 'rgba(215,192,138,0.9)',
+    width: scale(20),
+    height: scale(20),
+    tintColor: palette.gold.DEFAULT,
   },
   screenTitle: {
-    color: 'rgba(215,192,138,0.92)',
-    fontSize: 28,
-    letterSpacing: 2,
-    fontFamily: Platform.select({
-      ios: 'CormorantGaramond-Regular',
-      android: 'serif',
-    }),
+    fontFamily: fontFamily.heading,
+    fontSize: moderateScale(fontSize['2xl']),
+    fontWeight: fontWeight.regular,
+    lineHeight: lineHeight.xl,
+    color: palette.gold.DEFAULT,
+    textAlign: 'center',
+    textShadowColor: textShadow.glowSubtle.color,
+    textShadowOffset: textShadow.glowSubtle.offset,
+    textShadowRadius: textShadow.glowSubtle.radius,
   },
-  titleRightSpacer: { width: 44, height: 44 },
+  titleRightSpacer: { width: scale(44), height: scale(44) },
 
   content: {
     width: '100%',
@@ -985,47 +911,42 @@ const styles = StyleSheet.create({
   },
 
   smallLabel: {
-    color: palette.gold.DEFAULT,
-    fontFamily: Platform.select({
-      ios: 'CormorantGaramond-Medium',
-      android: 'serif',
-    }),
-    fontSize: 20,
-    fontStyle: 'normal',
-    fontWeight: '500',
-    lineHeight: 26,
-    marginBottom: 8,
-    marginLeft: 4,
+    fontFamily: fontFamily.headingMedium,
+    fontSize: moderateScale(fontSize.l),
+    fontWeight: fontWeight.medium,
+    lineHeight: lineHeight.m,
+    color: palette.gold.subtlest,
+    marginBottom: verticalScale(spacing.xs),
+    marginLeft: scale(spacing.xxs),
   },
   textInputShell: {
     flex: 1,
-    borderRadius: 12,
-    borderWidth: 0.5,
+    borderRadius: radius.s,
+    borderWidth: borderWidth.thin,
     borderColor: palette.navy.light,
-    minHeight: 120,
+    minHeight: scale(120),
     overflow: 'hidden',
     width: '100%',
   },
   textInputGradient: {
     flex: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingHorizontal: scale(spacing.m),
+    paddingVertical: verticalScale(spacing.xs),
     width: '100%',
   },
   bigBoxShell: {
     width: '100%',
-    borderRadius: 18,
-    // padding: 1,
-    borderWidth: 1,
-    borderColor: 'rgba(163, 179, 204, 0.45)',
+    borderRadius: radius.m,
+    borderWidth: borderWidth.thin,
+    borderColor: palette.navy.light,
   },
   bigBoxInnerBorder: {
-    borderRadius: 17,
-    borderWidth: 1,
+    borderRadius: radius.s,
+    borderWidth: borderWidth.thin,
     borderColor: SURFACE_BORDER,
     backgroundColor: 'rgba(7,9,14,0.35)',
-    paddingHorizontal: 14,
-    paddingVertical: 12,
+    paddingHorizontal: scale(spacing.m),
+    paddingVertical: verticalScale(spacing.s),
     height: Math.min(520, Math.max(420, W * 1.3)),
   },
   videoBigBox: {
@@ -1042,81 +963,23 @@ const styles = StyleSheet.create({
   },
   bigTextInput: {
     flex: 1,
-    color: OFFWHITE,
-    fontSize: 16,
-    fontFamily: 'Inter',
-    fontStyle: 'normal',
-    fontWeight: '400',
-    lineHeight: 24,
+    fontFamily: fontFamily.body,
+    fontSize: moderateScale(fontSize.s),
+    fontWeight: fontWeight.regular,
+    lineHeight: lineHeight.m,
+    color: palette.neutral.white,
   },
 
   bottomButtonsRow: {
     flexDirection: 'row',
-    marginTop: 20,
-    marginBottom: 20,
+    marginTop: verticalScale(spacing.m),
+    marginBottom: verticalScale(spacing.m),
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
-  },
-  saveWrap: {},
-  saveGradient: {
-    minWidth: 140,
-    minHeight: 48,
-    flexDirection: 'row',
-    borderRadius: 12,
-    borderWidth: 0.5,
-    borderColor: palette.navy.light,
-    // paddingVertical: 12,
-    // paddingHorizontal: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-  },
-  saveActionText: {
-    color: palette.gold.DEFAULT,
-    textAlign: 'center',
-    textShadowColor: textShadow.warmGlow.color,
-    textShadowOffset: textShadow.warmGlow.offset,
-    textShadowRadius: textShadow.warmGlow.radius,
-    fontFamily: Platform.select({
-      ios: 'CormorantGaramond-Regular',
-      android: 'serif',
-    }),
-    fontSize: 20,
-    fontStyle: 'normal',
-    fontWeight: '400',
-    lineHeight: 26,
+    gap: scale(spacing.m),
   },
   disabled: {
     opacity: 0.5,
-  },
-
-  pillShell: {
-    minWidth: 140,
-    minHeight: 48,
-    borderRadius: 12,
-    borderWidth: 0.5,
-    borderColor: palette.navy.light,
-    // paddingVertical: 12,
-    // paddingHorizontal: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-  },
-  pillText: {
-    color: palette.gold.DEFAULT,
-    textAlign: 'center',
-    textShadowColor: textShadow.warmGlow.color,
-    textShadowOffset: textShadow.warmGlow.offset,
-    textShadowRadius: textShadow.warmGlow.radius,
-    fontFamily: Platform.select({
-      ios: 'CormorantGaramond-Regular',
-      android: 'serif',
-    }),
-    fontSize: 20,
-    fontStyle: 'normal',
-    fontWeight: '400',
-    lineHeight: 26,
   },
 
   audioWaveWrap: {
@@ -1215,7 +1078,7 @@ const styles = StyleSheet.create({
   },
   videoPickedName: {
     flex: 1,
-    color: OFFWHITE,
+    color: palette.neutral.white,
     fontSize: 13,
     marginRight: 8,
     letterSpacing: 0.3,
@@ -1229,7 +1092,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   videoRemoveBtnText: {
-    color: OFFWHITE,
+    color: palette.neutral.white,
     fontSize: 14,
     lineHeight: 18,
   },
@@ -1256,7 +1119,7 @@ const styles = StyleSheet.create({
   videoPlayIconImg: {
     width: 72,
     height: 72,
-    tintColor: OFFWHITE,
+    tintColor: palette.neutral.white,
   },
 
   // ── Audio picked preview ──
@@ -1288,7 +1151,7 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   audioRemoveBtnText: {
-    color: OFFWHITE,
+    color: palette.neutral.white,
     fontSize: 14,
   },
   audioFileInfoRow: {
@@ -1306,14 +1169,14 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(215,192,138,0.4)',
   },
   audioTypeBadgeText: {
-    color: GOLD,
+    color: palette.gold.DEFAULT,
     fontSize: 10,
     letterSpacing: 1.5,
     fontWeight: '600',
   },
   audioPreviewFileName: {
     flex: 1,
-    color: OFFWHITE,
+    color: palette.neutral.white,
     fontSize: 14,
     lineHeight: 18,
   },
@@ -1345,7 +1208,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     ...Platform.select({
       ios: {
-        shadowColor: GOLD,
+        shadowColor: palette.gold.DEFAULT,
         shadowOffset: { width: 0, height: 0 },
         shadowOpacity: 0.45,
         shadowRadius: 14,
@@ -1356,14 +1219,14 @@ const styles = StyleSheet.create({
     }),
   },
   audioPlayPauseBtnText: {
-    color: GOLD,
+    color: palette.gold.DEFAULT,
     fontSize: 22,
     marginLeft: 3,
   },
   audioPlayPauseBtnIcon: {
     width: 36,
     height: 36,
-    tintColor: GOLD,
+    tintColor: palette.gold.DEFAULT,
   },
 
   modalBackdrop: {
@@ -1397,7 +1260,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(253,253,249,0.04)',
   },
   modalItemText: {
-    color: GOLD,
+    color: palette.gold.DEFAULT,
     fontSize: 15,
     textAlign: 'center',
     letterSpacing: 1,
@@ -1413,11 +1276,11 @@ const styles = StyleSheet.create({
   },
   pickedMediaIcon: {
     fontSize: 56,
-    color: GOLD,
+    color: palette.gold.DEFAULT,
     opacity: 0.8,
   },
   pickedMediaName: {
-    color: OFFWHITE,
+    color: palette.neutral.white,
     fontSize: 16,
     textAlign: 'center',
     paddingHorizontal: 20,
