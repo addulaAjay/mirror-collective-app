@@ -675,7 +675,6 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
                       isActive={true}
                       video={true}
                       audio={hasMicPermission}
-                      pointerEvents="none"
                     />
                   ) : (
                     <View style={styles.videoPreviewPlaceholder}>
@@ -951,10 +950,15 @@ const styles = StyleSheet.create({
   },
   bigBoxInnerBorder: {
     borderRadius: radius.s,
+    borderWidth: borderWidth.thin,
+    borderColor: SURFACE_BORDER,
     backgroundColor: 'rgba(7,9,14,0.35)',
+    paddingHorizontal: scale(spacing.m),
+    paddingVertical: verticalScale(spacing.s),
     height: Math.min(520, Math.max(420, W * 1.3)),
   },
   videoBigBox: {
+    padding: 10,
     overflow: 'hidden',
   },
   videoOverlayBtn: {
