@@ -38,6 +38,7 @@ import {
   displayMotifUpper,
 } from '@features/reflection-room/copy/strings';
 import { useJourney } from '@features/reflection-room/state/JourneyContext';
+import type { MotifId } from '@features/reflection-room/types/ids';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -74,6 +75,10 @@ const ReflectionRoomTodaysMotifScreen: React.FC = () => {
 
   const motif = journey.motif!;
   const motifNameUpper = displayMotifUpper(motif.motif_id);
+  const motifSvg =
+    MOTIF_SVG[motif.motif_id] ??
+    MOTIF_SVG[(motif.motif_id as MotifId).replace('_', '-')] ??
+    '';
 
   return (
     <BackgroundWrapper style={styles.bg}>
@@ -96,7 +101,7 @@ const ReflectionRoomTodaysMotifScreen: React.FC = () => {
 
           <View style={styles.glyphContainer} accessibilityElementsHidden>
             <SvgXml
-              xml={MOTIF_SVG[motif.motif_id] ?? ''}
+              xml={motifSvg}
               width="100%"
               height="100%"
             />

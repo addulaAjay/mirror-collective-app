@@ -238,25 +238,40 @@ const ReflectionRoomMirrorMomentScreen: React.FC = () => {
           )}
 
           {status === 'active' && top3.length > 0 && (
-            <View style={styles.choices}>
-              {top3.map(loop => {
-                const label = labelFor(loop.loop_id, loop.tone_state);
-                return (
-                  <Pressable
-                    key={loop.loop_id}
-                    onPress={() => onButtonTap(loop)}
-                    accessibilityRole="button"
-                    accessibilityLabel={label}
-                    style={({ pressed }) => [
-                      styles.cta,
-                      pressed && styles.pressed,
-                    ]}
-                  >
-                    <Text style={styles.ctaText}>{label}</Text>
-                  </Pressable>
-                );
-              })}
-            </View>
+            <>
+              <View style={styles.choices}>
+                {top3.map(loop => {
+                  const label = labelFor(loop.loop_id, loop.tone_state);
+                  return (
+                    <Pressable
+                      key={loop.loop_id}
+                      onPress={() => onButtonTap(loop)}
+                      accessibilityRole="button"
+                      accessibilityLabel={label}
+                      style={({ pressed }) => [
+                        styles.cta,
+                        pressed && styles.pressed,
+                      ]}
+                    >
+                      <Text style={styles.ctaText}>{label}</Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+              <View style={styles.divider} />
+              <Pressable
+                onPress={() => navigation.navigate('ReflectionRoomCore')}
+                accessibilityRole="button"
+                accessibilityLabel="Continue to Reflection Room"
+                style={({ pressed }) => [
+                  styles.cta,
+                  styles.continueCta,
+                  pressed && styles.pressed,
+                ]}
+              >
+                <Text style={styles.ctaText}>CONTINUE</Text>
+              </Pressable>
+            </>
           )}
         </ScrollView>
 
@@ -342,6 +357,16 @@ const styles = StyleSheet.create({
     fontSize: fontSize.xl,
     color: palette.gold.DEFAULT,
     letterSpacing: 2,
+  },
+  divider: {
+    width: '78%',
+    height: StyleSheet.hairlineWidth,
+    alignSelf: 'center',
+    backgroundColor: palette.gold.subtlest,
+    opacity: 0.7,
+  },
+  continueCta: {
+    marginTop: -spacing.xs,
   },
   stateBlock: {
     alignItems: 'center',

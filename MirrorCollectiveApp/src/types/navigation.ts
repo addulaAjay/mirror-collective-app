@@ -39,6 +39,7 @@ export type RootStackParamList = {
   ReflectionRoomEchoSignature: undefined;
   ReflectionRoomEchoMap: undefined;
   ReflectionRoomMirrorMoment: undefined;
+  ReflectionRoomCore: undefined;
   ReflectionRoomPracticeOverlay: {
     loopId: RRLoopId;
     toneState: RRToneState;
@@ -137,4 +138,3 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 export type ScreenName = keyof RootStackParamList;
 
 export type LoginScreenProps = NativeStackScreenProps<RootStackParamList, 'Login'>;
-

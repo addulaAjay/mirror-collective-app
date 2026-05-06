@@ -324,6 +324,21 @@ const ReflectionRoomEchoMapScreen: React.FC = () => {
 
           {/* Footer fixed string */}
           <Text style={styles.footer}>{ECHO_MAP.footer}</Text>
+
+          {status === 'active' && (
+            <Pressable
+              onPress={() => navigation.navigate('ReflectionRoomMirrorMoment')}
+              accessibilityRole="button"
+              accessibilityLabel={LANDING.ctaMirrorMoment}
+              style={({ pressed }) => [
+                styles.button,
+                styles.bottomCta,
+                pressed && styles.pressed,
+              ]}
+            >
+              <Text style={styles.buttonText}>{LANDING.ctaMirrorMoment}</Text>
+            </Pressable>
+          )}
         </ScrollView>
 
         {/* Tap overlays — modal-style, last-mounted-on-top */}
@@ -470,6 +485,9 @@ const styles = StyleSheet.create({
     fontSize: fontSize.xl,
     color: palette.gold.DEFAULT,
     letterSpacing: 2,
+  },
+  bottomCta: {
+    alignSelf: 'center',
   },
   pressed: { opacity: 0.7 },
 });
