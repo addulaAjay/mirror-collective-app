@@ -505,7 +505,7 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
         </View>
 
         {/* Body */}
-        <View style={[styles.content, { width: contentWidth }]}>
+        <View style={[styles.content, { width: contentWidth }, mode === 'audio' && styles.audioContent]}>
           {mode === 'text' && (
             <>
               <Text style={styles.smallLabel}>Message</Text>
@@ -607,7 +607,7 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
                 </View>
               )}
 
-              <View style={[styles.bottomButtonsRow, styles.audioButtonsGap]}>
+              <View style={styles.bottomButtonsRow}>
                 <Button variant="primary" size="L" title="UPLOAD" onPress={onUpload} />
                 <Button variant="secondary" size="L" title={isSaving ? 'SAVING...' : 'SAVE'} onPress={onSave} disabled={isSaving} />
               </View>
@@ -977,9 +977,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: scale(spacing.m),
   },
-  // Figma 211:1339 — outer column gap-[96px] between audio content and buttons
-  audioButtonsGap: {
-    marginTop: verticalScale(96),
+  // Figma 211:1339 — audio mode: mic area and buttons spaced proportionally to screen height
+  audioContent: {
+    justifyContent: 'space-between',
   },
   disabled: {
     opacity: 0.5,
