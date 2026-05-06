@@ -607,7 +607,7 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
                 </View>
               )}
 
-              <View style={styles.bottomButtonsRow}>
+              <View style={[styles.bottomButtonsRow, styles.audioButtonsGap]}>
                 <Button variant="primary" size="L" title="UPLOAD" onPress={onUpload} />
                 <Button variant="secondary" size="L" title={isSaving ? 'SAVING...' : 'SAVE'} onPress={onSave} disabled={isSaving} />
               </View>
@@ -976,6 +976,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: scale(spacing.m),
+  },
+  // Figma 211:1339 — outer column gap-[96px] between audio content and buttons
+  audioButtonsGap: {
+    marginTop: verticalScale(96),
   },
   disabled: {
     opacity: 0.5,
