@@ -79,18 +79,32 @@ describe('ChatInput', () => {
     expect(mockOnSend).toHaveBeenCalled();
   });
 
-  it('disables input when disabled prop is true', () => {
-    const { getByPlaceholderText } = render(
+  it('keeps the input editable while disabled (only send button blocks)', () => {
+    // Intentional contract: when the parent screen is loading a response,
+    // it sets disabled=true to block duplicate submits. The TextInput stays
+    // editable so the user can type their next message — toggling editable
+    // on a focused TextInput dismisses the iOS keyboard, which broke the
+    // chat UX (keyboard closed on every send).
+    const { getByPlaceholderText, getByTestId } = render(
       <ChatInput
-        value=""
+        value="some draft"
         onChangeText={mockOnChangeText}
         onSend={mockOnSend}
         disabled={true}
       />
     );
-    
+
     const input = getByPlaceholderText('Ask me anything...');
-    expect(input.props.editable).toBe(false);
+    // editable is undefined by default (no longer toggled by disabled);
+    // RN TextInput treats undefined as truthy / editable.
+    expect(input.props.editable).not.toBe(false);
+
+    // The send button still blocks submits while disabled (TouchableOpacity
+    // with disabled={true} won't fire onPress at runtime — testing-library's
+    // fireEvent.press bypasses the disabled gate, so we assert on the prop
+    // directly instead).
+    const sendButton = getByTestId('send-button');
+    expect(sendButton.props.accessibilityState?.disabled ?? sendButton.props.disabled).toBe(true);
   });
 
   it('disables send button when input is empty', () => {
