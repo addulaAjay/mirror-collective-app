@@ -5,13 +5,11 @@ import {
   View,
   Text,
   StyleSheet,
+  ScrollView,
   type NativeSyntheticEvent,
   type TextInputContentSizeChangeEventData,
 } from 'react-native';
-import {
-  KeyboardAwareScrollView,
-  type KeyboardAwareScrollViewRef,
-} from 'react-native-keyboard-controller';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -58,62 +56,65 @@ export function MirrorChatContent() {
       <SafeAreaView style={styles.safeArea}>
         <LogoHeader navigation={navigation} />
 
-        <View style={styles.chatWrapper}>
-          <LinearGradient
-            colors={[
-              'rgba(155, 170, 194, 0.01)', // top
-              'rgba(155, 170, 194, 0.18)', // bottom
-            ]}
-            start={{ x: 0.5, y: 0 }}
-            end={{ x: 0.5, y: 1 }}
-            style={styles.GradientWrapper}
-          >
-            {/* Chat "card" */}
-            <View style={styles.chatContainer}>
-              <Text style={styles.chatTitle}>MirrorGPT</Text>
-              <Text style={styles.headerText}>
-                What are you grateful for today?
-              </Text>
+        {/* KeyboardAvoidingView (from react-native-keyboard-controller)
+            wraps BOTH the message scroller AND the chat input — this is
+            the canonical chat-surface pattern. The input is a sibling of
+            the scroller, so it must be inside the same KAV for the lib
+            to push it above the keyboard. KASV would only handle its own
+            children, leaving the sibling input behind the keyboard.
 
-              {/* KeyboardAwareScrollView replaces the previous
-                  ScrollView + KeyboardAvoidingView + Keyboard listener
-                  setup. The lib auto-scrolls the focused input into view
-                  and animates content alongside the keyboard's spring,
-                  no manual offset math needed. */}
-              <KeyboardAwareScrollView
-                // useChat exposes a ScrollView ref; KeyboardAwareScrollViewRef
-                // is API-compatible (same scrollTo/scrollToEnd/etc) but
-                // TypeScript treats them as distinct types. Safe cast.
-                ref={scrollViewRef as React.Ref<KeyboardAwareScrollViewRef>}
-                style={styles.messagesWrapper}
-                contentContainerStyle={styles.messagesContent}
-                keyboardShouldPersistTaps="handled"
-                keyboardDismissMode="on-drag"
-                showsVerticalScrollIndicator={false}
-                bottomOffset={16}
-                onContentSizeChange={() =>
-                  scrollViewRef.current?.scrollToEnd({ animated: true })
-                }
-              >
-                {messages.map(message => (
-                  <MessageBubble key={message.id} message={message} />
-                ))}
-                {loading && <LoadingIndicator />}
-              </KeyboardAwareScrollView>
+            behavior="padding" on iOS adds bottom padding equal to the
+            keyboard height; on Android the windowSoftInputMode=adjustResize
+            in AndroidManifest.xml handles it natively. */}
+        <KeyboardAvoidingView behavior="padding" style={styles.kav}>
+          <View style={styles.chatWrapper}>
+            <LinearGradient
+              colors={[
+                'rgba(155, 170, 194, 0.01)', // top
+                'rgba(155, 170, 194, 0.18)', // bottom
+              ]}
+              start={{ x: 0.5, y: 0 }}
+              end={{ x: 0.5, y: 1 }}
+              style={styles.GradientWrapper}
+            >
+              {/* Chat "card" */}
+              <View style={styles.chatContainer}>
+                <Text style={styles.chatTitle}>MirrorGPT</Text>
+                <Text style={styles.headerText}>
+                  What are you grateful for today?
+                </Text>
 
-              <ChatInput
-                value={draft}
-                onChangeText={setDraft}
-                onSend={sendMessage}
-                onContentSizeChange={handleInputContentSizeChange}
-                disabled={loading}
-              />
+                <ScrollView
+                  ref={scrollViewRef}
+                  style={styles.messagesWrapper}
+                  contentContainerStyle={styles.messagesContent}
+                  keyboardShouldPersistTaps="handled"
+                  keyboardDismissMode="on-drag"
+                  showsVerticalScrollIndicator={false}
+                  onContentSizeChange={() =>
+                    scrollViewRef.current?.scrollToEnd({ animated: true })
+                  }
+                >
+                  {messages.map(message => (
+                    <MessageBubble key={message.id} message={message} />
+                  ))}
+                  {loading && <LoadingIndicator />}
+                </ScrollView>
+
+                <ChatInput
+                  value={draft}
+                  onChangeText={setDraft}
+                  onSend={sendMessage}
+                  onContentSizeChange={handleInputContentSizeChange}
+                  disabled={loading}
+                />
+              </View>
+            </LinearGradient>
+            <View>
+              <Text style={styles.footerText} />
             </View>
-          </LinearGradient>
-          <View>
-            <Text style={styles.footerText} />
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </SafeAreaView>
     </BackgroundWrapper>
   );
@@ -136,6 +137,11 @@ const styles = StyleSheet.create({
   background: {
     flex: 1,
     justifyContent: 'flex-start',
+  },
+
+  kav: {
+    flex: 1,
+    width: '100%',
   },
 
   chatWrapper: {
