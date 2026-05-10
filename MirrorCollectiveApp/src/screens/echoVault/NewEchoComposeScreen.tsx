@@ -14,6 +14,7 @@ import {
   TouchableOpacity,
   TextInput,
   Dimensions,
+  KeyboardAvoidingView,
   Platform,
   Modal,
   Pressable,
@@ -491,6 +492,10 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
           backgroundColor="transparent"
         />
 
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.kav}
+        >
         {/* Header (menu + centered brand) */}
         <LogoHeader navigation={navigation} />
 
@@ -726,6 +731,7 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
             </>
           )}
         </View>
+        </KeyboardAvoidingView>
 
         {/* Simple "upload" modal */}
         <Modal
@@ -915,6 +921,11 @@ const styles = StyleSheet.create({
   },
   titleRightSpacer: { width: scale(44), height: scale(44) },
 
+  kav: {
+    flex: 1,
+    width: '100%',
+    alignItems: 'center',
+  },
   content: {
     width: '100%',
     flex: 1,
@@ -1025,15 +1036,12 @@ const styles = StyleSheet.create({
   waveContainer: {
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center',
     paddingHorizontal: scale(spacing.s),
     paddingVertical: verticalScale(spacing.m),
   },
   waveRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    width: '100%',
     gap: 2,
   },
   waveBar: {

@@ -42,7 +42,7 @@ import {
   verticalScale,
 } from '@theme';
 import type { RootStackParamList } from '@types';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
@@ -90,6 +90,11 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
   const [lockDate, setLockDate] = useState<Date | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [notes, setNotes] = useState('');
+
+  // Note: previous KAV-based implementation manually measured + scrolled
+  // the letter field into view on focus. KeyboardAwareScrollView handles
+  // focused-input scrolling natively, so the workaround was removed
+  // along with letterFieldRef/scrollViewRef/scrollToLetterField.
 
   const fetchRecipients = useCallback(async () => {
     try {
@@ -298,6 +303,7 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
                   onChangeText={setNotes}
                   size="L"
                   multiline
+                  maxHeight={verticalScale(160)}
                 />
               </View>
 
