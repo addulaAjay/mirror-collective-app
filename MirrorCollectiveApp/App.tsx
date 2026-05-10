@@ -263,6 +263,12 @@ const AppNavigator = () => {
   const { state, signOut } = useSession();
   const { isAuthenticated } = state;
   const [initialRoute, setInitialRoute] = useState<keyof RootStackParamList>('EnterMirror');
+  // Gate that ensures the AsyncStorage onboarding lookup has completed
+  // BEFORE <AuthenticatedNavigator> mounts. native-stack pins
+  // initialRouteName at mount and ignores subsequent prop changes — without
+  // this gate, returning users always landed on EnterMirror because the
+  // resolved route arrived after the navigator had already committed.
+  const [routeReady, setRouteReady] = useState(false);
 
   const handleInactivityTimeout = useCallback(async () => {
     if (__DEV__) {
@@ -276,17 +282,34 @@ const AppNavigator = () => {
     onTimeout: handleInactivityTimeout,
   });
 
-  // Check onboarding status when authentication state changes
+  // Resolve the post-login route before the authenticated navigator mounts.
   useEffect(() => {
-    const checkOnboarding = async () => {
-      if (isAuthenticated) {
-        const hasCompletedOnboarding = await OnboardingService.hasCompletedOnboarding();
-        setInitialRoute(hasCompletedOnboarding ? 'TalkToMirror' : 'EnterMirror');
-      }
+    if (!isAuthenticated) {
+      setRouteReady(false);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const hasCompletedOnboarding =
+        await OnboardingService.hasCompletedOnboarding();
+      if (cancelled) return;
+      setInitialRoute(hasCompletedOnboarding ? 'TalkToMirror' : 'EnterMirror');
+      setRouteReady(true);
+    })();
+    return () => {
+      cancelled = true;
     };
-
-    checkOnboarding();
   }, [isAuthenticated]);
+
+  // Hold a splash while the onboarding read is in flight so the navigator
+  // doesn't mount with the stale default initialRoute.
+  if (isAuthenticated && !routeReady) {
+    return (
+      <View style={styles.loadingScreen}>
+        <ActivityIndicator size="large" color="#f2e1b0" />
+      </View>
+    );
+  }
 
   return (
     <NavigationContainer
