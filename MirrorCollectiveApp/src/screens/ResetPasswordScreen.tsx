@@ -11,12 +11,11 @@ import {
   StyleSheet,
   TouchableOpacity,
   Alert,
-  KeyboardAvoidingView,
   Platform,
-  ScrollView,
   TouchableWithoutFeedback,
   Keyboard,
 } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
@@ -122,23 +121,18 @@ const ResetPasswordScreen = () => {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.keyboardContainer}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <BackgroundWrapper
-        style={styles.container}
-      >
-        <SafeAreaView style={styles.safe}>
-          <LogoHeader />
-          <ScrollView
-            contentContainerStyle={styles.scrollContainer}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-            keyboardDismissMode={
-              Platform.OS === 'ios' ? 'interactive' : 'on-drag'
-            }
-          >
+    <BackgroundWrapper style={styles.container}>
+      <SafeAreaView style={styles.safe}>
+        <LogoHeader />
+        <KeyboardAwareScrollView
+          contentContainerStyle={styles.scrollContainer}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode={
+            Platform.OS === 'ios' ? 'interactive' : 'on-drag'
+          }
+          bottomOffset={16}
+        >
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
               <View style={styles.contentContainer}>
                 {/* Header Section */}
@@ -243,10 +237,9 @@ const ResetPasswordScreen = () => {
                 </TouchableOpacity>
               </View>
             </TouchableWithoutFeedback>
-          </ScrollView>
-        </SafeAreaView>
-      </BackgroundWrapper>
-    </KeyboardAvoidingView>
+        </KeyboardAwareScrollView>
+      </SafeAreaView>
+    </BackgroundWrapper>
   );
 };
 

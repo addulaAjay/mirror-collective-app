@@ -180,3 +180,41 @@ jest.mock('react-native-safe-area-context', () => ({
 jest.mock('@react-native-community/blur', () => ({
   BlurView: 'BlurView',
 }));
+
+// Mock react-native-document-picker — native module would crash jest.
+jest.mock('react-native-document-picker', () => ({
+  __esModule: true,
+  default: {
+    pickSingle: jest.fn(),
+    pick: jest.fn(),
+    types: {
+      plainText: 'plainText',
+      pdf: 'pdf',
+      doc: 'doc',
+      docx: 'docx',
+    },
+    isCancel: jest.fn(() => false),
+  },
+}));
+
+// Mock react-native-keyboard-controller — its native module would crash
+// jest. Provide stub components for Provider, KAV, KeyboardAwareScrollView.
+jest.mock('react-native-keyboard-controller', () => ({
+  KeyboardProvider: ({ children }) => children,
+  KeyboardAvoidingView: 'KeyboardAvoidingView',
+  KeyboardAwareScrollView: 'KeyboardAwareScrollView',
+  KeyboardController: {
+    dismiss: jest.fn(),
+    setFocusTo: jest.fn(),
+    setInputMode: jest.fn(),
+    setDefaultMode: jest.fn(),
+  },
+  useKeyboardHandler: jest.fn(),
+  useKeyboardAnimation: () => ({ height: { value: 0 }, progress: { value: 0 } }),
+  useKeyboardState: () => ({ isVisible: false, height: 0 }),
+}));
+
+// Mock react-native-reanimated — official jest mock from the lib.
+jest.mock('react-native-reanimated', () =>
+  require('react-native-reanimated/mock'),
+);

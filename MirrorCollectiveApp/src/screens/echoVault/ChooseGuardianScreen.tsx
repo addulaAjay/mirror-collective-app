@@ -15,9 +15,8 @@ import {
   FlatList,
   ActivityIndicator,
   Modal,
-  ScrollView,
-  KeyboardAvoidingView,
 } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -109,16 +108,13 @@ const ChooseGuardianScreen: React.FC<Props> = ({ navigation, route }) => {
           backgroundColor="transparent"
         />
 
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        <KeyboardAwareScrollView
           style={{ flex: 1, width: '100%' }}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          bottomOffset={16}
         >
-          <ScrollView
-            style={{ flex: 1 }}
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          >
             <LogoHeader navigation={navigation} />
 
             {/* Title */}
@@ -253,8 +249,7 @@ const ChooseGuardianScreen: React.FC<Props> = ({ navigation, route }) => {
                 <Text style={styles.nextText}>NEXT</Text>
               </LinearGradient>
             </TouchableOpacity>
-          </ScrollView>
-        </KeyboardAvoidingView>
+        </KeyboardAwareScrollView>
 
         {/* Dropdown Modal */}
         <Modal

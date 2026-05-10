@@ -1,16 +1,15 @@
 import { useNavigation } from '@react-navigation/native';
 import { theme, palette, spacing, shadows, textShadow } from '@theme';
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  StatusBar,
   ScrollView,
-  KeyboardAvoidingView,
-  Platform,
-  Keyboard,
+  type NativeSyntheticEvent,
+  type TextInputContentSizeChangeEventData,
 } from 'react-native';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -41,33 +40,33 @@ export function MirrorChatContent() {
     }
   }, [greetingLoaded, initializeSession]);
 
-  // Ensure the latest message stays visible when keyboard shows/hides
-  useEffect(() => {
-    const scrollToEnd = () => {
-      scrollViewRef.current?.scrollToEnd({ animated: true });
-    };
-
-    const showSub = Keyboard.addListener('keyboardDidShow', scrollToEnd);
-    const hideSub = Keyboard.addListener('keyboardDidHide', scrollToEnd);
-
-    return () => {
-      showSub.remove();
-      hideSub.remove();
-    };
-  }, [scrollViewRef]);
+  // When the chat input grows (user typing multiline), the messages region
+  // shrinks. Re-anchor to the bottom so the latest message stays visible.
+  // Replaces the old Keyboard.addListener('keyboardDidShow', scrollToEnd)
+  // pattern — keyboard-controller handles keyboard offsets natively.
+  const handleInputContentSizeChange = useCallback(
+    (_e: NativeSyntheticEvent<TextInputContentSizeChangeEventData>) => {
+      scrollViewRef.current?.scrollToEnd({ animated: false });
+    },
+    [scrollViewRef],
+  );
 
   return (
-    <KeyboardAvoidingView
-      style={styles.keyboardContainer}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={
-        Platform.OS === 'ios' ? StatusBar.currentHeight || 0 : -70
-      }
-    >
-      <BackgroundWrapper style={styles.background} scrollable>
-        <SafeAreaView style={styles.safeArea}>
-          <LogoHeader navigation={navigation} />
+    <BackgroundWrapper style={styles.background}>
+      <SafeAreaView style={styles.safeArea}>
+        <LogoHeader navigation={navigation} />
 
+        {/* KeyboardAvoidingView (from react-native-keyboard-controller)
+            wraps BOTH the message scroller AND the chat input — this is
+            the canonical chat-surface pattern. The input is a sibling of
+            the scroller, so it must be inside the same KAV for the lib
+            to push it above the keyboard. KASV would only handle its own
+            children, leaving the sibling input behind the keyboard.
+
+            behavior="padding" on iOS adds bottom padding equal to the
+            keyboard height; on Android the windowSoftInputMode=adjustResize
+            in AndroidManifest.xml handles it natively. */}
+        <KeyboardAvoidingView behavior="padding" style={styles.kav}>
           <View style={styles.chatWrapper}>
             <LinearGradient
               colors={[
@@ -85,40 +84,36 @@ export function MirrorChatContent() {
                   What are you grateful for today?
                 </Text>
 
-                {/* Bounded wrapper gives ScrollView a fixed constraint */}
-                <View style={styles.messagesWrapper}>
-                  <ScrollView
-                    ref={scrollViewRef}
-                    contentContainerStyle={styles.messagesContent}
-                    keyboardShouldPersistTaps="handled"
-                    keyboardDismissMode="on-drag"
-                    showsVerticalScrollIndicator={false}
-                    onContentSizeChange={() =>
-                      scrollViewRef.current?.scrollToEnd({ animated: true })
-                    }
-                  >
-                    {messages.map(message => (
-                      <MessageBubble key={message.id} message={message} />
-                    ))}
-                    {loading && <LoadingIndicator />}
-                  </ScrollView>
-                </View>
+                <ScrollView
+                  ref={scrollViewRef}
+                  style={styles.messagesWrapper}
+                  contentContainerStyle={styles.messagesContent}
+                  keyboardShouldPersistTaps="handled"
+                  keyboardDismissMode="on-drag"
+                  showsVerticalScrollIndicator={false}
+                  onContentSizeChange={() =>
+                    scrollViewRef.current?.scrollToEnd({ animated: true })
+                  }
+                >
+                  {messages.map(message => (
+                    <MessageBubble key={message.id} message={message} />
+                  ))}
+                  {loading && <LoadingIndicator />}
+                </ScrollView>
 
                 <ChatInput
                   value={draft}
                   onChangeText={setDraft}
                   onSend={sendMessage}
+                  onContentSizeChange={handleInputContentSizeChange}
                   disabled={loading}
                 />
               </View>
             </LinearGradient>
-            <View>
-              <Text style={styles.footerText} />
-            </View>
           </View>
-        </SafeAreaView>
-      </BackgroundWrapper>
-    </KeyboardAvoidingView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </BackgroundWrapper>
   );
 }
 
@@ -135,28 +130,21 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'transparent',
   },
-  keyboardContainer: {
-    flex: 1,
-  },
 
   background: {
     flex: 1,
     justifyContent: 'flex-start',
   },
 
+  kav: {
+    flex: 1,
+    width: '100%',
+  },
+
   chatWrapper: {
     flex: 1,
     width: '100%',
     paddingHorizontal: spacing.l,
-  },
-
-  footerText: {
-    fontFamily: 'CormorantGaramond-Regular',
-    fontSize: 20,
-    lineHeight: 28,
-    color: palette.gold.chat,
-    paddingBottom: 15,
-    textAlign: 'center',
   },
 
   headerText: {
@@ -177,6 +165,7 @@ const styles = StyleSheet.create({
     width: '100%',
     borderRadius: spacing.m,
     paddingHorizontal: spacing.s,
+    paddingBottom: spacing.s,
     alignSelf: 'center',
     ...shadows.LIGHT,
   },
@@ -209,3 +198,4 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xs,
   },
 });
+

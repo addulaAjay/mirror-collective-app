@@ -21,7 +21,7 @@ describe('ChatInput', () => {
       />
     );
     
-    expect(getByPlaceholderText('Ask me something')).toBeTruthy();
+    expect(getByPlaceholderText('Ask me anything...')).toBeTruthy();
   });
 
   it('renders with custom placeholder', () => {
@@ -58,7 +58,7 @@ describe('ChatInput', () => {
       />
     );
     
-    const input = getByPlaceholderText('Ask me something');
+    const input = getByPlaceholderText('Ask me anything...');
     fireEvent.changeText(input, 'New message');
     
     expect(mockOnChangeText).toHaveBeenCalledWith('New message');
@@ -89,7 +89,7 @@ describe('ChatInput', () => {
       />
     );
     
-    const input = getByPlaceholderText('Ask me something');
+    const input = getByPlaceholderText('Ask me anything...');
     expect(input.props.editable).toBe(false);
   });
 

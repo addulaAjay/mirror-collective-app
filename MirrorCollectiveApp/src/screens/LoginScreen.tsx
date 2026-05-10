@@ -16,12 +16,10 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
   TouchableWithoutFeedback,
   Keyboard,
-  ScrollView,
 } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path, Circle } from 'react-native-svg';
 
@@ -128,20 +126,16 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.keyboardContainer}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
-    >
-      <BackgroundWrapper style={styles.container}>
-        <SafeAreaView style={styles.safe}>
-          <LogoHeader />
-          <ScrollView
-            style={styles.scrollView}
-            contentContainerStyle={styles.scrollContainer}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          >
+    <BackgroundWrapper style={styles.container}>
+      <SafeAreaView style={styles.safe}>
+        <LogoHeader />
+        <KeyboardAwareScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContainer}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          bottomOffset={16}
+        >
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
               <View style={styles.contentContainer}>
                 {/* Title — Figma: Cormorant Regular 3XL, #f2e2b1 */}
@@ -227,10 +221,9 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                 </View>
               </View>
             </TouchableWithoutFeedback>
-          </ScrollView>
-        </SafeAreaView>
-      </BackgroundWrapper>
-    </KeyboardAvoidingView>
+        </KeyboardAwareScrollView>
+      </SafeAreaView>
+    </BackgroundWrapper>
   );
 };
 

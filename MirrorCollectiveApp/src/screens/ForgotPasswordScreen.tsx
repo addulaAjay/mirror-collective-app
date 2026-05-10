@@ -20,12 +20,11 @@ import {
   StyleSheet,
   TouchableOpacity,
   Alert,
-  KeyboardAvoidingView,
   Platform,
   TouchableWithoutFeedback,
   Keyboard,
-  ScrollView,
 } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Circle, Path } from 'react-native-svg';
 
@@ -95,19 +94,16 @@ const ForgotPasswordScreen = () => {
   // ── Email sent confirmation state ────────────────────────────────────────
   if (emailSent) {
     return (
-      <KeyboardAvoidingView
-        style={styles.keyboardContainer}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
-        <BackgroundWrapper style={styles.container}>
-          <SafeAreaView style={styles.safe}>
-            <LogoHeader />
-            <ScrollView
-              style={styles.scrollView}
-              contentContainerStyle={styles.scrollContainer}
-              showsVerticalScrollIndicator={false}
-              keyboardShouldPersistTaps="handled"
-            >
+      <BackgroundWrapper style={styles.container}>
+        <SafeAreaView style={styles.safe}>
+          <LogoHeader />
+          <KeyboardAwareScrollView
+            style={styles.scrollView}
+            contentContainerStyle={styles.scrollContainer}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            bottomOffset={16}
+          >
               <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
                 <View style={styles.contentContainer}>
                   <Text style={styles.title}>
@@ -136,31 +132,27 @@ const ForgotPasswordScreen = () => {
                   </TouchableOpacity>
                 </View>
               </TouchableWithoutFeedback>
-            </ScrollView>
-          </SafeAreaView>
-        </BackgroundWrapper>
-      </KeyboardAvoidingView>
+          </KeyboardAwareScrollView>
+        </SafeAreaView>
+      </BackgroundWrapper>
     );
   }
 
   // ── Default state — Figma: node 4116:513 ────────────────────────────────
   return (
-    <KeyboardAvoidingView
-      style={styles.keyboardContainer}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <BackgroundWrapper style={styles.container}>
-        <SafeAreaView style={styles.safe}>
-          <LogoHeader />
-          <ScrollView
-            style={styles.scrollView}
-            contentContainerStyle={styles.scrollContainer}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-            keyboardDismissMode={
-              Platform.OS === 'ios' ? 'interactive' : 'on-drag'
-            }
-          >
+    <BackgroundWrapper style={styles.container}>
+      <SafeAreaView style={styles.safe}>
+        <LogoHeader />
+        <KeyboardAwareScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContainer}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode={
+            Platform.OS === 'ios' ? 'interactive' : 'on-drag'
+          }
+          bottomOffset={16}
+        >
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
               {/* Figma: node 4116:516 — flat flex col gap-40px, left:40px */}
               <View style={styles.contentContainer}>
@@ -227,10 +219,9 @@ const ForgotPasswordScreen = () => {
 
               </View>
             </TouchableWithoutFeedback>
-          </ScrollView>
-        </SafeAreaView>
-      </BackgroundWrapper>
-    </KeyboardAvoidingView>
+        </KeyboardAwareScrollView>
+      </SafeAreaView>
+    </BackgroundWrapper>
   );
 };
 
