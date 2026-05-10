@@ -4,7 +4,7 @@
  * Reference render: docs/visual-qa/talk-to-mirror/talk-to-mirror-figma.png
  *
  * Layout (top → bottom, after LogoHeader):
- *   1. Greeting row   — small avatar (50) + "Welcome back, X" italic text
+ *   1. Greeting row   — small avatar (64) + "Welcome back, X" italic text
  *   2. Oval mirror    — 183×275 elliptical centerpiece (gold rim + gradient fill)
  *   3. Talk button    — bordered pill flanked by 20px stars, gap 16
  *   4. Category row   — horizontal scroll: Mirror Echo / Reflection Room /
@@ -63,7 +63,7 @@ interface Props {
 }
 
 // Sizing constants — referenced by both the screen markup and styles below.
-const AVATAR_SIZE = moderateScale(50);
+const AVATAR_SIZE = moderateScale(64);
 const MIRROR_W    = moderateScale(183);
 const MIRROR_H    = moderateScale(275);
 const ICON_RING   = moderateScale(100);
@@ -271,7 +271,7 @@ const styles = StyleSheet.create<{
     gap:           scale(spacing.m),
     width:         '100%',
   },
-  // Figma 4326:2303 — 50×50, gold border, glow (mirrors EchoVaultLibraryScreen avatar)
+  // Figma 4326:2303 — 64×64, gold border, glow (mirrors EchoVaultLibraryScreen avatar)
   // Glow wrapper: shadow lives here — overflow:hidden on the ring would clip it
   avatarGlow: {
     width:         AVATAR_SIZE,
