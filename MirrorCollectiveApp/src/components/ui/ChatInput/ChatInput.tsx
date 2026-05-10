@@ -4,7 +4,6 @@ import {
   Alert,
   TextInput,
   TouchableOpacity,
-  Text,
   StyleSheet,
   type NativeSyntheticEvent,
   type TextInputContentSizeChangeEventData,
@@ -111,46 +110,43 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         disabled={disabled || !value.trim()}
         testID="send-button"
       >
-        <Text
-          style={[
-            styles.sendText,
-            disabled || !value.trim()
-              ? styles.disabledText
-              : styles.enabledText,
-          ]}
-        >
-          <Svg width={18} height={18} viewBox="0 0 18 18" fill="none">
-            <Defs>
-              <ClipPath id="clip0_8_397">
-                <Rect width={18} height={18} fill="white" />
-              </ClipPath>
-            </Defs>
-            <G clipPath="url(#clip0_8_397)">
-              <Path
-                d="M0.892988 18.0002H0.492988C0.0429882 17.7575 -0.0641546 17.4219 0.0644168 16.9149C0.564417 14.8586 1.0287 12.8023 1.49299 10.7388C1.59299 10.2819 1.85013 10.0534 2.30727 10.0105C4.0287 9.83918 5.75727 9.66782 7.4787 9.48932C8.47156 9.38936 9.46442 9.28226 10.4644 9.1823C10.6144 9.16802 10.793 9.16088 10.8001 8.96096C10.8001 8.76104 10.6358 8.73962 10.4787 8.7182C10.3787 8.70392 10.2787 8.70392 10.1787 8.69678C7.54299 8.43974 4.90727 8.17556 2.27156 7.9328C1.81442 7.88996 1.59299 7.66862 1.49299 7.24022C1.01442 5.13391 0.52156 3.04188 0.0358454 0.956994C-0.0570118 0.564293 0.0287025 0.264412 0.392988 0.0716309C0.707274 -0.0925896 0.97156 0.0644909 1.24299 0.200151C6.6287 2.89908 12.0216 5.59087 17.4073 8.2898C17.6573 8.41118 17.8501 8.56826 18.0001 8.79674V9.29654C17.7787 9.52502 17.5216 9.68924 17.2358 9.83204C14.0287 11.4243 10.8216 13.0165 7.62156 14.6159C5.37156 15.7368 3.13585 16.8721 0.885845 18.0002H0.892988Z"
-                fill={palette.navy.muted}
-              />
-            </G>
-          </Svg>
-        </Text>
+        <Svg width={18} height={18} viewBox="0 0 18 18" fill="none">
+          <Defs>
+            <ClipPath id="clip0_8_397">
+              <Rect width={18} height={18} fill="white" />
+            </ClipPath>
+          </Defs>
+          <G clipPath="url(#clip0_8_397)">
+            <Path
+              d="M0.892988 18.0002H0.492988C0.0429882 17.7575 -0.0641546 17.4219 0.0644168 16.9149C0.564417 14.8586 1.0287 12.8023 1.49299 10.7388C1.59299 10.2819 1.85013 10.0534 2.30727 10.0105C4.0287 9.83918 5.75727 9.66782 7.4787 9.48932C8.47156 9.38936 9.46442 9.28226 10.4644 9.1823C10.6144 9.16802 10.793 9.16088 10.8001 8.96096C10.8001 8.76104 10.6358 8.73962 10.4787 8.7182C10.3787 8.70392 10.2787 8.70392 10.1787 8.69678C7.54299 8.43974 4.90727 8.17556 2.27156 7.9328C1.81442 7.88996 1.59299 7.66862 1.49299 7.24022C1.01442 5.13391 0.52156 3.04188 0.0358454 0.956994C-0.0570118 0.564293 0.0287025 0.264412 0.392988 0.0716309C0.707274 -0.0925896 0.97156 0.0644909 1.24299 0.200151C6.6287 2.89908 12.0216 5.59087 17.4073 8.2898C17.6573 8.41118 17.8501 8.56826 18.0001 8.79674V9.29654C17.7787 9.52502 17.5216 9.68924 17.2358 9.83204C14.0287 11.4243 10.8216 13.0165 7.62156 14.6159C5.37156 15.7368 3.13585 16.8721 0.885845 18.0002H0.892988Z"
+              fill={palette.navy.muted}
+            />
+          </G>
+        </Svg>
       </TouchableOpacity>
     </LinearGradient>
   );
 };
 
-// All sizes are derived from MAX_LINES + line-height + paddings so the math
-// stays correct on any device. Wrapped in moderateScale so accessibility
-// text scaling (Settings → Display → Text Size) and different screen
-// densities (iPhone SE → iPad) keep proportions intact.
+// All sizes derived from MAX_LINES + line-height. Wrapped in moderateScale
+// so accessibility text scaling (Settings → Display → Text Size) and
+// different screen densities (iPhone SE → iPad) keep proportions intact.
+//
+// iOS's UITextView has a default textContainerInset of (top: 8, bottom: 8)
+// for multiline text. Setting paddingTop/paddingBottom on a multiline
+// RN TextInput in newer RN versions ADDS to this default rather than
+// replacing it — so any padding here was being doubled, pushing text
+// visually low. Leave paddingTop/paddingBottom unset; iOS's 8px built-in
+// inset handles the visual spacing. Only set them on Android via
+// platform-specific overrides if needed.
 const FONT_SIZE = moderateScale(17);
 const LINE_HEIGHT = moderateScale(24);
-const INPUT_PADDING_V = moderateScale(8);
 const MAX_LINES = 6;
-// 6 visible lines + top/bottom padding. Italic Cormorant has long descenders,
-// so we add an extra `LINE_HEIGHT * 0.1` of slack to keep the cursor and
-// descenders of g/j/p/y/q on line 6 fully visible at the cap.
-const MAX_INPUT_HEIGHT =
-  LINE_HEIGHT * MAX_LINES + INPUT_PADDING_V * 2 + LINE_HEIGHT * 0.1;
+// iOS adds ~8px top + 8px bottom from its default textContainerInset, so
+// the actual visual space at MAX_LINES is LINE_HEIGHT * 6 + 16. Setting
+// maxHeight to LINE_HEIGHT * 6 alone would clip the bottom descender on
+// line 6; adding 16 of slack keeps the full visible.
+const MAX_INPUT_HEIGHT = LINE_HEIGHT * MAX_LINES + moderateScale(16);
 
 const styles = StyleSheet.create({
   // Container is a row holding the icon + multiline input + send button.
@@ -191,12 +187,11 @@ const styles = StyleSheet.create({
     height: moderateScale(40),
   },
 
-  // Multiline input grows up to MAX_INPUT_HEIGHT (~6 lines), then internal
-  // scroll kicks in. paddingVertical is explicit so the first/last lines
-  // don't clip — RN's default multiline padding is miscalibrated for italic
-  // fonts. textAlignVertical defaults to 'top' (only safe value for a
-  // growing multiline; 'center' reflows on overflow and hides the latest
-  // typed line).
+  // Multiline input. Grows up to MAX_INPUT_HEIGHT (~6 lines + iOS's
+  // built-in 16px text inset), then internal scroll engages.
+  // No paddingTop / paddingBottom — iOS's default textContainerInset
+  // provides the internal spacing. Setting them here doubled the top
+  // inset and pushed text visually below center.
   input: {
     flex: 1,
     ...theme.typography.styles.input,
@@ -207,31 +202,10 @@ const styles = StyleSheet.create({
     lineHeight: LINE_HEIGHT,
     fontWeight: '400',
     maxHeight: MAX_INPUT_HEIGHT,
-    paddingTop: INPUT_PADDING_V,
-    paddingBottom: INPUT_PADDING_V,
   },
 
   sendButton: {
     paddingLeft: scale(6),
     paddingRight: scale(8),
-  },
-
-  sendText: {
-    ...theme.typography.styles.body,
-    fontSize: moderateScale(30),
-  },
-
-  enabledText: {
-    color: 'rgba(186, 194, 207, 0.5)',
-  },
-
-  disabledText: {
-    color: 'rgba(163, 179, 204, 0.50)',
-    textAlign: 'center',
-    fontFamily: 'CormorantGaramond-Italic',
-    fontSize: FONT_SIZE,
-    lineHeight: LINE_HEIGHT,
-    fontWeight: '400',
-    opacity: 0.5,
   },
 });
