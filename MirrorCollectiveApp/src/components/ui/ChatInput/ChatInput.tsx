@@ -163,7 +163,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-end',
     borderRadius: spacing.s,
-    paddingHorizontal: spacing.xxs,
+    paddingHorizontal: scale(8),
     paddingVertical: moderateScale(6),
     marginTop: spacing.s,
     ...shadows.MEDIUM,
@@ -172,7 +172,8 @@ const styles = StyleSheet.create({
   },
 
   iconButton: {
-    paddingLeft: scale(10),
+    paddingLeft: scale(6),
+    paddingRight: scale(6),
   },
 
   // Vertical padding so the icon sits on the input's last-line baseline
@@ -216,7 +217,8 @@ const styles = StyleSheet.create({
   },
 
   sendButton: {
-    paddingRight: scale(20),
+    paddingLeft: scale(6),
+    paddingRight: scale(8),
   },
 
   sendText: {
