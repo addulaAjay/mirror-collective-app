@@ -6,6 +6,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, StatusBar, StyleSheet, View } from 'react-native';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { ChatErrorBoundary } from '@components/error';
@@ -382,26 +383,28 @@ const App = () => {
 
   return (
     <SafeAreaProvider>
-      <ThemeProvider>
-      <ErrorBoundary>
-        <SessionProvider>
-          <UserProvider>
-            <SubscriptionProvider>
-              <JourneyProvider>
-                <React.Fragment>
-                  <StatusBar
-                    translucent
-                    backgroundColor="transparent"
-                    barStyle="light-content"
-                  />
-                  <AppNavigator />
-                </React.Fragment>
-              </JourneyProvider>
-            </SubscriptionProvider>
-          </UserProvider>
-        </SessionProvider>
-      </ErrorBoundary>
-      </ThemeProvider>
+      <KeyboardProvider>
+        <ThemeProvider>
+        <ErrorBoundary>
+          <SessionProvider>
+            <UserProvider>
+              <SubscriptionProvider>
+                <JourneyProvider>
+                  <React.Fragment>
+                    <StatusBar
+                      translucent
+                      backgroundColor="transparent"
+                      barStyle="light-content"
+                    />
+                    <AppNavigator />
+                  </React.Fragment>
+                </JourneyProvider>
+              </SubscriptionProvider>
+            </UserProvider>
+          </SessionProvider>
+        </ErrorBoundary>
+        </ThemeProvider>
+      </KeyboardProvider>
     </SafeAreaProvider>
   );
 };

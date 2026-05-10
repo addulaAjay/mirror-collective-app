@@ -24,5 +24,9 @@ module.exports = {
       },
     ],
     '@babel/plugin-transform-class-static-block',
+    // react-native-reanimated/plugin MUST be the LAST plugin in this array.
+    // The plugin's worklet transform expects to run after all other syntax
+    // transforms; placing it earlier causes runtime errors in dev/release.
+    'react-native-reanimated/plugin',
   ],
 };

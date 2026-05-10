@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
   Text,
   StyleSheet,
+  type NativeSyntheticEvent,
+  type TextInputContentSizeChangeEventData,
 } from 'react-native';
 import DocumentPicker from 'react-native-document-picker';
 import LinearGradient from 'react-native-linear-gradient';
@@ -17,6 +19,14 @@ interface ChatInputProps {
   onSend: () => void;
   placeholder?: string;
   disabled?: boolean;
+  /**
+   * Fires when the multiline TextInput's content height changes.
+   * Consumers (e.g. MirrorChatScreen) use this to keep the message list
+   * anchored to the latest message as the input grows.
+   */
+  onContentSizeChange?: (
+    event: NativeSyntheticEvent<TextInputContentSizeChangeEventData>,
+  ) => void;
 }
 
 export const ChatInput: React.FC<ChatInputProps> = ({
@@ -25,6 +35,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   onSend,
   placeholder = 'Ask me anything...',
   disabled = false,
+  onContentSizeChange,
 }) => {
   const [isPicking, setIsPicking] = useState(false);
 
@@ -61,7 +72,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
       style={styles.container}
     >
       <TouchableOpacity
-        style={styles.iconButton}
+        style={[styles.iconButton, styles.iconButtonAnchor]}
         onPress={handlePickDocument}
         disabled={disabled || isPicking}
       >
@@ -87,13 +98,15 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         style={styles.input}
         value={value}
         onChangeText={onChangeText}
+        onContentSizeChange={onContentSizeChange}
         placeholder={placeholder}
         placeholderTextColor="rgba(186, 194, 207, 0.5)"
         editable={!disabled}
         multiline
+        scrollEnabled
       />
       <TouchableOpacity
-        style={styles.sendButton}
+        style={[styles.sendButton, styles.iconButtonAnchor]}
         onPress={onSend}
         disabled={disabled || !value.trim()}
         testID="send-button"
@@ -126,21 +139,30 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 };
 
 const styles = StyleSheet.create({
+  // Container is a row that grows vertically with the multiline input.
+  // alignItems: 'flex-end' anchors the icon and send buttons to the bottom
+  // of the row as the input gets taller — matches ChatGPT/Claude pattern.
   container: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-end',
     borderRadius: spacing.s,
     paddingHorizontal: spacing.xxs,
+    paddingVertical: 6,
     marginTop: spacing.l,
     marginBottom: spacing.l,
     ...shadows.MEDIUM,
     borderColor: palette.navy.DEFAULT,
     minHeight: 40,
-    maxHeight: 300,
   },
 
   iconButton: {
     paddingLeft: 10,
+  },
+
+  // Vertical padding so the icon sits on the input's last-line baseline
+  // when the input grows multiline (icons stay anchored bottom-right).
+  iconButtonAnchor: {
+    paddingBottom: 8,
   },
 
   iconImage: {
@@ -156,6 +178,12 @@ const styles = StyleSheet.create({
     height: 40,
   },
 
+  // Multiline input grows up to maxHeight (~6 lines at 24 line-height),
+  // then internal scroll kicks in. paddingVertical is explicit so the
+  // first/last lines don't clip — RN's default multiline padding is
+  // miscalibrated for italic fonts. textAlignVertical defaults to 'top'
+  // (only safe value for a growing multiline; 'center' reflows on overflow
+  // and hides the latest typed line).
   input: {
     flex: 1,
     ...theme.typography.styles.input,
@@ -165,10 +193,9 @@ const styles = StyleSheet.create({
     fontSize: 17,
     lineHeight: 24,
     fontWeight: '400',
-    maxHeight: 300,
-    paddingTop: 0,
-    paddingBottom: 0,
-    textAlignVertical: 'center',
+    maxHeight: 144,
+    paddingTop: 8,
+    paddingBottom: 8,
   },
 
   sendButton: {
