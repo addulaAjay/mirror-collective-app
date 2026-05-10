@@ -381,6 +381,10 @@ const styles = StyleSheet.create<{
     color:         palette.gold.DEFAULT,
     textAlign:     'center',
     textTransform: 'uppercase',
-    maxWidth:      scale(110),
+    // scale(110) is ~105pt on iPhone SE (375pt) — too narrow for the
+    // word "REFLECTION" at 20px Cormorant, which forced a mid-word break
+    // (REFLECTIO\nN ROOM). Bump to scale(130) so the longest single word
+    // ("REFLECTION") fits on one line on the narrowest supported device.
+    maxWidth:      scale(130),
   },
 });
