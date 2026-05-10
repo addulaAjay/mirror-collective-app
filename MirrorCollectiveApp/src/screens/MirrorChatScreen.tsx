@@ -58,15 +58,29 @@ export function MirrorChatContent() {
     [],
   );
 
-  // Input grew (multiline typing). If user is at the bottom, keep newest
-  // visible. scrollToOffset(0) is the chat "scroll to bottom" in inverted.
+  // INTENTIONALLY a no-op. Previously this called scrollToOffset whenever
+  // the TextInput's content size changed (typing → multiline grow). Two
+  // problems with that:
+  //
+  //   1. In an inverted FlatList, the newest message already sits at the
+  //      visual bottom. When the input grows and the FlatList shrinks, the
+  //      newest message stays at the bottom of the (now smaller) FlatList
+  //      area automatically — no programmatic scroll needed.
+  //
+  //   2. iOS reports TextInput contentSize changes that aren't from typing
+  //      either — re-measuring after layout shifts can fire this callback
+  //      during a keyboard-dismiss animation. The programmatic scrollToOffset
+  //      then races with the user's drag (they may be mid-scroll), cancels
+  //      the gesture, and produces the intermittent "scroll doesn't work"
+  //      symptom right after keyboard dismissal.
+  //
+  // Kept as a callback (instead of removing the prop on ChatInput) so the
+  // component contract is unchanged — it's just a no-op now.
   const handleInputContentSizeChange = useCallback(
     (_e: NativeSyntheticEvent<TextInputContentSizeChangeEventData>) => {
-      if (isAtBottomRef.current) {
-        scrollViewRef.current?.scrollToOffset({ offset: 0, animated: false });
-      }
+      /* intentional no-op — see comment above */
     },
-    [scrollViewRef],
+    [],
   );
 
   // New message arrived. Auto-scroll to it only if the user was already
