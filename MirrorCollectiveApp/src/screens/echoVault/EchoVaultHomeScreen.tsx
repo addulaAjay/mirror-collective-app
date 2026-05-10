@@ -71,9 +71,6 @@ const InfoIcon: React.FC<{ size?: number }> = ({ size = 24 }) => (
   </Svg>
 );
 
-// Button width — Figma 176px at 393px reference
-const BTN_WIDTH = scale(176);
-
 // ── Screen ───────────────────────────────────────────────────────────────────
 export function MirrorEchoContent() {
   const navigation = useNavigation<MirrorEchoNavigationProp>();
@@ -156,18 +153,18 @@ export function MirrorEchoContent() {
               {/* VIEW VAULT — primary (prominent CTA) */}
               {/* START ECHO — secondary (supporting action) */}
               <Button
-                variant="secondary"
+                variant="primary"
                 size="L"
-                title="START ECHO"
+                title="CREATE AN ECHO"
                 onPress={() => navigation.navigate('NewEchoScreen')}
-                style={{ width: BTN_WIDTH }}
+                style={styles.ctaButton}
               />
               <Button
-                variant="primary"
+                variant="secondary"
                 size="L"
                 title="VIEW VAULT"
                 onPress={() => navigation.navigate('MirrorEchoVaultLibrary')}
-                style={{ width: BTN_WIDTH }}
+                style={styles.ctaButton}
               />
             </View>
 
@@ -257,6 +254,7 @@ const styles = StyleSheet.create<{
   copyWrap: ViewStyle;
   copyText: TextStyle;
   ctaWrap: ViewStyle;
+  ctaButton: ViewStyle;
   // Modal
   modalOverlay: ViewStyle;
   infoCardGlow: ViewStyle;
@@ -362,6 +360,14 @@ const styles = StyleSheet.create<{
   ctaWrap: {
     alignItems: 'center',
     gap:        verticalScale(spacing.s),         // 12px (Spacing/S)
+  },
+
+  // Fixed width applied to each CTA button so CREATE AN ECHO and VIEW VAULT
+  // render at identical width regardless of label length (the Button's
+  // mcGlowWrapper has alignSelf:'center', so parent alignItems:'stretch'
+  // alone won't override it — explicit width on the consumer style wins).
+  ctaButton: {
+    width: scale(271),
   },
 
   // ── Info Modal ────────────────────────────────────────────────────────────
