@@ -25,7 +25,7 @@ import {
 import AudioRecorderPlayer from 'react-native-audio-recorder-player';
 import DocumentPicker from 'react-native-document-picker';
 import { launchImageLibrary } from 'react-native-image-picker';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Video from 'react-native-video';
@@ -528,26 +528,20 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
           backgroundColor="transparent"
         />
 
-        {/* Header (menu + centered brand) — rendered outside the scroll so
-            it stays pinned at the top while the body scrolls. */}
-        <LogoHeader navigation={navigation} />
-
         {/*
-          KeyboardAwareScrollView from react-native-keyboard-controller is
-          the standard keyboard handling in this app — it auto-scrolls the
-          focused input into view above the keyboard, no manual measuring.
-          On small devices this prevents the bottom buttons from being
-          hidden behind the keyboard, which the previous stock
-          KeyboardAvoidingView did not handle.
+          KeyboardAvoidingView from react-native-keyboard-controller is the
+          right primitive for an editor-style screen (a single tall input
+          that should fill available space). The library's KAV behaves like
+          stock's but uses the new RN keyboard APIs that don't lag/jitter.
+          KeyboardAwareScrollView would force everything into a scroll and
+          break the flex-fill layout — wrong tool here.
         */}
-        <KeyboardAwareScrollView
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.kav}
-          contentContainerStyle={styles.kavContent}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-          keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
-          bottomOffset={16}
         >
+        {/* Header (menu + centered brand) */}
+        <LogoHeader navigation={navigation} />
 
         {/* Back + Title (centered) */}
         <View style={[styles.titleRow, { width: contentWidth }]}>
@@ -781,7 +775,7 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
             </>
           )}
         </View>
-        </KeyboardAwareScrollView>
+        </KeyboardAvoidingView>
 
         {/* Simple "upload" modal */}
         <Modal
@@ -974,18 +968,11 @@ const styles = StyleSheet.create({
   kav: {
     flex: 1,
     width: '100%',
-  },
-  // KeyboardAwareScrollView's contentContainerStyle — flexGrow so the
-  // body still fills the screen when content is short, alignItems:center
-  // to mirror the previous KAV behaviour, and bottom padding so the
-  // last button has breathing room above the keyboard.
-  kavContent: {
-    flexGrow: 1,
     alignItems: 'center',
-    paddingBottom: verticalScale(spacing.l),
   },
   content: {
     width: '100%',
+    flex: 1,
     marginTop: 10,
     paddingBottom: 22,
   },
@@ -1000,16 +987,15 @@ const styles = StyleSheet.create({
     marginLeft: scale(spacing.xxs),
   },
   textInputShell: {
-    // Concrete heights so the shell renders correctly inside the scroll
-    // container. Was flex:1 under the old KAV — that doesn't bound height
-    // when the parent is a ScrollView, so we set explicit minHeight and a
-    // maxHeight cap that keeps the input from eating the whole viewport on
-    // tall devices. Multiline TextInput grows with content within these.
-    minHeight: verticalScale(240),
-    maxHeight: verticalScale(360),
+    // flex: 1 lets the input fill all space between the title row and the
+    // bottom buttons — same height on iPhone SE as on Pro Max, just less
+    // of it. Overflow scrolls inside the TextInput itself when content
+    // exceeds the visible area.
+    flex: 1,
     borderRadius: radius.s,
     borderWidth: borderWidth.thin,
     borderColor: palette.navy.light,
+    minHeight: scale(120),
     overflow: 'hidden',
     width: '100%',
   },
