@@ -105,7 +105,10 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         scrollEnabled
       />
       <TouchableOpacity
-        style={styles.sendButton}
+        style={[
+          styles.sendButton,
+          (disabled || !value.trim()) && styles.sendButtonDisabled,
+        ]}
         onPress={onSend}
         disabled={disabled || !value.trim()}
         testID="send-button"
@@ -142,11 +145,13 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 const FONT_SIZE = moderateScale(17);
 const LINE_HEIGHT = moderateScale(24);
 const MAX_LINES = 6;
-// iOS adds ~8px top + 8px bottom from its default textContainerInset, so
-// the actual visual space at MAX_LINES is LINE_HEIGHT * 6 + 16. Setting
-// maxHeight to LINE_HEIGHT * 6 alone would clip the bottom descender on
-// line 6; adding 16 of slack keeps the full visible.
-const MAX_INPUT_HEIGHT = LINE_HEIGHT * MAX_LINES + moderateScale(16);
+// At MAX_LINES, the input must accommodate:
+//   - 6 lines of actual text         (LINE_HEIGHT * 6 = 144 base)
+//   - paddingVertical: 10 each side  (+ 20)
+//   - iOS textContainerInset 8/8     (+ 16)
+// Total visual height at the cap = 180. Without this, the cap shows
+// only ~5 lines because the padding eats into the visible text area.
+const MAX_INPUT_HEIGHT = LINE_HEIGHT * MAX_LINES + moderateScale(36);
 
 const styles = StyleSheet.create({
   // Container is a row holding the icon + multiline input + send button.
@@ -162,7 +167,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: spacing.s,
     paddingHorizontal: scale(8),
-    paddingVertical: moderateScale(6),
     marginTop: spacing.s,
     ...shadows.MEDIUM,
     borderColor: palette.navy.DEFAULT,
@@ -170,7 +174,7 @@ const styles = StyleSheet.create({
   },
 
   iconButton: {
-    paddingLeft: scale(6),
+    paddingLeft: scale(6),                                                                                            
     paddingRight: scale(6),
   },
 
@@ -187,20 +191,21 @@ const styles = StyleSheet.create({
     height: moderateScale(40),
   },
 
-  // Multiline input. Grows up to MAX_INPUT_HEIGHT (~6 lines + iOS's
-  // built-in 16px text inset), then internal scroll engages.
+  // Multiline input. Grows up to MAX_INPUT_HEIGHT, then internal scroll
+  // engages.
   //
   // alignSelf: 'center' is critical: by default a flex child stretches
   // on the cross-axis (vertical here), which on iOS multiline TextInput
   // causes the text to sit at the top of the stretched box with empty
   // space below. Setting alignSelf: 'center' makes the input only as
-  // tall as its content (single line = lineHeight) and vertically
-  // centers it in the row alongside the icons.
+  // tall as its content + paddingVertical, and vertically centers it
+  // in the row alongside the icons.
   //
-  // No paddingTop / paddingBottom — iOS's default textContainerInset
-  // (top:8, bottom:8) provides the internal spacing. Setting them here
-  // would double the top inset (RN adds them to iOS's default rather
-  // than replacing).
+  // paddingVertical: 4 gives Cormorant Italic's long descenders (j, p,
+  // y, q) clearance from the input's bottom edge. Without it, with
+  // alignSelf: 'center' shrinking the input to exactly lineHeight,
+  // descenders clip at the bottom rounded corner of the input gradient.
+  // 4/4 is symmetric so visual centering of icons + text holds.
   input: {
     flex: 1,
     alignSelf: 'center',
@@ -211,11 +216,20 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZE,
     lineHeight: LINE_HEIGHT,
     fontWeight: '400',
+    paddingVertical: moderateScale(10),
     maxHeight: MAX_INPUT_HEIGHT,
   },
 
   sendButton: {
     paddingLeft: scale(6),
-    paddingRight: scale(8),
+    paddingRight: scale(20),
+  },
+
+  // Visual cue that send is tap-blocked while the input is empty or while
+  // the parent screen is loading. 0.4 is high enough to remain readable
+  // (so users understand the icon is still "send"), low enough to feel
+  // clearly inert vs the enabled state.
+  sendButtonDisabled: {
+    opacity: 0.4,
   },
 });

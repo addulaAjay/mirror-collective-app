@@ -80,9 +80,6 @@ export function MirrorChatContent() {
               {/* Chat "card" */}
               <View style={styles.chatContainer}>
                 <Text style={styles.chatTitle}>MirrorGPT</Text>
-                <Text style={styles.headerText}>
-                  What are you grateful for today?
-                </Text>
 
                 <ScrollView
                   ref={scrollViewRef}
