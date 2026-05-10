@@ -196,7 +196,7 @@ const ResetPasswordScreen = () => {
                   {/* New Password Field */}
                   <View style={styles.fieldContainer}>
                     <TextInputField
-                    label={t('auth.resetPassword.passwordPlaceholder')}
+                      label={t('auth.resetPassword.passwordPlaceholder')}
                       testID="new-password-input"
                       placeholder={t('auth.resetPassword.passwordPlaceholder')}
                       value={newPassword}
@@ -215,8 +215,8 @@ const ResetPasswordScreen = () => {
 
                   {/* Confirm Password Field */}
                   <View style={styles.fieldContainer}>
-                    <Text style={styles.fieldLabel}>{t('auth.signup.fields.confirmPassword')}</Text>
                     <TextInputField
+                      label={t('auth.signup.fields.confirmPassword')}
                       testID="confirm-password-input"
                       placeholder={t('auth.signup.fields.confirmPasswordPlaceholder')}
                       value={confirmPassword}
@@ -237,7 +237,8 @@ const ResetPasswordScreen = () => {
                     <Text style={styles.errorText}>{state.error}</Text>
                   )}
 
-                  {/* Reset Password Button — auth-CTA pattern, 24px stars per Figma */}
+                  {/* Reset Password Button — extra top margin so it has
+                      breathing room from the confirm-password input. */}
                   <Button
                     variant="primary"
                     title={
@@ -248,22 +249,18 @@ const ResetPasswordScreen = () => {
                     onPress={handleResetPassword}
                     disabled={isLoading}
                     testID="reset-password-button"
+                    style={styles.submitButton}
                   />
                 </View>
 
-                {/* Back to Login — matches ForgotPassword pill styling
-                    (padding 12v/8h, radius 8, Cormorant 24, gold,
-                    underlined per Figma 7009:979). */}
-                <TouchableOpacity
+                {/* Back to Login — link variant of the shared Button so
+                    styling matches other auth screens. */}
+                <Button
+                  variant="link"
+                  title={t('auth.forgotPassword.backToLogin')}
                   onPress={handleBackToLogin}
-                  style={styles.backToLoginBtn}
-                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                   testID="back-to-login-button"
-                >
-                  <Text style={styles.backLinkText}>
-                    {t('auth.forgotPassword.backToLogin')}
-                  </Text>
-                </TouchableOpacity>
+                />
               </View>
             </TouchableWithoutFeedback>
         </KeyboardAwareScrollView>
@@ -346,20 +343,11 @@ const styles = StyleSheet.create({
     marginBottom: verticalScale(10),
   },
 
-  // Match ForgotPassword pill styling
-  backToLoginBtn: {
-    paddingVertical: verticalScale(12),
-    paddingHorizontal: scale(8),
-    borderRadius: moderateScale(8),
-  },
-  // Cormorant Regular 24/28, gold, underlined
-  backLinkText: {
-    fontFamily: fontFamily.heading,
-    fontSize: moderateScale(fontSize.xl),
-    lineHeight: lineHeight.xl,                    // 28
-    color: palette.gold.DEFAULT,
-    textDecorationLine: 'underline',
-    textAlign: 'center',
+  // Extra space above the Reset Password button so it sits clearly
+  // separated from the confirm-password input (formSection gap is 12;
+  // the button gets an additional 16 for visual breathing room).
+  submitButton: {
+    marginTop: verticalScale(16),
   },
 });
 

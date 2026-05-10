@@ -133,15 +133,12 @@ const ForgotPasswordScreen = () => {
                     testID="success-continue-button"
                   />
 
-                  <TouchableOpacity
+                  <Button
+                    variant="link"
+                    title={t('auth.forgotPassword.backToLogin')}
                     onPress={handleBackToLogin}
                     testID="success-back-to-login"
-                    style={styles.backToLoginBtn}
-                  >
-                    <Text style={styles.backLinkText}>
-                      {t('auth.forgotPassword.backToLogin')}
-                    </Text>
-                  </TouchableOpacity>
+                  />
                 </View>
               </TouchableWithoutFeedback>
           </KeyboardAwareScrollView>
@@ -238,18 +235,14 @@ const ForgotPasswordScreen = () => {
                   testID="forgot-password-button"
                 />
 
-                {/* Back to Login — Figma 7009:979 — Cormorant 24/28, gold,
-                    underlined, padding 12v/8h, radius 8 (Corner/M). */}
-                <TouchableOpacity
+                {/* Back to Login — link variant of the shared Button so
+                    styling matches other auth screens. */}
+                <Button
+                  variant="link"
+                  title={t('auth.forgotPassword.backToLogin')}
                   onPress={handleBackToLogin}
                   testID="back-to-login-button"
-                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                  style={styles.backToLoginBtn}
-                >
-                  <Text style={styles.backLinkText}>
-                    {t('auth.forgotPassword.backToLogin')}
-                  </Text>
-                </TouchableOpacity>
+                />
 
               </View>
             </TouchableWithoutFeedback>
@@ -362,23 +355,6 @@ const styles = StyleSheet.create({
     fontSize: moderateScale(fontSize.xs),
     lineHeight: lineHeight.s,
     color: palette.status.error,
-  },
-
-  // Figma 7009:979 — Back to Login pill. Padding 12v/8h, radius 8 (Corner/M).
-  backToLoginBtn: {
-    paddingVertical: verticalScale(12),
-    paddingHorizontal: scale(8),
-    borderRadius: moderateScale(8),
-  },
-
-  // Figma I7009:979;125:376 — Cormorant Regular, 24/28, gold, underlined
-  backLinkText: {
-    fontFamily: fontFamily.heading,
-    fontSize: moderateScale(fontSize.xl),
-    lineHeight: lineHeight.xl,                   // 28
-    color: palette.gold.DEFAULT,
-    textDecorationLine: 'underline',
-    textAlign: 'center',
   },
 
   // Used in emailSent state for the highlighted email address
