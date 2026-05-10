@@ -6,7 +6,6 @@ import {
   fontSize,
   fontWeight,
   lineHeight,
-  radius,
   scale,
   verticalScale,
   moderateScale,
@@ -26,11 +25,11 @@ import {
   Keyboard,
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
-import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Circle, Path } from 'react-native-svg';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
+import Button from '@components/Button';
 import LogoHeader from '@components/LogoHeader';
 import TextInputField from '@components/TextInputField';
 import { useSession } from '@context/SessionContext';
@@ -126,25 +125,13 @@ const ForgotPasswordScreen = () => {
                     <Text style={styles.emailHighlight}>{email}</Text>
                   </Text>
 
-                  {/* Continue — uses the same gradient/border styling as
-                      the SEND LINK button in the default state for visual
-                      consistency across the two ForgotPassword states. */}
-                  <TouchableOpacity
+                  <Button
+                    variant="primary"
+                    size="L"
+                    title={t('common.continue')}
                     onPress={() => navigation.navigate('ResetPassword', { email })}
-                    activeOpacity={0.85}
                     testID="success-continue-button"
-                  >
-                    <LinearGradient
-                      colors={['rgba(253,253,249,0.01)', 'rgba(253,253,249,0)']}
-                      start={{ x: 0.5, y: 0 }}
-                      end={{ x: 0.5, y: 1 }}
-                      style={styles.sendButton}
-                    >
-                      <Text style={styles.sendButtonText}>
-                        {t('common.continue')}
-                      </Text>
-                    </LinearGradient>
-                  </TouchableOpacity>
+                  />
 
                   <TouchableOpacity
                     onPress={handleBackToLogin}
@@ -237,29 +224,19 @@ const ForgotPasswordScreen = () => {
                   )}
                 </View>
 
-                {/* SEND LINK button — Figma 7024:2139 — 200px wide,
-                    border 0.5px subtle, gradient bg, asymmetric top-right
-                    radius 16 (Radius/M) vs others 12 (Radius/S). */}
-                <TouchableOpacity
+                {/* SEND LINK — Figma 7024:2139, MC Button "primary" variant */}
+                <Button
+                  variant="primary"
+                  size="L"
+                  title={
+                    isLoading
+                      ? t('auth.forgotPassword.sendingButton')
+                      : t('auth.forgotPassword.sendButton')
+                  }
                   onPress={handleForgotPassword}
                   disabled={isLoading}
-                  activeOpacity={0.85}
                   testID="forgot-password-button"
-                  style={isLoading && styles.sendButtonPressed}
-                >
-                  <LinearGradient
-                    colors={['rgba(253,253,249,0.01)', 'rgba(253,253,249,0)']}
-                    start={{ x: 0.5, y: 0 }}
-                    end={{ x: 0.5, y: 1 }}
-                    style={styles.sendButton}
-                  >
-                    <Text style={styles.sendButtonText}>
-                      {isLoading
-                        ? t('auth.forgotPassword.sendingButton')
-                        : t('auth.forgotPassword.sendButton')}
-                    </Text>
-                  </LinearGradient>
-                </TouchableOpacity>
+                />
 
                 {/* Back to Login — Figma 7009:979 — Cormorant 24/28, gold,
                     underlined, padding 12v/8h, radius 8 (Corner/M). */}
@@ -385,43 +362,6 @@ const styles = StyleSheet.create({
     fontSize: moderateScale(fontSize.xs),
     lineHeight: lineHeight.s,
     color: palette.status.error,
-  },
-
-  // Figma 7024:2139 — SEND LINK button. 200×intrinsic, border 0.5px
-  // subtle (#a3b3cc), padding 16h/12v, asymmetric corners (top-right=16,
-  // others=12), gradient bg from rgba(253,253,249,0.01) → 0.
-  sendButton: {
-    width: scale(200),
-    paddingHorizontal: scale(16),
-    paddingVertical: verticalScale(12),
-    borderWidth: 0.5,
-    borderColor: palette.navy.light,             // #a3b3cc — Figma: border/subtle
-    borderTopLeftRadius: radius.s,               // 12 — Figma: Radius/S
-    borderBottomLeftRadius: radius.s,
-    borderBottomRightRadius: radius.s,
-    borderTopRightRadius: radius.m,              // 16 — Figma: Radius/M (asymmetric)
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  // Reduced-opacity press state (since we removed the Button component
-  // which handled disabled visuals internally).
-  sendButtonPressed: {
-    opacity: 0.6,
-  },
-
-  // Figma I7024:2139;125:342 — Cormorant Regular, 24/28 (font/size/XL +
-  // 2XL line-height), gold #f2e1b0, glow shadow 0 0 15 rgba(242,226,177,0.25)
-  sendButtonText: {
-    fontFamily: fontFamily.heading,
-    fontSize: moderateScale(fontSize.xl),        // 24px — Figma: font/size/XL
-    fontWeight: fontWeight.regular,
-    lineHeight: lineHeight.xl,                   // 28px — Figma: font/size/2XL line-height
-    color: palette.gold.DEFAULT,                 // #f2e1b0 — Figma: text/paragraph-1
-    textAlign: 'center',
-    textShadowColor: textShadow.warmGlow.color,
-    textShadowOffset: textShadow.warmGlow.offset,
-    textShadowRadius: 15,                        // Figma: 0 0 15 spread:0
   },
 
   // Figma 7009:979 — Back to Login pill. Padding 12v/8h, radius 8 (Corner/M).
