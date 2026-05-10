@@ -72,7 +72,8 @@ export const ChatInput: React.FC<ChatInputProps> = ({
       style={styles.container}
     >
       <TouchableOpacity
-        style={[styles.iconButton, styles.iconButtonAnchor]}
+        style={styles.iconButton}
+        hitSlop={ICON_HIT_SLOP}
         onPress={handlePickDocument}
         disabled={disabled || isPicking}
       >
@@ -106,7 +107,8 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         scrollEnabled
       />
       <TouchableOpacity
-        style={[styles.sendButton, styles.iconButtonAnchor]}
+        style={styles.sendButton}
+        hitSlop={ICON_HIT_SLOP}
         onPress={onSend}
         disabled={disabled || !value.trim()}
         testID="send-button"
@@ -138,48 +140,49 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   );
 };
 
-// All sizes are derived from MAX_LINES + line-height + paddings so the math
-// stays correct on any device. Wrapped in moderateScale so accessibility
-// text scaling (Settings → Display → Text Size) and different screen
-// densities (iPhone SE → iPad) keep proportions intact.
+// All sizes derived from MAX_LINES + line-height so the math stays correct
+// on any device. Wrapped in moderateScale so accessibility text scaling
+// (Settings → Display → Text Size) and different screen densities
+// (iPhone SE → iPad) keep proportions intact.
+//
+// Critical: paddingVertical lives on the CONTAINER, not on the TextInput.
+// Padding inside the input causes the scroll position to land on a
+// fractional line at the cap, producing partial first/last lines (the
+// "trimmed" look). With no internal padding, maxHeight is an exact
+// multiple of lineHeight and scroll offsets snap to clean line boundaries.
 const FONT_SIZE = moderateScale(17);
 const LINE_HEIGHT = moderateScale(24);
-const INPUT_PADDING_V = moderateScale(8);
+const CONTAINER_PADDING_V = moderateScale(10);
 const MAX_LINES = 6;
-// 6 visible lines + top/bottom padding. Italic Cormorant has long descenders,
-// so we add an extra `LINE_HEIGHT * 0.1` of slack to keep the cursor and
-// descenders of g/j/p/y/q on line 6 fully visible at the cap.
-const MAX_INPUT_HEIGHT =
-  LINE_HEIGHT * MAX_LINES + INPUT_PADDING_V * 2 + LINE_HEIGHT * 0.1;
+const MAX_INPUT_HEIGHT = LINE_HEIGHT * MAX_LINES;
+
+// Generous touch targets without changing visual size — meets the iOS 44pt
+// minimum for `+` (attach) and send buttons even though the rendered icons
+// are smaller. RN's default tap area is exactly the rendered size.
+const ICON_HIT_SLOP = { top: 12, bottom: 12, left: 8, right: 8 };
 
 const styles = StyleSheet.create({
-  // Container is a row that grows vertically with the multiline input.
-  // alignItems: 'flex-end' anchors the icon and send buttons to the bottom
-  // of the row as the input gets taller — matches ChatGPT/Claude pattern.
-  // No marginBottom — the parent screen places this directly above the
-  // bottom of the chat card with KeyboardAvoidingView handling keyboard
-  // offset, so any margin here would just be dead space.
+  // Container row. alignItems: 'flex-end' anchors icons to the bottom of
+  // the row so they stay aligned with the input's last line as it grows.
+  // No marginBottom — parent layout handles spacing from the bottom of
+  // the chat card.
   container: {
     flexDirection: 'row',
     alignItems: 'flex-end',
     borderRadius: spacing.s,
-    paddingHorizontal: spacing.xxs,
-    paddingVertical: moderateScale(6),
+    paddingHorizontal: scale(12),
+    paddingVertical: CONTAINER_PADDING_V,
     marginTop: spacing.s,
     ...shadows.MEDIUM,
     borderColor: palette.navy.DEFAULT,
-    minHeight: moderateScale(40),
+    minHeight: moderateScale(44),
   },
 
+  // Small click-target padding around the icon. Most of the touch area
+  // comes from hitSlop. Visual padding gives the icon breathing room
+  // from the input edge without crowding the gradient corner.
   iconButton: {
-    paddingLeft: scale(10),
-  },
-
-  // Vertical padding so the icon sits on the input's last-line baseline
-  // when the input grows multiline (icons stay anchored bottom-right).
-  // Matches input's paddingBottom so they share a baseline.
-  iconButtonAnchor: {
-    paddingBottom: INPUT_PADDING_V,
+    paddingHorizontal: scale(4),
   },
 
   iconImage: {
@@ -195,28 +198,23 @@ const styles = StyleSheet.create({
     height: moderateScale(40),
   },
 
-  // Multiline input grows up to MAX_INPUT_HEIGHT (~6 lines), then internal
-  // scroll kicks in. paddingVertical is explicit so the first/last lines
-  // don't clip — RN's default multiline padding is miscalibrated for italic
-  // fonts. textAlignVertical defaults to 'top' (only safe value for a
-  // growing multiline; 'center' reflows on overflow and hides the latest
-  // typed line).
+  // Multiline input. Grows up to MAX_INPUT_HEIGHT (= LINE_HEIGHT * MAX_LINES,
+  // exactly), then internal scroll engages. NO paddingTop/paddingBottom —
+  // padding lives on the container so scroll snaps to whole lines.
   input: {
     flex: 1,
     ...theme.typography.styles.input,
     color: palette.neutral.white,
-    marginHorizontal: spacing.xs,
+    marginHorizontal: scale(8),
     fontFamily: 'CormorantGaramond-Italic',
     fontSize: FONT_SIZE,
     lineHeight: LINE_HEIGHT,
     fontWeight: '400',
     maxHeight: MAX_INPUT_HEIGHT,
-    paddingTop: INPUT_PADDING_V,
-    paddingBottom: INPUT_PADDING_V,
   },
 
   sendButton: {
-    paddingRight: scale(20),
+    paddingHorizontal: scale(4),
   },
 
   sendText: {
