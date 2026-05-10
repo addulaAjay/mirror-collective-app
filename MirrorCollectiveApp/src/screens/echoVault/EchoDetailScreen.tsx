@@ -28,7 +28,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import Button from '@components/Button';
-import EchoActionsHeader from '@components/echo/EchoActionsHeader';
 import LogoHeader from '@components/LogoHeader';
 import { echoApiService, EchoResponse } from '@services/api/echo';
 
@@ -90,14 +89,17 @@ const EchoDetailScreen: React.FC<Props> = ({ navigation, route }) => {
 
   const handleEdit = () => {
     if (!echo) return;
-    navigation.navigate('NewEchoComposeScreen', {
+    // Route through ChooseRecipientScreen so the edit flow matches the
+    // create flow's two-step pattern (Recipient → Compose). The recipient
+    // screen propagates editEchoId on to the compose step.
+    navigation.navigate('ChooseRecipientScreen', {
       mode: echo.echo_type.toLowerCase() as 'text' | 'audio' | 'video',
       title: echo.title,
       category: echo.category,
       editEchoId: echo.echo_id,
-      initialContent: echo.content,
-      recipientId: echo.recipient?.recipient_id,
-      recipientName: echo.recipient?.name,
+      prefillRecipient: echo.recipient,
+      prefillLockDate: echo.release_date,
+      prefillContent: echo.content,
     });
   };
 
@@ -163,11 +165,7 @@ const EchoDetailScreen: React.FC<Props> = ({ navigation, route }) => {
               {title}
             </Text>
 
-            <EchoActionsHeader
-              echo={echo}
-              onChanged={fetchEchoDetails}
-              onSent={() => navigation.goBack()}
-            />
+            <View style={styles.titleRightSpacer} />
           </View>
         </View>
 
@@ -198,7 +196,10 @@ const EchoDetailScreen: React.FC<Props> = ({ navigation, route }) => {
             onPress={handleVault}
             style={styles.vaultBtn}
           />
-          {!isRecipient && (
+          {/* Edit icon hidden once the echo is RELEASED — the backend
+              rejects updates on locked/released echoes, so there's
+              nothing the user could change at that point. */}
+          {!isRecipient && echo?.status === 'DRAFT' && (
             <EchoIconButton icon={require('@assets/edit-icon.png')} onPress={handleEdit} />
           )}
         </View>

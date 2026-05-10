@@ -45,7 +45,6 @@ import type { RootStackParamList } from '@types';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   Image,
   Platform,
   ScrollView,
@@ -82,17 +81,34 @@ const BackIcon: React.FC = () => (
 
 // ── Screen ────────────────────────────────────────────────────────────────────
 const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
-  const { title, category, mode, sendLaterFor } = route.params;
-  const isSendLater = !!sendLaterFor;
+  const { title, category, mode, editEchoId, prefillRecipient, prefillLockDate, prefillContent } =
+    route.params;
+  const isEditing = !!editEchoId;
 
   const [recipients, setRecipients] = useState<Recipient[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedRecipient, setSelectedRecipient] = useState<Recipient | null>(null);
+  const [selectedRecipient, setSelectedRecipient] = useState<Recipient | null>(
+    // Hydrate from prefill if present so the dropdown opens already filled.
+    // We coerce the lightweight prefill payload into a Recipient — the picker
+    // only displays name/profile_image_url so the missing fields don't matter.
+    prefillRecipient
+      ? ({
+          recipient_id: prefillRecipient.recipient_id,
+          user_id: '',
+          name: prefillRecipient.name,
+          email: prefillRecipient.email,
+          motif: prefillRecipient.motif,
+          profile_image_url: prefillRecipient.profile_image_url,
+          created_at: '',
+        } as Recipient)
+      : null,
+  );
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [lockDate, setLockDate] = useState<Date | null>(null);
+  const [lockDate, setLockDate] = useState<Date | null>(
+    prefillLockDate ? new Date(prefillLockDate) : null,
+  );
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [notes, setNotes] = useState('');
-  const [submitting, setSubmitting] = useState(false);
 
   // Note: previous KAV-based implementation manually measured + scrolled
   // the letter field into view on focus. KeyboardAwareScrollView handles
@@ -127,73 +143,23 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
     date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
   /**
-   * Persist the choice and either:
-   *  - (create mode) navigate to NewEchoComposeScreen to write content, or
-   *  - (send-later mode) attach the recipient to the existing echo and
-   *    either schedule the release (lockDate set) or release immediately.
+   * Navigate forward to the compose step, passing the chosen recipient and
+   * lock date along. Works for both create and edit flows — the only
+   * difference is whether `editEchoId` is propagated so compose PATCHes the
+   * existing echo instead of creating a new one.
    */
-  const handleNext = async () => {
+  const handleNext = () => {
     if (!selectedRecipient) return;
-
-    if (isSendLater && sendLaterFor) {
-      try {
-        setSubmitting(true);
-        // Always attach the recipient first — both branches need it.
-        const assignRes = await echoApiService.assignRecipient(
-          sendLaterFor.echoId,
-          selectedRecipient.recipient_id,
-        );
-        if (!assignRes.success) {
-          throw new Error(assignRes.message || 'Failed to assign recipient');
-        }
-
-        if (lockDate) {
-          // Future delivery — set the release date and stop here.
-          const schedRes = await echoApiService.scheduleEcho(
-            sendLaterFor.echoId,
-            lockDate.toISOString(),
-          );
-          if (!schedRes.success) {
-            throw new Error(schedRes.message || 'Failed to schedule echo');
-          }
-          Alert.alert(
-            'Scheduled',
-            `${sendLaterFor.echoTitle || 'This echo'} will be delivered to ${selectedRecipient.name} on ${formatDate(lockDate)}.`,
-            [{ text: 'OK', onPress: () => navigation.popToTop() }],
-          );
-        } else {
-          // No lock date → deliver now.
-          const releaseRes = await echoApiService.releaseEcho(
-            sendLaterFor.echoId,
-          );
-          if (!releaseRes.success) {
-            throw new Error(releaseRes.message || 'Failed to release echo');
-          }
-          Alert.alert(
-            'Sent',
-            `${sendLaterFor.echoTitle || 'This echo'} has been delivered to ${selectedRecipient.name}.`,
-            [{ text: 'OK', onPress: () => navigation.popToTop() }],
-          );
-        }
-      } catch (err: any) {
-        Alert.alert('Something went wrong', err?.message || 'Please try again.');
-      } finally {
-        setSubmitting(false);
-      }
-      return;
-    }
-
-    // ── Default create-flow behaviour (unchanged) ────────────────────────
-    // Navigate directly to compose — no guardian prompt (Day 2 feature)
     navigation.navigate('NewEchoComposeScreen', {
-      mode: mode!,
-      title: title!,
-      category: category!,
+      mode: mode ?? 'text',
+      title,
+      category,
       hasRecipient: true,
       recipient:    selectedRecipient,
       recipientId:  selectedRecipient.recipient_id,
       recipientName: selectedRecipient.name,
       lockDate:     lockDate?.toISOString(),
+      ...(editEchoId ? { editEchoId, initialContent: prefillContent } : {}),
     });
   };
 
@@ -223,9 +189,7 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
                   <BackIcon />
                 </TouchableOpacity>
                 {/* Heading M: Cormorant Regular 28/32, #f2e1b0, glow */}
-                <Text style={styles.screenTitle}>
-                  {isSendLater ? `SEND TO\nRECIPIENT` : `CHOOSE YOUR\nRECIPIENT`}
-                </Text>
+                <Text style={styles.screenTitle}>CHOOSE YOUR{'\n'}RECIPIENT</Text>
                 <View style={styles.headerSpacer} />
               </View>
 
@@ -355,37 +319,27 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
                 )}
               </View>
 
-              {/* ── Letter to Recipient ─────────────────────────────────
-                  Only shown in create mode. In send-later mode the echo
-                  content already exists; no need for a fresh letter. */}
-              {!isSendLater && (
-                <View style={styles.fieldGroup}>
-                  <TextInputField
-                    label="Letter to Recipient"
-                    placeholder="Write notes here"
-                    value={notes}
-                    onChangeText={setNotes}
-                    size="L"
-                    multiline
-                    maxHeight={verticalScale(160)}
-                  />
-                </View>
-              )}
+              {/* ── Letter to Recipient ───────────────────────────────── */}
+              <View style={styles.fieldGroup}>
+                <TextInputField
+                  label="Letter to Recipient"
+                  placeholder="Write notes here"
+                  value={notes}
+                  onChangeText={setNotes}
+                  size="L"
+                  multiline
+                  maxHeight={verticalScale(160)}
+                />
+              </View>
 
-              {/* ── Submit button ─────────────────────────────────────
-                  Label reflects mode: NEXT for create, SEND/SCHEDULE for
-                  send-later (depending on whether a lock date was set). */}
+              {/* ── NEXT button ───────────────────────────────────────── */}
               <Button
                 variant="primary"
                 size="L"
-                title={
-                  isSendLater
-                    ? (lockDate ? 'SCHEDULE' : 'SEND NOW')
-                    : 'NEXT'
-                }
+                title="NEXT"
                 onPress={handleNext}
-                disabled={!selectedRecipient || submitting}
-                active={!!selectedRecipient && !submitting}
+                disabled={!selectedRecipient}
+                active={!!selectedRecipient}
               />
 
             </View>

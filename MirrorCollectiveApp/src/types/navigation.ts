@@ -126,20 +126,37 @@ export type RootStackParamList = {
   };
   ChooseRecipientScreen: {
     // Create-flow fields (used when the screen is reached from the new-echo
-    // wizard). Optional now because the same screen is also reused in
-    // send-later mode (see `sendLaterFor` below) where they don't apply.
+    // wizard). Optional because the same screen is also reused as the first
+    // step of the edit flow, where the title/category/mode come from the
+    // existing echo (passed via prefill props).
     title?: string;
     category?: string;
     mode?: 'text' | 'audio' | 'video';
     /**
-     * When set, the screen runs in "attach recipient to an existing echo"
-     * mode: hides the letter field and, on submit, calls assignRecipient
-     * + (releaseEcho | scheduleEcho) instead of navigating to compose.
-     * Used by the EchoActionsHeader "Send to recipient…" action on Saved
-     * echoes so the recipient + lock-date picker is consistent with the
-     * create flow.
+     * Edit-mode plumbing — when `editEchoId` is set the screen runs in
+     * "edit existing echo" mode: it pre-populates the picker with the
+     * echo's current recipient + lock date, and on Next it navigates to
+     * NewEchoComposeScreen with `editEchoId` so the compose step PATCHes
+     * the existing echo instead of creating a new one. The end-to-end
+     * trip matches the create flow (Recipient → Compose → Save) which is
+     * the consistency property the UX was designed around.
      */
-    sendLaterFor?: { echoId: string; echoTitle?: string };
+    editEchoId?: string;
+    prefillRecipient?: {
+      recipient_id: string;
+      name: string;
+      email: string;
+      motif?: string;
+      profile_image_url?: string;
+    };
+    prefillLockDate?: string;       // ISO 8601
+    /**
+     * Existing echo body for text echoes. Forwarded to NewEchoComposeScreen
+     * as `initialContent` so the compose step opens with the user's prior
+     * text already in the editor — same prefill pattern the create flow uses
+     * when bouncing the user back to make changes.
+     */
+    prefillContent?: string;
   };
   AddNewProfileScreen: { mode?: 'recipient' | 'guardian' } | undefined;
   EchoDetailScreen: { echoId: string; title?: string; body?: string };

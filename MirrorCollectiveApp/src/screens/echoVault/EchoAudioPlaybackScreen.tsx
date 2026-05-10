@@ -28,7 +28,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import Button from '@components/Button';
-import EchoActionsHeader from '@components/echo/EchoActionsHeader';
 import LogoHeader from '@components/LogoHeader';
 import { echoApiService, EchoResponse } from '@services/api/echo';
 
@@ -106,13 +105,15 @@ const EchoAudioPlaybackScreen: React.FC<Props> = ({ navigation, route }) => {
 
   const handleEdit = () => {
     if (!echo) return;
-    navigation.navigate('NewEchoComposeScreen', {
+    // Match the create-flow pattern: Recipient → Compose. The picker
+    // forwards editEchoId so compose PATCHes the existing echo.
+    navigation.navigate('ChooseRecipientScreen', {
       mode: 'audio',
       title: echo.title,
       category: echo.category,
       editEchoId: echo.echo_id,
-      recipientId: echo.recipient?.recipient_id,
-      recipientName: echo.recipient?.name,
+      prefillRecipient: echo.recipient,
+      prefillLockDate: echo.release_date,
     });
   };
 
@@ -260,11 +261,7 @@ const EchoAudioPlaybackScreen: React.FC<Props> = ({ navigation, route }) => {
             {displayTitle}
           </Text>
 
-          <EchoActionsHeader
-            echo={echo}
-            onChanged={fetchEchoDetails}
-            onSent={() => navigation.goBack()}
-          />
+          <View style={styles.titleRightSpacer} />
         </View>
 
         {/* Waveform (Visual only for now, could be animated based on volume) */}
@@ -313,7 +310,9 @@ const EchoAudioPlaybackScreen: React.FC<Props> = ({ navigation, route }) => {
             onPress={handleVault}
             style={styles.vaultBtn}
           />
-          {!isRecipient && (
+          {/* Edit icon hidden once the echo is RELEASED — the backend
+              rejects updates on locked/released echoes. */}
+          {!isRecipient && echo?.status === 'DRAFT' && (
             <EchoIconButton icon={require('@assets/edit-icon.png')} onPress={handleEdit} />
           )}
         </View>

@@ -26,7 +26,6 @@ import Video, { VideoRef } from 'react-native-video';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import Button from '@components/Button';
-import EchoActionsHeader from '@components/echo/EchoActionsHeader';
 import LogoHeader from '@components/LogoHeader';
 import { echoApiService, EchoResponse } from '@services/api/echo';
 
@@ -149,13 +148,15 @@ const EchoVideoPlaybackScreen: React.FC<Props> = ({ navigation, route }) => {
 
   const handleEdit = () => {
     if (!echo) return;
-    navigation.navigate('NewEchoComposeScreen', {
+    // Match the create-flow pattern: Recipient → Compose. The picker
+    // forwards editEchoId so compose PATCHes the existing echo.
+    navigation.navigate('ChooseRecipientScreen', {
       mode: 'video',
       title: echo.title,
       category: echo.category,
       editEchoId: echo.echo_id,
-      recipientId: echo.recipient?.recipient_id,
-      recipientName: echo.recipient?.name,
+      prefillRecipient: echo.recipient,
+      prefillLockDate: echo.release_date,
     });
   };
 
@@ -219,11 +220,7 @@ const EchoVideoPlaybackScreen: React.FC<Props> = ({ navigation, route }) => {
             {echo?.title || title || 'Echo Video'}
           </Text>
 
-          <EchoActionsHeader
-            echo={echo}
-            onChanged={fetchEchoDetails}
-            onSent={() => navigation.goBack()}
-          />
+          <View style={styles.titleRightSpacer} />
         </View>
 
         {/* Video container */}
@@ -297,7 +294,9 @@ const EchoVideoPlaybackScreen: React.FC<Props> = ({ navigation, route }) => {
         <View style={[styles.actionsRow, { width: contentWidth }]}>
           <ActionIconButton icon={require('@assets/download.png')} onPress={handleDownload} />
           <Button variant="primary" size="L" title={vaulting ? 'SAVING...' : 'VAULT'} onPress={handleVault} style={styles.vaultBtn} />
-          {!isRecipient && (
+          {/* Edit icon hidden once the echo is RELEASED — the backend
+              rejects updates on locked/released echoes. */}
+          {!isRecipient && echo?.status === 'DRAFT' && (
             <ActionIconButton icon={require('@assets/edit-icon.png')} onPress={handleEdit} />
           )}
         </View>
