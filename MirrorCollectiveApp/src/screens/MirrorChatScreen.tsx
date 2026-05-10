@@ -41,44 +41,36 @@ export function MirrorChatContent() {
     }
   }, [greetingLoaded, initializeSession]);
 
-  // Track whether the user is pinned to the bottom of the message list.
-  // Auto-scrolls (input growth, new messages, layout shifts) only fire when
-  // this is true — otherwise we'd yank a user out of their scrolled-back
-  // history view every time the input grows or the keyboard reopens.
+  // In an inverted ScrollView, scrollY=0 is the BOTTOM (newest message).
+  // We track whether the user is near the bottom (newest) so auto-scrolls
+  // on new messages / input growth only fire when they were already
+  // following the latest — preserves their position when reading history.
   const isAtBottomRef = useRef(true);
-
-  // Threshold (in pixels) below which we still consider "at the bottom" —
-  // covers small layout jitters and the 1–2px imprecision in scroll math.
   const BOTTOM_THRESHOLD = 32;
 
   const handleScroll = useCallback(
     (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-      const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent;
-      const distanceFromBottom =
-        contentSize.height - (contentOffset.y + layoutMeasurement.height);
-      isAtBottomRef.current = distanceFromBottom <= BOTTOM_THRESHOLD;
+      // Bottom = scrollY near 0 in inverted layout.
+      isAtBottomRef.current = e.nativeEvent.contentOffset.y <= BOTTOM_THRESHOLD;
     },
     [],
   );
 
-  // When the chat input grows (user typing multiline) the messages region
-  // shrinks. Re-anchor to the bottom so the latest message stays visible —
-  // but ONLY if the user is already at the bottom. If they've scrolled up
-  // to read history, leave their scroll position alone.
+  // Input grew (typing multiline) — re-anchor to the newest message.
+  // In inverted layout that means scrolling to y=0, not scrollToEnd.
   const handleInputContentSizeChange = useCallback(
     (_e: NativeSyntheticEvent<TextInputContentSizeChangeEventData>) => {
       if (isAtBottomRef.current) {
-        scrollViewRef.current?.scrollToEnd({ animated: false });
+        scrollViewRef.current?.scrollTo({ y: 0, animated: false });
       }
     },
     [scrollViewRef],
   );
 
-  // Same gate for new-message auto-scroll: only follow when the user is
-  // already pinned to the bottom of the list.
+  // New message arrived (or removed): follow it if user was at the bottom.
   const handleContentSizeChange = useCallback(() => {
     if (isAtBottomRef.current) {
-      scrollViewRef.current?.scrollToEnd({ animated: true });
+      scrollViewRef.current?.scrollTo({ y: 0, animated: true });
     }
   }, [scrollViewRef]);
 
@@ -112,29 +104,46 @@ export function MirrorChatContent() {
               <View style={styles.chatContainer}>
                 <Text style={styles.chatTitle}>MirrorGPT</Text>
 
+                {/*
+                  Inverted rendering — the standard chat-app layout
+                  (FlatList inverted / `flex-direction: column-reverse`).
+                  Why this matters here:
+
+                  - The previous flexGrow:1 + justifyContent:flex-end
+                    pattern stretched the content to fill the viewport
+                    when there were few messages, leaving the ScrollView
+                    with zero scroll range — so dragging anywhere did
+                    nothing. When the keyboard closed (viewport grew),
+                    even more messages could fit, and scroll stayed dead.
+                  - column-reverse flips the layout: messages render from
+                    the BOTTOM upward. Few messages naturally pin to the
+                    bottom (no need for flexGrow trickery). The scroll
+                    responder is engaged whenever content height >
+                    viewport — including the moment a single bubble
+                    overflows it.
+                  - In inverted layout, scrollY=0 is the BOTTOM (newest).
+                    To follow a new message, scrollTo({ y: 0 }) — handled
+                    in handleContentSizeChange.
+
+                  The messages array stays in chronological order; we
+                  reverse it at render time so column-reverse stacks them
+                  bottom-up correctly (newest closest to the input).
+                */}
                 <ScrollView
                   ref={scrollViewRef}
                   style={styles.messagesWrapper}
                   contentContainerStyle={styles.messagesContent}
                   keyboardShouldPersistTaps="handled"
-                  // Keyboard stays open during scrolling AND after sending a
-                  // message — the chat-app standard (ChatGPT, iMessage,
-                  // WhatsApp). On iOS `interactive` mode interpreted the
-                  // programmatic scrollToEnd call after a send as a
-                  // "drag-down to dismiss" gesture, so every send closed
-                  // the keyboard. `none` keeps the keyboard up; the user
-                  // dismisses it explicitly via tap-outside or the
-                  // keyboard's hide button.
                   keyboardDismissMode="none"
                   showsVerticalScrollIndicator={false}
                   onScroll={handleScroll}
                   scrollEventThrottle={16}
                   onContentSizeChange={handleContentSizeChange}
                 >
-                  {messages.map(message => (
+                  {loading && <LoadingIndicator />}
+                  {[...messages].reverse().map(message => (
                     <MessageBubble key={message.id} message={message} />
                   ))}
-                  {loading && <LoadingIndicator />}
                 </ScrollView>
 
                 <ChatInput
@@ -228,8 +237,13 @@ const styles = StyleSheet.create({
   },
 
   messagesContent: {
-    flexGrow: 1,
-    justifyContent: 'flex-end',
+    // Inverted-chat layout: column-reverse stacks children from the bottom
+    // up. First child of the rendered array (which is the NEWEST message
+    // since we reverse messages before mapping) sits closest to the input.
+    // No flexGrow needed — content sizes to itself, the ScrollView scrolls
+    // when (and only when) content overflows, which is the standard chat
+    // scroll feel: drag to reveal history is always responsive.
+    flexDirection: 'column-reverse',
     paddingVertical: spacing.xs,
     paddingHorizontal: spacing.xs,
   },
