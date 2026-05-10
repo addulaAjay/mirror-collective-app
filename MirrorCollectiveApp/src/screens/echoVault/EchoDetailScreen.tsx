@@ -28,6 +28,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import Button from '@components/Button';
+import EchoActionsHeader from '@components/echo/EchoActionsHeader';
 import LogoHeader from '@components/LogoHeader';
 import { echoApiService, EchoResponse } from '@services/api/echo';
 
@@ -162,7 +163,11 @@ const EchoDetailScreen: React.FC<Props> = ({ navigation, route }) => {
               {title}
             </Text>
 
-            <View style={styles.titleRightSpacer} />
+            <EchoActionsHeader
+              echo={echo}
+              onChanged={fetchEchoDetails}
+              onSent={() => navigation.goBack()}
+            />
           </View>
         </View>
 

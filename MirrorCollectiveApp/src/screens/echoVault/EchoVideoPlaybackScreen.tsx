@@ -26,6 +26,7 @@ import Video, { VideoRef } from 'react-native-video';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import Button from '@components/Button';
+import EchoActionsHeader from '@components/echo/EchoActionsHeader';
 import LogoHeader from '@components/LogoHeader';
 import { echoApiService, EchoResponse } from '@services/api/echo';
 
@@ -218,7 +219,11 @@ const EchoVideoPlaybackScreen: React.FC<Props> = ({ navigation, route }) => {
             {echo?.title || title || 'Echo Video'}
           </Text>
 
-          <View style={styles.titleRightSpacer} />
+          <EchoActionsHeader
+            echo={echo}
+            onChanged={fetchEchoDetails}
+            onSent={() => navigation.goBack()}
+          />
         </View>
 
         {/* Video container */}
