@@ -12,15 +12,12 @@ import {
 } from '@theme';
 import type { RootStackParamList } from '@types';
 import React from 'react';
-import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   Image,
   StatusBar,
-  Alert,
   ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -28,7 +25,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import Button from '@components/Button';
 import LogoHeader from '@components/LogoHeader';
-import { QuizStorageService } from '@services/quizStorageService';
 
 type ArchetypeScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -49,7 +45,6 @@ interface ArchetypeScreenProps {
 }
 
 const ArchetypeScreen: React.FC<ArchetypeScreenProps> = ({ route }) => {
-  const { t } = useTranslation();
   const navigation = useNavigation<ArchetypeScreenNavigationProp>();
   const { archetype } = route.params;
 
@@ -57,31 +52,6 @@ const ArchetypeScreen: React.FC<ArchetypeScreenProps> = ({ route }) => {
     navigation.navigate('Login');
   };
 
-  const handleRetake = () => {
-    Alert.alert(
-      t('quiz.archetype.retakeTitle'),
-      t('quiz.archetype.retakeMessage'),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        {
-          text: t('quiz.archetype.retakeConfirm'),
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await QuizStorageService.clearPendingQuizResults();
-              await QuizStorageService.resetQuizState();
-              navigation.reset({
-                index: 0,
-                routes: [{ name: 'QuizWelcome' }],
-              });
-            } catch (error) {
-              console.error('Failed to reset quiz:', error);
-            }
-          },
-        },
-      ],
-    );
-  };
 
   // Archetype description from backend (via backendResult.archetype_details.description)
   // Format: "Para 1 text\n\n Para 2 text" — trim() removes leading space on para 2
