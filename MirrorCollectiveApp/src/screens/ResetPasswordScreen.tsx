@@ -212,7 +212,7 @@ const ResetPasswordScreen = () => {
 
                   {/* Reset Password Button — auth-CTA pattern, 24px stars per Figma */}
                   <Button
-                    variant="auth"
+                    variant="primary"
                     title={
                       isLoading
                         ? t('auth.resetPassword.resettingButton')
@@ -220,7 +220,6 @@ const ResetPasswordScreen = () => {
                     }
                     onPress={handleResetPassword}
                     disabled={isLoading}
-                    iconSize={24}
                     testID="reset-password-button"
                   />
                 </View>

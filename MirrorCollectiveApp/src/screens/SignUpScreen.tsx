@@ -317,7 +317,7 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
 
                 {/* Continue Button — Figma: auth-CTA pattern */}
                 <Button
-                  variant="auth"
+                  variant="primary"
                   title={t('auth.signup.buttons.continue')}
                   onPress={handleContinue}
                   testID="signup-button"

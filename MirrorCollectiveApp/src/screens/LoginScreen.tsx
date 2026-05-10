@@ -198,7 +198,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 
                 {/* ENTER button — Figma: node 1886:2353 (auth-CTA pattern) */}
                 <Button
-                  variant="auth"
+                  variant="primary"
                   title={
                     isLoading
                       ? t('auth.login.enteringButton')
