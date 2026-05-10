@@ -44,7 +44,7 @@ const SURFACE_BORDER = 'rgba(253, 253, 249, 0.18)';
 
 const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
   const mode = route.params?.mode ?? 'text';
-  const { recipientName, title, category, recipientId, guardianId, lockDate, unlockOnDeath, editEchoId, initialContent } = route.params || {};
+  const { recipientName, title, category, recipientId, guardianId, lockDate, unlockOnDeath, editEchoId, initialContent, letterToRecipient } = route.params || {};
 
   const [message, setMessage] = useState(initialContent ?? '');
   const [showUploadSheet, setShowUploadSheet] = useState(false);
@@ -305,11 +305,40 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
           await echoApiService.uploadMedia(uploadUrlResponse.data.upload_url, mediaUri, contentType);
           updateData.media_url = uploadUrlResponse.data.media_url;
         }
+        // Propagate recipient + lock-date changes from the recipient-picker
+        // step. Backend treats explicit null as "clear", so when the user
+        // removes a previously-set lock date we send release_date: null
+        // (rather than omitting the field, which would leave it unchanged).
+        if (recipientId) {
+          updateData.recipient_id = recipientId;
+        }
+        updateData.release_date = lockDate ?? null;
+        // null clears the cover note on save (matches release_date semantics).
+        updateData.letter_to_recipient = letterToRecipient ?? null;
+
         const updateResponse = await echoApiService.updateEcho(editEchoId, updateData);
         if (!updateResponse.success) throw new Error('Failed to update echo.');
-        Alert.alert('Success', 'Echo updated!', [
-          { text: 'OK', onPress: () => navigation.goBack() },
-        ]);
+
+        // If the resulting state matches the auto-release rule
+        // (recipient + no lock date) and the echo is still in DRAFT, fire
+        // the release endpoint to mirror what create_echo would have done.
+        // We swallow ValidationError from /release — that signals the echo
+        // was already RELEASED or otherwise ineligible, which is fine here.
+        const shouldRelease = !!recipientId && !lockDate &&
+          updateResponse.data?.status === 'DRAFT';
+        if (shouldRelease) {
+          try {
+            await echoApiService.releaseEcho(editEchoId);
+          } catch {
+            /* see comment above */
+          }
+        }
+
+        Alert.alert(
+          'Success',
+          shouldRelease ? 'Echo sent!' : 'Echo updated!',
+          [{ text: 'OK', onPress: () => navigation.popToTop() }],
+        );
         return;
       }
 
@@ -322,6 +351,7 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
         ...(guardianId && { guardian_id: guardianId }),
         ...(lockDate && { release_date: lockDate }),
         ...(unlockOnDeath !== undefined && { unlock_on_death: unlockOnDeath }),
+        ...(letterToRecipient && { letter_to_recipient: letterToRecipient }),
         content: mode === 'text' ? message : undefined,
       });
 

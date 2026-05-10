@@ -148,13 +148,16 @@ const EchoVideoPlaybackScreen: React.FC<Props> = ({ navigation, route }) => {
 
   const handleEdit = () => {
     if (!echo) return;
-    navigation.navigate('NewEchoComposeScreen', {
+    // Match the create-flow pattern: Recipient → Compose. The picker
+    // forwards editEchoId so compose PATCHes the existing echo.
+    navigation.navigate('ChooseRecipientScreen', {
       mode: 'video',
       title: echo.title,
       category: echo.category,
       editEchoId: echo.echo_id,
-      recipientId: echo.recipient?.recipient_id,
-      recipientName: echo.recipient?.name,
+      prefillRecipient: echo.recipient,
+      prefillLockDate: echo.release_date,
+      prefillLetter: echo.letter_to_recipient,
     });
   };
 
@@ -292,7 +295,9 @@ const EchoVideoPlaybackScreen: React.FC<Props> = ({ navigation, route }) => {
         <View style={[styles.actionsRow, { width: contentWidth }]}>
           <ActionIconButton icon={require('@assets/download.png')} onPress={handleDownload} />
           <Button variant="primary" size="L" title={vaulting ? 'SAVING...' : 'VAULT'} onPress={handleVault} style={styles.vaultBtn} />
-          {!isRecipient && (
+          {/* Edit icon hidden once the echo is RELEASED — the backend
+              rejects updates on locked/released echoes. */}
+          {!isRecipient && echo?.status === 'DRAFT' && (
             <ActionIconButton icon={require('@assets/edit-icon.png')} onPress={handleEdit} />
           )}
         </View>

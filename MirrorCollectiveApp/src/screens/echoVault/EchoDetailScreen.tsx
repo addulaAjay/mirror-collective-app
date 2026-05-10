@@ -89,14 +89,18 @@ const EchoDetailScreen: React.FC<Props> = ({ navigation, route }) => {
 
   const handleEdit = () => {
     if (!echo) return;
-    navigation.navigate('NewEchoComposeScreen', {
+    // Route through ChooseRecipientScreen so the edit flow matches the
+    // create flow's two-step pattern (Recipient → Compose). The recipient
+    // screen propagates editEchoId on to the compose step.
+    navigation.navigate('ChooseRecipientScreen', {
       mode: echo.echo_type.toLowerCase() as 'text' | 'audio' | 'video',
       title: echo.title,
       category: echo.category,
       editEchoId: echo.echo_id,
-      initialContent: echo.content,
-      recipientId: echo.recipient?.recipient_id,
-      recipientName: echo.recipient?.name,
+      prefillRecipient: echo.recipient,
+      prefillLockDate: echo.release_date,
+      prefillContent: echo.content,
+      prefillLetter: echo.letter_to_recipient,
     });
   };
 
@@ -193,7 +197,10 @@ const EchoDetailScreen: React.FC<Props> = ({ navigation, route }) => {
             onPress={handleVault}
             style={styles.vaultBtn}
           />
-          {!isRecipient && (
+          {/* Edit icon hidden once the echo is RELEASED — the backend
+              rejects updates on locked/released echoes, so there's
+              nothing the user could change at that point. */}
+          {!isRecipient && echo?.status === 'DRAFT' && (
             <EchoIconButton icon={require('@assets/edit-icon.png')} onPress={handleEdit} />
           )}
         </View>

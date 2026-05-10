@@ -81,15 +81,42 @@ const BackIcon: React.FC = () => (
 
 // ── Screen ────────────────────────────────────────────────────────────────────
 const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
-  const { title, category, mode } = route.params;
+  const {
+    title,
+    category,
+    mode,
+    editEchoId,
+    prefillRecipient,
+    prefillLockDate,
+    prefillContent,
+    prefillLetter,
+  } = route.params;
+  const isEditing = !!editEchoId;
 
   const [recipients, setRecipients] = useState<Recipient[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedRecipient, setSelectedRecipient] = useState<Recipient | null>(null);
+  const [selectedRecipient, setSelectedRecipient] = useState<Recipient | null>(
+    // Hydrate from prefill if present so the dropdown opens already filled.
+    // We coerce the lightweight prefill payload into a Recipient — the picker
+    // only displays name/profile_image_url so the missing fields don't matter.
+    prefillRecipient
+      ? ({
+          recipient_id: prefillRecipient.recipient_id,
+          user_id: '',
+          name: prefillRecipient.name,
+          email: prefillRecipient.email,
+          motif: prefillRecipient.motif,
+          profile_image_url: prefillRecipient.profile_image_url,
+          created_at: '',
+        } as Recipient)
+      : null,
+  );
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [lockDate, setLockDate] = useState<Date | null>(null);
+  const [lockDate, setLockDate] = useState<Date | null>(
+    prefillLockDate ? new Date(prefillLockDate) : null,
+  );
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [notes, setNotes] = useState('');
+  const [notes, setNotes] = useState(prefillLetter ?? '');
 
   // Note: previous KAV-based implementation manually measured + scrolled
   // the letter field into view on focus. KeyboardAwareScrollView handles
@@ -123,11 +150,16 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
   const formatDate = (date: Date) =>
     date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
+  /**
+   * Navigate forward to the compose step, passing the chosen recipient and
+   * lock date along. Works for both create and edit flows — the only
+   * difference is whether `editEchoId` is propagated so compose PATCHes the
+   * existing echo instead of creating a new one.
+   */
   const handleNext = () => {
     if (!selectedRecipient) return;
-    // Navigate directly to compose — no guardian prompt (Day 2 feature)
     navigation.navigate('NewEchoComposeScreen', {
-      mode,
+      mode: mode ?? 'text',
       title,
       category,
       hasRecipient: true,
@@ -135,6 +167,8 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
       recipientId:  selectedRecipient.recipient_id,
       recipientName: selectedRecipient.name,
       lockDate:     lockDate?.toISOString(),
+      letterToRecipient: notes.trim() ? notes : undefined,
+      ...(editEchoId ? { editEchoId, initialContent: prefillContent } : {}),
     });
   };
 
