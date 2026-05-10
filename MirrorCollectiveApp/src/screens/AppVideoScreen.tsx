@@ -29,8 +29,9 @@ import Button from '@components/Button';
 import LogoHeader from '@components/LogoHeader';
 
 
+// + in S3 path = literal '+', not a space — AVFoundation needs %20 for spaces
 const VIDEO_URL =
-  'https://mirror-app-video.s3.us-east-1.amazonaws.com/Mirror+App+Explainer+Video.mp4';
+  'https://mirror-app-video.s3.us-east-1.amazonaws.com/Mirror%20App%20Explainer%20Video.mp4';
 
 interface Props {
   navigation: NativeStackNavigationProp<RootStackParamList, 'AppVideo'>;

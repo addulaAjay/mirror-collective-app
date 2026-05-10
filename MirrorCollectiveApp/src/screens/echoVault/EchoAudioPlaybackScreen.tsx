@@ -1,4 +1,5 @@
 // EchoAudioPlaybackScreen.tsx
+import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
   palette, fontFamily, fontSize, fontWeight, lineHeight,
@@ -6,7 +7,7 @@ import {
   scale, verticalScale, moderateScale,
 } from '@theme';
 import { RootStackParamList } from '@types';
-import React, { useMemo, useState, useEffect, useRef } from 'react';
+import React, { useMemo, useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -60,12 +61,16 @@ const EchoAudioPlaybackScreen: React.FC<Props> = ({ navigation, route }) => {
 
   useEffect(() => {
     fetchEchoDetails();
-    
-    // Cleanup on unmount
-    return () => {
-      stopPlayback();
-    };
+    return () => { stopPlayback(); };
   }, [echoId]);
+
+  // Stop audio when navigating away so the .playback audio session is released
+  // before any recording screen acquires the microphone.
+  useFocusEffect(
+    useCallback(() => {
+      return () => { stopPlayback(); };
+    }, []),
+  );
 
   const handleDownload = async () => {
     if (!echo) return;
@@ -142,28 +147,54 @@ const EchoAudioPlaybackScreen: React.FC<Props> = ({ navigation, route }) => {
     }
   };
 
+  // Tracks whether a player session is currently loaded (started or paused).
+  // Used as the source of truth for resume vs fresh-start instead of inferring
+  // from currentPosition/duration which race against the listener callbacks.
+  const isPlayerActiveRef = useRef(false);
+
   const startPlayback = async (url: string) => {
     try {
-      // If resuming
-      if (currentPosition > 0 && currentPosition < duration) {
+      // True resume — player is active and just paused
+      if (isPlayerActiveRef.current && currentPosition > 0 && currentPosition < duration) {
         await audioPlayer.resumePlayer();
-      } else {
-        // Start from beginning
-        await audioPlayer.startPlayer(url);
-        audioPlayer.addPlayBackListener((e) => {
-          setCurrentPosition(e.currentPosition);
-          setDuration(e.duration);
-          if (e.currentPosition === e.duration) {
-            setPlaying(false);
-            audioPlayer.stopPlayer();
-            setCurrentPosition(0);
-          }
-          return;
-        });
+        setPlaying(true);
+        return;
       }
+
+      // Fresh start — re-fetch echo to ensure the pre-signed S3 URL is fresh
+      let playUrl = url;
+      try {
+        const fresh = await echoApiService.getEcho(echoId);
+        if (fresh.data?.media_url) {
+          playUrl = fresh.data.media_url;
+          setEcho(fresh.data);
+        }
+      } catch {
+        // fall back to the cached URL
+      }
+
+      // Always remove any existing listener before adding a new one to avoid
+      // multiple callbacks firing per tick.
+      audioPlayer.removePlayBackListener();
+      await audioPlayer.startPlayer(playUrl);
+      isPlayerActiveRef.current = true;
+
+      audioPlayer.addPlayBackListener((e) => {
+        setCurrentPosition(e.currentPosition);
+        setDuration(e.duration);
+        if (e.duration > 0 && e.currentPosition >= e.duration) {
+          // Natural end — release the player
+          audioPlayer.stopPlayer().catch(() => {});
+          audioPlayer.removePlayBackListener();
+          isPlayerActiveRef.current = false;
+          setPlaying(false);
+          setCurrentPosition(0);
+        }
+      });
       setPlaying(true);
     } catch (error) {
       console.error('Playback failed:', error);
+      isPlayerActiveRef.current = false;
       Alert.alert('Playback Error', 'Could not play audio.');
     }
   };
@@ -179,11 +210,14 @@ const EchoAudioPlaybackScreen: React.FC<Props> = ({ navigation, route }) => {
 
   const stopPlayback = async () => {
     try {
-      await audioPlayer.stopPlayer();
+      if (isPlayerActiveRef.current) {
+        await audioPlayer.stopPlayer();
+      }
       audioPlayer.removePlayBackListener();
+      isPlayerActiveRef.current = false;
       setPlaying(false);
       setCurrentPosition(0);
-    } catch (error) {
+    } catch {
       // Ignore if already stopped
     }
   };

@@ -1,3 +1,4 @@
+import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
   palette, fontFamily, fontSize, fontWeight, lineHeight,
@@ -5,7 +6,7 @@ import {
   scale, verticalScale, moderateScale,
 } from '@theme';
 import { RootStackParamList } from '@types';
-import React, { useMemo, useState, useEffect, useRef } from 'react';
+import React, { useMemo, useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -44,16 +45,59 @@ const EchoVideoPlaybackScreen: React.FC<Props> = ({ navigation, route }) => {
   const [loading, setLoading] = useState(true);
   const isRecipient = !!echo?.sender;
   const [vaulting, setVaulting] = useState(false);
-  const [paused, setPaused] = useState(false);
+  // Start paused — user explicitly taps play. Prevents auto-play surprise
+  // and prevents the .playback audio session from being acquired before needed.
+  const [paused, setPaused] = useState(true);
   const [buffering, setBuffering] = useState(false);
+  // Brief visual confirmation flash when pausing/resuming so the user sees
+  // their tap registered. Auto-hides after a short delay when playing.
+  const [showActionFlash, setShowActionFlash] = useState(false);
+  const flashTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const videoRef = useRef<VideoRef>(null);
+  // Retry guard — onError can re-fetch a fresh URL, but if THAT also fails
+  // we'd loop forever. Cap at 1 retry per session.
+  const errorRetryRef = useRef(0);
+
+  const togglePause = useCallback(() => {
+    setPaused(p => {
+      const next = !p;
+      if (flashTimerRef.current) clearTimeout(flashTimerRef.current);
+      // Only auto-hide when going to playing — when paused we want the
+      // play icon to stay visible as a persistent "tap to resume" indicator.
+      if (!next) {
+        setShowActionFlash(true);
+        flashTimerRef.current = setTimeout(() => setShowActionFlash(false), 800);
+      } else {
+        setShowActionFlash(true);
+      }
+      return next;
+    });
+  }, []);
+
+  // Cleanup flash timer on unmount
+  useEffect(() => {
+    return () => {
+      if (flashTimerRef.current) clearTimeout(flashTimerRef.current);
+    };
+  }, []);
 
   const contentWidth = useMemo(() => Math.min(W * 0.88, 360), []);
   const videoHeight = useMemo(() => Math.min(H * 0.55, 460), []);
 
   useEffect(() => {
     fetchEchoDetails();
+    // Reset retry counter on echoId change
+    errorRetryRef.current = 0;
   }, [echoId]);
+
+  // Pause video when navigating away so the .playback audio session is
+  // released before any recording screen tries to acquire the microphone.
+  // Do NOT auto-resume on focus — user controls playback explicitly.
+  useFocusEffect(
+    useCallback(() => {
+      return () => setPaused(true);
+    }, []),
+  );
 
   const fetchEchoDetails = async () => {
     try {
@@ -118,9 +162,34 @@ const EchoVideoPlaybackScreen: React.FC<Props> = ({ navigation, route }) => {
     setBuffering(isBuffering);
   };
 
-  const onError = (error: any) => {
-    console.error('Video error:', error);
-    Alert.alert('Playback Error', 'Failed to play video');
+  const onError = async (error: any) => {
+    const code: number = error?.error?.code ?? error?.code;
+    console.warn('Video error:', code, error);
+
+    // Cap retries — if the fresh URL also fails, don't re-enter onError forever
+    if (errorRetryRef.current >= 1) {
+      Alert.alert('Playback Error', 'Could not play this video. Please try again later.');
+      return;
+    }
+    errorRetryRef.current += 1;
+
+    // -1008 NSURLErrorResourceUnavailable: S3 object may not be propagated yet
+    // after a fresh upload, or the presigned URL is expired. Wait briefly then
+    // re-fetch a fresh signed URL from the backend before giving up.
+    const isResourceUnavailable = code === -1008;
+    const delayMs = isResourceUnavailable ? 2000 : 0;
+
+    await new Promise(r => setTimeout(r, delayMs));
+    try {
+      const response = await echoApiService.getEcho(echoId);
+      if (response.data?.media_url && response.data.media_url !== echo?.media_url) {
+        setEcho(response.data);
+        return; // Video re-renders with fresh URL
+      }
+    } catch {
+      // fall through to alert
+    }
+    Alert.alert('Playback Error', 'Could not play this video. Please try again.');
   };
 
   return (
@@ -172,6 +241,12 @@ const EchoVideoPlaybackScreen: React.FC<Props> = ({ navigation, route }) => {
                 onError={onError}
                 resizeMode="cover"
                 repeat
+                bufferConfig={{
+                  minBufferMs: 5000,
+                  maxBufferMs: 30000,
+                  bufferForPlaybackMs: 2000,
+                  bufferForPlaybackAfterRebufferMs: 3000,
+                }}
               />
               
               {/* Overlay controls */}
@@ -231,15 +306,8 @@ export default EchoVideoPlaybackScreen;
 /* ---------- Action Buttons ---------- */
 
 const ActionIconButton = ({ icon, onPress }: { icon: ReturnType<typeof require>; onPress: () => void }) => (
-  <TouchableOpacity activeOpacity={0.9} onPress={onPress}>
-    <LinearGradient
-      colors={['rgba(253,253,249,0.04)', 'rgba(253,253,249,0.01)']}
-      start={{ x: 0.5, y: 0 }}
-      end={{ x: 0.5, y: 1 }}
-      style={styles.iconBtnShell}
-    >
-      <Image source={icon} style={styles.iconBtnImg} resizeMode="contain" />
-    </LinearGradient>
+  <TouchableOpacity activeOpacity={0.85} onPress={onPress} style={styles.iconBtnShell}>
+    <Image source={icon} style={styles.iconBtnImg} resizeMode="contain" />
   </TouchableOpacity>
 );
 
@@ -354,7 +422,7 @@ const styles = StyleSheet.create({
     marginTop: verticalScale(spacing.m),
     flexDirection: 'row',
     alignItems: 'center',
-    gap: scale(spacing.xl),   // Figma: gap 24px
+    gap: scale(spacing.xl),
     justifyContent: 'center',
     paddingBottom: verticalScale(spacing.m),
   },
