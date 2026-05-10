@@ -45,7 +45,6 @@ import type { RootStackParamList } from '@types';
 import React, { useState } from 'react';
 import {
   Image,
-  KeyboardAvoidingView,
   Platform,
   ScrollView,
   StatusBar,
@@ -57,6 +56,7 @@ import {
   type TextStyle,
   type ViewStyle,
 } from 'react-native';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path, Rect } from 'react-native-svg';
 
@@ -174,13 +174,11 @@ const NewEchoScreen: React.FC = () => {
         {/*
           Screen is NOT scrollable — fixed layout filling the viewport.
           Dropdown expands inline with its own internal scroll.
-          KeyboardAvoidingView keeps NEXT button above keyboard.
+          KeyboardAvoidingView (from react-native-keyboard-controller) keeps
+          the NEXT button above the keyboard with smooth spring animation.
+          The lib computes offsets natively — no manual keyboardVerticalOffset.
         */}
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.kav}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
-        >
+        <KeyboardAvoidingView behavior="padding" style={styles.kav}>
             {/*
               Figma 220:2027 — content column:
               left:24, top:140, w:345, gap:24, items-center

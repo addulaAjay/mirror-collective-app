@@ -26,9 +26,6 @@ import {
   ActivityIndicator,
   Alert,
   Image,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
   StatusBar,
   StyleSheet,
   Text,
@@ -39,6 +36,7 @@ import {
   type ViewStyle,
 } from 'react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 
@@ -146,15 +144,13 @@ const AddNewProfileScreen: React.FC<Props> = ({ navigation, route }) => {
         <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
         <LogoHeader navigation={navigation} />
 
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        <KeyboardAwareScrollView
           style={styles.kav}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          bottomOffset={16}
         >
-          <ScrollView
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          >
             <View style={styles.content}>
 
               {/* ── Header row ──────────────────────────────────────────── */}
@@ -238,8 +234,7 @@ const AddNewProfileScreen: React.FC<Props> = ({ navigation, route }) => {
               )}
 
             </View>
-          </ScrollView>
-        </KeyboardAvoidingView>
+        </KeyboardAwareScrollView>
       </SafeAreaView>
     </BackgroundWrapper>
   );

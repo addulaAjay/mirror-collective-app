@@ -15,12 +15,11 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  ScrollView,
-  KeyboardAvoidingView,
   Platform,
   TouchableWithoutFeedback,
   Keyboard,
 } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 
@@ -151,22 +150,19 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.keyboardContainer}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <BackgroundWrapper style={styles.container}>
-        <SafeAreaView style={styles.safe}>
-          <LogoHeader />
-          <ScrollView
-            style={styles.scrollView}
-            contentContainerStyle={styles.scrollContainer}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-            keyboardDismissMode={
-              Platform.OS === 'ios' ? 'interactive' : 'on-drag'
-            }
-          >
+    <BackgroundWrapper style={styles.container}>
+      <SafeAreaView style={styles.safe}>
+        <LogoHeader />
+        <KeyboardAwareScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContainer}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode={
+            Platform.OS === 'ios' ? 'interactive' : 'on-drag'
+          }
+          bottomOffset={16}
+        >
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
               <View style={styles.contentContainer}>
                 {/* Header Section */}
@@ -328,10 +324,9 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
                 />
               </View>
             </TouchableWithoutFeedback>
-          </ScrollView>
-        </SafeAreaView>
-      </BackgroundWrapper>
-    </KeyboardAvoidingView>
+        </KeyboardAwareScrollView>
+      </SafeAreaView>
+    </BackgroundWrapper>
   );
 };
 

@@ -46,7 +46,6 @@ import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
-  KeyboardAvoidingView,
   Platform,
   ScrollView,
   StatusBar,
@@ -58,6 +57,7 @@ import {
   type TextStyle,
   type ViewStyle,
 } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 
@@ -139,17 +139,14 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
         <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
         <LogoHeader navigation={navigation} />
 
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.kav}
+        <KeyboardAwareScrollView
+          style={[styles.kav, styles.scroll]}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+          bottomOffset={16}
         >
-          <ScrollView
-            style={styles.scroll}
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-            keyboardDismissMode="on-drag"
-          >
             <View style={styles.content}>
 
               {/* ── Header row ──────────────────────────────────────────── */}
@@ -315,8 +312,7 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
               />
 
             </View>
-          </ScrollView>
-        </KeyboardAvoidingView>
+        </KeyboardAwareScrollView>
       </SafeAreaView>
     </BackgroundWrapper>
   );
