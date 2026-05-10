@@ -65,10 +65,44 @@ import Button from '@components/Button/Button';
 import LogoHeader from '@components/LogoHeader';
 import { echoApiService, type EchoResponse } from '@services/api/echo';
 
+/**
+ * UI-facing echo state — derived from the backend (`status`, `release_date`)
+ * triple, *not* from date heuristics. Mapping:
+ *
+ *   sent             → backend `RELEASED`. Delivered to recipient.
+ *                      Renders the "Echo Sent" pill below the row.
+ *   scheduled        → backend `DRAFT` with a `release_date` set. Waiting
+ *                      for the future-release scheduler (see PR 3 plan).
+ *                      Renders the lock icon and "Unlocks <date>" subtitle.
+ *   guardian-locked  → backend `LOCKED`. Awaiting guardian release trigger.
+ *                      Renders the lock icon and "Locked <date>" subtitle.
+ *   saved            → backend `DRAFT` with no release_date. The default
+ *                      no-state — no pill, no lock. Reachable when the
+ *                      creator skipped recipient/schedule on creation.
+ */
+type EchoUiState = 'sent' | 'scheduled' | 'guardian-locked' | 'saved';
+
+const deriveUiState = (item: EchoResponse): EchoUiState => {
+  if (item.status === 'RELEASED') return 'sent';
+  if (item.status === 'LOCKED') return 'guardian-locked';
+  if (item.status === 'DRAFT' && item.release_date) return 'scheduled';
+  return 'saved';
+};
+
 type EchoLibraryNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
   'MirrorEchoVaultLibrary'
 >;
+
+// ── Back arrow — matches ForgotPassword/ResetPassword (Figma 4928:7988) ────
+const BackArrowIcon: React.FC = () => (
+  <Svg width={scale(20)} height={scale(20)} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
+      fill={palette.gold.DEFAULT}
+    />
+  </Svg>
+);
 
 // ── Lock icon — Figma node 1143:1360 (Vector) ───────────────────────────────
 const LockIcon: React.FC = () => (
@@ -76,6 +110,16 @@ const LockIcon: React.FC = () => (
     <Path
       d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"
       fill={palette.navy.light}
+    />
+  </Svg>
+);
+
+// ── Echo Sent check icon — circle + check, used inside the "Echo Sent" pill
+const EchoSentCheckIcon: React.FC = () => (
+  <Svg width={scale(16)} height={scale(16)} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm-1.06 17.06l-4.95-4.95 1.414-1.414L10.94 14.23l6.717-6.717 1.414 1.414L10.94 17.06z"
+      fill={palette.navy.medium}
     />
   </Svg>
 );
@@ -157,28 +201,49 @@ export function EchoLibraryContent() {
         {/* Fixed outer column — does NOT scroll */}
         <View style={styles.outerColumn}>
 
-          {/* ── Title + Subtitle — fixed ─────────────────────────────── */}
+          {/* ── Header (back + title) + Subtitle — fixed ─────────────── */}
           <View style={styles.titleGroup}>
-            <Text style={styles.title}>ECHO LIBRARY</Text>
+            {/* Header row mirrors ForgotPassword/ResetPassword: back-arrow on
+                the left, centered title via flex:1, invisible spacer on the
+                right so the title stays optically centered. */}
+            <View style={styles.headerRow}>
+              <TouchableOpacity
+                onPress={() => navigation.goBack()}
+                style={styles.backBtn}
+                accessibilityRole="button"
+                accessibilityLabel="Back"
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                testID="header-back-button"
+              >
+                <BackArrowIcon />
+              </TouchableOpacity>
+              <Text style={styles.title}>ECHO LIBRARY</Text>
+              <View style={styles.headerSpacer} />
+            </View>
             <Text style={styles.subtitle}>
               Preserve memories that matter most
             </Text>
           </View>
 
-          {/* ── Echo Inbox link — fixed ───────────────────────────────── */}
-          <TouchableOpacity
-            style={styles.inboxRow}
-            onPress={() => navigation.navigate('EchoInboxScreen')}
-            activeOpacity={0.8}
-            accessibilityRole="button"
-          >
-            <Image
-              source={require('@assets/mail.png')}
-              style={styles.mailIcon}
-              resizeMode="contain"
-            />
-            <Text style={styles.inboxText}>Echo Inbox</Text>
-          </TouchableOpacity>
+          {/* ── Echo Inbox link — temporarily hidden ───────────────────
+              Feature is on hold pending design/product discussion. Keep
+              the JSX intact (with styles below) so we can restore by
+              flipping the flag below to `true`. */}
+          {false && (
+            <TouchableOpacity
+              style={styles.inboxRow}
+              onPress={() => navigation.navigate('EchoInboxScreen')}
+              activeOpacity={0.8}
+              accessibilityRole="button"
+            >
+              <Image
+                source={require('@assets/mail.png')}
+                style={styles.mailIcon}
+                resizeMode="contain"
+              />
+              <Text style={styles.inboxText}>Echo Inbox</Text>
+            </TouchableOpacity>
+          )}
 
           {/* ── Content area — only THIS scrolls ─────────────────────── */}
           {loading ? (
@@ -234,33 +299,52 @@ export function EchoLibraryContent() {
               >
                 {echoes.map((item, index) => {
                   const isLast = index === echoes.length - 1;
-                  const isLocked = !!item.scheduled_at;
+                  const uiState = deriveUiState(item);
+                  const showLock = uiState === 'scheduled' || uiState === 'guardian-locked';
+                  const showSentPill = uiState === 'sent';
+                  const subtitle =
+                    uiState === 'scheduled'
+                      ? `Unlocks ${formatDate(item.release_date!)}`
+                      : uiState === 'guardian-locked' && item.lock_date
+                        ? `Locked ${formatDate(item.lock_date)}`
+                        : `Saved ${formatDate(item.created_at)}`;
                   const rightLabel = activeTab === 'RECIPIENT'
                     ? (item.recipient?.name?.toUpperCase() || 'UNASSIGNED')
                     : (item.category?.toUpperCase() || 'UNCATEGORIZED');
                   return (
-                    <TouchableOpacity
+                    <View
                       key={item.echo_id}
-                      activeOpacity={0.9}
-                      onPress={() => handleOpenItem(item)}
-                      style={[styles.row, !isLast && styles.rowBorder]}
+                      style={[styles.rowGroup, !isLast && styles.rowBorder]}
                     >
-                      <View style={styles.rowLeft}>
-                        <EchoAvatar motif={item.recipient?.motif} profileImage={item.recipient?.profile_image_url} />
-                        <View style={styles.rowText}>
-                          <Text style={styles.rowTitle} numberOfLines={1}>{item.title}</Text>
-                          <Text style={styles.rowSub} numberOfLines={1}>
-                            {isLocked
-                              ? `Unlocks ${formatDate(item.scheduled_at!)}`
-                              : `Saved ${formatDate(item.created_at)}`}
-                          </Text>
+                      <TouchableOpacity
+                        activeOpacity={0.9}
+                        onPress={() => handleOpenItem(item)}
+                        style={styles.row}
+                      >
+                        <View style={styles.rowLeft}>
+                          <EchoAvatar motif={item.recipient?.motif} profileImage={item.recipient?.profile_image_url} />
+                          <View style={styles.rowText}>
+                            <Text style={styles.rowTitle} numberOfLines={2}>{item.title}</Text>
+                            <Text style={styles.rowSub} numberOfLines={1}>{subtitle}</Text>
+                          </View>
                         </View>
-                      </View>
-                      <View style={styles.rowRight}>
-                        <Text style={styles.rowLabel}>{rightLabel}</Text>
-                        {isLocked && <LockIcon />}
-                      </View>
-                    </TouchableOpacity>
+                        <View style={styles.rowRight}>
+                          <Text style={styles.rowLabel} numberOfLines={1}>{rightLabel}</Text>
+                          {showLock && <LockIcon />}
+                        </View>
+                      </TouchableOpacity>
+                      {/* Echo Sent pill — renders only on RELEASED status
+                          (the authoritative signal from the backend, set
+                          when the recipient notification has been sent). */}
+                      {showSentPill && (
+                        <View style={styles.echoSentPillWrap}>
+                          <View style={styles.echoSentPill}>
+                            <EchoSentCheckIcon />
+                            <Text style={styles.echoSentText}>Echo Sent</Text>
+                          </View>
+                        </View>
+                      )}
+                    </View>
                   );
                 })}
               </ScrollView>
@@ -307,6 +391,9 @@ const styles = StyleSheet.create<{
   listScroll: ViewStyle;
   listScrollContent: ViewStyle;
   titleGroup: ViewStyle;
+  headerRow: ViewStyle;
+  backBtn: ViewStyle;
+  headerSpacer: ViewStyle;
   title: TextStyle;
   subtitle: TextStyle;
   inboxRow: ViewStyle;
@@ -320,6 +407,7 @@ const styles = StyleSheet.create<{
   tabText: TextStyle;
   tabTextActive: TextStyle;
   tabTextInactive: TextStyle;
+  rowGroup: ViewStyle;
   row: ViewStyle;
   rowBorder: ViewStyle;
   rowLeft: ViewStyle;
@@ -332,6 +420,9 @@ const styles = StyleSheet.create<{
   rowSub: TextStyle;
   rowRight: ViewStyle;
   rowLabel: TextStyle;
+  echoSentPillWrap: ViewStyle;
+  echoSentPill: ViewStyle;
+  echoSentText: TextStyle;
   btnGroup: ViewStyle;
   btn: ViewStyle;
   emptyCard: ViewStyle;
@@ -363,21 +454,38 @@ const styles = StyleSheet.create<{
   // Figma 211:1223 — flex-col gap:16, items-center
   titleGroup: {
     gap:        verticalScale(spacing.m),        // 16px
-    alignItems: 'center',                        // FIX: was 'flex-start'
+    alignItems: 'center',
   },
 
-  // Heading M: Cormorant Regular 28/32, #f2e1b0, glow shadow, center-aligned
+  // Header row — back arrow on the left, centered title via flex, invisible
+  // spacer on the right (matches ForgotPassword/ResetPassword header pattern).
+  headerRow: {
+    flexDirection:  'row',
+    alignItems:     'center',
+    justifyContent: 'space-between',
+    width:          '100%',
+  },
+  backBtn: {
+    paddingVertical: verticalScale(8),
+  },
+  headerSpacer: {
+    width: scale(20),
+  },
+
+  // Heading M: Cormorant Regular 28/32, #f2e1b0, glow shadow, center-aligned.
+  // flex:1 inside the header row so the title fills available width and stays
+  // optically centered between the back button and the spacer.
   title: {
+    flex:             1,
     fontFamily:       fontFamily.heading,
     fontSize:         moderateScale(fontSize['2xl']),  // 28px
     fontWeight:       fontWeight.regular,
     lineHeight:       moderateScale(32),
     color:            palette.gold.DEFAULT,
-    textAlign:        'center',                  // FIX: was missing
+    textAlign:        'center',
     textShadowColor:  'rgba(240,212,168,0.3)',
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 10,
-    width:            '100%',
   },
 
   // Body S Regular: Inter Regular 16/24, white, center-aligned
@@ -477,11 +585,17 @@ const styles = StyleSheet.create<{
   },
 
   // ── List rows ───────────────────────────────────────────────────────────────
+  // rowGroup wraps the touchable row + optional Echo Sent pill so the bottom
+  // border lives on the group (always full-width) rather than the row.
+  rowGroup: {
+    width: '100%',
+  },
   row: {
     flexDirection:  'row',
     alignItems:     'center',
     justifyContent: 'space-between',
     paddingVertical: verticalScale(spacing.m),          // 16px (Spacing/M)
+    gap:             scale(spacing.s),                  // 12px between rowLeft and rowRight
   },
 
   // Figma: border-bottom 0.25px Border/Subtle between rows (not on last)
@@ -490,12 +604,14 @@ const styles = StyleSheet.create<{
     borderBottomColor: palette.navy.light,               // #a3b3cc
   },
 
+  // rowLeft fills available width and shrinks to make room for rowRight.
+  // No hardcoded maxWidth — let flex do the work so it scales to any screen.
   rowLeft: {
     flexDirection: 'row',
     alignItems:    'center',
     gap:           scale(12),
     flex:          1,
-    maxWidth:      scale(200),
+    minWidth:      0,                                    // allow text inside to truncate
   },
 
   // ── Avatar ─────────────────────────────────────────────────────────────────
@@ -567,6 +683,8 @@ const styles = StyleSheet.create<{
     flexDirection: 'row',
     alignItems:    'center',
     gap:           scale(8),
+    flexShrink:    0,                                    // never collapse — recipient + lock must stay readable
+    maxWidth:      '40%',                                // cap so a very long recipient name doesn't starve rowLeft
   },
 
   // Inter Light 16/24, Text/Paragraph-1 #f2e1b0
@@ -576,7 +694,35 @@ const styles = StyleSheet.create<{
     fontWeight: '300',
     lineHeight: moderateScale(24),
     color:      palette.gold.DEFAULT,
-    textAlign:  'center',
+    textAlign:  'right',
+    flexShrink: 1,                                       // truncate before pushing out the lock icon
+  },
+
+  // ── Echo Sent pill ──────────────────────────────────────────────────────────
+  // Figma 211:1449 — pill rendered below delivered (non-scheduled) echoes.
+  // Centered horizontally inside the rowGroup with extra bottom padding so the
+  // border between rows sits cleanly underneath it.
+  echoSentPillWrap: {
+    alignItems:    'center',
+    paddingBottom: verticalScale(spacing.s),             // 12px gap before next row border
+  },
+  echoSentPill: {
+    flexDirection:     'row',
+    alignItems:        'center',
+    gap:               scale(spacing.xs),                // 8px
+    paddingHorizontal: scale(spacing.m),                 // 16px
+    paddingVertical:   verticalScale(spacing.xxs),       // 4px
+    borderRadius:      999,                              // full-radius pill
+    borderWidth:       borderWidth.hairline,
+    borderColor:       palette.navy.medium,              // #60739f — Border/Inverse-1
+    backgroundColor:   'rgba(96, 115, 159, 0.18)',       // translucent navy.medium
+  },
+  echoSentText: {
+    fontFamily: fontFamily.heading,
+    fontSize:   moderateScale(fontSize.s),               // 16px (font/size/S)
+    fontWeight: fontWeight.regular,
+    lineHeight: moderateScale(20),
+    color:      palette.gold.subtlest,                   // #fdfdf9
   },
 
   // ── Buttons ─────────────────────────────────────────────────────────────────
