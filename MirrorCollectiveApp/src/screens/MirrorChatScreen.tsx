@@ -1,15 +1,17 @@
 import { useNavigation } from '@react-navigation/native';
 import { theme, palette, spacing, shadows, textShadow } from '@theme';
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
+  FlatList,
+  type ListRenderItemInfo,
   type NativeSyntheticEvent,
   type NativeScrollEvent,
   type TextInputContentSizeChangeEventData,
 } from 'react-native';
+import type { Message } from '@types';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -41,38 +43,51 @@ export function MirrorChatContent() {
     }
   }, [greetingLoaded, initializeSession]);
 
-  // In an inverted ScrollView, scrollY=0 is the BOTTOM (newest message).
-  // We track whether the user is near the bottom (newest) so auto-scrolls
-  // on new messages / input growth only fire when they were already
-  // following the latest — preserves their position when reading history.
+  // In an inverted FlatList, contentOffset.y=0 is the BOTTOM (newest
+  // message). Tracking distance from the bottom lets us only fire
+  // auto-scrolls when the user is already pinned to the newest message;
+  // if they've scrolled up to read history, leave their position alone.
   const isAtBottomRef = useRef(true);
   const BOTTOM_THRESHOLD = 32;
 
   const handleScroll = useCallback(
     (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-      // Bottom = scrollY near 0 in inverted layout.
+      // contentOffset.y near 0 in inverted = bottom (newest visible).
       isAtBottomRef.current = e.nativeEvent.contentOffset.y <= BOTTOM_THRESHOLD;
     },
     [],
   );
 
-  // Input grew (typing multiline) — re-anchor to the newest message.
-  // In inverted layout that means scrolling to y=0, not scrollToEnd.
+  // Input grew (multiline typing). If user is at the bottom, keep newest
+  // visible. scrollToOffset(0) is the chat "scroll to bottom" in inverted.
   const handleInputContentSizeChange = useCallback(
     (_e: NativeSyntheticEvent<TextInputContentSizeChangeEventData>) => {
       if (isAtBottomRef.current) {
-        scrollViewRef.current?.scrollTo({ y: 0, animated: false });
+        scrollViewRef.current?.scrollToOffset({ offset: 0, animated: false });
       }
     },
     [scrollViewRef],
   );
 
-  // New message arrived (or removed): follow it if user was at the bottom.
+  // New message arrived. Auto-scroll to it only if the user was already
+  // at the bottom — preserves position when reading older history.
   const handleContentSizeChange = useCallback(() => {
     if (isAtBottomRef.current) {
-      scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+      scrollViewRef.current?.scrollToOffset({ offset: 0, animated: true });
     }
   }, [scrollViewRef]);
+
+  const renderItem = useCallback(
+    ({ item }: ListRenderItemInfo<Message>) => <MessageBubble message={item} />,
+    [],
+  );
+
+  const keyExtractor = useCallback((item: Message) => item.id, []);
+
+  // FlatList inverted renders data[0] at the visual bottom. Our `messages`
+  // are chronological (oldest first), so we reverse before passing in —
+  // newest ends up at index 0, closest to the input.
+  const messagesReversed = useMemo(() => [...messages].reverse(), [messages]);
 
   return (
     <BackgroundWrapper style={styles.background}>
@@ -105,46 +120,46 @@ export function MirrorChatContent() {
                 <Text style={styles.chatTitle}>MirrorGPT</Text>
 
                 {/*
-                  Inverted rendering — the standard chat-app layout
-                  (FlatList inverted / `flex-direction: column-reverse`).
-                  Why this matters here:
+                  FlatList with inverted={true} — the chat-app standard
+                  for message lists. The native ScrollView is flipped
+                  upside-down: the first item of `data` renders at the
+                  BOTTOM (closest to the input), and contentOffset.y=0
+                  corresponds to "viewing the newest message". Scrolling
+                  up the screen (drag down with the finger) reveals older
+                  messages.
 
-                  - The previous flexGrow:1 + justifyContent:flex-end
-                    pattern stretched the content to fill the viewport
-                    when there were few messages, leaving the ScrollView
-                    with zero scroll range — so dragging anywhere did
-                    nothing. When the keyboard closed (viewport grew),
-                    even more messages could fit, and scroll stayed dead.
-                  - column-reverse flips the layout: messages render from
-                    the BOTTOM upward. Few messages naturally pin to the
-                    bottom (no need for flexGrow trickery). The scroll
-                    responder is engaged whenever content height >
-                    viewport — including the moment a single bubble
-                    overflows it.
-                  - In inverted layout, scrollY=0 is the BOTTOM (newest).
-                    To follow a new message, scrollTo({ y: 0 }) — handled
-                    in handleContentSizeChange.
+                  Why FlatList not ScrollView+column-reverse: a
+                  ScrollView with flexDirection:'column-reverse' looks
+                  visually inverted but the native scroll math (content
+                  offset, content size) is NOT flipped — so
+                  scrollTo({y:0}) doesn't actually go to the visual
+                  bottom and auto-scroll silently fails. FlatList's
+                  inverted prop sets the underlying native transform, so
+                  all scroll APIs behave correctly relative to the
+                  visual layout.
 
-                  The messages array stays in chronological order; we
-                  reverse it at render time so column-reverse stacks them
-                  bottom-up correctly (newest closest to the input).
+                  We pass `messages` in its natural chronological order
+                  (oldest first). FlatList inverted will render
+                  data[length-1] at the top of the screen and data[0] at
+                  the bottom — so we feed it in reverse, putting the
+                  newest message at index 0 (visual bottom).
                 */}
-                <ScrollView
+                <FlatList
                   ref={scrollViewRef}
                   style={styles.messagesWrapper}
                   contentContainerStyle={styles.messagesContent}
+                  data={messagesReversed}
+                  renderItem={renderItem}
+                  keyExtractor={keyExtractor}
+                  inverted
                   keyboardShouldPersistTaps="handled"
                   keyboardDismissMode="none"
                   showsVerticalScrollIndicator={false}
                   onScroll={handleScroll}
                   scrollEventThrottle={16}
                   onContentSizeChange={handleContentSizeChange}
-                >
-                  {loading && <LoadingIndicator />}
-                  {[...messages].reverse().map(message => (
-                    <MessageBubble key={message.id} message={message} />
-                  ))}
-                </ScrollView>
+                  ListHeaderComponent={loading ? <LoadingIndicator /> : null}
+                />
 
                 <ChatInput
                   value={draft}
@@ -237,13 +252,8 @@ const styles = StyleSheet.create({
   },
 
   messagesContent: {
-    // Inverted-chat layout: column-reverse stacks children from the bottom
-    // up. First child of the rendered array (which is the NEWEST message
-    // since we reverse messages before mapping) sits closest to the input.
-    // No flexGrow needed — content sizes to itself, the ScrollView scrolls
-    // when (and only when) content overflows, which is the standard chat
-    // scroll feel: drag to reveal history is always responsive.
-    flexDirection: 'column-reverse',
+    // FlatList inverted handles the visual flip natively — we just need
+    // padding here. No flexGrow / column-reverse trickery needed.
     paddingVertical: spacing.xs,
     paddingHorizontal: spacing.xs,
   },

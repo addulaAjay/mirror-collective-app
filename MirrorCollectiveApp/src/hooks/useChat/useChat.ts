@@ -1,7 +1,7 @@
 import type { Message } from '@types';
 import { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ScrollView } from 'react-native';
+import { FlatList } from 'react-native';
 
 import { useUser } from '@context/UserContext';
 import { chatApiService, sessionApiService } from '@services/api';
@@ -33,7 +33,11 @@ export const useChat = () => {
   const [draft, setDraft] = useState('');
   const [loading, setLoading] = useState(false);
   const [greetingLoaded, setGreetingLoaded] = useState(false);
-  const scrollViewRef = useRef<ScrollView>(null);
+  // FlatList ref. Keeping the old name (`scrollViewRef`) so existing
+  // consumers don't break — the screen now uses FlatList with
+  // inverted={true}, which delegates scrolling to a native ScrollView
+  // anyway, so the contract on the ref (scrollToOffset, etc.) holds.
+  const scrollViewRef = useRef<FlatList>(null);
 
   /**
    * Initialize a new session and get greeting message
@@ -177,7 +181,8 @@ export const useChat = () => {
    * Scroll to the bottom of the chat
    */
   const scrollToBottom = () => {
-    scrollViewRef.current?.scrollToEnd({ animated: true });
+    // In inverted FlatList, offset 0 is the bottom (newest message).
+    scrollViewRef.current?.scrollToOffset({ offset: 0, animated: true });
   };
 
   /**
