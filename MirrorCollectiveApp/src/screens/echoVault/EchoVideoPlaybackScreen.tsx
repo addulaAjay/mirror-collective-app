@@ -157,6 +157,7 @@ const EchoVideoPlaybackScreen: React.FC<Props> = ({ navigation, route }) => {
       editEchoId: echo.echo_id,
       prefillRecipient: echo.recipient,
       prefillLockDate: echo.release_date,
+      prefillLetter: echo.letter_to_recipient,
     });
   };
 

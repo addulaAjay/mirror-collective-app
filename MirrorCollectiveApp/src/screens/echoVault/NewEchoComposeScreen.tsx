@@ -44,7 +44,7 @@ const SURFACE_BORDER = 'rgba(253, 253, 249, 0.18)';
 
 const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
   const mode = route.params?.mode ?? 'text';
-  const { recipientName, title, category, recipientId, guardianId, lockDate, unlockOnDeath, editEchoId, initialContent } = route.params || {};
+  const { recipientName, title, category, recipientId, guardianId, lockDate, unlockOnDeath, editEchoId, initialContent, letterToRecipient } = route.params || {};
 
   const [message, setMessage] = useState(initialContent ?? '');
   const [showUploadSheet, setShowUploadSheet] = useState(false);
@@ -313,6 +313,8 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
           updateData.recipient_id = recipientId;
         }
         updateData.release_date = lockDate ?? null;
+        // null clears the cover note on save (matches release_date semantics).
+        updateData.letter_to_recipient = letterToRecipient ?? null;
 
         const updateResponse = await echoApiService.updateEcho(editEchoId, updateData);
         if (!updateResponse.success) throw new Error('Failed to update echo.');
@@ -349,6 +351,7 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
         ...(guardianId && { guardian_id: guardianId }),
         ...(lockDate && { release_date: lockDate }),
         ...(unlockOnDeath !== undefined && { unlock_on_death: unlockOnDeath }),
+        ...(letterToRecipient && { letter_to_recipient: letterToRecipient }),
         content: mode === 'text' ? message : undefined,
       });
 

@@ -81,8 +81,16 @@ const BackIcon: React.FC = () => (
 
 // ── Screen ────────────────────────────────────────────────────────────────────
 const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
-  const { title, category, mode, editEchoId, prefillRecipient, prefillLockDate, prefillContent } =
-    route.params;
+  const {
+    title,
+    category,
+    mode,
+    editEchoId,
+    prefillRecipient,
+    prefillLockDate,
+    prefillContent,
+    prefillLetter,
+  } = route.params;
   const isEditing = !!editEchoId;
 
   const [recipients, setRecipients] = useState<Recipient[]>([]);
@@ -108,7 +116,7 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
     prefillLockDate ? new Date(prefillLockDate) : null,
   );
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [notes, setNotes] = useState('');
+  const [notes, setNotes] = useState(prefillLetter ?? '');
 
   // Note: previous KAV-based implementation manually measured + scrolled
   // the letter field into view on focus. KeyboardAwareScrollView handles
@@ -159,6 +167,7 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
       recipientId:  selectedRecipient.recipient_id,
       recipientName: selectedRecipient.name,
       lockDate:     lockDate?.toISOString(),
+      letterToRecipient: notes.trim() ? notes : undefined,
       ...(editEchoId ? { editEchoId, initialContent: prefillContent } : {}),
     });
   };

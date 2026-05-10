@@ -12,6 +12,8 @@ export interface CreateEchoRequest {
   content?: string; // For text echoes
   release_date?: string; // ISO 8601 date string for scheduled release
   unlock_on_death?: boolean; // If true, echo is released when creator dies (verified by guardian)
+  /** Optional cover note shown alongside the echo in the recipient's inbox. */
+  letter_to_recipient?: string;
 }
 
 /**
@@ -56,6 +58,8 @@ export interface EchoResponse {
   release_date?: string;
   /** Timestamp when the echo transitioned to LOCKED via the guardian flow. */
   lock_date?: string;
+  /** Optional cover note set on the recipient picker step. */
+  letter_to_recipient?: string;
   /**
    * @deprecated Use `release_date` — `scheduled_at` is the inbox-side alias.
    * Kept for the EchoInboxScreen until PR 4 migrates it to `release_date`.
@@ -175,10 +179,11 @@ export class EchoApiService extends BaseApiService {
      * value (backend honours this via `model_dump(exclude_unset=True)`).
      * Omit the field from `data` if you don't want to change it.
      */
-    data: Partial<Omit<CreateEchoRequest, 'release_date' | 'recipient_id'>> & {
+    data: Partial<Omit<CreateEchoRequest, 'release_date' | 'recipient_id' | 'letter_to_recipient'>> & {
       media_url?: string;
       release_date?: string | null;
       recipient_id?: string | null;
+      letter_to_recipient?: string | null;
     },
   ): Promise<ApiResponse<EchoResponse>> {
     const response = await this.makeRequest<EchoResponse>(

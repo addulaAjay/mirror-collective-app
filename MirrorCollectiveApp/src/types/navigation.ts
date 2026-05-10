@@ -100,6 +100,12 @@ export type RootStackParamList = {
     /** Edit mode: pre-fill compose with existing echo and PATCH on save */
     editEchoId?: string;
     initialContent?: string;
+    /**
+     * Optional "Letter to Recipient" cover note, forwarded from the recipient
+     * picker step. Sent as `letter_to_recipient` on the create / update PATCH
+     * so it persists alongside the echo.
+     */
+    letterToRecipient?: string;
   };
   NewEchoAudioScreen: {
     recipientId?: string;
@@ -157,6 +163,11 @@ export type RootStackParamList = {
      * when bouncing the user back to make changes.
      */
     prefillContent?: string;
+    /**
+     * Existing "Letter to Recipient" cover note. Hydrates the notes field in
+     * the picker on mount and is forwarded to compose so it persists on save.
+     */
+    prefillLetter?: string;
   };
   AddNewProfileScreen: { mode?: 'recipient' | 'guardian' } | undefined;
   EchoDetailScreen: { echoId: string; title?: string; body?: string };

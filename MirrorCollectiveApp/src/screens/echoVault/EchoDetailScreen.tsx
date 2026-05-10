@@ -100,6 +100,7 @@ const EchoDetailScreen: React.FC<Props> = ({ navigation, route }) => {
       prefillRecipient: echo.recipient,
       prefillLockDate: echo.release_date,
       prefillContent: echo.content,
+      prefillLetter: echo.letter_to_recipient,
     });
   };
 
