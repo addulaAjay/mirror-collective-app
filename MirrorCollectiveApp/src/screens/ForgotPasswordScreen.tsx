@@ -116,7 +116,7 @@ const ForgotPasswordScreen = () => {
                   </Text>
 
                   <Button
-                    variant="auth"
+                    variant="primary"
                     title={t('common.continue')}
                     onPress={() => navigation.navigate('ResetPassword', { email })}
                     testID="success-continue-button"
@@ -195,7 +195,7 @@ const ForgotPasswordScreen = () => {
 
                 {/* SEND LINK button — Figma: node 4116:521 (auth-CTA pattern) */}
                 <Button
-                  variant="auth"
+                  variant="primary"
                   title={
                     isLoading
                       ? t('auth.forgotPassword.sendingButton')

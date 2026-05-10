@@ -294,7 +294,7 @@ const AppNavigator = () => {
       const hasCompletedOnboarding =
         await OnboardingService.hasCompletedOnboarding();
       if (cancelled) return;
-      setInitialRoute(hasCompletedOnboarding ? 'TalkToMirror' : 'EnterMirror');
+      setInitialRoute(hasCompletedOnboarding ? 'TalkToMirror' : 'AppVideo');
       setRouteReady(true);
     })();
     return () => {

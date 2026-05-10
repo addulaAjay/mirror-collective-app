@@ -27,6 +27,7 @@ import AuthenticatedRoute from '@components/AuthenticatedRoute';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import Button from '@components/Button';
 import LogoHeader from '@components/LogoHeader';
+import { OnboardingService } from '@services';
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'EnterMirror'>;
@@ -34,7 +35,12 @@ type Props = {
 
 const EnterMirrorScreen: React.FC<Props> = ({ navigation }) => {
   const handleEnter = () => {
-    navigation.navigate('AppVideo');
+    // EnterMirror is the final step of the first-login onboarding
+    // (AppVideo → EnterMirror → MirrorChat). Mark complete here so
+    // subsequent app launches route directly to TalkToMirror via
+    // App.tsx's OnboardingService.hasCompletedOnboarding() check.
+    void OnboardingService.markOnboardingComplete();
+    navigation.navigate('MirrorChat');
   };
 
   return (
@@ -80,7 +86,8 @@ const EnterMirrorScreen: React.FC<Props> = ({ navigation }) => {
 
             {/* ── ENTER button — Figma node 1286:1464 (auth-CTA pattern) ── */}
             <Button
-              variant="auth"
+              variant="primary"
+              size="L"
               title="ENTER"
               onPress={handleEnter}
             />

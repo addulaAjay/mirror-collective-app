@@ -142,23 +142,14 @@ const ArchetypeScreen: React.FC<ArchetypeScreenProps> = ({ route }) => {
         {/* Pinned CTA — always visible regardless of how much description scrolled. */}
         <View style={styles.continueBar}>
           <Button
-            variant="link"
+            variant="primary"
             size="L"
-            title="Click anywhere to continue"
+            title="NEXT"
             onPress={handleContinue}
             testID="archetype-continue"
           />
         </View>
 
-        {/* Dev-only retake button — gated by __DEV__ so it only appears in
-            debug/dev builds, never in production (TestFlight/App Store). */}
-        {__DEV__ && (
-          <TouchableOpacity onPress={handleRetake} style={styles.retakeButton}>
-            <Text style={styles.retakeText}>
-              {t('quiz.archetype.retakeButton')}
-            </Text>
-          </TouchableOpacity>
-        )}
       </SafeAreaView>
     </BackgroundWrapper>
   );
