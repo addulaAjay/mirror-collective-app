@@ -12,7 +12,7 @@ import {
   type TextInputContentSizeChangeEventData,
 } from 'react-native';
 import type { Message } from '@types';
-import { KeyboardStickyView } from 'react-native-keyboard-controller';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -108,42 +108,30 @@ export function MirrorChatContent() {
       <SafeAreaView style={styles.safeArea}>
         <LogoHeader navigation={navigation} />
 
-        {/*
-          Architecture: the wrapping container is a plain View — NOT a
-          KeyboardAvoidingView. That's the critical change. KAV adds
-          animated padding to itself when the keyboard opens; that
-          animation cascades through every flex:1 child every frame and
-          re-measures the FlatList's viewport mid-animation. On a few
-          of those frames the scroll responder thinks contentSize fits
-          viewport and disables itself, then the next frame it's
-          scrollable again. Intermittent dead-zone right after keyboard
-          dismiss.
+        {/* KeyboardAvoidingView (from react-native-keyboard-controller)
+            wraps BOTH the message scroller AND the chat input — this is
+            the canonical chat-surface pattern. The input is a sibling of
+            the scroller, so it must be inside the same KAV for the lib
+            to push it above the keyboard. KASV would only handle its own
+            children, leaving the sibling input behind the keyboard.
 
-          New pattern: the chat surface (FlatList) sits inside a stable
-          flex:1 View — its parent never resizes due to keyboard state.
-          Only the ChatInput moves, wrapped in KeyboardStickyView
-          which translates it upward via Reanimated worklets (60fps,
-          off the JS thread). No layout-cascade, no race.
-
-          LinearGradient is now position:absolute via StyleSheet
-          .absoluteFill so it paints behind everything without being
-          part of the flex hierarchy — eliminates another source of
-          layout-time interference.
-        */}
-        <View style={styles.chatWrapper}>
-          <LinearGradient
-            colors={[
-              'rgba(155, 170, 194, 0.01)', // top
-              'rgba(155, 170, 194, 0.18)', // bottom
-            ]}
-            start={{ x: 0.5, y: 0 }}
-            end={{ x: 0.5, y: 1 }}
-            style={StyleSheet.absoluteFill}
-            pointerEvents="none"
-          />
-          {/* Chat "card" */}
-          <View style={styles.chatContainer}>
-            <Text style={styles.chatTitle}>MirrorGPT</Text>
+            behavior="padding" on iOS adds bottom padding equal to the
+            keyboard height; on Android the windowSoftInputMode=adjustResize
+            in AndroidManifest.xml handles it natively. */}
+        <KeyboardAvoidingView behavior="padding" style={styles.kav}>
+          <View style={styles.chatWrapper}>
+            <LinearGradient
+              colors={[
+                'rgba(155, 170, 194, 0.01)', // top
+                'rgba(155, 170, 194, 0.18)', // bottom
+              ]}
+              start={{ x: 0.5, y: 0 }}
+              end={{ x: 0.5, y: 1 }}
+              style={styles.GradientWrapper}
+            >
+              {/* Chat "card" */}
+              <View style={styles.chatContainer}>
+                <Text style={styles.chatTitle}>MirrorGPT</Text>
 
                 {/*
                   FlatList with inverted={true} — the chat-app standard
@@ -187,17 +175,17 @@ export function MirrorChatContent() {
                   ListHeaderComponent={loading ? <LoadingIndicator /> : null}
                 />
 
-            <KeyboardStickyView>
-              <ChatInput
-                value={draft}
-                onChangeText={setDraft}
-                onSend={sendMessage}
-                onContentSizeChange={handleInputContentSizeChange}
-                disabled={loading}
-              />
-            </KeyboardStickyView>
+                <ChatInput
+                  value={draft}
+                  onChangeText={setDraft}
+                  onSend={sendMessage}
+                  onContentSizeChange={handleInputContentSizeChange}
+                  disabled={loading}
+                />
+              </View>
+            </LinearGradient>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </SafeAreaView>
     </BackgroundWrapper>
   );
