@@ -156,14 +156,16 @@ const styles = StyleSheet.create({
   // Container is a row that grows vertically with the multiline input.
   // alignItems: 'flex-end' anchors the icon and send buttons to the bottom
   // of the row as the input gets taller — matches ChatGPT/Claude pattern.
+  // No marginBottom — the parent screen places this directly above the
+  // bottom of the chat card with KeyboardAvoidingView handling keyboard
+  // offset, so any margin here would just be dead space.
   container: {
     flexDirection: 'row',
     alignItems: 'flex-end',
     borderRadius: spacing.s,
     paddingHorizontal: spacing.xxs,
     paddingVertical: moderateScale(6),
-    marginTop: spacing.l,
-    marginBottom: spacing.l,
+    marginTop: spacing.s,
     ...shadows.MEDIUM,
     borderColor: palette.navy.DEFAULT,
     minHeight: moderateScale(40),
