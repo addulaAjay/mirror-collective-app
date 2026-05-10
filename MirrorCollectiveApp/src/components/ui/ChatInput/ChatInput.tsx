@@ -72,7 +72,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
       style={styles.container}
     >
       <TouchableOpacity
-        style={[styles.iconButton, styles.iconButtonAnchor]}
+        style={styles.iconButton}
         onPress={handlePickDocument}
         disabled={disabled || isPicking}
       >
@@ -106,7 +106,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         scrollEnabled
       />
       <TouchableOpacity
-        style={[styles.sendButton, styles.iconButtonAnchor]}
+        style={styles.sendButton}
         onPress={onSend}
         disabled={disabled || !value.trim()}
         testID="send-button"
@@ -153,15 +153,17 @@ const MAX_INPUT_HEIGHT =
   LINE_HEIGHT * MAX_LINES + INPUT_PADDING_V * 2 + LINE_HEIGHT * 0.1;
 
 const styles = StyleSheet.create({
-  // Container is a row that grows vertically with the multiline input.
-  // alignItems: 'flex-end' anchors the icon and send buttons to the bottom
-  // of the row as the input gets taller — matches ChatGPT/Claude pattern.
-  // No marginBottom — the parent screen places this directly above the
-  // bottom of the chat card with KeyboardAvoidingView handling keyboard
-  // offset, so any margin here would just be dead space.
+  // Container is a row holding the icon + multiline input + send button.
+  // alignItems: 'center' vertically centers all children. Reasoning:
+  //   - Single-line state: content sits visually centered (no top-heavy
+  //     or bottom-heavy bias from iOS's implicit multiline inset).
+  //   - Multi-line state: the icons stay vertically centered relative to
+  //     the input as it grows (iMessage / Telegram pattern). Cleaner
+  //     than 'flex-end' which leaves the icons stuck at the bottom of a
+  //     tall input visually disconnected from the cursor.
   container: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
+    alignItems: 'center',
     borderRadius: spacing.s,
     paddingHorizontal: scale(8),
     paddingVertical: moderateScale(6),
@@ -174,13 +176,6 @@ const styles = StyleSheet.create({
   iconButton: {
     paddingLeft: scale(6),
     paddingRight: scale(6),
-  },
-
-  // Vertical padding so the icon sits on the input's last-line baseline
-  // when the input grows multiline (icons stay anchored bottom-right).
-  // Matches input's paddingBottom so they share a baseline.
-  iconButtonAnchor: {
-    paddingBottom: INPUT_PADDING_V,
   },
 
   iconImage: {
