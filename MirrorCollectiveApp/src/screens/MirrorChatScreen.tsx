@@ -110,9 +110,6 @@ export function MirrorChatContent() {
                 />
               </View>
             </LinearGradient>
-            <View>
-              <Text style={styles.footerText} />
-            </View>
           </View>
         </KeyboardAvoidingView>
       </SafeAreaView>
@@ -150,15 +147,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.l,
   },
 
-  footerText: {
-    fontFamily: 'CormorantGaramond-Regular',
-    fontSize: 20,
-    lineHeight: 28,
-    color: palette.gold.chat,
-    paddingBottom: 15,
-    textAlign: 'center',
-  },
-
   headerText: {
     fontFamily: 'CormorantGaramond-Italic',
     fontSize: 22,
@@ -177,6 +165,7 @@ const styles = StyleSheet.create({
     width: '100%',
     borderRadius: spacing.m,
     paddingHorizontal: spacing.s,
+    paddingBottom: spacing.s,
     alignSelf: 'center',
     ...shadows.LIGHT,
   },
