@@ -168,7 +168,19 @@ export class EchoApiService extends BaseApiService {
     return ApiErrorHandler.handleApiResponse(response, 'Echo created successfully');
   }
 
-  async updateEcho(id: string, data: Partial<CreateEchoRequest> & { media_url?: string }): Promise<ApiResponse<EchoResponse>> {
+  async updateEcho(
+    id: string,
+    /**
+     * `release_date` and `recipient_id` accept `null` to *clear* the stored
+     * value (backend honours this via `model_dump(exclude_unset=True)`).
+     * Omit the field from `data` if you don't want to change it.
+     */
+    data: Partial<Omit<CreateEchoRequest, 'release_date' | 'recipient_id'>> & {
+      media_url?: string;
+      release_date?: string | null;
+      recipient_id?: string | null;
+    },
+  ): Promise<ApiResponse<EchoResponse>> {
     const response = await this.makeRequest<EchoResponse>(
       `/api/echoes/${id}`,
       'PATCH',
@@ -176,6 +188,54 @@ export class EchoApiService extends BaseApiService {
       true
     );
     return ApiErrorHandler.handleApiResponse(response, 'Echo updated successfully');
+  }
+
+  // ── Send-later helpers ─────────────────────────────────────────────────────
+  // Thin semantic wrappers around updateEcho / release so call sites in the
+  // detail-screen overflow menu read like English. All four ultimately hit
+  // PATCH /api/echoes/{id} (or its /release variant).
+
+  /** Attach (or replace) the recipient on a DRAFT echo. */
+  async assignRecipient(
+    echoId: string,
+    recipientId: string,
+  ): Promise<ApiResponse<EchoResponse>> {
+    return this.updateEcho(echoId, { recipient_id: recipientId });
+  }
+
+  /** Set (or replace) the scheduled release date on a DRAFT echo. */
+  async scheduleEcho(
+    echoId: string,
+    releaseDate: string,
+  ): Promise<ApiResponse<EchoResponse>> {
+    return this.updateEcho(echoId, { release_date: releaseDate });
+  }
+
+  /**
+   * Clear the scheduled release date on a DRAFT echo.
+   *
+   * Use this for "Cancel scheduled send" — keeps the recipient attached but
+   * unsets the date, so the row falls back to the "Saved" state.
+   */
+  async clearSchedule(echoId: string): Promise<ApiResponse<EchoResponse>> {
+    return this.updateEcho(echoId, { release_date: null });
+  }
+
+  /**
+   * Release a DRAFT echo to its recipient immediately (no-guardian path).
+   *
+   * Backend preconditions (enforced server-side): echo must be DRAFT, owned
+   * by caller, have a `recipient_id`, and have no `guardian_id`. The server
+   * transitions the echo to RELEASED and emails the recipient.
+   */
+  async releaseEcho(echoId: string): Promise<ApiResponse<EchoResponse>> {
+    const response = await this.makeRequest<EchoResponse>(
+      `/api/echoes/${echoId}/release`,
+      'PATCH',
+      null,
+      true,
+    );
+    return ApiErrorHandler.handleApiResponse(response, 'Echo released successfully');
   }
 
   async deleteEcho(id: string): Promise<ApiResponse<void>> {
