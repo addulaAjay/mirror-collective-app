@@ -337,7 +337,13 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
         Alert.alert(
           'Success',
           shouldRelease ? 'Echo sent!' : 'Echo updated!',
-          [{ text: 'OK', onPress: () => navigation.popToTop() }],
+          [{
+            text: 'OK',
+            // Match the create flow: drop the user back into the vault
+            // library so they can see the row update in context, rather
+            // than popping all the way to the stack root (TalkToMirror).
+            onPress: () => navigation.navigate('MirrorEchoVaultLibrary' as any),
+          }],
         );
         return;
       }
