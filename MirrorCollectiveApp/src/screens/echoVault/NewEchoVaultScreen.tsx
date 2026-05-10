@@ -57,7 +57,7 @@ import {
   type TextStyle,
   type ViewStyle,
 } from 'react-native';
-import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path, Rect } from 'react-native-svg';
 
@@ -173,13 +173,24 @@ const NewEchoScreen: React.FC = () => {
         <LogoHeader navigation={navigation} />
 
         {/*
-          Screen is NOT scrollable — fixed layout filling the viewport.
-          Dropdown expands inline with its own internal scroll.
-          KeyboardAvoidingView (from react-native-keyboard-controller) keeps
-          the NEXT button above the keyboard with smooth spring animation.
-          The lib computes offsets natively — no manual keyboardVerticalOffset.
+          KeyboardAwareScrollView (react-native-keyboard-controller) provides
+          page-level scroll for small devices where the form (title input +
+          illustration + dropdown + recipient row + 3 mode buttons + NEXT)
+          doesn't fit the viewport in one go. It also auto-scrolls the
+          focused title input above the keyboard when typing.
+
+          The dropdown still has its own internal ScrollView for category
+          options — that nested scroll stays for the option list itself.
         */}
-        <KeyboardAvoidingView behavior="padding" style={styles.kav}>
+        <KeyboardAwareScrollView
+          style={styles.kav}
+          contentContainerStyle={styles.kavContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+          bottomOffset={16}
+          nestedScrollEnabled
+        >
             {/*
               Figma 220:2027 — content column:
               left:24, top:140, w:345, gap:24, items-center
@@ -361,7 +372,7 @@ const NewEchoScreen: React.FC = () => {
               />
 
             </View>
-        </KeyboardAvoidingView>
+        </KeyboardAwareScrollView>
 
       </SafeAreaView>
     </BackgroundWrapper>
@@ -377,6 +388,7 @@ const styles = StyleSheet.create<{
   bg: ViewStyle;
   safe: ViewStyle;
   kav: ViewStyle;
+  kavContent: ViewStyle;
   dropdownList: ViewStyle;
   content: ViewStyle;
   // Header
@@ -421,6 +433,14 @@ const styles = StyleSheet.create<{
   safe: { flex: 1, backgroundColor: 'transparent' },
   kav:  { flex: 1, width: '100%' },
 
+  // KeyboardAwareScrollView contentContainerStyle — flexGrow so the body
+  // still fills the screen on tall devices, plus padding so scrolled
+  // content doesn't bump the bottom safe area on small ones.
+  kavContent: {
+    flexGrow: 1,
+    paddingBottom: verticalScale(spacing.l),
+  },
+
   // Dropdown list — internally scrollable, maxHeight keeps it from taking
   // over the screen. Only THESE items scroll, not the whole screen.
   dropdownList: {
@@ -431,7 +451,10 @@ const styles = StyleSheet.create<{
   // alignItems:'stretch' (default) lets children with width:'100%' work correctly.
   // Elements that need centering (illustration) use alignSelf:'center'.
   content: {
-    flex:              1,
+    // Was flex:1 — that worked under the old KAV-as-flex-container. Inside
+    // a ScrollView the parent doesn't bound height, so flex:1 collapses
+    // children. Switch to width:'100%' and let intrinsic sizing + the
+    // gap+padding below produce the column layout.
     width:             '100%',
     paddingHorizontal: scale(spacing.xl),         // 24px — Figma left:24
     paddingTop:        verticalScale(spacing.l),  // breathing room below LogoHeader
