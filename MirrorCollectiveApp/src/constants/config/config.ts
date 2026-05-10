@@ -41,9 +41,34 @@ export const API_CONFIG = {
       REGISTER: '/api/register-device',
       UNREGISTER: '/api/unregister-device',
     },
+    REFLECTION_ROOM: {
+      QUIZ: '/api/reflection/quiz',
+      SNAPSHOT: '/api/echo/snapshot',
+      RECOMMEND_PRACTICE: '/api/echo/recommend-practice',
+      PRACTICE_COMPLETE: '/api/practice/complete',
+      PRACTICE_HELPFUL: '/api/practice/complete/{completion_id}/helpful',
+      ROOM_OVERRIDE: '/api/me/reflection/room',
+      TELEMETRY_EVENT: '/api/telemetry/event',
+    },
   },
   TIMEOUT: 10000,
 };
+
+/**
+ * Reflection Room V1 feature flag.
+ * Default: true (existing screens already shipping; flag is for safe rollback).
+ * Override via env: REFLECTION_ROOM_ENABLED=false
+ */
+export const REFLECTION_ROOM_ENABLED =
+  String(process.env.REFLECTION_ROOM_ENABLED ?? 'true').toLowerCase() !== 'false';
+
+/**
+ * Reflection Room mock-API mode. When true, the FE talks to an in-memory
+ * mock client instead of staging. Flipped to false in Phase 8 backend wiring.
+ * Override via env: REFLECTION_ROOM_USE_MOCK=false
+ */
+export const REFLECTION_ROOM_USE_MOCK =
+  String(process.env.REFLECTION_ROOM_USE_MOCK ?? 'true').toLowerCase() !== 'false';
 
 export const APP_CONFIG = {
   CHAT: {

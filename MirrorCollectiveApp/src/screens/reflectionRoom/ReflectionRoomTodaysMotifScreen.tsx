@@ -1,73 +1,125 @@
-import { useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { palette } from '@theme';
-import type { RootStackParamList } from '@types';
-import React, { useMemo } from 'react';
-import {
-  Dimensions,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
+/**
+ * Reflection Room — Today's Motif reveal (§12.6, Figma node 4654-3272 frame 7).
+ *
+ * Renders the motif assigned by /reflection/quiz, sourced from JourneyContext.
+ * Handles two states:
+ *   - success: motif name (uppercase) + glyph + why_text + "VIEW SIGNATURE" CTA.
+ *   - error  : §12.7 RESULTS NOT AVAILABLE state with retry CTA back to QuizEntry.
+ */
+
+import { useNavigation, useRoute } from '@react-navigation/native';
+import type {
+  NativeStackNavigationProp,
+  NativeStackScreenProps,
+} from '@react-navigation/native-stack';
+import React from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
 
-import motifsData from '@assets/motifs-data.json';
 import { MOTIF_SVG } from '@assets/motifs-icons/MotifIconAssets';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
+import {
+  borderWidth,
+  fontFamily,
+  fontSize,
+  lineHeight,
+  palette,
+  radius,
+  spacing,
+  textShadow,
+} from '@theme';
+import type { RootStackParamList } from '@types';
 
-const { width: screenWidth, height: screenHeight } = Dimensions.get('screen');
+import {
+  QUIZ_ERROR,
+  TODAYS_MOTIF,
+  displayMotifUpper,
+} from '@features/reflection-room/copy/strings';
+import { useJourney } from '@features/reflection-room/state/JourneyContext';
+import type { MotifId } from '@features/reflection-room/types/ids';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
+type RouteProps = NativeStackScreenProps<
+  RootStackParamList,
+  'ReflectionRoomTodaysMotif'
+>;
+
 const ReflectionRoomTodaysMotifScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
+  const route = useRoute<RouteProps['route']>();
+  const journey = useJourney();
 
-  const motif = useMemo(() => {
-    const list = motifsData.motifs;
-    return list[Math.floor(Math.random() * list.length)];
-  }, []);
-  // const motif = motifsData.motifs.find(m => m.image === 'sprout')!;
+  const error = route.params?.error === true;
+  const hasMotif = !error && journey.motif != null;
+
+  if (error) {
+    return (
+      <ErrorState
+        onRetry={() => navigation.replace('ReflectionRoomQuizEntry')}
+      />
+    );
+  }
+
+  if (!hasMotif) {
+    // Reached this screen without a motif and without an error flag —
+    // bounce to the quiz entry rather than rendering blank.
+    return (
+      <ErrorState
+        onRetry={() => navigation.replace('ReflectionRoomQuizEntry')}
+      />
+    );
+  }
+
+  const motif = journey.motif!;
+  const motifNameUpper = displayMotifUpper(motif.motif_id);
+  const motifSvg =
+    MOTIF_SVG[motif.motif_id] ??
+    MOTIF_SVG[(motif.motif_id as MotifId).replace('_', '-')] ??
+    '';
 
   return (
-    <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage}>
+    <BackgroundWrapper style={styles.bg}>
       <SafeAreaView style={styles.safe}>
         <LogoHeader />
         <ScrollView
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={styles.scroll}
           showsVerticalScrollIndicator={false}
         >
-          <Text style={styles.reflectionRoomLabel}>TODAY’S MOTIF</Text>
-          <Text style={styles.motifName}>{motif.name}</Text>
+          <Text
+            style={styles.eyebrow}
+            accessibilityRole="header"
+            accessibilityLabel={TODAYS_MOTIF.eyebrow}
+          >
+            {TODAYS_MOTIF.eyebrow}
+          </Text>
+          <Text style={styles.motifName} accessibilityLabel={motif.motif_name}>
+            {motifNameUpper}
+          </Text>
 
-          <View style={styles.motifImageContainer}>
+          <View style={styles.glyphContainer} accessibilityElementsHidden>
             <SvgXml
-              xml={MOTIF_SVG[motif.image] || ''}
+              xml={motifSvg}
               width="100%"
               height="100%"
             />
           </View>
 
-          <Text style={styles.description}>{motif.description}</Text>
+          <Text style={styles.whyText}>{motif.why_text}</Text>
 
-          <TouchableOpacity
-            style={styles.ctaButton}
-            onPress={() => navigation.navigate('ReflectionRoomEchoSignature' as never)}
-            activeOpacity={0.8}
+          <Pressable
+            onPress={() => navigation.replace('ReflectionRoomEchoSignature')}
+            accessibilityRole="button"
+            accessibilityLabel="View Signature"
+            style={({ pressed }) => [
+              styles.ctaButton,
+              pressed && styles.pressed,
+            ]}
           >
-            <LinearGradient
-              colors={['rgba(253, 253, 249, 0.02)', 'rgba(253, 253, 249, 0.00)']}
-              start={{ x: 0.5, y: 0 }}
-              end={{ x: 0.5, y: 1 }}
-              style={styles.ctaGradient}
-            >
-              <Text style={styles.ctaText}>VIEW SIGNATURE</Text>
-            </LinearGradient>
-          </TouchableOpacity>
+            <Text style={styles.ctaText}>VIEW SIGNATURE</Text>
+          </Pressable>
         </ScrollView>
       </SafeAreaView>
     </BackgroundWrapper>
@@ -76,85 +128,109 @@ const ReflectionRoomTodaysMotifScreen: React.FC = () => {
 
 export default ReflectionRoomTodaysMotifScreen;
 
+const ErrorState: React.FC<{ onRetry: () => void }> = ({ onRetry }) => (
+  <BackgroundWrapper style={styles.bg}>
+    <SafeAreaView style={styles.safe}>
+      <LogoHeader />
+      <ScrollView
+        contentContainerStyle={styles.scroll}
+        showsVerticalScrollIndicator={false}
+      >
+        <Text
+          style={styles.eyebrow}
+          accessibilityRole="header"
+          accessibilityLabel={QUIZ_ERROR.header}
+        >
+          {QUIZ_ERROR.header}
+        </Text>
+        <Text style={styles.errorBody}>{QUIZ_ERROR.body}</Text>
+        <Pressable
+          onPress={onRetry}
+          accessibilityRole="button"
+          accessibilityLabel="Retake Quiz"
+          style={({ pressed }) => [
+            styles.ctaButton,
+            pressed && styles.pressed,
+          ]}
+        >
+          <Text style={styles.ctaText}>RETAKE QUIZ</Text>
+        </Pressable>
+      </ScrollView>
+    </SafeAreaView>
+  </BackgroundWrapper>
+);
 
 const styles = StyleSheet.create({
-  bg: {
-    flex: 1,
-    backgroundColor: palette.navy.deep,
-  },
-  bgImage: {
-    resizeMode: 'cover',
-  },
-  safe: {
-    flex: 1,
-    backgroundColor: 'transparent',
-  },
-  scrollContent: {
+  bg: { flex: 1, backgroundColor: palette.navy.deep },
+  safe: { flex: 1 },
+  scroll: {
     alignItems: 'center',
-    paddingHorizontal: Math.max(20, screenWidth * 0.051),
-    paddingBottom: Math.max(40, screenHeight * 0.05),
+    paddingHorizontal: spacing.l,
+    paddingBottom: spacing.xxxl,
+    gap: spacing.l,
     flexGrow: 1,
     justifyContent: 'center',
   },
-  reflectionRoomLabel: {
-    fontFamily: 'CormorantGaramond-Regular',
-    fontSize: 28,
-    fontWeight: '400',
-    lineHeight: 36,
+  eyebrow: {
+    fontFamily: fontFamily.heading,
+    fontSize: fontSize['2xl'],
+    lineHeight: lineHeight.xl,
     color: palette.gold.DEFAULT,
     textAlign: 'center',
     letterSpacing: 4,
-    marginBottom: Math.max(32, screenHeight * 0.04),
+    textShadowColor: textShadow.glow.color,
+    textShadowOffset: textShadow.glow.offset,
+    textShadowRadius: textShadow.glow.radius,
   },
   motifName: {
-    fontFamily: 'CormorantGaramond-Regular',
-    fontSize: 42,
+    fontFamily: fontFamily.heading,
+    fontSize: fontSize['4xl'],
+    lineHeight: lineHeight.xxl,
     color: palette.gold.DEFAULT,
     textAlign: 'center',
     letterSpacing: 3,
-    marginBottom: 6,
+    textShadowColor: textShadow.glowStrong.color,
+    textShadowOffset: textShadow.glowStrong.offset,
+    textShadowRadius: textShadow.glowStrong.radius,
   },
-  motifImageContainer: {
-    width: Math.min(screenWidth * 0.75, 300),
-    height: Math.min(screenWidth * 0.75, 300),
-    justifyContent: 'center',
+  glyphContainer: {
+    width: 240,
+    height: 240,
     alignItems: 'center',
-    marginBottom: Math.max(32, screenHeight * 0.04),
-    backgroundColor: 'transparent',
+    justifyContent: 'center',
   },
-  motifImage: {
-    width: '100%',
-    height: '100%',
-  },
-  description: {
-    fontFamily: 'Inter',
-    fontSize: 16,
-    fontWeight: '500',
+  whyText: {
+    fontFamily: fontFamily.body,
+    fontSize: fontSize.s,
+    lineHeight: lineHeight.m,
     color: palette.gold.subtlest,
     textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: Math.max(32, screenHeight * 0.04),
-    paddingHorizontal: 8,
-    width: Math.min(screenWidth * 0.85, 340),
+    paddingHorizontal: spacing.s,
+  },
+  errorBody: {
+    fontFamily: fontFamily.body,
+    fontSize: fontSize.s,
+    lineHeight: lineHeight.m,
+    color: palette.gold.subtlest,
+    textAlign: 'center',
+    paddingHorizontal: spacing.s,
   },
   ctaButton: {
-    borderRadius: 12,
-    borderWidth: 0.5,
+    minWidth: 240,
+    paddingVertical: spacing.s,
+    paddingHorizontal: spacing.xl,
+    borderRadius: radius.s,
+    borderWidth: borderWidth.thin,
     borderColor: palette.navy.light,
-    overflow: 'hidden',
-  },
-  ctaGradient: {
-    flexDirection: 'row',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    justifyContent: 'center',
+    backgroundColor: palette.neutral.transparent,
     alignItems: 'center',
-    gap: 8,
+    justifyContent: 'center',
   },
   ctaText: {
-    fontFamily: 'CormorantGaramond-Regular',
-    fontSize: 24,
+    fontFamily: fontFamily.heading,
+    fontSize: fontSize.xl,
     color: palette.gold.DEFAULT,
     letterSpacing: 2,
   },
+  pressed: { opacity: 0.7 },
 });

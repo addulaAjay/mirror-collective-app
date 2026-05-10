@@ -1,5 +1,9 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { palette, textShadow } from '@theme';
+import {
+  palette, fontFamily, fontSize, fontWeight, lineHeight,
+  spacing, radius, borderWidth, textShadow,
+  scale, verticalScale, moderateScale,
+} from '@theme';
 import { RootStackParamList } from '@types';
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import {
@@ -13,12 +17,14 @@ import {
   Platform,
   Alert,
   ActivityIndicator,
+  Share,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Video, { VideoRef } from 'react-native-video';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
+import Button from '@components/Button';
 import LogoHeader from '@components/LogoHeader';
 import { echoApiService, EchoResponse } from '@services/api/echo';
 
@@ -36,6 +42,8 @@ const EchoVideoPlaybackScreen: React.FC<Props> = ({ navigation, route }) => {
   const { echoId, title } = route.params; // Expect echoId passed in params
   const [echo, setEcho] = useState<EchoResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const isRecipient = !!echo?.sender;
+  const [vaulting, setVaulting] = useState(false);
   const [paused, setPaused] = useState(false);
   const [buffering, setBuffering] = useState(false);
   const videoRef = useRef<VideoRef>(null);
@@ -64,6 +72,46 @@ const EchoVideoPlaybackScreen: React.FC<Props> = ({ navigation, route }) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDownload = async () => {
+    if (!echo) return;
+    try {
+      await Share.share({ url: echo.media_url ?? '', message: echo.title });
+    } catch { /* dismissed */ }
+  };
+
+  const handleVault = async () => {
+    if (!echo || vaulting) return;
+    setVaulting(true);
+    try {
+      const res = await echoApiService.createEcho({
+        title: echo.title,
+        category: echo.category,
+        echo_type: 'VIDEO',
+      });
+      if (!res.success || !res.data) throw new Error('Failed to save to vault.');
+      if (echo.media_url) {
+        await echoApiService.updateEcho(res.data.echo_id, { media_url: echo.media_url });
+      }
+      Alert.alert('Saved', 'Echo added to your vault.');
+    } catch (e: any) {
+      Alert.alert('Error', e.message || 'Failed to add to vault.');
+    } finally {
+      setVaulting(false);
+    }
+  };
+
+  const handleEdit = () => {
+    if (!echo) return;
+    navigation.navigate('NewEchoComposeScreen', {
+      mode: 'video',
+      title: echo.title,
+      category: echo.category,
+      editEchoId: echo.echo_id,
+      recipientId: echo.recipient?.recipient_id,
+      recipientName: echo.recipient?.name,
+    });
   };
 
   const onBuffer = ({ isBuffering }: { isBuffering: boolean }) => {
@@ -167,9 +215,11 @@ const EchoVideoPlaybackScreen: React.FC<Props> = ({ navigation, route }) => {
 
         {/* Bottom actions */}
         <View style={[styles.actionsRow, { width: contentWidth }]}>
-          <ActionIconButton icon={require('@assets/download.png')} />
-          <ActionPrimaryButton label="VAULT" />
-          <ActionIconButton icon={require('@assets/edit-icon.png')} />
+          <ActionIconButton icon={require('@assets/download.png')} onPress={handleDownload} />
+          <Button variant="primary" size="L" title={vaulting ? 'SAVING...' : 'VAULT'} onPress={handleVault} style={styles.vaultBtn} />
+          {!isRecipient && (
+            <ActionIconButton icon={require('@assets/edit-icon.png')} onPress={handleEdit} />
+          )}
         </View>
       </SafeAreaView>
     </BackgroundWrapper>
@@ -180,8 +230,8 @@ export default EchoVideoPlaybackScreen;
 
 /* ---------- Action Buttons ---------- */
 
-const ActionIconButton = ({ icon }: { icon: ReturnType<typeof require> }) => (
-  <TouchableOpacity activeOpacity={0.9}>
+const ActionIconButton = ({ icon, onPress }: { icon: ReturnType<typeof require>; onPress: () => void }) => (
+  <TouchableOpacity activeOpacity={0.9} onPress={onPress}>
     <LinearGradient
       colors={['rgba(253,253,249,0.04)', 'rgba(253,253,249,0.01)']}
       start={{ x: 0.5, y: 0 }}
@@ -193,18 +243,6 @@ const ActionIconButton = ({ icon }: { icon: ReturnType<typeof require> }) => (
   </TouchableOpacity>
 );
 
-const ActionPrimaryButton = ({ label }: { label: string }) => (
-  <TouchableOpacity activeOpacity={0.9}>
-    <LinearGradient
-      colors={['rgba(253,253,249,0.04)', 'rgba(253,253,249,0.01)']}
-      start={{ x: 0.5, y: 0 }}
-      end={{ x: 0.5, y: 1 }}
-      style={styles.primaryBtnShell}
-    >
-      <Text style={styles.primaryBtnText}>{label}</Text>
-    </LinearGradient>
-  </TouchableOpacity>
-);
 
 /* ---------- Styles ---------- */
 
@@ -313,41 +351,31 @@ const styles = StyleSheet.create({
 
   /* Actions */
   actionsRow: {
-    marginTop: 18,
+    marginTop: verticalScale(spacing.m),
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: scale(spacing.xl),   // Figma: gap 24px
     justifyContent: 'center',
-    paddingBottom: 18,
+    paddingBottom: verticalScale(spacing.m),
   },
+  // Same padding as Button size="L" so icon buttons match VAULT height
   iconBtnShell: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    borderWidth: 0.5,
+    paddingVertical: verticalScale(spacing.s),
+    paddingHorizontal: scale(spacing.m),
+    borderRadius: radius.s,
+    borderWidth: borderWidth.thin,
     borderColor: palette.navy.light,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: 'rgba(253,253,249,0.03)',
   },
-  iconBtnImg: { width: 22, height: 22, tintColor: GOLD },
-
-  primaryBtnShell: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    borderWidth: 0.5,
-    borderColor: palette.navy.light,
-    alignItems: 'center',
-    justifyContent: 'center',
+  iconBtnImg: {
+    width: scale(24),
+    height: scale(24),
+    tintColor: palette.gold.DEFAULT,
   },
-  primaryBtnText: {
-    color: GOLD,
-    fontSize: 18,
-    letterSpacing: 1.4,
-    fontFamily: Platform.select({
-      ios: 'CormorantGaramond-Regular',
-      android: 'serif',
-    }),
+  vaultBtn: {
+    minWidth: scale(110),
   },
   
   playOverlay: {

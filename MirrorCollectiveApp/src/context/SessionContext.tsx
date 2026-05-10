@@ -189,7 +189,10 @@ export const SessionProvider = ({ children }: SessionProviderProps) => {
       });
 
       if (!response.success) {
-        throw new Error(response.message || 'Registration failed');
+        const err = new Error(response.message || 'Registration failed') as Error & { statusCode?: number; errorCode?: string };
+        err.statusCode = response.statusCode;
+        err.errorCode = response.errorCode;
+        throw err;
       }
       safeDispatch({ type: 'SET_LOADING', payload: false });
     } catch (error: any) {

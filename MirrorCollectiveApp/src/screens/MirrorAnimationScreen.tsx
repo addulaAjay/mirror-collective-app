@@ -23,6 +23,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import MCLogo from '@components/MCLogo';
 import { useAuthGuard } from '@hooks/useAuthGuard';
+import { getPendingVerification } from '@utils/verificationState';
 
 // Figma: MC-Design-Master-File node 203:2409
 // Layout: logo centered + "START REFLECTING" + "Click anywhere to continue"
@@ -45,36 +46,50 @@ const MirrorAnimationScreen: React.FC<Props> = ({ navigation }) => {
   const handleEnter = useCallback(async () => {
     if (isAuthenticated && hasValidToken) {
       navigation.replace('EnterMirror');
-    } else {
-      // Check if user has completed the quiz anonymously
-      const { QuizStorageService } = await import('@services/quizStorageService');
-      const hasCompletedQuiz = await QuizStorageService.hasCompletedQuiz();
+      return;
+    }
 
-      if (hasCompletedQuiz) {
-        const pendingQuiz = await QuizStorageService.getPendingQuizResults();
+    // Recovery: user closed the app between sign-up and verify. The
+    // verification record is 1h-bounded; if it's still fresh, route them
+    // straight back into the verification step with their email pre-filled.
+    const pending = await getPendingVerification();
+    if (pending) {
+      navigation.replace('VerifyEmail', {
+        email: pending.email,
+        fullName: pending.fullName ?? undefined,
+        termsAcceptedAt: pending.termsAcceptedAt ?? undefined,
+      });
+      return;
+    }
 
-        if (pendingQuiz?.backendResult) {
-          const archetypeDetails = pendingQuiz.backendResult.archetype_details;
+    // Check if user has completed the quiz anonymously
+    const { QuizStorageService } = await import('@services/quizStorageService');
+    const hasCompletedQuiz = await QuizStorageService.hasCompletedQuiz();
 
-          const archetypeImages = {
-            'seeker-archetype.png': require('@assets/seeker-archetype.png'),
-            'guardian-archetype.png': require('@assets/guardian-archetype.png'),
-            'flamebearer-archetype.png': require('@assets/flamebearer-archetype.png'),
-            'weaver-archetype.png': require('@assets/weaver-archetype.png'),
-          };
+    if (hasCompletedQuiz) {
+      const pendingQuiz = await QuizStorageService.getPendingQuizResults();
 
-          const archetypeWithImage = {
-            ...archetypeDetails,
-            image: archetypeImages[archetypeDetails.imagePath as keyof typeof archetypeImages],
-          };
+      if (pendingQuiz?.backendResult) {
+        const archetypeDetails = pendingQuiz.backendResult.archetype_details;
 
-          navigation.replace('Archetype', { archetype: archetypeWithImage });
-        } else {
-          navigation.replace('Login');
-        }
+        const archetypeImages = {
+          'seeker-archetype.png': require('@assets/seeker-archetype.png'),
+          'guardian-archetype.png': require('@assets/guardian-archetype.png'),
+          'flamebearer-archetype.png': require('@assets/flamebearer-archetype.png'),
+          'weaver-archetype.png': require('@assets/weaver-archetype.png'),
+        };
+
+        const archetypeWithImage = {
+          ...archetypeDetails,
+          image: archetypeImages[archetypeDetails.imagePath as keyof typeof archetypeImages],
+        };
+
+        navigation.replace('Archetype', { archetype: archetypeWithImage });
       } else {
-        navigation.replace('QuizWelcome');
+        navigation.replace('Login');
       }
+    } else {
+      navigation.replace('QuizWelcome');
     }
   }, [isAuthenticated, hasValidToken, navigation]);
 

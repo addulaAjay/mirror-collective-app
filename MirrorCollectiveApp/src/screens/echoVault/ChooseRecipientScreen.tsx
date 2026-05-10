@@ -33,8 +33,10 @@ import {
   fontFamily,
   fontSize,
   fontWeight,
+  lineHeight,
   moderateScale,
   palette,
+  radius,
   scale,
   spacing,
   verticalScale,
@@ -132,7 +134,7 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
   };
 
   return (
-    <BackgroundWrapper style={styles.bg} scrollable>
+    <BackgroundWrapper style={styles.bg}>
       <SafeAreaView style={styles.safe}>
         <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
         <LogoHeader navigation={navigation} />
@@ -146,6 +148,7 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="on-drag"
           >
             <View style={styles.content}>
 
@@ -164,51 +167,34 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
               </View>
 
               {/* ── Recipient dropdown ─────────────────────────────────── */}
-              {/*
-                TextInputField (editable=false) as the trigger surface.
-                Chevron icon overlaid absolutely on the right.
-                Backdrop TouchableOpacity dismisses the inline list.
-              */}
               <View style={styles.fieldGroup}>
-                {/*
-                  Outer TouchableOpacity = entire tap target (whole input area).
-                  pointerEvents="none" on inner View prevents TextInput from
-                  stealing taps — every tap anywhere on the field opens dropdown.
-                  TextInputField label prop handles correct label styling.
-                */}
-                {/*
-                  fieldWithIcon is relative. TouchableOpacity covers full area.
-                  Icon is a SIBLING of TouchableOpacity, absolutely positioned
-                  on fieldWithIcon with bottom:0 + fixed height = input field area.
-                  This ensures icon centres in the INPUT, not in label+input.
-                */}
-                <View style={styles.fieldWithIcon}>
-                  <TouchableOpacity
-                    style={styles.fieldTouchable}
-                    activeOpacity={0.9}
-                    onPress={() => setDropdownOpen(o => !o)}
+                <Text style={styles.fieldLabel}>Recipient</Text>
+
+                {/* Trigger — Figma 780:1969 */}
+                <TouchableOpacity
+                  style={[styles.dropdownTrigger, dropdownOpen && styles.dropdownTriggerOpen]}
+                  activeOpacity={0.9}
+                  onPress={() => setDropdownOpen(o => !o)}
+                >
+                  <Text
+                    style={[
+                      styles.dropdownTriggerText,
+                      selectedRecipient ? styles.dropdownTriggerSelected : null,
+                    ]}
+                    numberOfLines={1}
                   >
-                    <View pointerEvents="none">
-                      <TextInputField
-                        label="Recipient"
-                        placeholder="Choose from list"
-                        value={selectedRecipient?.name ?? ''}
-                      />
-                    </View>
-                  </TouchableOpacity>
-                  {/* Chevron — sibling of TouchableOpacity, anchored to input bottom */}
-                  <View style={styles.fieldIcon} pointerEvents="none">
-                    <Svg width={scale(16)} height={scale(16)} viewBox="0 0 24 24" fill="none">
-                      <Path
-                        d={dropdownOpen ? 'M7 14l5-5 5 5' : 'M7 10l5 5 5-5'}
-                        stroke={palette.gold.subtlest}
-                        strokeWidth={1.5}
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </Svg>
-                  </View>
-                </View>
+                    {selectedRecipient?.name ?? 'Choose from list'}
+                  </Text>
+                  <Svg width={scale(16)} height={scale(16)} viewBox="0 0 24 24" fill="none">
+                    <Path
+                      d={dropdownOpen ? 'M7 14l5-5 5 5' : 'M7 10l5 5 5-5'}
+                      stroke={palette.gold.subtlest}
+                      strokeWidth={1.5}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </Svg>
+                </TouchableOpacity>
 
                 {dropdownOpen && (
                   <TouchableOpacity
@@ -221,37 +207,44 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
                 {/* Inline recipient list */}
                 {dropdownOpen && (
                   <View style={styles.dropdownList}>
-                    {loading ? (
-                      <View style={styles.listState}>
-                        <ActivityIndicator size="small" color={palette.gold.DEFAULT} />
-                      </View>
-                    ) : recipients.length === 0 ? (
-                      <View style={styles.listState}>
-                        <Text style={styles.emptyText}>No recipients yet</Text>
-                      </View>
-                    ) : (
-                      recipients.map((r, idx) => {
-                        const isLast = idx === recipients.length - 1;
-                        return (
-                          <TouchableOpacity
-                            key={r.recipient_id}
-                            style={[styles.dropdownOption, isLast && styles.dropdownOptionLast]}
-                            activeOpacity={0.85}
-                            onPress={() => { setSelectedRecipient(r); setDropdownOpen(false); }}
-                          >
-                            <Text style={styles.optionName}>{r.name}</Text>
-                            <Text style={styles.optionEmail}>{r.email}</Text>
-                          </TouchableOpacity>
-                        );
-                      })
-                    )}
-                    <TouchableOpacity
-                      style={styles.addNewRow}
-                      activeOpacity={0.85}
-                      onPress={() => { setDropdownOpen(false); navigation.navigate('AddNewProfileScreen'); }}
+                    <ScrollView
+                      nestedScrollEnabled
+                      showsVerticalScrollIndicator={false}
+                      keyboardShouldPersistTaps="handled"
+                      bounces={false}
                     >
-                      <Text style={styles.addNewText}>+ Add New Recipient</Text>
-                    </TouchableOpacity>
+                      {loading ? (
+                        <View style={styles.listState}>
+                          <ActivityIndicator size="small" color={palette.gold.DEFAULT} />
+                        </View>
+                      ) : recipients.length === 0 ? (
+                        <View style={styles.listState}>
+                          <Text style={styles.emptyText}>No recipients yet</Text>
+                        </View>
+                      ) : (
+                        recipients.map((r, idx) => {
+                          const isLast = idx === recipients.length - 1;
+                          return (
+                            <TouchableOpacity
+                              key={r.recipient_id}
+                              style={[styles.dropdownOption, isLast && styles.dropdownOptionLast]}
+                              activeOpacity={0.85}
+                              onPress={() => { setSelectedRecipient(r); setDropdownOpen(false); }}
+                            >
+                              <Text style={styles.optionName}>{r.name}</Text>
+                              <Text style={styles.optionEmail}>{r.email}</Text>
+                            </TouchableOpacity>
+                          );
+                        })
+                      )}
+                      <TouchableOpacity
+                        style={styles.addNewRow}
+                        activeOpacity={0.85}
+                        onPress={() => { setDropdownOpen(false); navigation.navigate('AddNewProfileScreen'); }}
+                      >
+                        <Text style={styles.addNewText}>+ Add New Recipient</Text>
+                      </TouchableOpacity>
+                    </ScrollView>
                   </View>
                 )}
               </View>
@@ -347,10 +340,16 @@ const styles = StyleSheet.create<{
   headerSpacer: ViewStyle;
   // Field groups
   fieldGroup: ViewStyle;
+  fieldLabel: TextStyle;
   fieldWithIcon: ViewStyle;
   fieldTouchable: ViewStyle;
   fieldIcon: ViewStyle;
-  // Dropdown / picker
+  // Dropdown trigger
+  dropdownTrigger: ViewStyle;
+  dropdownTriggerOpen: ViewStyle;
+  dropdownTriggerText: TextStyle;
+  dropdownTriggerSelected: TextStyle;
+  // Dropdown list
   dropdownBackdrop: ViewStyle;
   dropdownList: ViewStyle;
   dropdownOption: ViewStyle;
@@ -406,31 +405,17 @@ const styles = StyleSheet.create<{
   headerSpacer: { width: scale(44) },
 
   // ── Field groups ────────────────────────────────────────────────────────────
-  fieldGroup: { gap: verticalScale(spacing.xs) },       // 8px label-to-field gap
+  fieldGroup: { gap: verticalScale(spacing.xs) },
 
-  // Heading XS Bold: Cormorant Medium 20/24, gold
   fieldLabel: {
     fontFamily: fontFamily.heading,
-    fontWeight: '500',
+    fontWeight: fontWeight.medium,
     fontSize:   moderateScale(fontSize.l),
-    lineHeight: moderateScale(24),
+    lineHeight: lineHeight.m,
     color:      palette.gold.DEFAULT,
   },
-  fieldLabelLight: {
-    fontFamily: fontFamily.bodyLight,
-    fontWeight: '300',
-    fontSize:   moderateScale(fontSize.xs),
-    lineHeight: moderateScale(20),
-    color:      palette.navy.light,
-  },
-  required: { color: palette.gold.DEFAULT },
   fieldWithIcon:  { position: 'relative' },
   fieldTouchable: { width: '100%' },
-
-  // Icon sibling of fieldTouchable, positioned absolutely on fieldWithIcon.
-  // bottom: 0 = bottom of the entire TextInputField (label + input).
-  // height: scale(40) ≈ input field height only — so the icon centres in
-  // the INPUT area, not in label+input together.
   fieldIcon: {
     position:       'absolute',
     right:          scale(spacing.m),
@@ -441,51 +426,81 @@ const styles = StyleSheet.create<{
     zIndex:         2,
   },
 
-  // ── Dropdown / picker overlays ─────────────────────────────────────────────
-  dropdownBackdrop: {
-    position: 'absolute',
-    top:      -200, left: -100, right: -100, bottom: -200,
-    zIndex:   -1,
+  // ── Dropdown trigger — Figma 780:1969 ──────────────────────────────────────
+  dropdownTrigger: {
+    height:            scale(48),
+    flexDirection:     'row',
+    alignItems:        'center',
+    paddingHorizontal: scale(spacing.m),
+    paddingVertical:   verticalScale(spacing.xs),
+    borderRadius:      radius.s,
+    borderWidth:       0.5,
+    borderColor:       palette.navy.medium,
+    backgroundColor:   'rgba(253,253,249,0.01)',
+  },
+  dropdownTriggerOpen: {
+    borderTopLeftRadius:     radius.xs,
+    borderTopRightRadius:    radius.xs,
+    borderBottomLeftRadius:  0,
+    borderBottomRightRadius: 0,
+    borderBottomWidth:       0,
+    backgroundColor:         'rgba(163,179,204,0.05)',
+  },
+  dropdownTriggerText: {
+    flex:       1,
+    fontFamily: fontFamily.bodyItalic,
+    fontSize:   moderateScale(fontSize.s),
+    lineHeight: lineHeight.m,
+    color:      palette.gold.subtlest,
+    textAlign:  'center',
+  },
+  dropdownTriggerSelected: {
+    fontFamily: fontFamily.body,
+    color:      palette.gold.DEFAULT,
   },
 
-  // Inline list
+  // ── Dropdown list ──────────────────────────────────────────────────────────
+  dropdownBackdrop: {
+    position: 'absolute',
+    top: -200, left: -100, right: -100, bottom: -200,
+    zIndex: -1,
+  },
   dropdownList: {
-    width:       '100%',
-    borderWidth: borderWidth.hairline,
-    borderColor: palette.navy.medium,
-    borderTopWidth: 0,
-    borderBottomLeftRadius:  8,
-    borderBottomRightRadius: 8,
-    overflow: 'hidden',
-    maxHeight: verticalScale(220),
+    width:                   '100%',
+    borderWidth:             0.25,
+    borderTopWidth:          0,
+    borderColor:             palette.navy.medium,
+    borderBottomLeftRadius:  radius.xs,
+    borderBottomRightRadius: radius.xs,
+    overflow:                'hidden',
+    maxHeight:               verticalScale(260),
   },
   dropdownOption: {
     backgroundColor:   'rgba(253,253,249,0.05)',
     paddingVertical:   verticalScale(spacing.s),
     paddingHorizontal: scale(spacing.m),
-    borderBottomWidth: borderWidth.hairline,
+    borderBottomWidth: 0.25,
     borderBottomColor: palette.navy.medium,
+    alignItems:        'center',
   },
-  dropdownOptionLast: {
-    borderBottomWidth: 0,
-  },
-  // Body S Regular: Inter 16/24, gold
+  dropdownOptionLast: { borderBottomWidth: 0 },
   optionName: {
     fontFamily: fontFamily.body,
     fontSize:   moderateScale(fontSize.s),
-    lineHeight: moderateScale(24),
+    lineHeight: lineHeight.m,
     color:      palette.gold.DEFAULT,
+    textAlign:  'center',
   },
-  // Body XS Light: Inter Light 14/20, navy.light
   optionEmail: {
     fontFamily: fontFamily.bodyLight,
-    fontWeight: '300',
+    fontWeight: fontWeight.light,
     fontSize:   moderateScale(fontSize.xs),
-    lineHeight: moderateScale(20),
+    lineHeight: lineHeight.xs,
     color:      palette.navy.light,
+    textAlign:  'center',
   },
   listState: {
-    alignItems:    'center',
+    alignItems:      'center',
     paddingVertical: verticalScale(spacing.m),
     backgroundColor: 'rgba(253,253,249,0.05)',
   },
@@ -495,16 +510,19 @@ const styles = StyleSheet.create<{
     color:      palette.navy.light,
   },
   addNewRow: {
-    alignItems:      'center',
-    paddingVertical: verticalScale(spacing.s),
-    backgroundColor: 'rgba(253,253,249,0.03)',
+    backgroundColor:   'rgba(253,253,249,0.05)',
+    paddingVertical:   verticalScale(spacing.s),
+    paddingHorizontal: scale(spacing.m),
+    alignItems:        'center',
   },
   addNewText: {
-    fontFamily: fontFamily.body,
-    fontSize:   moderateScale(fontSize.s),
+    fontFamily: fontFamily.heading,
+    fontSize:   moderateScale(fontSize.l),
+    lineHeight: lineHeight.m,
     color:      palette.gold.DEFAULT,
-    opacity:    0.8,
+    textAlign:  'center',
   },
+
 
   calendarIcon: {
     width:     scale(20),

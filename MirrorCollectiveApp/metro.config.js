@@ -26,6 +26,7 @@ const config = {
       '@types': path.resolve(__dirname, 'src/types'),
       '@context': path.resolve(__dirname, 'src/context'),
       '@i18n': path.resolve(__dirname, 'src/i18n'),
+      '@features': path.resolve(__dirname, 'src/features'),
     },
   },
   watchFolders: [path.resolve(__dirname, 'src')],

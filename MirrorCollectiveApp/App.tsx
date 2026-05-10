@@ -5,7 +5,7 @@ import 'react-native-url-polyfill/auto';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React, { useCallback, useEffect, useState } from 'react';
-import { StatusBar, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { ChatErrorBoundary } from '@components/error';
@@ -35,7 +35,6 @@ import NewEchoComposeScreen from '@screens/echoVault/NewEchoComposeScreen';
 import NewEchoScreen from '@screens/echoVault/NewEchoVaultScreen';
 import NewEchoVideoScreen from '@screens/echoVault/NewEchoVideoScreen';
 import EchoVaultStorageScreen from '@screens/EchoVaultStorageScreen';
-import EmailConfirmationScreen from '@screens/EmailConfirmationScreen';
 import EnterMirrorScreen from '@screens/EnterMirrorScreen';
 import FAQScreen from '@screens/FAQScreen';
 import ForgotPasswordScreen from '@screens/ForgotPasswordScreen';
@@ -43,6 +42,7 @@ import LoginScreen from '@screens/LoginScreen';
 import MirrorAnimationScreen from '@screens/MirrorAnimationScreen';
 import MirrorChatScreen from '@screens/MirrorChatScreen';
 import MirrorCodeLibraryCommingsoonScreen from '@screens/MirrorCodeLibraryCommingsoonScreen';
+import ReflectionRoomCommingsoonScreen from '@screens/ReflectionRoomCommingsoonScreen';
 import MirrorEchoCommingsoonScreen from '@screens/MirrorEchoCommingsoonScreen';
 import CausesCarouselScreen from '@screens/MirrorPledge/CausesCarouselScreen';
 import EchoLedgerScreen from '@screens/MirrorPledge/EchoLedgerScreen';
@@ -59,8 +59,14 @@ import ReflectionRoomEchoSignatureScreen from '@screens/reflectionRoom/Reflectio
 import ReflectionRoomLandingScreen from '@screens/reflectionRoom/ReflectionRoomLandingScreen';
 import ReflectionRoomLoadingScreen from '@screens/reflectionRoom/ReflectionRoomLoadingScreen';
 import ReflectionRoomMirrorMomentScreen from '@screens/reflectionRoom/ReflectionRoomMirrorMomentScreen';
+import ReflectionRoomPracticeCompleteScreen from '@screens/reflectionRoom/ReflectionRoomPracticeCompleteScreen';
+import ReflectionRoomPracticeOverlayScreen from '@screens/reflectionRoom/ReflectionRoomPracticeOverlayScreen';
+import ReflectionRoomQuizEntryScreen from '@screens/reflectionRoom/ReflectionRoomQuizEntryScreen';
 import ReflectionRoomQuizScreen from '@screens/reflectionRoom/ReflectionRoomQuizScreen';
 import ReflectionRoomTodaysMotifScreen from '@screens/reflectionRoom/ReflectionRoomTodaysMotifScreen';
+import ReflectionRoomWelcomeScreen from '@screens/reflectionRoom/ReflectionRoomWelcomeScreen';
+
+import { JourneyProvider } from '@features/reflection-room/state/JourneyContext';
 import ResetPasswordScreen from '@screens/ResetPasswordScreen';
 import SignUpScreen from '@screens/SignUpScreen';
 import SplashScreen from '@screens/SplashScreen';
@@ -149,6 +155,9 @@ const AuthNavigator = () => (
       component={MirrorCodeLibraryCommingsoonScreen}
     />
     <Stack.Screen name="ReflectionRoom" component={ReflectionRoomLandingScreen} />
+    <Stack.Screen name="ReflectionRoomCommingsoon" component={ReflectionRoomCommingsoonScreen} />
+    <Stack.Screen name="ReflectionRoomWelcome" component={ReflectionRoomWelcomeScreen} />
+    <Stack.Screen name="ReflectionRoomQuizEntry" component={ReflectionRoomQuizEntryScreen} />
     <Stack.Screen name="ReflectionRoomQuiz" component={ReflectionRoomQuizScreen} />
     <Stack.Screen name="ReflectionRoomLoading" component={ReflectionRoomLoadingScreen} />
     <Stack.Screen name="ReflectionRoomTodaysMotif" component={ReflectionRoomTodaysMotifScreen} />
@@ -156,6 +165,8 @@ const AuthNavigator = () => (
     <Stack.Screen name="ReflectionRoomEchoMap" component={ReflectionRoomEchoMapScreen} />
     <Stack.Screen name="ReflectionRoomMirrorMoment" component={ReflectionRoomMirrorMomentScreen} />
     <Stack.Screen name="ReflectionRoomCore" component={ReflectionRoomCoreScreen} />
+    <Stack.Screen name="ReflectionRoomPracticeOverlay" component={ReflectionRoomPracticeOverlayScreen} />
+    <Stack.Screen name="ReflectionRoomPracticeComplete" component={ReflectionRoomPracticeCompleteScreen} />
     <Stack.Screen name="MirrorEcho" component={MirrorEchoCommingsoonScreen} />
     <Stack.Screen
       name="TermsAndConditions"
@@ -177,10 +188,6 @@ const AuthNavigator = () => (
     <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
     <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
     <Stack.Screen name="VerifyEmail" component={VerifyEmailScreen} />
-    <Stack.Screen
-      name="EmailConfirmation"
-      component={EmailConfirmationScreen}
-    />
     {/* DEV-only: button showcase. Set initialRouteName="ButtonShowcase" above
         for an iOS dev session, or navigate('ButtonShowcase') from anywhere. */}
     {__DEV__ && ButtonShowcaseScreen && (
@@ -210,6 +217,9 @@ const AuthenticatedNavigator = ({ initialRouteName = 'EnterMirror' }: Authentica
     {/* Menu Screens */}
     <Stack.Screen name="MirrorCodeLibrary" component={MirrorCodeLibraryCommingsoonScreen} />
     <Stack.Screen name="ReflectionRoom" component={ReflectionRoomLandingScreen} />
+    <Stack.Screen name="ReflectionRoomCommingsoon" component={ReflectionRoomCommingsoonScreen} />
+    <Stack.Screen name="ReflectionRoomWelcome" component={ReflectionRoomWelcomeScreen} />
+    <Stack.Screen name="ReflectionRoomQuizEntry" component={ReflectionRoomQuizEntryScreen} />
     <Stack.Screen name="ReflectionRoomQuiz" component={ReflectionRoomQuizScreen} />
     <Stack.Screen name="ReflectionRoomLoading" component={ReflectionRoomLoadingScreen} />
     <Stack.Screen name="ReflectionRoomTodaysMotif" component={ReflectionRoomTodaysMotifScreen} />
@@ -217,6 +227,8 @@ const AuthenticatedNavigator = ({ initialRouteName = 'EnterMirror' }: Authentica
     <Stack.Screen name="ReflectionRoomEchoMap" component={ReflectionRoomEchoMapScreen} />
     <Stack.Screen name="ReflectionRoomMirrorMoment" component={ReflectionRoomMirrorMomentScreen} />
     <Stack.Screen name="ReflectionRoomCore" component={ReflectionRoomCoreScreen} />
+    <Stack.Screen name="ReflectionRoomPracticeOverlay" component={ReflectionRoomPracticeOverlayScreen} />
+    <Stack.Screen name="ReflectionRoomPracticeComplete" component={ReflectionRoomPracticeCompleteScreen} />
     <Stack.Screen name="TheMirrorPledge" component={TheMirrorPledgeCommingsoonScreen} />
     {/* Mirror Pledge flow — Figma Design-Master-File section 2169:1119 */}
     <Stack.Screen name="MirrorPledgeIntro" component={MirrorPledgeIntroScreen} />
@@ -251,6 +263,12 @@ const AppNavigator = () => {
   const { state, signOut } = useSession();
   const { isAuthenticated } = state;
   const [initialRoute, setInitialRoute] = useState<keyof RootStackParamList>('EnterMirror');
+  // Gate that ensures the AsyncStorage onboarding lookup has completed
+  // BEFORE <AuthenticatedNavigator> mounts. native-stack pins
+  // initialRouteName at mount and ignores subsequent prop changes — without
+  // this gate, returning users always landed on EnterMirror because the
+  // resolved route arrived after the navigator had already committed.
+  const [routeReady, setRouteReady] = useState(false);
 
   const handleInactivityTimeout = useCallback(async () => {
     if (__DEV__) {
@@ -264,17 +282,34 @@ const AppNavigator = () => {
     onTimeout: handleInactivityTimeout,
   });
 
-  // Check onboarding status when authentication state changes
+  // Resolve the post-login route before the authenticated navigator mounts.
   useEffect(() => {
-    const checkOnboarding = async () => {
-      if (isAuthenticated) {
-        const hasCompletedOnboarding = await OnboardingService.hasCompletedOnboarding();
-        setInitialRoute(hasCompletedOnboarding ? 'TalkToMirror' : 'EnterMirror');
-      }
+    if (!isAuthenticated) {
+      setRouteReady(false);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const hasCompletedOnboarding =
+        await OnboardingService.hasCompletedOnboarding();
+      if (cancelled) return;
+      setInitialRoute(hasCompletedOnboarding ? 'TalkToMirror' : 'EnterMirror');
+      setRouteReady(true);
+    })();
+    return () => {
+      cancelled = true;
     };
-
-    checkOnboarding();
   }, [isAuthenticated]);
+
+  // Hold a splash while the onboarding read is in flight so the navigator
+  // doesn't mount with the stale default initialRoute.
+  if (isAuthenticated && !routeReady) {
+    return (
+      <View style={styles.loadingScreen}>
+        <ActivityIndicator size="large" color="#f2e1b0" />
+      </View>
+    );
+  }
 
   return (
     <NavigationContainer
@@ -290,7 +325,7 @@ const AppNavigator = () => {
           style={styles.fill}
           onStartShouldSetResponderCapture={() => {
             resetTimer();
-            return false; // Don't consume — let children handle the touch
+            return false;
           }}
         >
           <AuthenticatedNavigator initialRouteName={initialRoute} />
@@ -304,6 +339,12 @@ const AppNavigator = () => {
 
 const styles = StyleSheet.create({
   fill: { flex: 1 },
+  loadingScreen: {
+    flex: 1,
+    backgroundColor: '#0b0f1c', // palette.navy.deep — no theme import needed here
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });
 
 const App = () => {
@@ -346,14 +387,16 @@ const App = () => {
         <SessionProvider>
           <UserProvider>
             <SubscriptionProvider>
-              <React.Fragment>
-                <StatusBar
-                  translucent
-                  backgroundColor="transparent"
-                  barStyle="light-content"
-                />
-                <AppNavigator />
-              </React.Fragment>
+              <JourneyProvider>
+                <React.Fragment>
+                  <StatusBar
+                    translucent
+                    backgroundColor="transparent"
+                    barStyle="light-content"
+                  />
+                  <AppNavigator />
+                </React.Fragment>
+              </JourneyProvider>
             </SubscriptionProvider>
           </UserProvider>
         </SessionProvider>

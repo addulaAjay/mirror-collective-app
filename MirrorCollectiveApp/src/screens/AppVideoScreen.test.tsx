@@ -8,6 +8,7 @@ jest.mock('@components/LogoHeader', () => 'LogoHeader');
 describe('AppVideoScreen', () => {
   const mockNavigation = {
     reset: jest.fn(),
+    navigate: jest.fn(),
   } as any;
 
   beforeEach(() => {
@@ -20,15 +21,12 @@ describe('AppVideoScreen', () => {
     expect(getByText(/App explainer/)).toBeTruthy();
   });
 
-  it('navigates to EmailConfirmation on video press', () => {
+  it('navigates to MirrorChat on video press', () => {
     const { getByText } = render(<AppVideoScreen navigation={mockNavigation} />);
-    
+
     // Press the video placeholder area
     fireEvent.press(getByText(/App explainer/));
-    
-    expect(mockNavigation.reset).toHaveBeenCalledWith({
-      index: 0,
-      routes: [{ name: 'EmailConfirmation' }],
-    });
+
+    expect(mockNavigation.navigate).toHaveBeenCalledWith('MirrorChat');
   });
 });

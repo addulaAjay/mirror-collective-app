@@ -1,3 +1,13 @@
+import type {
+  QuizAnswers as RRQuizAnswers,
+  RRApiErrorCode,
+} from '@features/reflection-room/api/types';
+import type {
+  LoopId as RRLoopId,
+  ToneState as RRToneState,
+  PracticeSurface as RRPracticeSurface,
+} from '@features/reflection-room/types/ids';
+
 type ArchetypeRouteParams = {
   archetype: {
     name: string;
@@ -20,13 +30,22 @@ export type RootStackParamList = {
   EchoVaultStorage: undefined;
   MirrorEcho: undefined;
   ReflectionRoom: undefined;
+  ReflectionRoomCommingsoon: undefined;
+  ReflectionRoomWelcome: undefined;
+  ReflectionRoomQuizEntry: undefined;
   ReflectionRoomQuiz: undefined;
-  ReflectionRoomLoading: undefined;
-  ReflectionRoomTodaysMotif: undefined;
+  ReflectionRoomLoading: { answers: RRQuizAnswers };
+  ReflectionRoomTodaysMotif: { error?: boolean; errorCode?: RRApiErrorCode } | undefined;
   ReflectionRoomEchoSignature: undefined;
   ReflectionRoomEchoMap: undefined;
   ReflectionRoomMirrorMoment: undefined;
   ReflectionRoomCore: undefined;
+  ReflectionRoomPracticeOverlay: {
+    loopId: RRLoopId;
+    toneState: RRToneState;
+    surface: RRPracticeSurface;
+  };
+  ReflectionRoomPracticeComplete: { completionId: string } | undefined;
   MirrorCodeLibrary: undefined;
   TheMirrorPledge: undefined;
   About: undefined;
@@ -34,7 +53,6 @@ export type RootStackParamList = {
   Profile: undefined;
   MirrorAnimation: undefined;
   EnterMirror: undefined;
-  EmailConfirmation: undefined;
   AppVideo: undefined;
   TalkToMirror: undefined;
   Login: undefined;
@@ -79,6 +97,9 @@ export type RootStackParamList = {
     guardianName?: string;
     lockDate?: string;
     unlockOnDeath?: boolean;
+    /** Edit mode: pre-fill compose with existing echo and PATCH on save */
+    editEchoId?: string;
+    initialContent?: string;
   };
   NewEchoAudioScreen: {
     recipientId?: string;
@@ -120,4 +141,3 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 export type ScreenName = keyof RootStackParamList;
 
 export type LoginScreenProps = NativeStackScreenProps<RootStackParamList, 'Login'>;
-

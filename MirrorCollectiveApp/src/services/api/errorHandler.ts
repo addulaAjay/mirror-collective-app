@@ -38,8 +38,10 @@ export class ApiErrorHandler {
       return {
         success: false,
         data: undefined,
-        message: response.message || this.getDefaultErrorMessage(errorType),
+        message: response.error || response.message || this.getDefaultErrorMessage(errorType),
         error: response.error || errorType,
+        errorCode: response.errorCode,
+        statusCode: response.statusCode,
       };
     }
 
@@ -49,6 +51,7 @@ export class ApiErrorHandler {
       data: response.data as T,
       message: response?.message || successMessage,
       error: undefined,
+      statusCode: response.statusCode,
     };
   }
 

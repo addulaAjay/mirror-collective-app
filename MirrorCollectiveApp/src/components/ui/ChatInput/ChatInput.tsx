@@ -1,11 +1,13 @@
 import { theme, palette, spacing, shadows } from '@theme';
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import {
+  Alert,
   TextInput,
   TouchableOpacity,
   Text,
   StyleSheet,
 } from 'react-native';
+import DocumentPicker from 'react-native-document-picker';
 import LinearGradient from 'react-native-linear-gradient';
 import Svg, { ClipPath, Defs, G, Path, Rect } from 'react-native-svg';
 
@@ -24,6 +26,33 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   placeholder = 'Ask me anything...',
   disabled = false,
 }) => {
+  const [isPicking, setIsPicking] = useState(false);
+
+  const handlePickDocument = useCallback(async () => {
+    try {
+      setIsPicking(true);
+      const res = await DocumentPicker.pickSingle({
+        type: [
+          DocumentPicker.types.plainText,
+          DocumentPicker.types.pdf,
+          DocumentPicker.types.doc,
+          DocumentPicker.types.docx,
+        ],
+      });
+      if (res?.uri) {
+        const response = await fetch(res.uri);
+        const text = await response.text();
+        onChangeText(text);
+      }
+    } catch (err) {
+      if (!DocumentPicker.isCancel(err)) {
+        Alert.alert('Error', 'Failed to read document');
+      }
+    } finally {
+      setIsPicking(false);
+    }
+  }, [onChangeText]);
+
   return (
     <LinearGradient
       colors={['rgba(253, 253, 249, 0.03)', 'rgba(253, 253, 249, 0.20)']}
@@ -31,7 +60,11 @@ export const ChatInput: React.FC<ChatInputProps> = ({
       end={{ x: 0.5, y: 1 }}
       style={styles.container}
     >
-      <TouchableOpacity style={styles.iconButton} disabled={disabled}>
+      <TouchableOpacity
+        style={styles.iconButton}
+        onPress={handlePickDocument}
+        disabled={disabled || isPicking}
+      >
         <Svg width={22} height={22} viewBox="0 0 22 22" fill="none">
           <Defs>
             <ClipPath id="clip0_8_390">
@@ -41,11 +74,11 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           <G clipPath="url(#clip0_8_390)">
             <Path
               d="M11.0176 0.000118047C17.1144 0.0279573 22.028 4.95551 22.0002 11.0175C21.9723 17.1213 17.0587 22.014 10.9828 22.0001C4.89294 21.9862 -0.0346159 17.0378 0.000183189 10.9827C0.0349823 4.87199 4.95558 -0.0277212 11.0176 0.000118047ZM0.91888 10.9897C0.91888 16.5367 5.42885 21.0675 10.9758 21.0814C16.5367 21.0953 21.0815 16.5715 21.0884 11.0036C21.0954 5.4427 16.5646 0.911855 10.9967 0.911855C5.44972 0.911855 0.92584 5.43574 0.91888 10.9897Z"
-              fill={palette.navy.muted}
+              fill={isPicking ? palette.gold.DEFAULT : palette.navy.muted}
             />
             <Path
               d="M10.5442 13.3698C10.5442 12.8269 10.5373 12.2841 10.5442 11.7412C10.5442 11.5185 10.4746 11.4489 10.2519 11.4489C9.18706 11.4559 8.12221 11.4489 7.05736 11.4489C6.88336 11.4489 6.71633 11.4489 6.58409 11.3097C6.45881 11.1705 6.41705 11.0104 6.48665 10.8364C6.57017 10.6207 6.73721 10.5372 6.96688 10.5372C7.83686 10.5372 8.7138 10.5372 9.58377 10.5372C9.80649 10.5372 10.0292 10.5232 10.2519 10.5372C10.4746 10.5511 10.5442 10.4676 10.5442 10.2449C10.5373 9.18 10.5442 8.11515 10.5442 7.0503C10.5442 6.86934 10.5442 6.68838 10.7113 6.55615C10.8574 6.43783 11.0175 6.41695 11.1915 6.49351C11.3864 6.58399 11.4629 6.74406 11.4629 6.95982C11.4629 7.73932 11.4629 8.51186 11.4629 9.29136C11.4629 9.61151 11.4768 9.93166 11.4629 10.2518C11.449 10.4745 11.5325 10.5441 11.7552 10.5441C12.8271 10.5372 13.9058 10.5441 14.9776 10.5441C15.1516 10.5441 15.3187 10.558 15.437 10.7112C15.5553 10.8573 15.5762 11.0174 15.4996 11.1914C15.4091 11.3863 15.2491 11.4628 15.0333 11.4628C14.2329 11.4628 13.4395 11.4628 12.6391 11.4628C12.3399 11.4628 12.0406 11.4767 11.7483 11.4628C11.5256 11.4489 11.456 11.5324 11.4629 11.7551C11.4699 12.7852 11.4629 13.8222 11.4629 14.8523C11.4629 14.9567 11.4699 15.068 11.449 15.1724C11.4003 15.4299 11.2333 15.5622 10.9688 15.5413C10.7113 15.5204 10.5581 15.3673 10.5512 15.1028C10.5442 14.5251 10.5512 13.9544 10.5512 13.3768L10.5442 13.3698Z"
-              fill={palette.navy.muted}
+              fill={isPicking ? palette.gold.DEFAULT : palette.navy.muted}
             />
           </G>
         </Svg>
@@ -98,18 +131,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: spacing.s,
     paddingHorizontal: spacing.xxs,
-    // paddingVertical: spacing.xxs,
     marginTop: spacing.l,
     marginBottom: spacing.l,
     ...shadows.MEDIUM,
-    // borderWidth: 0.25,
     borderColor: palette.navy.DEFAULT,
-    height: 40,
+    minHeight: 40,
+    maxHeight: 300,
   },
 
   iconButton: {
     paddingLeft: 10,
   },
+
   iconImage: {
     width: 28,
     height: 28,
@@ -132,9 +165,9 @@ const styles = StyleSheet.create({
     fontSize: 17,
     lineHeight: 24,
     fontWeight: '400',
-    maxHeight: 100,
-    paddingTop: 4,
-    paddingBottom: 4,
+    maxHeight: 300,
+    paddingTop: 0,
+    paddingBottom: 0,
     textAlignVertical: 'center',
   },
 

@@ -18,6 +18,14 @@ const createMessage = (text: string, sender: 'user' | 'system'): Message => ({
   timestamp: new Date(),
 });
 
+const toFirstNameOnly = (text: string, fullName: string | undefined): string => {
+  if (!fullName) return text;
+  const firstName = fullName.trim().split(' ')[0];
+  const full = fullName.trim();
+  if (full === firstName) return text;
+  return text.split(full).join(firstName);
+};
+
 export const useChat = () => {
   const { t } = useTranslation();
   const { user } = useUser();
@@ -43,15 +51,7 @@ export const useChat = () => {
       const response = await sessionApiService.getGreeting();
 
       if (response.success && response.data?.greeting_message) {
-        // Replace any occurrence of the full name with just the first name
-        let greetingText = response.data.greeting_message;
-        if (user?.fullName) {
-          const firstName = user.fullName.trim().split(' ')[0];
-          const fullName = user.fullName.trim();
-          if (fullName !== firstName) {
-            greetingText = greetingText.split(fullName).join(firstName);
-          }
-        }
+        const greetingText = toFirstNameOnly(response.data.greeting_message, user?.fullName);
         const greetingMessage = createMessage(greetingText, 'system');
         setMessages([greetingMessage]);
         setGreetingLoaded(true);
@@ -128,7 +128,7 @@ export const useChat = () => {
         }
 
         // Create system message with main response
-        const systemMessage = createMessage(chatResponse.response, 'system');
+        const systemMessage = createMessage(toFirstNameOnly(chatResponse.response, user?.fullName), 'system');
         setMessages(msgs => [...msgs, systemMessage]);
 
         // Add archetype analysis if available

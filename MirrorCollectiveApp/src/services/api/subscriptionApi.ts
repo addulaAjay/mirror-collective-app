@@ -74,7 +74,14 @@ class SubscriptionApiService extends BaseApiService {
    * Start 14-day free trial (no payment required)
    */
   async startTrial(): Promise<StartTrialResponse> {
-    return this.post('/api/subscriptions/start-trial', {});
+    const response = await this.post('/api/subscriptions/start-trial', {});
+    // Normalize FastAPI HTTPException format { detail: "..." } to our
+    // standard ApiResponse shape so callers get a usable message.
+    const raw = response as any;
+    if (!response.success && raw.detail) {
+      return { success: false, message: raw.detail };
+    }
+    return response;
   }
 
   /**

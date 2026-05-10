@@ -19,6 +19,7 @@ module.exports = {
           '@types': './src/types',
           '@context': './src/context',
           '@i18n': './src/i18n',
+          '@features': './src/features',
         },
       },
     ],

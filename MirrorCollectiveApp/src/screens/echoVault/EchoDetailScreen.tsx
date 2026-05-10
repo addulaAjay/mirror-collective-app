@@ -1,6 +1,10 @@
 // EchoDetailScreen.tsx
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { palette, textShadow } from '@theme';
+import {
+  palette, fontFamily, fontSize, fontWeight, lineHeight,
+  spacing, radius, borderWidth, textShadow,
+  scale, verticalScale, moderateScale,
+} from '@theme';
 import { RootStackParamList } from '@types';
 import React, { useMemo, useState, useEffect } from 'react';
 import {
@@ -17,11 +21,13 @@ import {
   Pressable,
   ActivityIndicator,
   Alert,
+  Share,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
+import Button from '@components/Button';
 import LogoHeader from '@components/LogoHeader';
 import { echoApiService, EchoResponse } from '@services/api/echo';
 
@@ -43,6 +49,10 @@ const EchoDetailScreen: React.FC<Props> = ({ navigation, route }) => {
   const [loading, setLoading] = useState(true);
 
   const [folderModalOpen, setFolderModalOpen] = useState(false);
+  const [vaulting, setVaulting] = useState(false);
+
+  // Recipient if the echo has a sender field (they sent it to us)
+  const isRecipient = !!echo?.sender;
 
   const contentWidth = useMemo(() => Math.min(W * 0.88, 360), []);
   const textBoxHeight = useMemo(() => Math.min(H * 0.65, 515), []);
@@ -50,6 +60,45 @@ const EchoDetailScreen: React.FC<Props> = ({ navigation, route }) => {
   useEffect(() => {
     fetchEchoDetails();
   }, [echoId]);
+
+  const handleDownload = async () => {
+    if (!echo) return;
+    try {
+      await Share.share({ message: echo.content || echo.title });
+    } catch { /* user dismissed */ }
+  };
+
+  const handleVault = async () => {
+    if (!echo || vaulting) return;
+    setVaulting(true);
+    try {
+      const res = await echoApiService.createEcho({
+        title: echo.title,
+        category: echo.category,
+        echo_type: echo.echo_type,
+        content: echo.content,
+      });
+      if (!res.success) throw new Error('Failed to save to vault.');
+      Alert.alert('Saved', 'Echo added to your vault.');
+    } catch (e: any) {
+      Alert.alert('Error', e.message || 'Failed to add to vault.');
+    } finally {
+      setVaulting(false);
+    }
+  };
+
+  const handleEdit = () => {
+    if (!echo) return;
+    navigation.navigate('NewEchoComposeScreen', {
+      mode: echo.echo_type.toLowerCase() as 'text' | 'audio' | 'video',
+      title: echo.title,
+      category: echo.category,
+      editEchoId: echo.echo_id,
+      initialContent: echo.content,
+      recipientId: echo.recipient?.recipient_id,
+      recipientName: echo.recipient?.name,
+    });
+  };
 
   const fetchEchoDetails = async () => {
     try {
@@ -117,29 +166,36 @@ const EchoDetailScreen: React.FC<Props> = ({ navigation, route }) => {
           </View>
         </View>
 
-        {/* Text box */}
-        <LinearGradient
-          colors={['rgba(253,253,249,0.04)', 'rgba(253,253,249,0.01)']}
-          start={{ x: 0.5, y: 0 }}
-          end={{ x: 0.5, y: 1 }}
-          style={[styles.textBoxShell, { width: contentWidth, height: textBoxHeight }]}
-        >
+        {/* Text box — View as container so ScrollView touches aren't blocked */}
+        <View style={[styles.textBoxShell, { width: contentWidth, height: textBoxHeight }]}>
+          <LinearGradient
+            colors={['rgba(253,253,249,0.04)', 'rgba(253,253,249,0.01)']}
+            start={{ x: 0.5, y: 0 }}
+            end={{ x: 0.5, y: 1 }}
+            style={[StyleSheet.absoluteFill, { borderRadius: radius.xs }]}
+            pointerEvents="none"
+          />
           <ScrollView
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.scrollContent}
           >
             <Text style={styles.bodyText}>{body}</Text>
           </ScrollView>
-        </LinearGradient>
+        </View>
 
         {/* Bottom actions */}
         <View style={[styles.actionsRow, { width: contentWidth }]}>
-          <ActionIconButton icon={require('@assets/download.png')} onPress={() => {}} />
-          <ActionPrimaryButton
-            label="VAULT"
-            onPress={() => setFolderModalOpen(true)}
+          <EchoIconButton icon={require('@assets/download.png')} onPress={handleDownload} />
+          <Button
+            variant="primary"
+            size="L"
+            title={vaulting ? 'SAVING...' : 'VAULT'}
+            onPress={handleVault}
+            style={styles.vaultBtn}
           />
-          <ActionIconButton icon={require('@assets/edit-icon.png')} onPress={() => {}} />
+          {!isRecipient && (
+            <EchoIconButton icon={require('@assets/edit-icon.png')} onPress={handleEdit} />
+          )}
         </View>
 
         {/* Folder modal sheet */}
@@ -217,52 +273,19 @@ const EchoDetailScreen: React.FC<Props> = ({ navigation, route }) => {
 
 export default EchoDetailScreen;
 
-/* ---------- Buttons ---------- */
+/* ---------- Icon-only action button ---------- */
 
-const ActionIconButton = ({
+const EchoIconButton = ({
   icon,
   onPress,
 }: {
   icon: ReturnType<typeof require>;
   onPress: () => void;
-}) => {
-  return (
-    <TouchableOpacity
-      activeOpacity={0.9}
-      onPress={onPress}
-    >
-      <LinearGradient
-        colors={['rgba(253,253,249,0.04)', 'rgba(253,253,249,0.01)']}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
-        style={styles.iconBtnShell}
-      >
-        <Image source={icon} style={styles.iconBtnImg} resizeMode="contain" />
-      </LinearGradient>
-    </TouchableOpacity>
-  );
-};
-
-const ActionPrimaryButton = ({
-  label,
-  onPress,
-}: {
-  label: string;
-  onPress: () => void;
-}) => {
-  return (
-    <TouchableOpacity activeOpacity={0.9} onPress={onPress}>
-      <LinearGradient
-        colors={['rgba(253,253,249,0.04)', 'rgba(253,253,249,0.01)']}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
-        style={styles.primaryBtnShell}
-      >
-        <Text style={styles.primaryBtnText}>{label}</Text>
-      </LinearGradient>
-    </TouchableOpacity>
-  );
-};
+}) => (
+  <TouchableOpacity activeOpacity={0.85} onPress={onPress} style={styles.iconBtnShell}>
+    <Image source={icon} style={styles.iconBtnImg} resizeMode="contain" />
+  </TouchableOpacity>
+);
 
 /* ---------- Styles ---------- */
 
@@ -281,7 +304,7 @@ const styles = StyleSheet.create({
   titleRowContainer: {
     width: '100%',
     alignItems: 'center',
-    marginTop: 20,
+    marginTop: verticalScale(spacing.m),
   },
   titleRow: {
     flexDirection: 'row',
@@ -289,95 +312,78 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   backBtn: {
-    width: 44,
-    height: 44,
+    width: scale(44),
+    height: scale(44),
     justifyContent: 'center',
     alignItems: 'flex-start',
   },
-  backIcon: { color: 'rgba(215,192,138,0.9)', fontSize: 30, marginLeft: 2 },
-  backArrowImg: { width: 20, height: 20, tintColor: 'rgba(215,192,138,0.9)' },
+  backArrowImg: {
+    width: scale(20),
+    height: scale(20),
+    tintColor: palette.gold.DEFAULT,
+  },
   screenTitle: {
-    color: 'rgba(215,192,138,0.92)',
-    fontSize: 28,
-    letterSpacing: 2,
-    fontFamily: Platform.select({
-      ios: 'CormorantGaramond-Regular',
-      android: 'serif',
-    }),
+    fontFamily: fontFamily.heading,
+    fontSize: moderateScale(fontSize['2xl']),
+    fontWeight: fontWeight.regular,
+    color: palette.gold.DEFAULT,
     maxWidth: '78%',
     textAlign: 'center',
     textShadowColor: textShadow.glowSubtle.color,
     textShadowOffset: textShadow.glowSubtle.offset,
-    textShadowRadius: 16,
+    textShadowRadius: textShadow.glowSubtle.radius,
   },
-  titleRightSpacer: { width: 44, height: 44 },
+  titleRightSpacer: { width: scale(44), height: scale(44) },
 
+  // Text box — outer glow via boxShadow (RN 0.80), gradient is absoluteFill background
   textBoxShell: {
-    marginTop: 16,
-    borderRadius: 8,
+    marginTop: verticalScale(spacing.m),
+    borderRadius: radius.xs,
     borderWidth: 0.2,
-    borderColor: palette.navy.muted,
-    padding: 16,
-    ...Platform.select({
-      ios: {
-        shadowColor: 'rgba(229,214,176,1)',
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.30,
-        shadowRadius: 15,
-        elevation: 5,
-      },
-      android: {
-        boxShadow: '0 0 15px 0 rgba(229, 214, 176, 0.30)',
-      },
-    }),
+    borderColor: palette.navy.light,
+    padding: scale(spacing.m),
+    overflow: 'hidden',
+    boxShadow: '0px 0px 15px 0px rgba(229,214,176,0.3)',
+    shadowColor: '#e5d6ae',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 15,
   },
-  scrollContent: { paddingBottom: 8 },
+  scrollContent: { paddingBottom: scale(spacing.xs) },
   bodyText: {
-    color: 'rgba(253,253,249,0.84)',
-    fontSize: 15,
-    lineHeight: 22,
+    fontFamily: fontFamily.body,
+    fontSize: moderateScale(fontSize.xs),
+    fontWeight: fontWeight.regular,
+    lineHeight: lineHeight.m,
+    color: palette.neutral.white,
   },
 
   actionsRow: {
-    marginTop: 16,
+    marginTop: verticalScale(spacing.m),
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: scale(spacing.xl),   // Figma: gap 24px
     justifyContent: 'center',
-    paddingBottom: 18,
+    paddingBottom: verticalScale(spacing.m),
   },
+  // Icon-only button — same paddingVertical/Horizontal as Button size="L" for equal height
   iconBtnShell: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    borderWidth: 0.5,
+    paddingVertical: verticalScale(spacing.s),   // matches Button L paddingVertical (12px)
+    paddingHorizontal: scale(spacing.m),          // matches Button L paddingHorizontal (16px)
+    borderRadius: radius.s,
+    borderWidth: borderWidth.thin,
     borderColor: palette.navy.light,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: 'rgba(253,253,249,0.03)',
   },
   iconBtnImg: {
-    width: 22,
-    height: 22,
-    tintColor: 'rgba(215,192,138,0.92)',
+    width: scale(24),
+    height: scale(24),
+    tintColor: palette.gold.DEFAULT,
   },
-
-  primaryBtnShell: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    borderWidth: 0.5,
-    borderColor: palette.navy.light,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  primaryBtnText: {
-    color: 'rgba(215,192,138,0.92)',
-    fontSize: 18,
-    letterSpacing: 1.4,
-    fontFamily: Platform.select({
-      ios: 'CormorantGaramond-Regular',
-      android: 'serif',
-    }),
+  vaultBtn: {
+    minWidth: scale(110),
   },
 
   /* Modal sheet */

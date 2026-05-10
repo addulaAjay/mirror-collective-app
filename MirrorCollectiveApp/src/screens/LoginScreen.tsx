@@ -31,9 +31,11 @@ import LogoHeader from '@components/LogoHeader';
 import TextInputField from '@components/TextInputField';
 import { useSession } from '@context/SessionContext';
 import { useUser } from '@context/UserContext';
-import { quizApiService } from '@services/api';
+import { authApiService, quizApiService } from '@services/api';
 import { QuizStorageService } from '@services/quizStorageService';
 import { getApiErrorMessage } from '@utils/apiErrorUtils';
+import { isUserNotConfirmedError } from '@utils/cognitoErrors';
+import { setPendingVerification } from '@utils/verificationState';
 
 const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
   const { t } = useTranslation();
@@ -92,6 +94,24 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
       }
     } catch (error: any) {
       console.error('Login error:', error);
+      // Recovery path: account exists but is unconfirmed. Best-effort
+      // resend a fresh code, persist the pending state, and route the
+      // user into the verification flow with their email pre-filled.
+      if (isUserNotConfirmedError(error)) {
+        const trimmedEmail = email.toLowerCase().trim();
+        try {
+          await authApiService.resendVerificationCode(trimmedEmail);
+        } catch (resendErr) {
+          if (__DEV__) console.warn('Resend on login recovery failed:', resendErr);
+        }
+        await setPendingVerification({
+          email: trimmedEmail,
+          fullName: null,
+          termsAcceptedAt: null,
+        });
+        navigation.replace('VerifyEmail', { email: trimmedEmail, password });
+        return;
+      }
       const message = getApiErrorMessage(error, t);
       setErrorMessage(message || t('auth.login.loginFailed'));
     } finally {

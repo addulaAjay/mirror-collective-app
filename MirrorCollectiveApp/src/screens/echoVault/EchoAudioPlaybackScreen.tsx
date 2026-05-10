@@ -1,6 +1,10 @@
 // EchoAudioPlaybackScreen.tsx
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { palette, textShadow } from '@theme';
+import {
+  palette, fontFamily, fontSize, fontWeight, lineHeight,
+  spacing, radius, borderWidth, textShadow,
+  scale, verticalScale, moderateScale,
+} from '@theme';
 import { RootStackParamList } from '@types';
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import {
@@ -15,12 +19,14 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
+  Share,
 } from 'react-native';
 import AudioRecorderPlayer from 'react-native-audio-recorder-player';
 import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
+import Button from '@components/Button';
 import LogoHeader from '@components/LogoHeader';
 import { echoApiService, EchoResponse } from '@services/api/echo';
 
@@ -40,6 +46,8 @@ const EchoAudioPlaybackScreen: React.FC<Props> = ({ navigation, route }) => {
   const [echo, setEcho] = useState<EchoResponse | null>(null);
   const [loading, setLoading] = useState(true);
   
+  const isRecipient = !!echo?.sender;
+  const [vaulting, setVaulting] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
   const [currentPosition, setCurrentPosition] = useState(0);
@@ -58,6 +66,49 @@ const EchoAudioPlaybackScreen: React.FC<Props> = ({ navigation, route }) => {
       stopPlayback();
     };
   }, [echoId]);
+
+  const handleDownload = async () => {
+    if (!echo) return;
+    try {
+      const content = echo.media_url
+        ? { url: echo.media_url, message: echo.title }
+        : { message: echo.content || echo.title };
+      await Share.share(content);
+    } catch { /* dismissed */ }
+  };
+
+  const handleVault = async () => {
+    if (!echo || vaulting) return;
+    setVaulting(true);
+    try {
+      const res = await echoApiService.createEcho({
+        title: echo.title,
+        category: echo.category,
+        echo_type: echo.echo_type,
+      });
+      if (!res.success || !res.data) throw new Error('Failed to save to vault.');
+      if (echo.media_url) {
+        await echoApiService.updateEcho(res.data.echo_id, { media_url: echo.media_url });
+      }
+      Alert.alert('Saved', 'Echo added to your vault.');
+    } catch (e: any) {
+      Alert.alert('Error', e.message || 'Failed to add to vault.');
+    } finally {
+      setVaulting(false);
+    }
+  };
+
+  const handleEdit = () => {
+    if (!echo) return;
+    navigation.navigate('NewEchoComposeScreen', {
+      mode: 'audio',
+      title: echo.title,
+      category: echo.category,
+      editEchoId: echo.echo_id,
+      recipientId: echo.recipient?.recipient_id,
+      recipientName: echo.recipient?.name,
+    });
+  };
 
   const fetchEchoDetails = async () => {
     try {
@@ -197,25 +248,35 @@ const EchoAudioPlaybackScreen: React.FC<Props> = ({ navigation, route }) => {
         </View>
 
         {/* Transcript preview */}
-        <LinearGradient
-          colors={['rgba(253,253,249,0.04)', 'rgba(253,253,249,0.01)']}
-          start={{ x: 0.5, y: 0 }}
-          end={{ x: 0.5, y: 1 }}
-          style={[styles.transcriptShell, { width: contentWidth, height: transcriptBoxH }]}
-        >
+        <View style={[styles.transcriptShell, { width: contentWidth, height: transcriptBoxH }]}>
+          <LinearGradient
+            colors={['rgba(253,253,249,0.04)', 'rgba(253,253,249,0.01)']}
+            start={{ x: 0.5, y: 0 }}
+            end={{ x: 0.5, y: 1 }}
+            style={[StyleSheet.absoluteFill, { borderRadius: radius.xs }]}
+            pointerEvents="none"
+          />
           <ScrollView
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.transcriptPad}
           >
             <Text style={styles.transcriptText}>{transcript}</Text>
           </ScrollView>
-        </LinearGradient>
+        </View>
 
         {/* Bottom actions */}
         <View style={[styles.actionsRow, { width: contentWidth }]}>
-          <ActionIconButton icon={require('@assets/download.png')} onPress={() => {}} />
-          <ActionPrimaryButton label="VAULT" onPress={() => {}} />
-          <ActionIconButton icon={require('@assets/edit-icon.png')} onPress={() => {}} />
+          <EchoIconButton icon={require('@assets/download.png')} onPress={handleDownload} />
+          <Button
+            variant="primary"
+            size="L"
+            title={vaulting ? 'SAVING...' : 'VAULT'}
+            onPress={handleVault}
+            style={styles.vaultBtn}
+          />
+          {!isRecipient && (
+            <EchoIconButton icon={require('@assets/edit-icon.png')} onPress={handleEdit} />
+          )}
         </View>
       </SafeAreaView>
     </BackgroundWrapper>
@@ -246,50 +307,17 @@ const Waveform = ({ active }: { active: boolean }) => {
   );
 };
 
-const ActionIconButton = ({
+const EchoIconButton = ({
   icon,
   onPress,
 }: {
   icon: ReturnType<typeof require>;
   onPress: () => void;
-}) => {
-  return (
-    <TouchableOpacity
-      activeOpacity={0.9}
-      onPress={onPress}
-    >
-      <LinearGradient
-        colors={['rgba(253,253,249,0.04)', 'rgba(253,253,249,0.01)']}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
-        style={styles.iconBtnShell}
-      >
-        <Image source={icon} style={styles.iconBtnImg} resizeMode="contain" />
-      </LinearGradient>
-    </TouchableOpacity>
-  );
-};
-
-const ActionPrimaryButton = ({
-  label,
-  onPress,
-}: {
-  label: string;
-  onPress: () => void;
-}) => {
-  return (
-    <TouchableOpacity activeOpacity={0.9} onPress={onPress}>
-      <LinearGradient
-        colors={['rgba(253,253,249,0.04)', 'rgba(253,253,249,0.01)']}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
-        style={styles.primaryBtnShell}
-      >
-        <Text style={styles.primaryBtnText}>{label}</Text>
-      </LinearGradient>
-    </TouchableOpacity>
-  );
-};
+}) => (
+  <TouchableOpacity activeOpacity={0.85} onPress={onPress} style={styles.iconBtnShell}>
+    <Image source={icon} style={styles.iconBtnImg} resizeMode="contain" />
+  </TouchableOpacity>
+);
 
 /* ---------- Styles ---------- */
 
@@ -403,73 +431,50 @@ const styles = StyleSheet.create({
   },
 
   transcriptShell: {
-    borderRadius: 8,
+    borderRadius: radius.xs,
     borderWidth: 0.2,
     borderColor: palette.navy.light,
-    padding: 16,
-    marginBottom: 18,
-    flexDirection: 'column',
-    alignItems: 'flex-start',
-    gap: 8,
-    ...Platform.select({
-      ios: {
-        shadowColor: 'rgba(242,226,177,1)',
-        shadowOffset: { width: 2, height: 2 },
-        shadowOpacity: 0.20,
-        shadowRadius: 32,
-        elevation: 5,
-      },
-      android: {
-        boxShadow: '2px 2px 32px 4px rgba(242, 226, 177, 0.20)',
-      },
-    }),
+    padding: scale(spacing.m),
+    marginBottom: verticalScale(spacing.m),
+    overflow: 'hidden',
+    boxShadow: '0px 0px 15px 0px rgba(229,214,176,0.3)',
+    shadowColor: '#e5d6ae',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 15,
   },
-  transcriptPad: { paddingBottom: 4 },
+  transcriptPad: { paddingBottom: scale(spacing.xxs) },
   transcriptText: {
-    color: 'rgba(253,253,249,0.84)',
-    fontSize: 14,
+    fontFamily: fontFamily.body,
+    fontSize: moderateScale(fontSize.xs),
     fontStyle: 'italic',
-    lineHeight: 20,
+    lineHeight: lineHeight.m,
+    color: palette.neutral.white,
   },
 
   actionsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: scale(spacing.xl),   // Figma: gap 24px
     justifyContent: 'center',
-    paddingBottom: 18,
+    paddingBottom: verticalScale(spacing.m),
   },
   iconBtnShell: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    borderWidth: 0.5,
+    paddingVertical: verticalScale(spacing.s),
+    paddingHorizontal: scale(spacing.m),
+    borderRadius: radius.s,
+    borderWidth: borderWidth.thin,
     borderColor: palette.navy.light,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: 'rgba(253,253,249,0.03)',
   },
   iconBtnImg: {
-    width: 22,
-    height: 22,
-    tintColor: 'rgba(215,192,138,0.92)',
+    width: scale(24),
+    height: scale(24),
+    tintColor: palette.gold.DEFAULT,
   },
-
-  primaryBtnShell: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    borderWidth: 0.5,
-    borderColor: palette.navy.light,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  primaryBtnText: {
-    color: 'rgba(215,192,138,0.92)',
-    fontSize: 18,
-    letterSpacing: 1.4,
-    fontFamily: Platform.select({
-      ios: 'CormorantGaramond-Regular',
-      android: 'serif',
-    }),
+  vaultBtn: {
+    minWidth: scale(110),
   },
 });

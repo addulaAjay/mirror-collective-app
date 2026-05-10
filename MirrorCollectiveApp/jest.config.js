@@ -12,6 +12,7 @@ module.exports = {
     '^@utils/(.*)$': '<rootDir>/src/utils/$1',
     '^@assets/(.*)$': '<rootDir>/src/assets/$1',
     '^@i18n$': '<rootDir>/src/i18n',
+    '^@features/(.*)$': '<rootDir>/src/features/$1',
   },
   transformIgnorePatterns: [
     'node_modules/(?!((jest-)?react-native|@react-native(-community)?)|@react-navigation|@testing-library)',

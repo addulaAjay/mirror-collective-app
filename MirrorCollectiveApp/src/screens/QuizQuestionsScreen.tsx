@@ -9,6 +9,8 @@ import {
   scale,
   verticalScale,
   moderateScale,
+  borderWidth,
+  radius,
 } from '@theme';
 import type { QuizQuestion } from '@types';
 import type { QuizSubmissionRequest } from '@types';
@@ -23,6 +25,8 @@ import {
   Alert,
   ActivityIndicator,
   StatusBar,
+  Pressable,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -142,6 +146,21 @@ const QuizQuestionsScreen = () => {
     'spiral',
     'mirror',
   ];
+  const handleBack = () => {
+    // On Q1 (or before any answers exist), exit the quiz back to the previous
+    // screen. On later questions, step back one — pop the most-recently-
+    // committed answer and pre-select it so the user sees their prior choice.
+    if (currentIndex === 0) {
+      navigation.goBack();
+      return;
+    }
+    const prevIndex = currentIndex - 1;
+    const prevAnswer = answers[prevIndex];
+    setAnswers(prev => prev.slice(0, prevIndex));
+    setSelected(prevAnswer ? prevAnswer.answerText : null);
+    setCurrentIndex(prevIndex);
+  };
+
   const handleNext = async () => {
     if (!selected) return;
 
@@ -303,8 +322,26 @@ const QuizQuestionsScreen = () => {
         )}
       </ScrollView>
 
-      {/* Pinned CTA — always visible regardless of content size. */}
+      {/* Pinned CTA — back arrow on the left, NEXT centered (Figma 4928-6920). */}
       <View style={styles.buttonBar}>
+        <Pressable
+          onPress={handleBack}
+          accessibilityRole="button"
+          accessibilityLabel={
+            currentIndex === 0 ? 'Exit quiz' : 'Previous question'
+          }
+          hitSlop={8}
+          style={({ pressed }) => [
+            styles.backButton,
+            pressed && styles.backButtonPressed,
+          ]}
+        >
+          <Image
+            source={require('@assets/back-arrow.png')}
+            style={styles.backIcon}
+            resizeMode="contain"
+          />
+        </Pressable>
         <Button
           variant="primary"
           size="L"
@@ -428,12 +465,42 @@ const styles = StyleSheet.create({
     alignSelf:      'center',
   },
 
-  // Pinned CTA bar at the bottom of the safe area. Width:100% so the Button
-  // (content-sized) can center via alignItems. paddingBottom matches the
-  // gap previously held by container's paddingBottom for safe-area separation.
+  // Pinned CTA bar at the bottom of the safe area. Figma 4928-6920 places the
+  // back button on the left, NEXT centered. We use `justifyContent: 'center'`
+  // so NEXT stays centered on screen, then float the back button to the left
+  // via `position: 'absolute'`. This keeps NEXT visually at screen center
+  // (matching every prior question screen) regardless of back button width.
   buttonBar: {
-    width:         '100%',
-    alignItems:    'center',
-    paddingBottom: verticalScale(20),
+    width:          '100%',
+    alignItems:     'center',
+    justifyContent: 'center',
+    paddingBottom:  verticalScale(20),
+  },
+  backButton: {
+    position:        'absolute',
+    // Align with the textOptionsList left edge: design frame is 393w, the
+    // option container is scale(313) and centered → left padding = (393-313)/2 = 40.
+    left:            scale(40),
+    // Back is the design system's size-S button (42×42, vs the NEXT button's
+    // size-L 52). Vertically center it with NEXT: NEXT sits at bottom 20 with
+    // height 52, so its center is at 46. Back's center = bottom + 42/2 = bottom + 21.
+    // For 46 = bottom + 21 → bottom = 25.
+    bottom:          verticalScale(25),
+    width:           scale(42),
+    height:          scale(42),
+    borderRadius:    radius.s,
+    borderWidth:     borderWidth.thin,
+    borderColor:     palette.navy.light,
+    backgroundColor: palette.neutral.transparent,
+    alignItems:      'center',
+    justifyContent:  'center',
+  },
+  backButtonPressed: {
+    opacity: 0.7,
+  },
+  backIcon: {
+    width:     scale(20),
+    height:    scale(20),
+    tintColor: palette.gold.DEFAULT,
   },
 });

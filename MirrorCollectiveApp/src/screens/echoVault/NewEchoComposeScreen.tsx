@@ -1,5 +1,9 @@
 ﻿import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { palette, textShadow } from '@theme';
+import {
+  palette, fontFamily, fontSize, fontWeight, lineHeight,
+  spacing, radius, borderWidth, textShadow,
+  scale, verticalScale, moderateScale,
+} from '@theme';
 import { RootStackParamList } from '@types';
 import React, { useState, useMemo } from 'react';
 import {
@@ -27,24 +31,21 @@ import Video from 'react-native-video';
 import { Camera, useCameraDevice, useCameraPermission, useMicrophonePermission } from 'react-native-vision-camera';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
+import Button from '@components/Button';
 import LogoHeader from '@components/LogoHeader';
-import StarIcon from '@components/StarIcon';
 import { echoApiService } from '@services/api';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'NewEchoComposeScreen'>;
 
 const { width: W } = Dimensions.get('window');
 
-const GOLD = palette.gold.mid;
-const OFFWHITE = 'rgba(253, 253, 249, 0.92)';
 const SURFACE_BORDER = 'rgba(253, 253, 249, 0.18)';
-const SURFACE_BORDER_2 = 'rgba(253, 253, 249, 0.08)';
 
 const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
   const mode = route.params?.mode ?? 'text';
-  const { recipientName, title, category, hasRecipient, recipientId, guardianId, lockDate, unlockOnDeath } = route.params || {};
+  const { recipientName, title, category, recipientId, guardianId, lockDate, unlockOnDeath, editEchoId, initialContent } = route.params || {};
 
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState(initialContent ?? '');
   const [showUploadSheet, setShowUploadSheet] = useState(false);
   
   // Media State
@@ -280,64 +281,73 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
 
   const onSave = async () => {
     if (mode === 'text' && !message.trim()) {
-       Alert.alert('Empty Echo', 'Please write something.');
-       return;
+      Alert.alert('Empty Echo', 'Please write something.');
+      return;
     }
-    if ((mode === 'audio' || mode === 'video') && !mediaUri) {
-       Alert.alert('No Recording', 'Please record a message first.');
-       return;
+    if ((mode === 'audio' || mode === 'video') && !mediaUri && !editEchoId) {
+      Alert.alert('No Recording', 'Please record a message first.');
+      return;
     }
 
     setIsSaving(true);
-    let echoId: string | null = null;
     try {
-       // 1. Create Echo Metadata
-       const createResponse = await echoApiService.createEcho({
-         title: title || 'Untitled Echo',
-         category: category || 'General',
-         echo_type: mode === 'text' ? 'TEXT' : mode === 'audio' ? 'AUDIO' : 'VIDEO',
-         recipient_id: recipientId,
-         ...(guardianId && { guardian_id: guardianId }),
-         ...(lockDate && { release_date: lockDate }),
-         ...(unlockOnDeath !== undefined && { unlock_on_death: unlockOnDeath }),
-         content: mode === 'text' ? message : undefined,
-       });
-
-       if (!createResponse.success || !createResponse.data) {
-         throw new Error('Failed to create echo. Please check your connection and try again.');
-       }
-       echoId = createResponse.data.echo_id;
-
-        // 2. Upload Media if applicable
-        if (mode !== 'text' && mediaUri && echoId) {
+      // ── Edit mode: PATCH existing echo ───────────────────────────────────
+      if (editEchoId) {
+        const updateData: Record<string, any> = {};
+        if (mode === 'text') updateData.content = message;
+        if (mediaUri && mode !== 'text') {
           const contentType = mediaFile?.type || (mode === 'audio' ? 'audio/mp4' : 'video/mp4');
-          
-          const uploadUrlResponse = await echoApiService.getUploadUrl(contentType, echoId);
+          const uploadUrlResponse = await echoApiService.getUploadUrl(contentType, editEchoId);
           if (!uploadUrlResponse.success || !uploadUrlResponse.data) {
             throw new Error('Could not get upload URL. Please try again.');
           }
-
-          await echoApiService.uploadMedia(
-            uploadUrlResponse.data.upload_url,
-            mediaUri,
-            contentType
-          );
-
-          await echoApiService.updateEcho(echoId, {
-            media_url: uploadUrlResponse.data.media_url,
-          });
+          await echoApiService.uploadMedia(uploadUrlResponse.data.upload_url, mediaUri, contentType);
+          updateData.media_url = uploadUrlResponse.data.media_url;
         }
+        const updateResponse = await echoApiService.updateEcho(editEchoId, updateData);
+        if (!updateResponse.success) throw new Error('Failed to update echo.');
+        Alert.alert('Success', 'Echo updated!', [
+          { text: 'OK', onPress: () => navigation.goBack() },
+        ]);
+        return;
+      }
 
-       Alert.alert('Success', 'Echo saved to vault!', [
-         { text: 'OK', onPress: () => navigation.navigate('MirrorEchoVaultLibrary' as any) }
-       ]);
+      // ── Create mode: POST new echo ────────────────────────────────────────
+      const createResponse = await echoApiService.createEcho({
+        title: title || 'Untitled Echo',
+        category: category || 'General',
+        echo_type: mode === 'text' ? 'TEXT' : mode === 'audio' ? 'AUDIO' : 'VIDEO',
+        recipient_id: recipientId,
+        ...(guardianId && { guardian_id: guardianId }),
+        ...(lockDate && { release_date: lockDate }),
+        ...(unlockOnDeath !== undefined && { unlock_on_death: unlockOnDeath }),
+        content: mode === 'text' ? message : undefined,
+      });
+
+      if (!createResponse.success || !createResponse.data) {
+        throw new Error('Failed to create echo. Please check your connection and try again.');
+      }
+      const newEchoId = createResponse.data.echo_id;
+
+      if (mode !== 'text' && mediaUri && newEchoId) {
+        const contentType = mediaFile?.type || (mode === 'audio' ? 'audio/mp4' : 'video/mp4');
+        const uploadUrlResponse = await echoApiService.getUploadUrl(contentType, newEchoId);
+        if (!uploadUrlResponse.success || !uploadUrlResponse.data) {
+          throw new Error('Could not get upload URL. Please try again.');
+        }
+        await echoApiService.uploadMedia(uploadUrlResponse.data.upload_url, mediaUri, contentType);
+        await echoApiService.updateEcho(newEchoId, { media_url: uploadUrlResponse.data.media_url });
+      }
+
+      Alert.alert('Success', 'Echo saved to vault!', [
+        { text: 'OK', onPress: () => navigation.navigate('MirrorEchoVaultLibrary' as any) },
+      ]);
 
     } catch (error: any) {
-       console.error('Save failed:', error);
-       const errMsg = error?.message || 'Failed to save echo. Please try again.';
-       Alert.alert('Error', errMsg);
+      console.error('Save failed:', error);
+      Alert.alert('Error', error?.message || 'Failed to save echo. Please try again.');
     } finally {
-       setIsSaving(false);
+      setIsSaving(false);
     }
   };
 
@@ -504,7 +514,7 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
         </View>
 
         {/* Body */}
-        <View style={[styles.content, { width: contentWidth }]}>
+        <View style={[styles.content, { width: contentWidth }, mode === 'audio' && styles.audioContent]}>
           {mode === 'text' && (
             <>
               <Text style={styles.smallLabel}>Message</Text>
@@ -519,7 +529,7 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
                     value={message}
                     onChangeText={setMessage}
                     placeholder="Write message here"
-                    placeholderTextColor={palette.navy.medium}
+                    placeholderTextColor={palette.navy.light}
                     style={styles.bigTextInput}
                     multiline
                     textAlignVertical="top"
@@ -528,27 +538,8 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
               </View>
 
               <View style={styles.bottomButtonsRow}>
-                <SmallPillButton label="Upload File" onPress={onUpload} />
-                <TouchableOpacity
-                  activeOpacity={0.85}
-                  style={[styles.saveWrap, isSaving && styles.disabled]}
-                  onPress={onSave}
-                  disabled={isSaving}
-                >
-                  <LinearGradient
-                    colors={[
-                      'rgba(253,253,249,0.04)',
-                      'rgba(253,253,249,0.01)',
-                    ]}
-                    start={{ x: 0.5, y: 0 }}
-                    end={{ x: 0.5, y: 1 }}
-                    style={styles.saveGradient}
-                  >
-                    <Text style={styles.saveActionText}>
-                      {isSaving ? 'SAVING...' : 'SAVE'}
-                    </Text>
-                  </LinearGradient>
-                </TouchableOpacity>
+                <Button variant="primary" size="L" title="UPLOAD" onPress={onUpload} />
+                <Button variant="secondary" size="L" title={isSaving ? 'SAVING...' : 'SAVE'} onPress={onSave} disabled={isSaving} />
               </View>
             </>
           )}
@@ -606,11 +597,11 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
                   </View>
                 </View>
               ) : (
-                <>
+                <View style={styles.audioBody}>
                   <View style={styles.audioWaveWrap}>
                     <Waveform />
                   </View>
-                  <View style={styles.centerIconWrap}>
+                  <View style={styles.micRow}>
                     <TouchableOpacity onPress={toggleAudioRecording}>
                       <CircleIcon
                         icon={
@@ -622,42 +613,18 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
                       />
                     </TouchableOpacity>
                   </View>
-                </>
+                </View>
               )}
 
               <View style={styles.bottomButtonsRow}>
-                <SmallPillButton label="Upload File" onPress={onUpload} />
-                <TouchableOpacity
-                  activeOpacity={0.85}
-                  style={[styles.saveWrap, isSaving && styles.disabled]}
-                  onPress={onSave}
-                  disabled={isSaving}
-                >
-                  <LinearGradient
-                    colors={[
-                      'rgba(253,253,249,0.04)',
-                      'rgba(253,253,249,0.01)',
-                    ]}
-                    start={{ x: 0.5, y: 0 }}
-                    end={{ x: 0.5, y: 1 }}
-                    style={styles.saveGradient}
-                  >
-                    <Text style={styles.saveActionText}>
-                      {isSaving ? 'SAVING...' : 'SAVE'}
-                    </Text>
-                  </LinearGradient>
-                </TouchableOpacity>
+                <Button variant="primary" size="L" title="UPLOAD" onPress={onUpload} />
+                <Button variant="secondary" size="L" title={isSaving ? 'SAVING...' : 'SAVE'} onPress={onSave} disabled={isSaving} />
               </View>
             </>
           )}
           {mode === 'video' && (
             <>
-              <LinearGradient
-                colors={['rgba(253,253,249,0.08)', 'rgba(253,253,249,0.03)']}
-                start={{ x: 0.5, y: 0 }}
-                end={{ x: 0.5, y: 1 }}
-                style={styles.bigBoxShell}
-              >
+              <View style={styles.bigBoxShell}>
                 <View style={[styles.bigBoxInnerBorder, styles.videoBigBox]}>
                   {mediaUri && mediaFile ? (
                     <>
@@ -750,30 +717,11 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
                     </TouchableOpacity>
                   )}
                 </View>
-              </LinearGradient>
+              </View>
 
               <View style={styles.bottomButtonsRow}>
-                <SmallPillButton label="Upload File" onPress={onUpload} />
-                <TouchableOpacity
-                  activeOpacity={0.85}
-                  style={[styles.saveWrap, isSaving && styles.disabled]}
-                  onPress={onSave}
-                  disabled={isSaving}
-                >
-                  <LinearGradient
-                    colors={[
-                      'rgba(253,253,249,0.04)',
-                      'rgba(253,253,249,0.01)',
-                    ]}
-                    start={{ x: 0.5, y: 0 }}
-                    end={{ x: 0.5, y: 1 }}
-                    style={styles.saveGradient}
-                  >
-                    <Text style={styles.saveActionText}>
-                      {isSaving ? 'SAVING...' : 'SAVE'}
-                    </Text>
-                  </LinearGradient>
-                </TouchableOpacity>
+                <Button variant="primary" size="L" title="UPLOAD" onPress={onUpload} />
+                <Button variant="secondary" size="L" title={isSaving ? 'SAVING...' : 'SAVE'} onPress={onSave} disabled={isSaving} />
               </View>
             </>
           )}
@@ -831,39 +779,27 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
 
 /** ---------- Small UI bits (pure RN, no extra deps) ---------- */
 
-const SmallPillButton = ({
-  label,
-  onPress,
-}: {
-  label: string;
-  onPress: () => void;
-}) => {
-  return (
-    <TouchableOpacity activeOpacity={0.9} onPress={onPress} style={{}}>
-      <LinearGradient
-        colors={['rgba(253,253,249,0.03)', 'rgba(253,253,249,0.20)']}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
-        style={styles.pillShell}
-      >
-        <Text style={styles.pillText}>{label}</Text>
-      </LinearGradient>
-    </TouchableOpacity>
-  );
-};
-
+// Figma 220:2073 — two states:
+// idle  (fullSize=false): 80px dark circle + glow, 40px icon inside
+// active (fullSize=true):  flat pause_circle / play_circle icon at 80px, no container
 const CircleIcon = ({ label, icon, fullSize }: { label?: string; icon?: any; fullSize?: boolean }) => {
+  if (fullSize) {
+    return (
+      <Image
+        source={icon}
+        style={{ width: scale(80), height: scale(80), tintColor: palette.gold.DEFAULT }}
+        resizeMode="contain"
+      />
+    );
+  }
   return (
     <View style={styles.circleGlow}>
-      <View style={[styles.circleOuter, fullSize && { overflow: 'hidden', padding: 0 }]}>
+      <View style={styles.circleOuter}>
         {icon ? (
           <Image
             source={icon}
-            style={fullSize
-              ? { width: 72, height: 72, borderRadius: 36 }
-              : { width: 24, height: 24, tintColor: 'rgba(215,192,138,0.92)' }
-            }
-            resizeMode="cover"
+            style={{ width: scale(40), height: scale(40), tintColor: palette.gold.DEFAULT }}
+            resizeMode="contain"
           />
         ) : (
           <Text style={styles.circleIcon}>{label}</Text>
@@ -915,7 +851,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  iconText: { color: OFFWHITE, fontSize: 24, opacity: 0.9 },
+  iconText: { color: palette.neutral.white, fontSize: 24, opacity: 0.9 },
 
   brandWrap: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   logoCircle: {
@@ -928,7 +864,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: 'rgba(215,192,138,0.10)',
   },
-  logoMark: { color: GOLD, fontSize: 16 },
+  logoMark: { color: palette.gold.DEFAULT, fontSize: 16 },
   brandTextWrap: { alignItems: 'center' },
   brandTop: {
     color: 'rgba(215,192,138,0.85)',
@@ -945,37 +881,39 @@ const styles = StyleSheet.create({
   headerRightSpacer: { width: 44, height: 44 },
 
   titleRow: {
-    marginTop: 20,
+    marginTop: verticalScale(spacing.m),
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
   backBtn: {
-    width: 44,
-    height: 44,
+    width: scale(44),
+    height: scale(44),
     justifyContent: 'center',
     alignItems: 'flex-start',
   },
   backIcon: {
-    color: 'rgba(215,192,138,0.9)',
-    fontSize: 30,
+    color: palette.gold.DEFAULT,
+    fontSize: moderateScale(fontSize.xl),
     marginLeft: 2,
   },
   backArrowImg: {
-    width: 20,
-    height: 20,
-    tintColor: 'rgba(215,192,138,0.9)',
+    width: scale(20),
+    height: scale(20),
+    tintColor: palette.gold.DEFAULT,
   },
   screenTitle: {
-    color: 'rgba(215,192,138,0.92)',
-    fontSize: 28,
-    letterSpacing: 2,
-    fontFamily: Platform.select({
-      ios: 'CormorantGaramond-Regular',
-      android: 'serif',
-    }),
+    fontFamily: fontFamily.heading,
+    fontSize: moderateScale(fontSize['2xl']),
+    fontWeight: fontWeight.regular,
+    lineHeight: lineHeight.xl,
+    color: palette.gold.DEFAULT,
+    textAlign: 'center',
+    textShadowColor: textShadow.glowSubtle.color,
+    textShadowOffset: textShadow.glowSubtle.offset,
+    textShadowRadius: textShadow.glowSubtle.radius,
   },
-  titleRightSpacer: { width: 44, height: 44 },
+  titleRightSpacer: { width: scale(44), height: scale(44) },
 
   content: {
     width: '100%',
@@ -985,56 +923,57 @@ const styles = StyleSheet.create({
   },
 
   smallLabel: {
-    color: palette.gold.DEFAULT,
-    fontFamily: Platform.select({
-      ios: 'CormorantGaramond-Medium',
-      android: 'serif',
-    }),
-    fontSize: 20,
-    fontStyle: 'normal',
-    fontWeight: '500',
-    lineHeight: 26,
-    marginBottom: 8,
-    marginLeft: 4,
+    fontFamily: fontFamily.headingMedium,
+    fontSize: moderateScale(fontSize.l),
+    fontWeight: fontWeight.medium,
+    lineHeight: lineHeight.m,
+    color: palette.gold.subtlest,
+    marginBottom: verticalScale(spacing.xs),
+    marginLeft: scale(spacing.xxs),
   },
   textInputShell: {
     flex: 1,
-    borderRadius: 12,
-    borderWidth: 0.5,
+    borderRadius: radius.s,
+    borderWidth: borderWidth.thin,
     borderColor: palette.navy.light,
-    minHeight: 120,
+    minHeight: scale(120),
     overflow: 'hidden',
     width: '100%',
   },
   textInputGradient: {
     flex: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingHorizontal: scale(spacing.m),
+    paddingVertical: verticalScale(spacing.xs),
     width: '100%',
   },
+  // Figma 211:1271 — outer video container with gold glow
   bigBoxShell: {
     width: '100%',
-    borderRadius: 18,
-    // padding: 1,
-    borderWidth: 1,
-    borderColor: 'rgba(163, 179, 204, 0.45)',
+    height: Math.min(520, Math.max(420, W * 1.3)) + scale(spacing.xs) * 2,
+    borderRadius: radius.xs,
+    borderWidth: 0.2,
+    borderColor: '#bfc7d9',
+    backgroundColor: 'rgba(197,158,95,0.05)',
+    padding: scale(spacing.xs),
+    boxShadow: '0px 0px 12px 0px rgba(229,214,176,0.3)',
+    shadowColor: '#e5d6b0',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
   },
+  // Figma 211:1272 — inner camera viewport; flex:1 fills bigBoxShell minus padding
   bigBoxInnerBorder: {
-    borderRadius: 17,
-    borderWidth: 1,
-    borderColor: SURFACE_BORDER,
-    backgroundColor: 'rgba(7,9,14,0.35)',
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    height: Math.min(520, Math.max(420, W * 1.3)),
-  },
-  videoBigBox: {
-    padding: 10,
+    flex: 1,
+    borderRadius: radius.xs,
+    borderWidth: borderWidth.thin,
+    borderColor: palette.navy.DEFAULT,
+    backgroundColor: 'rgba(163,179,204,0.05)',
     overflow: 'hidden',
   },
+  videoBigBox: {},
   videoOverlayBtn: {
     position: 'absolute',
-    bottom: 20,
+    bottom: verticalScale(spacing.m),
     left: 0,
     right: 0,
     alignItems: 'center',
@@ -1042,95 +981,53 @@ const styles = StyleSheet.create({
   },
   bigTextInput: {
     flex: 1,
-    color: OFFWHITE,
-    fontSize: 16,
-    fontFamily: 'Inter',
-    fontStyle: 'normal',
-    fontWeight: '400',
-    lineHeight: 24,
+    fontFamily: fontFamily.body,
+    fontSize: moderateScale(fontSize.s),
+    fontWeight: fontWeight.regular,
+    lineHeight: lineHeight.m,
+    color: palette.neutral.white,
   },
 
   bottomButtonsRow: {
     flexDirection: 'row',
-    marginTop: 20,
-    marginBottom: 20,
+    marginTop: verticalScale(spacing.m),
+    marginBottom: verticalScale(spacing.m),
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
+    gap: scale(spacing.m),
   },
-  saveWrap: {},
-  saveGradient: {
-    minWidth: 140,
-    minHeight: 48,
-    flexDirection: 'row',
-    borderRadius: 12,
-    borderWidth: 0.5,
-    borderColor: palette.navy.light,
-    // paddingVertical: 12,
-    // paddingHorizontal: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-  },
-  saveActionText: {
-    color: palette.gold.DEFAULT,
-    textAlign: 'center',
-    textShadowColor: textShadow.warmGlow.color,
-    textShadowOffset: textShadow.warmGlow.offset,
-    textShadowRadius: textShadow.warmGlow.radius,
-    fontFamily: Platform.select({
-      ios: 'CormorantGaramond-Regular',
-      android: 'serif',
-    }),
-    fontSize: 20,
-    fontStyle: 'normal',
-    fontWeight: '400',
-    lineHeight: 26,
+  // Figma 211:1339 — audio mode: mic area and buttons spaced proportionally to screen height
+  audioContent: {
+    justifyContent: 'space-between',
   },
   disabled: {
     opacity: 0.5,
   },
 
-  pillShell: {
-    minWidth: 140,
-    minHeight: 48,
-    borderRadius: 12,
-    borderWidth: 0.5,
-    borderColor: palette.navy.light,
-    // paddingVertical: 12,
-    // paddingHorizontal: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
+  // Audio idle state layout — waveform fills space, mic pinned to bottom
+  audioBody: {
+    flex: 1,
+    width: '100%',
+    justifyContent: 'space-between',
   },
-  pillText: {
-    color: palette.gold.DEFAULT,
-    textAlign: 'center',
-    textShadowColor: textShadow.warmGlow.color,
-    textShadowOffset: textShadow.warmGlow.offset,
-    textShadowRadius: textShadow.warmGlow.radius,
-    fontFamily: Platform.select({
-      ios: 'CormorantGaramond-Regular',
-      android: 'serif',
-    }),
-    fontSize: 20,
-    fontStyle: 'normal',
-    fontWeight: '400',
-    lineHeight: 26,
-  },
-
   audioWaveWrap: {
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'stretch',
-    paddingTop: 14,
+    paddingHorizontal: scale(spacing.m),
   },
+  micRow: {
+    height: verticalScale(88),
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: scale(spacing.l),
+  },
+
   waveContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 16,
+    paddingHorizontal: scale(spacing.s),
+    paddingVertical: verticalScale(spacing.m),
   },
   waveRow: {
     flexDirection: 'row',
@@ -1142,41 +1039,28 @@ const styles = StyleSheet.create({
   waveBar: {
     flex: 1,
     borderRadius: 2,
-    backgroundColor: 'rgba(253,253,249,0.92)',
+    backgroundColor: palette.neutral.white,
   },
 
-  centerIconWrap: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 24,
-  },
   circleGlow: {
     alignItems: 'center',
     justifyContent: 'center',
   },
+  // Figma 220:2073 — idle mic/video button: 80px circle, bg 0.05, glow 15px/0.3
   circleOuter: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+    width: scale(80),
+    height: scale(80),
+    borderRadius: radius.full,
     borderWidth: 0.2,
-    borderColor: palette.navy.muted,
-    backgroundColor: 'rgba(242, 226, 177, 0.06)',
+    borderColor: palette.navy.light,
+    backgroundColor: 'rgba(253,253,249,0.05)',
     alignItems: 'center',
     justifyContent: 'center',
-    ...Platform.select({
-      ios: {
-        // iOS uses shadowColor for blur glow
-        shadowColor: palette.gold.DEFAULT,
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.5,
-        shadowRadius: 24,
-        elevation: 5,
-      },
-      android: {
-        // RN 0.76+ boxShadow â€” respects borderRadius, no octagon artifact
-        boxShadow: '0px 0px 24px 8px rgba(242, 226, 177, 0.50)',
-      },
-    }),
+    boxShadow: '0px 0px 15px 0px rgba(242,226,177,0.3)',
+    shadowColor: palette.gold.DEFAULT,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 15,
   },
   circleIcon: {
     color: 'rgba(215,192,138,0.92)',
@@ -1185,10 +1069,6 @@ const styles = StyleSheet.create({
 
   videoPreviewPlaceholder: {
     flex: 1,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: 'rgba(253,253,249,0.10)',
-    backgroundColor: 'rgba(253,253,249,0.03)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1215,7 +1095,7 @@ const styles = StyleSheet.create({
   },
   videoPickedName: {
     flex: 1,
-    color: OFFWHITE,
+    color: palette.neutral.white,
     fontSize: 13,
     marginRight: 8,
     letterSpacing: 0.3,
@@ -1229,7 +1109,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   videoRemoveBtnText: {
-    color: OFFWHITE,
+    color: palette.neutral.white,
     fontSize: 14,
     lineHeight: 18,
   },
@@ -1256,7 +1136,7 @@ const styles = StyleSheet.create({
   videoPlayIconImg: {
     width: 72,
     height: 72,
-    tintColor: OFFWHITE,
+    tintColor: palette.neutral.white,
   },
 
   // ── Audio picked preview ──
@@ -1288,7 +1168,7 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   audioRemoveBtnText: {
-    color: OFFWHITE,
+    color: palette.neutral.white,
     fontSize: 14,
   },
   audioFileInfoRow: {
@@ -1306,14 +1186,14 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(215,192,138,0.4)',
   },
   audioTypeBadgeText: {
-    color: GOLD,
+    color: palette.gold.DEFAULT,
     fontSize: 10,
     letterSpacing: 1.5,
     fontWeight: '600',
   },
   audioPreviewFileName: {
     flex: 1,
-    color: OFFWHITE,
+    color: palette.neutral.white,
     fontSize: 14,
     lineHeight: 18,
   },
@@ -1345,7 +1225,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     ...Platform.select({
       ios: {
-        shadowColor: GOLD,
+        shadowColor: palette.gold.DEFAULT,
         shadowOffset: { width: 0, height: 0 },
         shadowOpacity: 0.45,
         shadowRadius: 14,
@@ -1356,14 +1236,14 @@ const styles = StyleSheet.create({
     }),
   },
   audioPlayPauseBtnText: {
-    color: GOLD,
+    color: palette.gold.DEFAULT,
     fontSize: 22,
     marginLeft: 3,
   },
   audioPlayPauseBtnIcon: {
     width: 36,
     height: 36,
-    tintColor: GOLD,
+    tintColor: palette.gold.DEFAULT,
   },
 
   modalBackdrop: {
@@ -1397,7 +1277,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(253,253,249,0.04)',
   },
   modalItemText: {
-    color: GOLD,
+    color: palette.gold.DEFAULT,
     fontSize: 15,
     textAlign: 'center',
     letterSpacing: 1,
@@ -1413,11 +1293,11 @@ const styles = StyleSheet.create({
   },
   pickedMediaIcon: {
     fontSize: 56,
-    color: GOLD,
+    color: palette.gold.DEFAULT,
     opacity: 0.8,
   },
   pickedMediaName: {
-    color: OFFWHITE,
+    color: palette.neutral.white,
     fontSize: 16,
     textAlign: 'center',
     paddingHorizontal: 20,

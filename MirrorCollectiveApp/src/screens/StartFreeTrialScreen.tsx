@@ -71,7 +71,15 @@ const StartFreeTrialScreen = () => {
                     await refreshSubscriptionStatus();
                     setAuthenticated();
                 } else {
-                    throw new Error(response.message || 'Failed to start trial');
+                    const msg = response.message ?? '';
+                    // Trial already started (user navigated back after success)
+                    // — treat as success and proceed rather than blocking them.
+                    if (msg.toLowerCase().includes('already used') || msg.toLowerCase().includes('already has')) {
+                        await refreshSubscriptionStatus();
+                        setAuthenticated();
+                        return;
+                    }
+                    throw new Error(msg || 'Failed to start trial');
                 }
             } catch (error: any) {
                 Alert.alert('Error', error.message || 'Failed to start trial');

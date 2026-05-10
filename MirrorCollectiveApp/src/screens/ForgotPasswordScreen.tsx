@@ -214,7 +214,7 @@ const ForgotPasswordScreen = () => {
                   testID="forgot-password-button"
                 />
 
-                {/* Back to login — Figma: node 4116:526, Cormorant Italic L (20px), #fdfdf9 */}
+                {/* Back to login — matches LoginScreen "Sign up here" link style */}
                 <TouchableOpacity
                   onPress={handleBackToLogin}
                   testID="back-to-login-button"
@@ -337,15 +337,13 @@ const styles = StyleSheet.create({
     textShadowRadius: 4,                                    // Figma: 4px (not warmGlow token 9)
   },
 
-  // Figma: node 4116:526 — Heading/Heading XS Italic, Cormorant Italic L (20px), lh:24, #fdfdf9
+  // Matches LoginScreen "Sign up here" — Cormorant Regular XL (24px), gold.DEFAULT, underlined
   backLinkText: {
-    fontFamily: fontFamily.headingItalic,                  // CormorantGaramond-Italic
-    fontStyle: 'italic',                                   // Required on iOS
-    fontSize: moderateScale(fontSize.l),                   // 20px — Figma: font/size/L
-    fontWeight: fontWeight.regular,                         // 400
-    lineHeight: lineHeight.m,                              // 24px
-    letterSpacing: 0,
-    color: palette.gold.subtlest,                          // #fdfdf9 — Figma: text/paragraph-2
+    fontFamily: fontFamily.heading,                        // CormorantGaramond-Regular
+    fontSize: moderateScale(fontSize.xl),                  // 24px — Figma: font/size/XL
+    lineHeight: moderateScale(fontSize.xl) * 1.3,
+    color: palette.gold.DEFAULT,                           // #f2e2b1
+    textDecorationLine: 'underline',
     textAlign: 'center',
   },
 
