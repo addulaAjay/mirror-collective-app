@@ -320,12 +320,12 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
         if (!updateResponse.success) throw new Error('Failed to update echo.');
 
         // If the resulting state matches the auto-release rule
-        // (recipient + no lock date) and the echo is still in DRAFT, fire
-        // the release endpoint to mirror what create_echo would have done.
-        // We swallow ValidationError from /release — that signals the echo
-        // was already RELEASED or otherwise ineligible, which is fine here.
-        const shouldRelease = !!recipientId && !lockDate &&
-          updateResponse.data?.status === 'DRAFT';
+        // (recipient + no lock date), fire the release endpoint to mirror
+        // what create_echo would have done. The edit icon is hidden for
+        // non-DRAFT echoes so by the time we get here the echo was DRAFT;
+        // releaseEcho's preconditions on the backend handle any edge case,
+        // and the try/catch swallows ValidationError if it slips through.
+        const shouldRelease = !!recipientId && !lockDate;
         if (shouldRelease) {
           try {
             await echoApiService.releaseEcho(editEchoId);
