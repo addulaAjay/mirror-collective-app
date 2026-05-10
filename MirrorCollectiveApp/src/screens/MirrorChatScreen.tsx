@@ -6,7 +6,6 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  Platform,
   type NativeSyntheticEvent,
   type NativeScrollEvent,
   type TextInputContentSizeChangeEventData,
@@ -118,13 +117,15 @@ export function MirrorChatContent() {
                   style={styles.messagesWrapper}
                   contentContainerStyle={styles.messagesContent}
                   keyboardShouldPersistTaps="handled"
-                  // iOS gets the iMessage-style "drag down past the keyboard
-                  // top edge to dismiss" gesture. On Android `interactive`
-                  // isn't supported and `on-drag` dismissed too aggressively
-                  // (any scroll closed the keyboard) — `none` keeps the
-                  // keyboard open while scrolling history; user dismisses
-                  // by tapping outside or the keyboard's hide button.
-                  keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'none'}
+                  // Keyboard stays open during scrolling AND after sending a
+                  // message — the chat-app standard (ChatGPT, iMessage,
+                  // WhatsApp). On iOS `interactive` mode interpreted the
+                  // programmatic scrollToEnd call after a send as a
+                  // "drag-down to dismiss" gesture, so every send closed
+                  // the keyboard. `none` keeps the keyboard up; the user
+                  // dismisses it explicitly via tap-outside or the
+                  // keyboard's hide button.
+                  keyboardDismissMode="none"
                   showsVerticalScrollIndicator={false}
                   onScroll={handleScroll}
                   scrollEventThrottle={16}
