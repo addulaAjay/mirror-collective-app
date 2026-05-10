@@ -499,13 +499,16 @@ const styles = StyleSheet.create({
     minHeight: 40,
   },
 
-  // Link label — same gold, no underline (matches Figma screenshot)
-  // Same Cormorant typography as primary/secondary labels per Figma node 125:440.
+  // Link label — gold Cormorant Regular with an underline.
+  // Matches the visual treatment used by "Back to Login" on the auth
+  // screens (ForgotPassword, ResetPassword) per Figma 7009:979.
   linkLabel: {
     fontFamily: fontFamily.heading,           // Figma: Cormorant Garamond Regular
     fontWeight: '400',
     color: palette.gold.DEFAULT,              // Figma: Bg/Brand = #f2e1b0
     textAlign: 'center',
+    textDecorationLine: 'underline',
+    textDecorationColor: palette.gold.DEFAULT,
     includeFontPadding: false,
     textShadowColor: textShadow.warmGlow.color,
     textShadowOffset: textShadow.warmGlow.offset,

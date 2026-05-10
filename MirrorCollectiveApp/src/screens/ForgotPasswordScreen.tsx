@@ -40,6 +40,16 @@ type ForgotPasswordScreenNavigationProp = NativeStackNavigationProp<
   'ForgotPassword'
 >;
 
+// Figma 4928:7988 — back arrow, 20×20, gold/paragraph-1 #f2e1b0
+const BackArrowIcon: React.FC = () => (
+  <Svg width={scale(20)} height={scale(20)} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
+      fill={palette.gold.DEFAULT}
+    />
+  </Svg>
+);
+
 const ForgotPasswordScreen = () => {
   const { t } = useTranslation();
   const [email, setEmail] = useState('');
@@ -117,19 +127,18 @@ const ForgotPasswordScreen = () => {
 
                   <Button
                     variant="primary"
+                    size="L"
                     title={t('common.continue')}
                     onPress={() => navigation.navigate('ResetPassword', { email })}
                     testID="success-continue-button"
                   />
 
-                  <TouchableOpacity
+                  <Button
+                    variant="link"
+                    title={t('auth.forgotPassword.backToLogin')}
                     onPress={handleBackToLogin}
                     testID="success-back-to-login"
-                  >
-                    <Text style={styles.backLinkText}>
-                      {t('auth.forgotPassword.backToLogin')}
-                    </Text>
-                  </TouchableOpacity>
+                  />
                 </View>
               </TouchableWithoutFeedback>
           </KeyboardAwareScrollView>
@@ -138,7 +147,7 @@ const ForgotPasswordScreen = () => {
     );
   }
 
-  // ── Default state — Figma: node 4116:513 ────────────────────────────────
+  // ── Default state — Figma: node 4928:7982 (Forgot Password - Fail) ─────
   return (
     <BackgroundWrapper style={styles.container}>
       <SafeAreaView style={styles.safe}>
@@ -154,20 +163,39 @@ const ForgotPasswordScreen = () => {
           bottomOffset={16}
         >
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-              {/* Figma: node 4116:516 — flat flex col gap-40px, left:40px */}
+              {/* Figma 4928:7985 — content column, w:345, gap:40, items:center */}
               <View style={styles.contentContainer}>
 
-                {/* Title — Figma: Cormorant Regular 3XL (32px), lh:40 (XXL), #f2e2b1, no shadow */}
-                <Text style={styles.title}>
-                  {t('auth.forgotPassword.title')}
-                </Text>
+                {/* Header row (Figma 4928:7986) — back arrow + centered title + spacer */}
+                <View style={styles.headerRow}>
+                  <TouchableOpacity
+                    onPress={handleBackToLogin}
+                    style={styles.backBtn}
+                    accessibilityRole="button"
+                    accessibilityLabel="Back"
+                    hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                    testID="header-back-button"
+                  >
+                    <BackArrowIcon />
+                  </TouchableOpacity>
 
-                {/* Subtitle — Figma: node 4117:604, Cormorant Regular L (20px), lh:24, #fdfdf9 */}
+                  {/* Heading M — Cormorant Regular 28/32, gold #f2e1b0, glow */}
+                  <Text style={styles.title}>
+                    {t('auth.forgotPassword.title')}
+                  </Text>
+
+                  {/* Spacer mirrors back-button width so the title stays
+                      perfectly centered (Figma right-side icon is decorative
+                      symmetry — we render an invisible spacer instead). */}
+                  <View style={styles.headerSpacer} />
+                </View>
+
+                {/* Subtitle — Heading XS Cormorant Regular 20/24, white */}
                 <Text style={styles.subtitle}>
                   {t('auth.forgotPassword.subtitle')}
                 </Text>
 
-                {/* Email input — Figma: node 4116:519, Cormorant Medium centered placeholder */}
+                {/* Email input + error row — Figma 4928:7992 (col gap-8) */}
                 <View style={styles.inputWrapper}>
                   <TextInputField
                     testID="email-input"
@@ -180,7 +208,7 @@ const ForgotPasswordScreen = () => {
                     autoComplete="email"
                     placeholderAlign="center"
                   />
-                  {/* Error row — Figma: node 4121:367, icon 20×20 + Inter XS error text, items-start, gap-4px */}
+                  {/* Error row — Figma 4928:7994: row, gap:4, items:start */}
                   {state.error && (
                     <View style={styles.errorRow}>
                       <Svg width={20} height={20} viewBox="0 0 20 20" fill="none">
@@ -193,9 +221,10 @@ const ForgotPasswordScreen = () => {
                   )}
                 </View>
 
-                {/* SEND LINK button — Figma: node 4116:521 (auth-CTA pattern) */}
+                {/* SEND LINK — Figma 7024:2139, MC Button "primary" variant */}
                 <Button
                   variant="primary"
+                  size="L"
                   title={
                     isLoading
                       ? t('auth.forgotPassword.sendingButton')
@@ -206,16 +235,14 @@ const ForgotPasswordScreen = () => {
                   testID="forgot-password-button"
                 />
 
-                {/* Back to login — matches LoginScreen "Sign up here" link style */}
-                <TouchableOpacity
+                {/* Back to Login — link variant of the shared Button so
+                    styling matches other auth screens. */}
+                <Button
+                  variant="link"
+                  title={t('auth.forgotPassword.backToLogin')}
                   onPress={handleBackToLogin}
                   testID="back-to-login-button"
-                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                >
-                  <Text style={styles.backLinkText}>
-                    {t('auth.forgotPassword.backToLogin')}
-                  </Text>
-                </TouchableOpacity>
+                />
 
               </View>
             </TouchableWithoutFeedback>
@@ -241,55 +268,79 @@ const styles = StyleSheet.create({
   scrollView: {
     width: '100%',
   },
-  // Figma: content left:40px on 393px frame → paddingHorizontal:40, top:212px → ~80px below LogoHeader
+  // Figma 4928:7985 — content column at top:212 from page top, w:345, gap:40
+  // LogoHeader is ~140 tall; top:212 - 140 ≈ 72 → paddingTop:72.
+  // paddingHorizontal: scale(24) keeps the content centered on a 393-frame
+  // with ~24px gutter on either side.
   scrollContainer: {
     flexGrow: 1,
     alignItems: 'center',
-    paddingHorizontal: scale(40),
-    paddingTop: verticalScale(80),
+    paddingHorizontal: scale(24),
+    paddingTop: verticalScale(72),
     paddingBottom: verticalScale(40),
   },
 
-  // Figma: node 4116:516 — flat flex col, gap:40px, items:center
+  // Figma 4928:7985 — flex col, gap:40, items:center, w:345
   contentContainer: {
     width: '100%',
     alignItems: 'center',
     gap: verticalScale(40),
   },
 
-  // Figma: Heading/Heading L — Cormorant Regular 3XL (32px), lh:40 (XXL), #f2e2b1, glow shadow
-  title: {
-    fontFamily: fontFamily.heading,                       // CormorantGaramond-Regular
-    fontSize: moderateScale(fontSize['3xl']),              // 32px — Figma: font/size/3XL
-    fontWeight: fontWeight.regular,                        // 400
-    lineHeight: lineHeight.xxl,                           // 40px — Figma: font/line-height/XXL
-    letterSpacing: 0,
-    color: palette.gold.DEFAULT,                           // #f2e2b1 — Figma: text/paragraph-1
-    textAlign: 'center',
-    textShadowColor: textShadow.glow.color,                // Glow: #F0D4A8 · 30%
-    textShadowOffset: textShadow.glow.offset,              // X:0 Y:0
-    textShadowRadius: textShadow.glow.radius,              // Blur:10
+  // Figma 4928:7986 — header row, full-width, justify-between, items-center
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
   },
 
-  // Figma: Heading/Heading XS — Cormorant Regular L (20px), lh:24px, #fdfdf9
-  subtitle: {
-    fontFamily: fontFamily.heading,                       // CormorantGaramond-Regular
-    fontSize: moderateScale(fontSize.l),                  // 20px — Figma: font/size/L
-    fontWeight: fontWeight.regular,                        // 400
-    lineHeight: lineHeight.m,                             // 24px — Figma: leading-font/size/XL=24
+  // Wrapping touchable for the back arrow with vertical padding (Figma 4928:7987)
+  backBtn: {
+    paddingVertical: verticalScale(8),
+  },
+
+  // Mirrors backBtn's effective width (icon 20 + no horizontal padding) so
+  // the title stays perfectly centered in the row.
+  headerSpacer: {
+    width: scale(20),
+  },
+
+  // Figma 4928:7989 — Heading M: Cormorant Regular, 28/32 (font/size/2XL,
+  // font/line-height/XL), gold #f2e1b0, glow drop shadow.
+  title: {
+    flex: 1,
+    fontFamily: fontFamily.heading,
+    fontSize: moderateScale(fontSize['2xl']),    // 28px — Figma: font/size/2XL
+    fontWeight: fontWeight.regular,
+    lineHeight: lineHeight.xl,                   // 32px — Figma: font/line-height/XL
     letterSpacing: 0,
-    color: palette.gold.subtlest,                          // #fdfdf9 — Figma: text/paragraph-2
+    color: palette.gold.DEFAULT,                 // #f2e1b0 — Figma: text/paragraph-1
+    textAlign: 'center',
+    textShadowColor: textShadow.glow.color,      // 0 0 10 spread:3 #F0D4A84D
+    textShadowOffset: textShadow.glow.offset,
+    textShadowRadius: textShadow.glow.radius,
+  },
+
+  // Figma 4928:7991 — Heading XS: Cormorant Regular, 20/24, white #fdfdf9
+  subtitle: {
+    fontFamily: fontFamily.heading,
+    fontSize: moderateScale(fontSize.l),         // 20px — Figma: font/size/L
+    fontWeight: fontWeight.regular,
+    lineHeight: lineHeight.m,                    // 24px — Figma: font/size/XL line-height
+    letterSpacing: 0,
+    color: palette.gold.subtlest,                // #fdfdf9 — Figma: text/paragraph-2
     textAlign: 'center',
     width: '100%',
   },
 
-  // Figma: node 4121:381 — flex col gap-8px, wraps input + error row
+  // Figma 4928:7992 — flex col, gap:8, w-full (input + error row)
   inputWrapper: {
     width: '100%',
     gap: verticalScale(8),
   },
 
-  // Figma: node 4121:367 — flex row gap-4px, items-start
+  // Figma 4928:7994 — flex row, gap:4, items:start
   errorRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -297,45 +348,13 @@ const styles = StyleSheet.create({
     width: '100%',
   },
 
-  // Figma: node 4121:369 — Inter Regular XS (14px), lh S (20px), text/error (#f83b3d), flex-1
+  // Figma 4928:7996 — Body XS: Inter Regular, 14/20, error #f83b3d
   errorText: {
     flex: 1,
     fontFamily: fontFamily.body,
-    fontSize: moderateScale(fontSize.xs),    // 14px — Figma: font/size/xs
-    lineHeight: lineHeight.s,                // 20px — Figma: font/line-height/s
-    color: palette.status.error,             // #f83b3d
-  },
-
-  // Figma: node 4116:521 — flex row gap-16px, items center, justify center
-  enterButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: scale(16),
-    justifyContent: 'center',
-  },
-
-  // Figma: Heading/Heading M — Cormorant Regular 2XL (28px), lh:32 (XL), #f2e2b1
-  // Shadow: 0 0 4px rgba(229,214,176,0.5) — warmGlow color, radius 4
-  enterText: {
-    fontFamily: fontFamily.heading,                        // CormorantGaramond-Regular
-    fontSize: moderateScale(fontSize['2xl']),               // 28px — Figma: font/size/2XL
-    fontWeight: fontWeight.regular,                         // 400
-    lineHeight: lineHeight.xl,                             // 32px — Figma: font/line-height/XL
-    letterSpacing: 0,
-    color: palette.gold.DEFAULT,                            // #f2e2b1
-    textShadowColor: textShadow.warmGlow.color,             // rgba(229,214,176,0.5)
-    textShadowOffset: textShadow.warmGlow.offset,
-    textShadowRadius: 4,                                    // Figma: 4px (not warmGlow token 9)
-  },
-
-  // Matches LoginScreen "Sign up here" — Cormorant Regular XL (24px), gold.DEFAULT, underlined
-  backLinkText: {
-    fontFamily: fontFamily.heading,                        // CormorantGaramond-Regular
-    fontSize: moderateScale(fontSize.xl),                  // 24px — Figma: font/size/XL
-    lineHeight: moderateScale(fontSize.xl) * 1.3,
-    color: palette.gold.DEFAULT,                           // #f2e2b1
-    textDecorationLine: 'underline',
-    textAlign: 'center',
+    fontSize: moderateScale(fontSize.xs),
+    lineHeight: lineHeight.s,
+    color: palette.status.error,
   },
 
   // Used in emailSent state for the highlighted email address

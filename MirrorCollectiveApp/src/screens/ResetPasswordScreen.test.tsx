@@ -47,11 +47,12 @@ describe('ResetPasswordScreen', () => {
     });
   });
 
-  it('renders correctly with email', () => {
+  it('renders title, reset-code input, and submit button', () => {
     const { getByText, getByTestId, getByPlaceholderText } = render(<ResetPasswordScreen />);
 
+    // Email is intentionally NOT rendered after the redesign — it's still
+    // passed through navigation params and used in handleResetPassword.
     expect(getByText('auth.resetPassword.title')).toBeTruthy();
-    expect(getByText('test@example.com')).toBeTruthy();
     expect(getByPlaceholderText('6-digit reset code')).toBeTruthy();
     expect(getByTestId('reset-password-button')).toBeTruthy();
   });

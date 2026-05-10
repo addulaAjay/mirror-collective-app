@@ -183,18 +183,20 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                   )}
                 </View>
 
-                {/* "Forgotten your way back?" — Figma: node 1886:2410, Cormorant Italic 20px
-                    underlined, gold.subtlest. Only visible in error state per Figma. */}
-                {errorMessage && (
-                  <TouchableOpacity
-                    onPress={navigateToForgotPassword}
-                    disabled={isLoading}
-                  >
-                    <Text style={styles.forgotPasswordText}>
-                      {t('auth.login.forgotPassword')}
-                    </Text>
-                  </TouchableOpacity>
-                )}
+                {/* "Forgotten your way back?" — Figma: node 1886:2410, Cormorant
+                    Italic 20px underlined, gold.subtlest. Always rendered so
+                    users can recover their password without first attempting
+                    a login (the previous error-only gate forced a failed
+                    attempt before the link became visible). Disabled only
+                    while a login request is in flight. */}
+                <TouchableOpacity
+                  onPress={navigateToForgotPassword}
+                  disabled={isLoading}
+                >
+                  <Text style={styles.forgotPasswordText}>
+                    {t('auth.login.forgotPassword')}
+                  </Text>
+                </TouchableOpacity>
 
                 {/* ENTER button — Figma: node 1886:2353 (auth-CTA pattern) */}
                 <Button

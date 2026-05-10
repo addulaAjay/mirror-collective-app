@@ -1,7 +1,18 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { palette, theme, textShadow } from '@theme';
+import {
+  fontFamily,
+  fontSize,
+  fontWeight,
+  lineHeight,
+  moderateScale,
+  palette,
+  scale,
+  textShadow,
+  theme,
+  verticalScale,
+} from '@theme';
 import type { RootStackParamList } from '@types';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -17,6 +28,7 @@ import {
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from "react-native-safe-area-context";
+import Svg, { Path } from 'react-native-svg';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import Button from '@components/Button';
@@ -24,6 +36,16 @@ import LogoHeader from '@components/LogoHeader';
 import TextInputField from '@components/TextInputField';
 import { useSession } from '@context/SessionContext';
 import { getApiErrorMessage } from '@utils/apiErrorUtils';
+
+// Figma 4928:7988 — back arrow, 20×20, gold
+const BackArrowIcon: React.FC = () => (
+  <Svg width={scale(20)} height={scale(20)} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
+      fill={palette.gold.DEFAULT}
+    />
+  </Svg>
+);
 
 type ResetPasswordScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -135,22 +157,31 @@ const ResetPasswordScreen = () => {
         >
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
               <View style={styles.contentContainer}>
-                {/* Header Section */}
-                <View style={styles.headerSection}>
-                  <Text style={styles.title}>{t('auth.resetPassword.title')}</Text>
-                  <Text style={styles.subtitle}>
-                    {t('auth.forgotPassword.subtitle')}
-                    {'\n'}
-                    <Text style={styles.emailText}>{email}</Text>
+                {/* Header row — back arrow + centered title + spacer
+                    (matches ForgotPassword Figma 4928:7986). */}
+                <View style={styles.headerRow}>
+                  <TouchableOpacity
+                    onPress={handleBackToLogin}
+                    style={styles.backBtn}
+                    accessibilityRole="button"
+                    accessibilityLabel="Back"
+                    hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                    testID="header-back-button"
+                  >
+                    <BackArrowIcon />
+                  </TouchableOpacity>
+                  <Text style={styles.title}>
+                    {t('auth.resetPassword.title')}
                   </Text>
+                  <View style={styles.headerSpacer} />
                 </View>
 
                 {/* Form Section */}
                 <View style={styles.formSection}>
                   {/* Reset Code Field */}
                   <View style={styles.fieldContainer}>
-                    <Text style={styles.fieldLabel}>Reset Code</Text>
                     <TextInputField
+                      label='Reset Code'
                       testID="reset-code-input"
                       placeholder="6-digit reset code"
                       value={resetCode}
@@ -164,8 +195,8 @@ const ResetPasswordScreen = () => {
 
                   {/* New Password Field */}
                   <View style={styles.fieldContainer}>
-                    <Text style={styles.fieldLabel}>{t('auth.resetPassword.passwordPlaceholder')}</Text>
                     <TextInputField
+                      label={t('auth.resetPassword.passwordPlaceholder')}
                       testID="new-password-input"
                       placeholder={t('auth.resetPassword.passwordPlaceholder')}
                       value={newPassword}
@@ -184,8 +215,8 @@ const ResetPasswordScreen = () => {
 
                   {/* Confirm Password Field */}
                   <View style={styles.fieldContainer}>
-                    <Text style={styles.fieldLabel}>{t('auth.signup.fields.confirmPassword')}</Text>
                     <TextInputField
+                      label={t('auth.signup.fields.confirmPassword')}
                       testID="confirm-password-input"
                       placeholder={t('auth.signup.fields.confirmPasswordPlaceholder')}
                       value={confirmPassword}
@@ -202,15 +233,12 @@ const ResetPasswordScreen = () => {
                     />
                   </View>
 
-                  <Text style={styles.passwordRequirements}>
-                    {t('auth.validation.weakPasswordMessage')}
-                  </Text>
-
                   {state.error && (
                     <Text style={styles.errorText}>{state.error}</Text>
                   )}
 
-                  {/* Reset Password Button — auth-CTA pattern, 24px stars per Figma */}
+                  {/* Reset Password Button — extra top margin so it has
+                      breathing room from the confirm-password input. */}
                   <Button
                     variant="primary"
                     title={
@@ -221,19 +249,18 @@ const ResetPasswordScreen = () => {
                     onPress={handleResetPassword}
                     disabled={isLoading}
                     testID="reset-password-button"
+                    style={styles.submitButton}
                   />
                 </View>
 
-                {/* Back to Login */}
-                <TouchableOpacity
+                {/* Back to Login — link variant of the shared Button so
+                    styling matches other auth screens. */}
+                <Button
+                  variant="link"
+                  title={t('auth.forgotPassword.backToLogin')}
                   onPress={handleBackToLogin}
-                  style={styles.backLink}
                   testID="back-to-login-button"
-                >
-                  <Text style={styles.backLinkText}>
-                    {t('auth.forgotPassword.backToLogin')}
-                  </Text>
-                </TouchableOpacity>
+                />
               </View>
             </TouchableWithoutFeedback>
         </KeyboardAwareScrollView>
@@ -243,102 +270,84 @@ const ResetPasswordScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  keyboardContainer: {
-    flex: 1,
-  },
   safe: {
     flex: 1,
     backgroundColor: 'transparent',
     width: '100%',
   },
   container: {
-    borderRadius: 15,
-    shadowColor: palette.neutral.black,
-    shadowOffset: { width: -1, height: 5 },
-    shadowOpacity: 0.25,
-    shadowRadius: 26,
-    elevation: 10,
     flex: 1,
   },
+
+  // Match ForgotPasswordScreen — content column at ~72px below LogoHeader,
+  // gutters of 24px, gap 40px between sections.
   scrollContainer: {
     flexGrow: 1,
-    justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 20,
+    paddingHorizontal: scale(24),
+    paddingTop: verticalScale(72),
+    paddingBottom: verticalScale(40),
   },
   contentContainer: {
-    flex: 1,
     width: '100%',
     alignItems: 'center',
-    paddingHorizontal: 40,
-    paddingTop: 0, 
-    gap: 40,
+    gap: verticalScale(40),
   },
-  headerSection: {
+
+  // Figma 4928:7986 — header row, justify-between, items-center
+  headerRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    justifyContent: 'space-between',
+    width: '100%',
   },
+  backBtn: {
+    paddingVertical: verticalScale(8),
+  },
+  headerSpacer: {
+    width: scale(20),
+  },
+
+  // Heading M — Cormorant Regular 28/32, gold, glow
   title: {
-    ...theme.typography.styles.title,
+    flex: 1,
+    fontFamily: fontFamily.heading,
+    fontSize: moderateScale(fontSize['2xl']),    // 28
+    fontWeight: fontWeight.regular,
+    lineHeight: lineHeight.xl,                    // 32
+    letterSpacing: 0,
+    color: palette.gold.DEFAULT,
     textAlign: 'center',
+    textShadowColor: textShadow.glow.color,
+    textShadowOffset: textShadow.glow.offset,
+    textShadowRadius: textShadow.glow.radius,
   },
-  subtitle: {
-    ...theme.typography.styles.body,
-    textAlign: 'center',
-    lineHeight: 24,
-  },
-  emailText: {
-    color: theme.colors.text.accent,
-    fontWeight: '600',
-  },
+
   formSection: {
     width: '100%',
-    gap: 12,
+    gap: verticalScale(12),
   },
   fieldContainer: {
     width: '100%',
-    gap: 4,
+    gap: verticalScale(4),
   },
   fieldLabel: {
     ...theme.typography.styles.label,
-    paddingLeft: 8,
-  },
-  passwordRequirements: {
-    ...theme.typography.styles.caption,
-    textAlign: 'center',
-    marginTop: 10,
-    marginBottom: 20,
-    lineHeight: 16,
+    paddingLeft: scale(8),
   },
   errorText: {
     ...theme.typography.styles.bodySmall,
     color: palette.status.errorHover,
     textAlign: 'center',
-    marginTop: 10,
-    marginBottom: 10,
+    marginTop: verticalScale(10),
+    marginBottom: verticalScale(10),
   },
-  enterButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-    justifyContent: 'center',
-    marginTop: 20,
-  },
-  enterText: {
-    ...theme.typography.styles.button,
-    textShadowColor: textShadow.glow.color,                // Glow: #F0D4A8 · 30%
-    textShadowOffset: textShadow.glow.offset,              // X:0 Y:0
-    textShadowRadius: textShadow.glow.radius,              // Blur:10
-  },
-  backLink: {
-    marginTop: 20,
-  },
-  backLinkText: {
-    ...theme.typography.styles.body,
-    textAlign: 'center',
-  },
-  linkText: {
-    ...theme.typography.styles.linkLarge,
+
+  // Extra space above the Reset Password button so it sits clearly
+  // separated from the confirm-password input (formSection gap is 12;
+  // the button gets an additional 16 for visual breathing room).
+  submitButton: {
+    marginTop: verticalScale(16),
   },
 });
 
