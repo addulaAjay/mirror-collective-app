@@ -14,7 +14,6 @@ import {
   TouchableOpacity,
   TextInput,
   Dimensions,
-  KeyboardAvoidingView,
   Platform,
   Modal,
   Pressable,
@@ -26,6 +25,7 @@ import {
 import AudioRecorderPlayer from 'react-native-audio-recorder-player';
 import DocumentPicker from 'react-native-document-picker';
 import { launchImageLibrary } from 'react-native-image-picker';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Video from 'react-native-video';
@@ -528,6 +528,14 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
           backgroundColor="transparent"
         />
 
+        {/*
+          KeyboardAvoidingView from react-native-keyboard-controller is the
+          right primitive for an editor-style screen (a single tall input
+          that should fill available space). The library's KAV behaves like
+          stock's but uses the new RN keyboard APIs that don't lag/jitter.
+          KeyboardAwareScrollView would force everything into a scroll and
+          break the flex-fill layout — wrong tool here.
+        */}
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.kav}
@@ -979,6 +987,10 @@ const styles = StyleSheet.create({
     marginLeft: scale(spacing.xxs),
   },
   textInputShell: {
+    // flex: 1 lets the input fill all space between the title row and the
+    // bottom buttons — same height on iPhone SE as on Pro Max, just less
+    // of it. Overflow scrolls inside the TextInput itself when content
+    // exceeds the visible area.
     flex: 1,
     borderRadius: radius.s,
     borderWidth: borderWidth.thin,
