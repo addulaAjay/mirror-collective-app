@@ -74,6 +74,10 @@ interface Props {
   // Size
   size?: FieldSize;
   multiline?: boolean;
+  /** Max height for multiline fields — content scrolls within this bound */
+  maxHeight?: number;
+  /** Called when the inner TextInput receives focus */
+  onFocus?: () => void;
   testID?: string;
 }
 
@@ -98,6 +102,8 @@ const TextInputField = ({
   inputTextStyle,
   size,
   multiline,
+  maxHeight,
+  onFocus: onFocusProp,
   testID,
 }: Props) => {
   const [isFocused, setIsFocused] = useState(false);
@@ -163,14 +169,16 @@ const TextInputField = ({
           textContentType={textContentType}
           maxLength={maxLength}
           multiline={isMultiline}
+          scrollEnabled={isMultiline}
           style={[
             styles.input,
             { textAlign },
             isFocused ? styles.inputActive : styles.inputInactive,
             inputTextStyle === 'gold-regular' && styles.inputGoldRegular,
             isMultiline && styles.inputMultiline,
+            isMultiline && maxHeight ? { maxHeight } : undefined,
           ]}
-          onFocus={() => setIsFocused(true)}
+          onFocus={() => { setIsFocused(true); onFocusProp?.(); }}
           onBlur={() => setIsFocused(false)}
           testID={testID}
         />

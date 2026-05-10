@@ -45,6 +45,7 @@ import type { RootStackParamList } from '@types';
 import React, { useState } from 'react';
 import {
   Image,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -243,7 +244,7 @@ const NewEchoScreen: React.FC = () => {
               <View style={styles.dropdownWrap}>
                 <TouchableOpacity
                   activeOpacity={0.9}
-                  onPress={() => setCategoryOpen(o => !o)}
+                  onPress={() => { Keyboard.dismiss(); setCategoryOpen(o => !o); }}
                 >
                   <View style={[styles.dropdownShell, categoryOpen && styles.dropdownShellOpen]}>
                     <Text style={[styles.dropdownText, !category && styles.dropdownPlaceholder]}>

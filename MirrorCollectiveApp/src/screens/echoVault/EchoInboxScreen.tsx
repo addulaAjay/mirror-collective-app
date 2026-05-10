@@ -94,13 +94,19 @@ export function EchoInboxContent() {
       setLoading(true);
       setError(null);
       const response = await echoApiService.getInboxEchoes();
-      if (response.success && response.data) {
+      if (__DEV__) {
+        console.log('[EchoInbox] parsed response:', JSON.stringify(response));
+      }
+      if (response.success && Array.isArray(response.data)) {
         setEchoes(response.data);
+      } else if (response.success && response.data == null) {
+        // Endpoint exists but returned no data array — treat as empty
+        setEchoes([]);
       } else {
-        setError(response.error || 'Failed to load inbox');
+        setError(response.message || response.error || 'Failed to load inbox');
       }
     } catch (err: any) {
-      setError(`Failed to load inbox: ${err.message || ''}`);
+      setError(`Failed to load inbox: ${err.message || 'Unknown error'}`);
     } finally {
       setLoading(false);
     }
