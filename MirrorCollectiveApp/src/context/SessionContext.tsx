@@ -11,6 +11,7 @@ import React, {
 import { authApiService } from '@services/api';
 import { authEvents } from '@services/authEvents';
 import PushNotificationService from '@services/PushNotificationService';
+import { tokenManager } from '@services/tokenManager';
 
 // Types
 interface SessionState {
@@ -112,20 +113,21 @@ export const SessionProvider = ({ children }: SessionProviderProps) => {
 
         safeDispatch({ type: 'SET_LOADING', payload: true });
 
-        // Clear tokens on app start as per original logic
+        // Restore session from persisted tokens. tokenManager.isAuthenticated()
+        // will silently refresh an expired access token using the refresh token,
+        // so the user-perceived session lasts as long as Cognito's refresh
+        // token (default 30 days) instead of getting cleared on every cold start.
+        let restored = false;
         try {
-          await authApiService.clearTokens();
-          if (__DEV__) {
-            console.log('Cleared authentication tokens on app initialization');
-          }
+          restored = await tokenManager.isAuthenticated();
         } catch (error) {
           if (__DEV__) {
-            console.warn('Failed to clear tokens during initialization:', error);
+            console.warn('Session restore check failed:', error);
           }
         }
 
         if (!isMountedRef.current || !isInitializing) return;
-        safeDispatch({ type: 'LOGOUT_SUCCESS' });
+        safeDispatch({ type: restored ? 'LOGIN_SUCCESS' : 'LOGOUT_SUCCESS' });
       } catch (error) {
         console.error('Auth initialization error:', error);
         if (isMountedRef.current && isInitializing) {

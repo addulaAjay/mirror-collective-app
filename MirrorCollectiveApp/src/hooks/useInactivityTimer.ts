@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
 
-const INACTIVITY_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
+const INACTIVITY_TIMEOUT_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 interface UseInactivityTimerProps {
   isEnabled: boolean;
@@ -9,10 +9,10 @@ interface UseInactivityTimerProps {
 }
 
 /**
- * Tracks user inactivity and fires `onTimeout` after 5 minutes.
+ * Tracks user inactivity and fires `onTimeout` after 24 hours.
  * Covers two scenarios:
- *   1. No touch activity for 5 continuous minutes while app is in foreground.
- *   2. App returns to foreground after being backgrounded for 5+ minutes.
+ *   1. No touch activity for 24 continuous hours while app is in foreground.
+ *   2. App returns to foreground after being backgrounded for 24h+.
  *
  * Returns `resetTimer` — call this on every user touch to keep the session alive.
  */
