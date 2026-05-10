@@ -20,6 +20,8 @@
  */
 
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
   borderWidth,
   fontFamily,
@@ -32,11 +34,11 @@ import {
   spacing,
   verticalScale,
 } from '@theme';
-import React, { useCallback, useState } from 'react';
+import type { RootStackParamList } from '@types';
+import React, { useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
-  FlatList,
   Modal,
   Platform,
   StyleSheet,
@@ -46,7 +48,7 @@ import {
 } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 
-import { echoApiService, type EchoResponse, type Recipient } from '@services/api/echo';
+import { echoApiService, type EchoResponse } from '@services/api/echo';
 
 interface Props {
   echo: EchoResponse | null;
@@ -59,6 +61,8 @@ interface Props {
   onChanged: () => void | Promise<void>;
   onSent?: () => void;
 }
+
+type Nav = NativeStackNavigationProp<RootStackParamList>;
 
 // ── Visual: 3-dot vertical overflow icon ─────────────────────────────────────
 const OverflowIcon: React.FC = () => (
@@ -95,28 +99,13 @@ const ACTION_LABELS: Record<
 };
 
 const EchoActionsHeader: React.FC<Props> = ({ echo, onChanged, onSent }) => {
+  const navigation = useNavigation<Nav>();
   const [menuVisible, setMenuVisible] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [recipientPickerOpen, setRecipientPickerOpen] = useState(false);
-  const [recipients, setRecipients] = useState<Recipient[]>([]);
-  const [loadingRecipients, setLoadingRecipients] = useState(false);
-  const [pendingRecipient, setPendingRecipient] = useState<Recipient | null>(null);
   const [busy, setBusy] = useState(false);
 
   // Only DRAFT echoes get the overflow menu.
   const visible = echo?.status === 'DRAFT';
-
-  const refreshRecipients = useCallback(async () => {
-    setLoadingRecipients(true);
-    try {
-      const res = await echoApiService.getRecipients();
-      if (res.success && res.data) setRecipients(res.data);
-    } catch (e) {
-      // Fail soft: empty list, user can retry via close+reopen.
-    } finally {
-      setLoadingRecipients(false);
-    }
-  }, []);
 
   const runWithBusy = async <T,>(fn: () => Promise<T>): Promise<T | null> => {
     setBusy(true);
@@ -189,58 +178,19 @@ const EchoActionsHeader: React.FC<Props> = ({ echo, onChanged, onSent }) => {
     if (res?.success) await onChanged();
   };
 
-  const handleAddRecipient = async () => {
-    setMenuVisible(false);
-    await refreshRecipients();
-    setRecipientPickerOpen(true);
-  };
-
-  const handleRecipientPicked = (recipient: Recipient) => {
-    setPendingRecipient(recipient);
-    setRecipientPickerOpen(false);
+  /**
+   * Route the user to ChooseRecipientScreen in "send-later" mode so the
+   * recipient + lock-date picker is identical to the create flow. That screen
+   * handles the assignRecipient + (scheduleEcho | releaseEcho) calls itself
+   * and pops back to the top of the stack on success — no callback wiring
+   * needed here.
+   */
+  const handleAddRecipient = () => {
     if (!echo) return;
-    // Two follow-ups: send now or schedule for later.
-    Alert.alert(
-      `Send to ${recipient.name}?`,
-      'Choose how you want this echo to be delivered.',
-      [
-        { text: 'Cancel', style: 'cancel', onPress: () => setPendingRecipient(null) },
-        {
-          text: 'Schedule for later',
-          onPress: () => {
-            // Attach recipient first, then open date picker (no send yet).
-            (async () => {
-              const assignRes = await runWithBusy(() =>
-                echoApiService.assignRecipient(echo.echo_id, recipient.recipient_id),
-              );
-              if (assignRes?.success) {
-                await onChanged();
-                setShowDatePicker(true);
-              }
-              setPendingRecipient(null);
-            })();
-          },
-        },
-        {
-          text: 'Send now',
-          style: 'destructive',
-          onPress: () => {
-            (async () => {
-              const assignRes = await runWithBusy(() =>
-                echoApiService.assignRecipient(echo.echo_id, recipient.recipient_id),
-              );
-              if (!assignRes?.success) {
-                setPendingRecipient(null);
-                return;
-              }
-              const sendRes = await runWithBusy(() => echoApiService.releaseEcho(echo.echo_id));
-              setPendingRecipient(null);
-              if (sendRes?.success) onSent?.();
-            })();
-          },
-        },
-      ],
-    );
+    setMenuVisible(false);
+    navigation.navigate('ChooseRecipientScreen', {
+      sendLaterFor: { echoId: echo.echo_id, echoTitle: echo.title },
+    });
   };
 
   if (!visible || !echo) {
@@ -304,49 +254,6 @@ const EchoActionsHeader: React.FC<Props> = ({ echo, onChanged, onSent }) => {
         </TouchableOpacity>
       </Modal>
 
-      {/* Recipient picker modal */}
-      <Modal
-        visible={recipientPickerOpen}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setRecipientPickerOpen(false)}
-      >
-        <View style={styles.backdrop}>
-          <View style={styles.recipientCard}>
-            <Text style={styles.recipientTitle}>Choose a recipient</Text>
-            {loadingRecipients ? (
-              <ActivityIndicator size="small" color={palette.gold.DEFAULT} style={styles.recipientLoader} />
-            ) : recipients.length === 0 ? (
-              <Text style={styles.recipientEmpty}>
-                You haven't added any recipients yet. Add one from the Echo Vault first.
-              </Text>
-            ) : (
-              <FlatList
-                data={recipients}
-                keyExtractor={r => r.recipient_id}
-                renderItem={({ item }) => (
-                  <TouchableOpacity
-                    style={styles.recipientRow}
-                    onPress={() => handleRecipientPicked(item)}
-                    testID={`echo-recipient-${item.recipient_id}`}
-                  >
-                    <Text style={styles.recipientName} numberOfLines={1}>{item.name}</Text>
-                    <Text style={styles.recipientEmail} numberOfLines={1}>{item.email}</Text>
-                  </TouchableOpacity>
-                )}
-              />
-            )}
-            <TouchableOpacity
-              onPress={() => setRecipientPickerOpen(false)}
-              style={styles.recipientCancel}
-              testID="echo-recipient-cancel"
-            >
-              <Text style={styles.recipientCancelText}>Cancel</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-
       {/* Date picker — native modal on both platforms */}
       {showDatePicker && (
         <DateTimePicker
@@ -403,61 +310,6 @@ const styles = StyleSheet.create({
     fontWeight: fontWeight.regular,
     color: palette.gold.DEFAULT,
     textAlign: 'center',
-  },
-  recipientCard: {
-    width: '100%',
-    maxWidth: scale(360),
-    maxHeight: '70%',
-    backgroundColor: palette.navy.card,
-    borderRadius: radius.m,
-    borderWidth: borderWidth.thin,
-    borderColor: palette.navy.medium,
-    padding: scale(spacing.l),
-  },
-  recipientTitle: {
-    fontFamily: fontFamily.heading,
-    fontSize: moderateScale(fontSize.xl),
-    fontWeight: fontWeight.regular,
-    color: palette.gold.DEFAULT,
-    textAlign: 'center',
-    marginBottom: verticalScale(spacing.m),
-  },
-  recipientLoader: {
-    marginVertical: verticalScale(spacing.l),
-  },
-  recipientEmpty: {
-    fontFamily: fontFamily.body,
-    fontSize: moderateScale(fontSize.s),
-    color: palette.gold.subtlest,
-    textAlign: 'center',
-    paddingVertical: verticalScale(spacing.l),
-  },
-  recipientRow: {
-    paddingVertical: verticalScale(spacing.m),
-    borderBottomWidth: borderWidth.hairline,
-    borderBottomColor: palette.navy.medium,
-  },
-  recipientName: {
-    fontFamily: fontFamily.heading,
-    fontSize: moderateScale(fontSize.l),
-    fontWeight: '500',
-    color: palette.gold.subtlest,
-  },
-  recipientEmail: {
-    fontFamily: fontFamily.body,
-    fontSize: moderateScale(fontSize.s),
-    color: palette.navy.light,
-    marginTop: verticalScale(2),
-  },
-  recipientCancel: {
-    paddingVertical: verticalScale(spacing.m),
-    marginTop: verticalScale(spacing.s),
-    alignItems: 'center',
-  },
-  recipientCancelText: {
-    fontFamily: fontFamily.heading,
-    fontSize: moderateScale(fontSize.l),
-    color: palette.gold.DEFAULT,
   },
 });
 

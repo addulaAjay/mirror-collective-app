@@ -125,9 +125,21 @@ export type RootStackParamList = {
     unlockOnDeath?: boolean;
   };
   ChooseRecipientScreen: {
-    title: string;
-    category: string;
-    mode: 'text' | 'audio' | 'video';
+    // Create-flow fields (used when the screen is reached from the new-echo
+    // wizard). Optional now because the same screen is also reused in
+    // send-later mode (see `sendLaterFor` below) where they don't apply.
+    title?: string;
+    category?: string;
+    mode?: 'text' | 'audio' | 'video';
+    /**
+     * When set, the screen runs in "attach recipient to an existing echo"
+     * mode: hides the letter field and, on submit, calls assignRecipient
+     * + (releaseEcho | scheduleEcho) instead of navigating to compose.
+     * Used by the EchoActionsHeader "Send to recipient…" action on Saved
+     * echoes so the recipient + lock-date picker is consistent with the
+     * create flow.
+     */
+    sendLaterFor?: { echoId: string; echoTitle?: string };
   };
   AddNewProfileScreen: { mode?: 'recipient' | 'guardian' } | undefined;
   EchoDetailScreen: { echoId: string; title?: string; body?: string };
