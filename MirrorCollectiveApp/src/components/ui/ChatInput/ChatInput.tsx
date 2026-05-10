@@ -1,4 +1,4 @@
-import { theme, palette, spacing, shadows } from '@theme';
+import { theme, palette, spacing, shadows, moderateScale, scale } from '@theme';
 import React, { useState, useCallback } from 'react';
 import {
   Alert,
@@ -138,6 +138,20 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   );
 };
 
+// All sizes are derived from MAX_LINES + line-height + paddings so the math
+// stays correct on any device. Wrapped in moderateScale so accessibility
+// text scaling (Settings → Display → Text Size) and different screen
+// densities (iPhone SE → iPad) keep proportions intact.
+const FONT_SIZE = moderateScale(17);
+const LINE_HEIGHT = moderateScale(24);
+const INPUT_PADDING_V = moderateScale(8);
+const MAX_LINES = 6;
+// 6 visible lines + top/bottom padding. Italic Cormorant has long descenders,
+// so we add an extra `LINE_HEIGHT * 0.1` of slack to keep the cursor and
+// descenders of g/j/p/y/q on line 6 fully visible at the cap.
+const MAX_INPUT_HEIGHT =
+  LINE_HEIGHT * MAX_LINES + INPUT_PADDING_V * 2 + LINE_HEIGHT * 0.1;
+
 const styles = StyleSheet.create({
   // Container is a row that grows vertically with the multiline input.
   // alignItems: 'flex-end' anchors the icon and send buttons to the bottom
@@ -147,64 +161,65 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     borderRadius: spacing.s,
     paddingHorizontal: spacing.xxs,
-    paddingVertical: 6,
+    paddingVertical: moderateScale(6),
     marginTop: spacing.l,
     marginBottom: spacing.l,
     ...shadows.MEDIUM,
     borderColor: palette.navy.DEFAULT,
-    minHeight: 40,
+    minHeight: moderateScale(40),
   },
 
   iconButton: {
-    paddingLeft: 10,
+    paddingLeft: scale(10),
   },
 
   // Vertical padding so the icon sits on the input's last-line baseline
   // when the input grows multiline (icons stay anchored bottom-right).
+  // Matches input's paddingBottom so they share a baseline.
   iconButtonAnchor: {
-    paddingBottom: 8,
+    paddingBottom: INPUT_PADDING_V,
   },
 
   iconImage: {
-    width: 28,
-    height: 28,
+    width: moderateScale(28),
+    height: moderateScale(28),
     tintColor: 'rgba(186, 194, 207, 0.5)',
   },
 
   iconText: {
     ...theme.typography.styles.body,
     color: palette.navy.medium,
-    fontSize: 20,
-    height: 40,
+    fontSize: moderateScale(20),
+    height: moderateScale(40),
   },
 
-  // Multiline input grows up to maxHeight (~6 lines at 24 line-height),
-  // then internal scroll kicks in. paddingVertical is explicit so the
-  // first/last lines don't clip — RN's default multiline padding is
-  // miscalibrated for italic fonts. textAlignVertical defaults to 'top'
-  // (only safe value for a growing multiline; 'center' reflows on overflow
-  // and hides the latest typed line).
+  // Multiline input grows up to MAX_INPUT_HEIGHT (~6 lines), then internal
+  // scroll kicks in. paddingVertical is explicit so the first/last lines
+  // don't clip — RN's default multiline padding is miscalibrated for italic
+  // fonts. textAlignVertical defaults to 'top' (only safe value for a
+  // growing multiline; 'center' reflows on overflow and hides the latest
+  // typed line).
   input: {
     flex: 1,
     ...theme.typography.styles.input,
     color: palette.neutral.white,
     marginHorizontal: spacing.xs,
     fontFamily: 'CormorantGaramond-Italic',
-    fontSize: 17,
-    lineHeight: 24,
+    fontSize: FONT_SIZE,
+    lineHeight: LINE_HEIGHT,
     fontWeight: '400',
-    maxHeight: 144,
-    paddingTop: 8,
-    paddingBottom: 8,
+    maxHeight: MAX_INPUT_HEIGHT,
+    paddingTop: INPUT_PADDING_V,
+    paddingBottom: INPUT_PADDING_V,
   },
 
   sendButton: {
-    paddingRight: 20,
+    paddingRight: scale(20),
   },
 
   sendText: {
     ...theme.typography.styles.body,
-    fontSize: 30,
+    fontSize: moderateScale(30),
   },
 
   enabledText: {
@@ -215,8 +230,8 @@ const styles = StyleSheet.create({
     color: 'rgba(163, 179, 204, 0.50)',
     textAlign: 'center',
     fontFamily: 'CormorantGaramond-Italic',
-    fontSize: 17,
-    lineHeight: 24,
+    fontSize: FONT_SIZE,
+    lineHeight: LINE_HEIGHT,
     fontWeight: '400',
     opacity: 0.5,
   },
