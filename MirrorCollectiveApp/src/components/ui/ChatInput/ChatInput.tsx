@@ -189,11 +189,21 @@ const styles = StyleSheet.create({
 
   // Multiline input. Grows up to MAX_INPUT_HEIGHT (~6 lines + iOS's
   // built-in 16px text inset), then internal scroll engages.
+  //
+  // alignSelf: 'center' is critical: by default a flex child stretches
+  // on the cross-axis (vertical here), which on iOS multiline TextInput
+  // causes the text to sit at the top of the stretched box with empty
+  // space below. Setting alignSelf: 'center' makes the input only as
+  // tall as its content (single line = lineHeight) and vertically
+  // centers it in the row alongside the icons.
+  //
   // No paddingTop / paddingBottom — iOS's default textContainerInset
-  // provides the internal spacing. Setting them here doubled the top
-  // inset and pushed text visually below center.
+  // (top:8, bottom:8) provides the internal spacing. Setting them here
+  // would double the top inset (RN adds them to iOS's default rather
+  // than replacing).
   input: {
     flex: 1,
+    alignSelf: 'center',
     ...theme.typography.styles.input,
     color: palette.neutral.white,
     marginHorizontal: spacing.xs,
