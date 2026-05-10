@@ -1,12 +1,14 @@
 import { useNavigation } from '@react-navigation/native';
 import { theme, palette, spacing, shadows, textShadow } from '@theme';
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
+  Platform,
   type NativeSyntheticEvent,
+  type NativeScrollEvent,
   type TextInputContentSizeChangeEventData,
 } from 'react-native';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
@@ -40,16 +42,46 @@ export function MirrorChatContent() {
     }
   }, [greetingLoaded, initializeSession]);
 
-  // When the chat input grows (user typing multiline), the messages region
-  // shrinks. Re-anchor to the bottom so the latest message stays visible.
-  // Replaces the old Keyboard.addListener('keyboardDidShow', scrollToEnd)
-  // pattern — keyboard-controller handles keyboard offsets natively.
+  // Track whether the user is pinned to the bottom of the message list.
+  // Auto-scrolls (input growth, new messages, layout shifts) only fire when
+  // this is true — otherwise we'd yank a user out of their scrolled-back
+  // history view every time the input grows or the keyboard reopens.
+  const isAtBottomRef = useRef(true);
+
+  // Threshold (in pixels) below which we still consider "at the bottom" —
+  // covers small layout jitters and the 1–2px imprecision in scroll math.
+  const BOTTOM_THRESHOLD = 32;
+
+  const handleScroll = useCallback(
+    (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent;
+      const distanceFromBottom =
+        contentSize.height - (contentOffset.y + layoutMeasurement.height);
+      isAtBottomRef.current = distanceFromBottom <= BOTTOM_THRESHOLD;
+    },
+    [],
+  );
+
+  // When the chat input grows (user typing multiline) the messages region
+  // shrinks. Re-anchor to the bottom so the latest message stays visible —
+  // but ONLY if the user is already at the bottom. If they've scrolled up
+  // to read history, leave their scroll position alone.
   const handleInputContentSizeChange = useCallback(
     (_e: NativeSyntheticEvent<TextInputContentSizeChangeEventData>) => {
-      scrollViewRef.current?.scrollToEnd({ animated: false });
+      if (isAtBottomRef.current) {
+        scrollViewRef.current?.scrollToEnd({ animated: false });
+      }
     },
     [scrollViewRef],
   );
+
+  // Same gate for new-message auto-scroll: only follow when the user is
+  // already pinned to the bottom of the list.
+  const handleContentSizeChange = useCallback(() => {
+    if (isAtBottomRef.current) {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }
+  }, [scrollViewRef]);
 
   return (
     <BackgroundWrapper style={styles.background}>
@@ -86,11 +118,17 @@ export function MirrorChatContent() {
                   style={styles.messagesWrapper}
                   contentContainerStyle={styles.messagesContent}
                   keyboardShouldPersistTaps="handled"
-                  keyboardDismissMode="on-drag"
+                  // iOS gets the iMessage-style "drag down past the keyboard
+                  // top edge to dismiss" gesture. On Android `interactive`
+                  // isn't supported and `on-drag` dismissed too aggressively
+                  // (any scroll closed the keyboard) — `none` keeps the
+                  // keyboard open while scrolling history; user dismisses
+                  // by tapping outside or the keyboard's hide button.
+                  keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'none'}
                   showsVerticalScrollIndicator={false}
-                  onContentSizeChange={() =>
-                    scrollViewRef.current?.scrollToEnd({ animated: true })
-                  }
+                  onScroll={handleScroll}
+                  scrollEventThrottle={16}
+                  onContentSizeChange={handleContentSizeChange}
                 >
                   {messages.map(message => (
                     <MessageBubble key={message.id} message={message} />
