@@ -159,7 +159,7 @@ export function EchoLibraryContent() {
 
           {/* ── Title + Subtitle — fixed ─────────────────────────────── */}
           <View style={styles.titleGroup}>
-            <Text style={styles.title}>MY ECHO LIBRARY</Text>
+            <Text style={styles.title}>ECHO LIBRARY</Text>
             <Text style={styles.subtitle}>
               Preserve memories that matter most
             </Text>
@@ -272,13 +272,13 @@ export function EchoLibraryContent() {
             <Button
               variant="primary"
               size="L"
-              title={echoes.length === 0 ? 'CREATE ECHO' : 'CREATE AN ECHO'}
+              title='CREATE AN ECHO'
               onPress={() => navigation.navigate('NewEchoScreen')}
               style={styles.btn}
             />
             {echoes.length > 0 && (
               <Button
-                variant="primary"
+                variant="secondary"
                 size="L"
                 title="MANAGE RECIPIENTS"
                 onPress={() => navigation.navigate('ManageRecipientScreen')}
