@@ -515,6 +515,8 @@ exports[`Button structural snapshots link · L · default 1`] = `
           "fontWeight": "400",
           "includeFontPadding": false,
           "textAlign": "center",
+          "textDecorationColor": "#f2e2b1",
+          "textDecorationLine": "underline",
           "textShadowColor": "rgba(229, 214, 176, 0.5)",
           "textShadowOffset": {
             "height": 0,
@@ -567,6 +569,8 @@ exports[`Button structural snapshots link · L · disabled 1`] = `
           "fontWeight": "400",
           "includeFontPadding": false,
           "textAlign": "center",
+          "textDecorationColor": "#f2e2b1",
+          "textDecorationLine": "underline",
           "textShadowColor": "rgba(229, 214, 176, 0.5)",
           "textShadowOffset": {
             "height": 0,
@@ -616,6 +620,8 @@ exports[`Button structural snapshots link · S · default 1`] = `
           "fontWeight": "400",
           "includeFontPadding": false,
           "textAlign": "center",
+          "textDecorationColor": "#f2e2b1",
+          "textDecorationLine": "underline",
           "textShadowColor": "rgba(229, 214, 176, 0.5)",
           "textShadowOffset": {
             "height": 0,
@@ -668,6 +674,8 @@ exports[`Button structural snapshots link · S · disabled 1`] = `
           "fontWeight": "400",
           "includeFontPadding": false,
           "textAlign": "center",
+          "textDecorationColor": "#f2e2b1",
+          "textDecorationLine": "underline",
           "textShadowColor": "rgba(229, 214, 176, 0.5)",
           "textShadowOffset": {
             "height": 0,
