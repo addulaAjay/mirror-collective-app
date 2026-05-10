@@ -14,11 +14,23 @@ export interface CreateEchoRequest {
   unlock_on_death?: boolean; // If true, echo is released when creator dies (verified by guardian)
 }
 
+/**
+ * Authoritative echo lifecycle state, mirrored from the backend `EchoStatus`
+ * enum (src/app/models/echo.py).
+ *
+ * - DRAFT    — saved but not yet delivered. Recipient may be absent.
+ * - LOCKED   — guardian-flow lock; awaits guardian release.
+ * - RELEASED — delivered to recipient. Notification email sent.
+ */
+export type EchoStatus = 'DRAFT' | 'LOCKED' | 'RELEASED';
+
 export interface EchoResponse {
   echo_id: string;
   title: string;
   category: string;
   echo_type: 'TEXT' | 'AUDIO' | 'VIDEO';
+  /** Backend lifecycle state — use this (not date heuristics) to drive UI. */
+  status?: EchoStatus;
   created_at: string;
   media_url?: string;
   content?: string;
@@ -36,7 +48,19 @@ export interface EchoResponse {
     email: string;
     motif?: string;
   };
-  scheduled_at?: string; // ISO date string
+  /**
+   * User-chosen scheduled release timestamp (ISO 8601).
+   * On inbox echoes this is aliased from the backend `release_date` field.
+   * On vault echoes it's surfaced under the same name from PR 1 onwards.
+   */
+  release_date?: string;
+  /** Timestamp when the echo transitioned to LOCKED via the guardian flow. */
+  lock_date?: string;
+  /**
+   * @deprecated Use `release_date` — `scheduled_at` is the inbox-side alias.
+   * Kept for the EchoInboxScreen until PR 4 migrates it to `release_date`.
+   */
+  scheduled_at?: string;
 }
 
 
