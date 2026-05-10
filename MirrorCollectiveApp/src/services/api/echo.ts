@@ -103,13 +103,35 @@ export class EchoApiService extends BaseApiService {
   }
 
   async getInboxEchoes(): Promise<ApiResponse<EchoResponse[]>> {
-    const response = await this.makeRequest<EchoResponse[]>(
-      '/api/echoes/inbox',
-      'GET',
-      null,
-      true
-    );
-    return ApiErrorHandler.handleApiResponse(response, 'Inbox echoes retrieved');
+    let raw: any;
+    try {
+      raw = await this.makeRequest<any>('/api/echoes/inbox', 'GET', null, true);
+    } catch (err: any) {
+      // makeRequest throws on 5xx and network errors — always log so the cause
+      // is visible in Metro even before normalisation runs.
+      console.error('[EchoInbox] request failed:', err?.message, err?.status, err);
+      return {
+        success: false,
+        data: undefined,
+        message: err?.message || 'Network error loading inbox',
+        error: 'NetworkError',
+      };
+    }
+
+    console.log('[EchoInbox] raw response:', JSON.stringify(raw, null, 2));
+
+    // Normalise response shape — backend may return echoes under different keys.
+    const r = raw as any;
+    const echoes: EchoResponse[] | undefined =
+      Array.isArray(r.data)                  ? r.data :
+      Array.isArray(r.data?.echoes)          ? r.data.echoes :
+      Array.isArray(r.data?.received_echoes) ? r.data.received_echoes :
+      Array.isArray(r.echoes)                ? r.echoes :
+      Array.isArray(r.received_echoes)       ? r.received_echoes :
+      undefined;
+
+    const normalised = { ...raw, data: echoes };
+    return ApiErrorHandler.handleApiResponse<EchoResponse[]>(normalised, 'Inbox echoes retrieved');
   }
 
   async createEcho(data: CreateEchoRequest): Promise<ApiResponse<EchoResponse>> {

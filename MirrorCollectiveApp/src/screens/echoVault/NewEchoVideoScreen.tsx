@@ -1,7 +1,11 @@
+import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { palette, textShadow } from '@theme';
+import {
+  fontFamily, fontSize, palette, radius, spacing, textShadow,
+  scale, verticalScale, moderateScale, borderWidth,
+} from '@theme';
 import { RootStackParamList } from '@types';
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,238 +13,342 @@ import {
   StatusBar,
   TouchableOpacity,
   Image,
-  Dimensions,
-  Platform,
   Alert,
   Linking,
   ActivityIndicator,
 } from 'react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Camera } from 'react-native-vision-camera';
+import Video from 'react-native-video';
+import Svg, { Path } from 'react-native-svg';
+import {
+  Camera,
+  useCameraDevice,
+  useCameraPermission,
+  useMicrophonePermission,
+} from 'react-native-vision-camera';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
+import Button from '@components/Button/Button';
 import LogoHeader from '@components/LogoHeader';
-import StarIcon from '@components/StarIcon';
 import { echoApiService } from '@services/api';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'NewEchoVideoScreen'>;
 
-const { width } = Dimensions.get('window');
+type Mode = 'idle' | 'camera' | 'recording' | 'preview';
 
-const GOLD = palette.gold.mid;
-const OFFWHITE = 'rgba(253,253,249,0.92)';
+// Figma 4940:17503 — aspect ratio 345/507
+const VIDEO_ASPECT = 507 / 345;
+
+// Figma: videocam icon 40×40 inside the 80×80 button
+const VideocamIcon = ({ size = 40, color = palette.gold.DEFAULT }: { size?: number; color?: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
+    <Path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z" />
+  </Svg>
+);
 
 const NewEchoVideoScreen: React.FC<Props> = ({ navigation, route }) => {
-  const { recipientId, title: echoTitle, category } = route.params || {};
-  const [pickedVideo, setPickedVideo] = useState<{ uri: string; fileName: string; type: string } | null>(null);
+  const { recipientId, recipientName, title: echoTitle, category } = route.params || {};
+
+  const [mode, setMode] = useState<Mode>('idle');
   const [recordingUri, setRecordingUri] = useState<string | null>(null);
+  const [pickedVideo, setPickedVideo] = useState<{ uri: string; name: string; type: string } | null>(null);
+  const [recordingSeconds, setRecordingSeconds] = useState(0);
   const [saving, setSaving] = useState(false);
   const [isPicking, setIsPicking] = useState(false);
+  // True between "user tapped stop" and "onRecordingFinished/Error fires" —
+  // gives the user immediate visual feedback during the async file finalize step.
+  const [isStopping, setIsStopping] = useState(false);
+  // Tracks whether this screen currently owns the camera (focused). When false,
+  // the camera component releases its session even if mounted — releases the
+  // green indicator on iOS without unmounting.
+  const [isScreenFocused, setIsScreenFocused] = useState(true);
 
-  const camera = React.useRef<Camera>(null);
-  const contentWidth = Math.min(width * 0.88, 360);
+  const cameraRef = useRef<Camera>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  // Ref (not state) so stopRecording guards can read it synchronously without
+  // stale closures — avoids calling stopRecording() twice on the same session.
+  const isRecordingRef = useRef(false);
 
-  // Cleanup on unmount
-  React.useEffect(() => {
+  const { hasPermission: hasCam, requestPermission: requestCam } = useCameraPermission();
+  const { hasPermission: hasMic, requestPermission: requestMic } = useMicrophonePermission();
+  const device = useCameraDevice('back');
+
+  const pageTitle = recipientName ? `For ${recipientName}` : (echoTitle || 'Video Echo');
+  const hasVideo = !!(recordingUri || pickedVideo);
+  // Camera should only be ACTIVE during camera/recording modes AND when the
+  // screen is focused. Setting isActive=false on a mounted Camera is the
+  // proper Vision Camera v4 way to release the AVCaptureSession (and the
+  // green privacy indicator on iOS) without abrupt unmounting.
+  const isCameraActive = isScreenFocused && (mode === 'camera' || mode === 'recording');
+
+  // Cleanup on UNMOUNT only — [] avoids the stale-closure bug where a
+  // mode-change re-runs the cleanup and calls stopRecording() on an already-
+  // finished session.
+  useEffect(() => {
     return () => {
-      // VisionCamera: ensuring recording stops if active
-      // We don't have a direct reference to stop here easily without a flag,
-      // but the camera ref is available.
-      if (camera.current) {
-        camera.current.stopRecording().catch(() => {});
+      if (timerRef.current) clearInterval(timerRef.current);
+      if (isRecordingRef.current) {
+        cameraRef.current?.stopRecording().catch(() => {});
       }
     };
   }, []);
 
-  const checkAndRequestPermissions = async () => {
-    const cameraPermission = await Camera.getCameraPermissionStatus();
-    const microphonePermission = await Camera.getMicrophonePermissionStatus();
+  // When the screen loses focus, deactivate the camera so the iOS green
+  // indicator goes off, and stop any in-flight recording.
+  useFocusEffect(
+    useCallback(() => {
+      setIsScreenFocused(true);
+      return () => {
+        setIsScreenFocused(false);
+        if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
+        if (isRecordingRef.current) {
+          cameraRef.current?.stopRecording().catch(() => {});
+        }
+      };
+    }, []),
+  );
 
-    if (cameraPermission === 'denied' || microphonePermission === 'denied') {
+  const ensurePermissions = useCallback(async (): Promise<boolean> => {
+    let cam = hasCam;
+    let mic = hasMic;
+    if (!cam) cam = (await requestCam()) === true;
+    if (!mic) mic = (await requestMic()) === true;
+    if (!cam || !mic) {
       Alert.alert(
         'Permission Required',
-        'Camera and Microphone permissions are needed to record video. Please enable them in your settings.',
+        'Camera and microphone access are needed to record video.',
         [
           { text: 'Cancel', style: 'cancel' },
           { text: 'Open Settings', onPress: () => Linking.openSettings() },
-        ]
+        ],
       );
       return false;
     }
+    return true;
+  }, [hasCam, hasMic, requestCam, requestMic]);
 
-    if (cameraPermission === 'not-determined') {
-      await Camera.requestCameraPermission();
-    }
-    if (microphonePermission === 'not-determined') {
-      await Camera.requestMicrophonePermission();
-    }
-
-    const finalCameraStatus = await Camera.getCameraPermissionStatus();
-    const finalMicStatus = await Camera.getMicrophonePermissionStatus();
-
-    return finalCameraStatus === 'granted' && finalMicStatus === 'granted';
-  };
-
-  const onRecordPress = async () => {
-    if (pickedVideo) {
+  const handleCameraButtonPress = useCallback(async () => {
+    if (mode === 'idle' || mode === 'preview') {
+      const ok = await ensurePermissions();
+      if (!ok) return;
+      setRecordingUri(null);
       setPickedVideo(null);
-    }
-    const hasPermission = await checkAndRequestPermissions();
-    if (!hasPermission) return;
-    // Proceed with recording logic
-  };
+      setRecordingSeconds(0);
+      setMode('camera');
 
-  const onUploadPress = async () => {
+    } else if (mode === 'camera') {
+      if (!cameraRef.current || isRecordingRef.current) return;
+      // Camera ref exists but the session may still be initialising — give it a beat
+      isRecordingRef.current = true;
+      setRecordingSeconds(0);
+      setMode('recording');
+      timerRef.current = setInterval(() => setRecordingSeconds(s => s + 1), 1000);
+
+      cameraRef.current.startRecording({
+        onRecordingFinished: video => {
+          isRecordingRef.current = false;
+          if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
+          setIsStopping(false);
+          setRecordingUri(video.path.startsWith('file://') ? video.path : `file://${video.path}`);
+          setMode('preview');
+        },
+        onRecordingError: err => {
+          isRecordingRef.current = false;
+          if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
+          setIsStopping(false);
+          console.error('Recording error:', err);
+          Alert.alert('Recording Error', err.message || 'Recording failed. Please try again.');
+          setMode('camera');
+        },
+      });
+
+    } else if (mode === 'recording') {
+      // Guard: only call stopRecording once per session
+      if (!isRecordingRef.current || isStopping) return;
+      // Immediately reflect "stopping" state in the UI so the user sees their
+      // tap registered. The actual mode→preview transition happens later when
+      // onRecordingFinished fires.
+      setIsStopping(true);
+      if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
+      // Do NOT set isRecordingRef.current = false here — wait for the
+      // onRecordingFinished / onRecordingError callback to confirm the session ended.
+      await cameraRef.current?.stopRecording();
+    }
+  }, [mode, ensurePermissions, isStopping]);
+
+  const handleUpload = useCallback(async () => {
     if (isPicking) return;
     try {
       setIsPicking(true);
-      const result = await launchImageLibrary({
-        mediaType: 'video',
-        quality: 1,
-      });
-
-      if (result.assets && result.assets.length > 0) {
-        const asset = result.assets[0];
-        setPickedVideo({
-          uri: asset.uri || '',
-          fileName: asset.fileName || 'video_echo.mp4',
-          type: asset.type || 'video/mp4',
-        });
+      const result = await launchImageLibrary({ mediaType: 'video', quality: 1 });
+      if (result.assets?.[0]) {
+        const a = result.assets[0];
+        setPickedVideo({ uri: a.uri ?? '', name: a.fileName ?? 'video.mp4', type: a.type ?? 'video/mp4' });
+        setRecordingUri(null);
+        setMode('preview');
       }
-    } catch (err) {
-      console.error('Pick error:', err);
+    } catch {
       Alert.alert('Error', 'Failed to pick video');
     } finally {
       setIsPicking(false);
     }
-  };
+  }, [isPicking]);
 
-  const onSave = async () => {
-    if (!pickedVideo && !recordingUri) {
+  const handleSave = useCallback(async () => {
+    const uri = pickedVideo?.uri ?? recordingUri;
+    const contentType = pickedVideo?.type ?? 'video/mp4';
+    if (!uri) {
       Alert.alert('Nothing to save', 'Please record or upload a video first.');
       return;
     }
-
     try {
       setSaving(true);
-      
-      // 1. Create Echo
-      const createResponse = await echoApiService.createEcho({
+      const createRes = await echoApiService.createEcho({
         title: echoTitle || 'Untitled Video Echo',
         category: category || 'General',
         echo_type: 'VIDEO',
         recipient_id: recipientId,
       });
-
-      if (!createResponse.success || !createResponse.data) {
-        throw new Error('Failed to create echo');
+      if (!createRes.success || !createRes.data) throw new Error('Failed to create echo');
+      const uploadRes = await echoApiService.getUploadUrl(contentType, createRes.data.echo_id);
+      if (uploadRes.success && uploadRes.data) {
+        await echoApiService.uploadMedia(uploadRes.data.upload_url, uri, contentType);
+        await echoApiService.updateEcho(createRes.data.echo_id, { media_url: uploadRes.data.media_url });
       }
-      const echoId = createResponse.data.echo_id;
-
-      // 2. Upload Video
-      const uri = pickedVideo ? pickedVideo.uri : recordingUri;
-      const contentType = pickedVideo ? pickedVideo.type : 'video/mp4';
-
-      if (uri) {
-        const uploadUrlResponse = await echoApiService.getUploadUrl(contentType, echoId);
-        if (uploadUrlResponse.success && uploadUrlResponse.data) {
-          await echoApiService.uploadMedia(
-            uploadUrlResponse.data.upload_url,
-            uri,
-            contentType
-          );
-          await echoApiService.updateEcho(echoId, {
-            media_url: uploadUrlResponse.data.media_url,
-          });
-        }
-      }
-
-      Alert.alert('Success', 'Echo saved successfully');
+      Alert.alert('Saved', 'Echo saved successfully');
       navigation.navigate('MirrorEchoVaultHome');
-    } catch (err) {
-      console.error(err);
-      Alert.alert('Error', 'Failed to save Echo');
+    } catch {
+      Alert.alert('Error', 'Failed to save echo');
     } finally {
       setSaving(false);
     }
-  };
+  }, [pickedVideo, recordingUri, echoTitle, category, recipientId, navigation]);
+
+  const formatTime = (s: number) =>
+    `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
 
   return (
     <BackgroundWrapper style={styles.root}>
       <SafeAreaView style={styles.safe}>
-        <StatusBar
-          barStyle="light-content"
-          translucent
-          backgroundColor="transparent"
-        />
-
-        {/* Header */}
+        <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
         <LogoHeader navigation={navigation} />
 
-        {/* Title Row */}
-        <View style={[styles.titleRow, { width: contentWidth }]}>
-          <TouchableOpacity 
-            hitSlop={12}
-            onPress={() => navigation.goBack()}
-            style={styles.backBtn}
-          >
-            <Image source={require('@assets/back-arrow.png')} style={styles.backArrowImg} resizeMode="contain" />
-          </TouchableOpacity>
- 
-          <Text style={styles.title}>For Alia</Text>
- 
-          <View style={{ width: 44 }} />
-        </View>
+        {/* Outer column — Figma 4940:17498: flex-col justify-between */}
+        <View style={styles.outerColumn}>
 
-        {/* Video Box */}
-        <View style={[styles.videoOuter, { width: contentWidth }]}>
-          <View style={styles.videoInner}>
-            {pickedVideo ? (
-              <View style={styles.pickedContainer}>
-                <Text style={styles.pickedIcon}>🎬</Text>
-                <Text style={styles.pickedName} numberOfLines={1}>{pickedVideo.fileName}</Text>
-                <TouchableOpacity onPress={() => setPickedVideo(null)}>
-                  <Text style={styles.removeText}>Remove</Text>
-                </TouchableOpacity>
-              </View>
-            ) : (
-              <TouchableOpacity 
-                activeOpacity={0.8}
-                onPress={onRecordPress}
-                style={styles.videoButtonGlow}
-              >
-                <View style={styles.videoButton}>
-                  <Text style={styles.videoIcon}>📹</Text>
-                </View>
-              </TouchableOpacity>
-            )}
+          {/* Title row — Figma 4940:17499 */}
+          <View style={styles.titleRow}>
+            <TouchableOpacity
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              onPress={() => navigation.goBack()}
+              style={styles.titleSpacer}
+            >
+              <Image
+                source={require('@assets/back-arrow.png')}
+                style={styles.backArrow}
+                resizeMode="contain"
+              />
+            </TouchableOpacity>
+            <Text style={styles.title}>{pageTitle}</Text>
+            <View style={styles.titleSpacer} />
           </View>
+
+          {/* Video box — Figma 4940:17503 */}
+          <View style={styles.videoOuter}>
+            {/* Inner dark area — Figma 4940:17504 */}
+            <View style={styles.videoInner}>
+
+              {/* Camera live preview — UNMOUNT entirely when not in camera /
+                  recording mode (or when screen is not focused). Just setting
+                  isActive=false leaves the AVCaptureSession alive on iOS and
+                  the green privacy indicator stays on. Full unmount tears
+                  down the session and turns the indicator off. */}
+              {device && isCameraActive ? (
+                <Camera
+                  ref={cameraRef}
+                  style={StyleSheet.absoluteFill}
+                  device={device}
+                  isActive={true}
+                  video
+                  audio
+                />
+              ) : null}
+
+              {/* Recorded video preview */}
+              {mode === 'preview' && recordingUri ? (
+                <Video
+                  source={{ uri: recordingUri }}
+                  style={StyleSheet.absoluteFill}
+                  resizeMode="cover"
+                  repeat
+                  muted
+                />
+              ) : null}
+
+              {/* Picked from gallery label */}
+              {mode === 'preview' && pickedVideo ? (
+                <View style={styles.pickedOverlay}>
+                  <Text style={styles.pickedIcon}>🎬</Text>
+                  <Text style={styles.pickedName} numberOfLines={2}>{pickedVideo.name}</Text>
+                </View>
+              ) : null}
+
+              {/* Recording timer overlay */}
+              {mode === 'recording' && !isStopping ? (
+                <View style={styles.timerBadge}>
+                  <View style={styles.recDot} />
+                  <Text style={styles.timerText}>{formatTime(recordingSeconds)}</Text>
+                </View>
+              ) : null}
+
+              {/* Camera button — Figma: 80×80 circle, bottom center, gold glow.
+                  Same single button across all states; only the icon inside
+                  changes — no extra UI added. The in-place spinner during
+                  the stop transition prevents the icon from briefly
+                  "disappearing" while the file finalizes. */}
+              <TouchableOpacity
+                style={styles.cameraBtn}
+                activeOpacity={0.85}
+                onPress={handleCameraButtonPress}
+                disabled={isStopping}
+              >
+                {isStopping ? (
+                  /* Stopping in progress — spinner inside the existing button */
+                  <ActivityIndicator size="small" color={palette.gold.DEFAULT} />
+                ) : mode === 'recording' ? (
+                  /* Stop: red square */
+                  <View style={styles.stopSquare} />
+                ) : (
+                  /* idle / camera / preview — same gold videocam icon as Figma */
+                  <VideocamIcon size={scale(40)} color={palette.gold.DEFAULT} />
+                )}
+              </TouchableOpacity>
+
+            </View>
+          </View>
+
+          {/* Buttons — Figma 4940:17506: w-278, gap-16, justify-center */}
+          <View style={styles.btnRow}>
+            <Button
+              variant="secondary"
+              size="L"
+              title={isPicking ? '...' : 'UPLOAD'}
+              onPress={handleUpload}
+              disabled={isPicking}
+              style={styles.uploadBtn}
+            />
+            <Button
+              variant="primary"
+              size="L"
+              title={saving ? '...' : 'SAVE'}
+              onPress={handleSave}
+              disabled={saving || !hasVideo}
+              style={styles.saveBtn}
+            />
+          </View>
+
         </View>
-
-        {/* Upload Button */}
-        {!pickedVideo && (
-          <TouchableOpacity style={[styles.uploadPill, { width: contentWidth * 0.6 }]} onPress={onUploadPress}>
-            <Text style={styles.uploadPillText}>UPLOAD FROM GALLERY</Text>
-          </TouchableOpacity>
-        )}
-
-        {/* Save */}
-        <TouchableOpacity 
-          style={styles.saveAction} 
-          onPress={onSave}
-          disabled={saving}
-        >
-          {saving ? (
-            <ActivityIndicator color={GOLD} />
-          ) : (
-            <>
-              <StarIcon width={24} height={24} color={GOLD} />
-              <Text style={styles.saveActionText}>SAVE</Text>
-              <StarIcon width={24} height={24} color={GOLD} />
-            </>
-          )}
-        </TouchableOpacity>
       </SafeAreaView>
     </BackgroundWrapper>
   );
@@ -248,189 +356,157 @@ const NewEchoVideoScreen: React.FC<Props> = ({ navigation, route }) => {
 
 export default NewEchoVideoScreen;
 
-/* ---------------- STYLES ---------------- */
-
+/* ── Styles ── */
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: 'transparent',
-    alignItems: 'center',
-  },
-  root: {
-    flex: 1,
-    alignItems: 'center',
-  },
+  root: { flex: 1 },
+  safe: { flex: 1, backgroundColor: 'transparent' },
 
-  /* Header */
-  header: {
-    height: 56,
-    flexDirection: 'row',
-    alignItems: 'center',
+  // Figma 4940:17498 — flex-col justify-between, padding 24h
+  outerColumn: {
+    flex: 1,
+    paddingHorizontal: scale(spacing.xl),   // 24px
+    paddingTop: verticalScale(spacing.m),   // 16px gap after LogoHeader
+    paddingBottom: verticalScale(spacing.xl),
     justifyContent: 'space-between',
   },
-  iconBtn: {
-    width: 44,
-    height: 44,
-    justifyContent: 'center',
-  },
-  iconText: {
-    color: OFFWHITE,
-    fontSize: 22,
-  },
-  brand: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  logoCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: GOLD,
-  },
-  brandSmall: {
-    color: GOLD,
-    fontSize: 10,
-    letterSpacing: 1,
-  },
-  brandText: {
-    color: GOLD,
-    fontSize: 12,
-    letterSpacing: 2,
-    lineHeight: 14,
-  },
 
-  /* Title */
+  // Figma 4940:17499 — title row
   titleRow: {
-    marginTop: 20,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+  },
+  titleSpacer: {
+    width: scale(20),
+    height: scale(20),
+    justifyContent: 'center',
   },
   backArrow: {
-    fontSize: 22,
-    color: GOLD,
+    width: scale(20),
+    height: scale(20),
+    tintColor: palette.gold.DEFAULT,
   },
+  // Figma: Heading M Cormorant 28px, #f2e1b0, text-shadow glow
   title: {
-    fontSize: 28,
-    color: GOLD,
-    letterSpacing: 2,
-    fontFamily: Platform.select({
-      ios: 'CormorantGaramond-Regular',
-      android: 'serif',
-    }),
-  },
-  backBtn: {
-    width: 44,
-    height: 44,
-    justifyContent: 'center',
-    alignItems: 'flex-start',
-  },
-  backIcon: {
-    color: GOLD,
-    fontSize: 30,
-  },
-  backArrowImg: {
-    width: 20,
-    height: 20,
-    tintColor: GOLD,
-  },
- 
-  /* Video box */
-  videoOuter: {
-    marginTop: 20,
-    borderRadius: 22,
-    padding: 1,
-    borderWidth: 1,
-    borderColor: 'rgba(253,253,249,0.12)',
-  },
-  videoInner: {
-    height: Math.min(420, Dimensions.get('window').width * 1.05),
-    borderRadius: 21,
-    backgroundColor: 'rgba(7,9,14,0.45)',
-    alignItems: 'center',
-    justifyContent: 'center', // Centered for picked view, using specialized padding for button
-    paddingBottom: 0,
-  },
-  pickedContainer: {
-    alignItems: 'center',
-    gap: 12,
-  },
-  pickedIcon: {
-    fontSize: 56,
-  },
-  pickedName: {
-    color: OFFWHITE,
-    fontSize: 16,
+    fontFamily: fontFamily.heading,
+    fontSize: moderateScale(fontSize['2xl']),  // 28px
+    lineHeight: moderateScale(32),
+    color: palette.gold.DEFAULT,
+    textShadowColor: 'rgba(240,212,168,0.3)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 10,
     textAlign: 'center',
-    paddingHorizontal: 20,
+    flex: 1,
   },
-  removeText: {
-    color: palette.status.errorHover,
-    fontSize: 14,
-    textDecorationLine: 'underline',
-    marginTop: 8,
+
+  // Figma 4940:17503 — aspect 345/507, border 0.2px #bfc7d9, radius 8, glow, bg, padding 8
+  videoOuter: {
+    width: '100%',
+    aspectRatio: 345 / 507,
+    borderRadius: radius.xs ?? 8,
+    borderWidth: 0.2,
+    borderColor: '#bfc7d9',
+    backgroundColor: 'rgba(197,158,95,0.05)',
+    padding: scale(spacing.xs),               // 8px inner padding
+    shadowColor: 'rgba(229,214,176,1)',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 6,
   },
-  uploadPill: {
-    marginTop: 20,
-    paddingVertical: 12,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: 'rgba(215,192,138,0.3)',
-    backgroundColor: 'rgba(253,253,249,0.05)',
+
+  // Figma 4940:17504 — inner dark area, border 0.5px #1a2238, radius 8, bg, items-end justify-center, py-16
+  videoInner: {
+    flex: 1,
+    borderRadius: 6,
+    borderWidth: borderWidth.thin,             // 0.5px
+    borderColor: palette.navy.deep,            // #1a2238
+    backgroundColor: 'rgba(163,179,204,0.05)',
+    overflow: 'hidden',
     alignItems: 'center',
+    justifyContent: 'flex-end',
+    paddingBottom: verticalScale(spacing.m),   // 16px
   },
-  uploadPillText: {
-    color: GOLD,
-    fontSize: 13,
-    letterSpacing: 1.2,
-    fontFamily: Platform.select({
-      ios: 'CormorantGaramond-Regular',
-      android: 'serif',
-    }),
-  },
- 
-  /* Video button */
-  videoButtonGlow: {
-    width: 76,
-    height: 76,
-    borderRadius: 38,
-    backgroundColor: 'rgba(215,192,138,0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  videoButton: {
-    width: 58,
-    height: 58,
-    borderRadius: 29,
-    backgroundColor: 'rgba(7,9,14,0.8)',
+
+  // Picked gallery overlay
+  pickedOverlay: {
+    ...StyleSheet.absoluteFillObject,
     alignItems: 'center',
     justifyContent: 'center',
+    gap: scale(12),
+    backgroundColor: 'rgba(7,9,14,0.7)',
   },
-  videoIcon: {
-    fontSize: 22,
-    color: GOLD,
+  pickedIcon: { fontSize: 48 },
+  pickedName: {
+    color: 'rgba(253,253,249,0.9)',
+    fontSize: moderateScale(14),
+    textAlign: 'center',
+    paddingHorizontal: scale(20),
   },
- 
-  /* Save action */
-  saveAction: {
+
+  // Recording timer — top-left overlay
+  timerBadge: {
+    position: 'absolute',
+    top: scale(12),
+    left: scale(12),
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
-    justifyContent: 'center',
-    marginTop: 32,
-    marginBottom: 20,
+    gap: scale(6),
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    borderRadius: scale(10),
+    paddingHorizontal: scale(8),
+    paddingVertical: scale(4),
   },
-  saveActionText: {
-    color: GOLD,
-    fontSize: 24,
-    fontFamily: Platform.select({
-      ios: 'CormorantGaramond-Regular',
-      android: 'serif',
-    }),
-    textShadowColor: textShadow.warmGlow.color,
-    textShadowOffset: textShadow.warmGlow.offset,
-    textShadowRadius: textShadow.warmGlow.radius,
-    letterSpacing: 2,
+  recDot: {
+    width: scale(8),
+    height: scale(8),
+    borderRadius: scale(4),
+    backgroundColor: '#ff3b30',
+  },
+  timerText: {
+    color: '#fff',
+    fontSize: moderateScale(13),
+    fontFamily: 'Courier',
+  },
+
+  // Figma: Component "Variant4" — 80×80 circle, bg rgba(253,253,249,0.05),
+  // shadow 0 0 24px rgba(242,226,177,0.5) spread 8, padding 24px
+  cameraBtn: {
+    width: scale(80),
+    height: scale(80),
+    borderRadius: scale(40),
+    backgroundColor: 'rgba(253,253,249,0.05)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    // Glow shadow
+    shadowColor: 'rgba(242,226,177,1)',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: scale(24),
+    elevation: 8,
+    boxShadow: `0px 0px ${scale(24)}px ${scale(8)}px rgba(242,226,177,0.5)`,
+  },
+
+  // Stop recording — red square inside camera button
+  stopSquare: {
+    width: scale(24),
+    height: scale(24),
+    borderRadius: scale(4),
+    backgroundColor: '#ff3b30',
+  },
+
+  // Figma 4940:17506 — w-278, gap-16, justify-center
+  btnRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: scale(spacing.m),                     // 16px
+    width: scale(278),
+    alignSelf: 'center',
+  },
+  uploadBtn: {
+    flex: 1,
+  },
+  saveBtn: {
+    width: scale(123),
   },
 });

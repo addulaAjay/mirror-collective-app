@@ -42,7 +42,7 @@ import {
   verticalScale,
 } from '@theme';
 import type { RootStackParamList } from '@types';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
@@ -58,6 +58,7 @@ import {
   type TextStyle,
   type ViewStyle,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 
@@ -83,6 +84,10 @@ const BackIcon: React.FC = () => (
 const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
   const { title, category, mode } = route.params;
 
+  const { top: topInset } = useSafeAreaInsets();
+  const scrollViewRef = useRef<ScrollView>(null);
+  const letterFieldRef = useRef<View>(null);
+
   const [recipients, setRecipients] = useState<Recipient[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedRecipient, setSelectedRecipient] = useState<Recipient | null>(null);
@@ -90,6 +95,17 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
   const [lockDate, setLockDate] = useState<Date | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [notes, setNotes] = useState('');
+
+  // Scroll the letter field into view when it receives focus
+  const scrollToLetterField = useCallback(() => {
+    setTimeout(() => {
+      letterFieldRef.current?.measureLayout(
+        scrollViewRef.current as any,
+        (_x, y) => scrollViewRef.current?.scrollTo({ y, animated: true }),
+        () => scrollViewRef.current?.scrollToEnd({ animated: true }),
+      );
+    }, 100);
+  }, []);
 
   const fetchRecipients = useCallback(async () => {
     try {
@@ -141,14 +157,19 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
 
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          // Offset = safe area top inset + LogoHeader (~60px) so iOS calculates
+          // the correct padding to keep the focused field above the keyboard.
+          keyboardVerticalOffset={topInset + 60}
           style={styles.kav}
         >
           <ScrollView
+            ref={scrollViewRef}
             style={styles.scroll}
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode="on-drag"
+            automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}
           >
             <View style={styles.content}>
 
@@ -293,7 +314,7 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
               </View>
 
               {/* ── Letter to Recipient ───────────────────────────────── */}
-              <View style={styles.fieldGroup}>
+              <View ref={letterFieldRef} style={styles.fieldGroup}>
                 <TextInputField
                   label="Letter to Recipient"
                   placeholder="Write notes here"
@@ -301,6 +322,8 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
                   onChangeText={setNotes}
                   size="L"
                   multiline
+                  maxHeight={verticalScale(160)}
+                  onFocus={scrollToLetterField}
                 />
               </View>
 

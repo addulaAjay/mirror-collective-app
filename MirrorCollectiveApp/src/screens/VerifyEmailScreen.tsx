@@ -17,6 +17,8 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Alert,
+  KeyboardAvoidingView,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -197,6 +199,10 @@ const VerifyEmailScreen = () => {
       <SafeAreaView style={styles.safe}>
         <LogoHeader />
 
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.kav}
+        >
         <View style={styles.contentContainer}>
           {/* Main Content */}
           <View style={styles.messageContainer}>
@@ -291,6 +297,7 @@ const VerifyEmailScreen = () => {
             </Pressable>
           </View>
         </View>
+        </KeyboardAvoidingView>
       </SafeAreaView>
     </BackgroundWrapper>
   );
@@ -303,6 +310,10 @@ const styles = StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: 'transparent',
+    width: '100%',
+  },
+  kav: {
+    flex: 1,
     width: '100%',
   },
   contentContainer: {

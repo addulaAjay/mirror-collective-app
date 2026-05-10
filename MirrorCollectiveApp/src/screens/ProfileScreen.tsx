@@ -20,6 +20,8 @@ import {
   Alert,
   Image,
   Keyboard,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -147,11 +149,16 @@ const ProfileScreen: React.FC = () => {
     <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage}>
       <SafeAreaView style={styles.safe}>
         <LogoHeader />
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.kav}
+        >
         <ScrollView
           style={styles.scroll}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
         >
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <View style={styles.inner}>
@@ -247,6 +254,7 @@ const ProfileScreen: React.FC = () => {
             </View>
           </TouchableWithoutFeedback>
         </ScrollView>
+        </KeyboardAvoidingView>
       </SafeAreaView>
     </BackgroundWrapper>
   );
@@ -254,7 +262,7 @@ const ProfileScreen: React.FC = () => {
 
 const styles = StyleSheet.create<{
   bg: ViewStyle; bgImage: ImageStyle; safe: ViewStyle;
-  scroll: ViewStyle; scrollContent: ViewStyle; inner: ViewStyle;
+  kav: ViewStyle; scroll: ViewStyle; scrollContent: ViewStyle; inner: ViewStyle;
   titleRow: ViewStyle; backBtn: ViewStyle; title: TextStyle;
   subtitle: TextStyle; avatarRing: ViewStyle;
   avatarImage: ImageStyle; avatarPlaceholder: TextStyle;
@@ -263,6 +271,7 @@ const styles = StyleSheet.create<{
   bg:   { flex: 1, backgroundColor: palette.navy.deep },
   bgImage: { resizeMode: 'cover' },
   safe: { flex: 1, backgroundColor: 'transparent' },
+  kav:  { flex: 1 },
   scroll: { flex: 1 },
   scrollContent: {
     paddingHorizontal: scale(spacing.xl),
