@@ -74,12 +74,36 @@ export const useInAppPurchase = () => {
 
             if (receipt) {
               try {
+                // Resolve the canonical identifier for backend idempotency.
+                // On iOS: `originalTransactionIdentifierIOS` is the
+                // StoreKit-canonical id and stays constant across
+                // renewals — exactly what we want as the dedupe key.
+                // It's only undefined for non-StoreKit purchases.
+                // On Android: react-native-iap exposes the orderId via
+                // `transactionId`; the field doesn't change semantics
+                // between purchase and renewal the same way it does on iOS.
+                const originalTransactionId =
+                  (Platform.OS === 'ios'
+                    ? (purchase as any).originalTransactionIdentifierIOS
+                    : undefined) ?? purchase.transactionId;
+
+                if (!originalTransactionId) {
+                  // No usable id from the SDK. Don't fabricate one —
+                  // a productId-as-transaction-id (the old fallback)
+                  // would 404 against Apple's API and surface a
+                  // misleading "Purchase Failed" alert.
+                  throw new Error(
+                    'Purchase succeeded but the platform did not return a transaction id. Please tap "Restore Purchase" or contact support.',
+                  );
+                }
+
                 // Verify purchase with backend
                 const result = await subscriptionApiService.verifyPurchase({
                   platform: Platform.OS as 'ios' | 'android',
                   receipt_data: receipt,
                   product_id: purchase.productId,
-                  transaction_id: purchase.transactionId || purchase.productId,
+                  original_transaction_id: originalTransactionId,
+                  transaction_id: purchase.transactionId || originalTransactionId,
                 });
 
                 if (result.success) {

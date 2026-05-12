@@ -26,6 +26,20 @@ interface VerifyPurchaseRequest {
   platform: 'ios' | 'android';
   receipt_data: string;
   product_id: string;
+  /**
+   * Apple's `originalTransactionId` (iOS) or Google's order base
+   * (Android). This is the stable identifier — for iOS renewals the
+   * `transaction_id` field below changes per-renewal, but
+   * `original_transaction_id` is constant for the lifetime of the
+   * subscription. Backend uses this as the idempotency key.
+   */
+  original_transaction_id: string;
+  /**
+   * Current transaction id from the SDK (kept for analytics +
+   * backwards compat with older clients). On iOS this is
+   * `originalTransactionId` for the first purchase but a renewal
+   * transactionId for subsequent receipts.
+   */
   transaction_id: string;
 }
 
