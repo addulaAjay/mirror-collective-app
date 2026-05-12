@@ -162,14 +162,20 @@ There is **no real free tier**. Every paid feature follows the same rule.
 - ✅ **Used-GB recompute on soft-delete** — `delete_echo` triggers `quota_service.update_user_quota(user_id)` after success (best-effort; failures logged, delete still returns 200). Note: soft-delete itself doesn't free S3 storage; the recompute is correct relative to the actual S3 inventory at that moment.
 - ✅ **GET routes now locked on expiry** — read routes share the same gate as writes (full-lock policy from the matrix).
 
-**Backend — known follow-ups (Phase A, not A.5):**
+**Backend — known follow-ups:**
 
-- ⏳ S3 hard-delete or lifecycle rule on soft-deleted echoes so `used_gb` actually frees up (currently soft-delete keeps the object).
-- ⏳ Replace per-call S3 inventory in `calculate_user_storage_usage` with per-echo size stored at upload time (perf — fragile and slow on large vaults).
-- ⏳ Apple App Store Server API migration (replace deprecated `verifyReceipt`).
-- ⏳ App Store Server Notifications v2 JWS signature verification.
-- ⏳ Google Play RTDN Pub/Sub push JWT verification.
-- ⏳ Idempotency guard on `/verify-purchase`.
+- ⏳ (Phase C) S3 hard-delete or lifecycle rule on soft-deleted echoes so `used_gb` actually frees up (currently soft-delete keeps the object).
+- ⏳ (Phase C) Replace per-call S3 inventory in `calculate_user_storage_usage` with per-echo size stored at upload time (perf — fragile and slow on large vaults).
+
+**Backend — Phase A (receipt security) — wired 2026-05-11:**
+
+- ✅ Apple App Store Server API migration — replaced deprecated `verifyReceipt` with the `app-store-server-library` SDK (`get_all_subscription_statuses` keyed on `originalTransactionId`).
+- ✅ JWS x5c verification on every Apple receipt + ASSN v2 webhook payload + inner `signedTransactionInfo`. Bundled Apple Root CA - G3 at `src/app/resources/apple_root_certificates/AppleRootCA-G3.cer`.
+- ✅ Google Play RTDN Pub/Sub push JWT verification (`google.oauth2.id_token.verify_oauth2_token` with audience + service-account email check). Set `GOOGLE_PUBSUB_VERIFY=false` only for local dev.
+- ✅ Idempotency guard on `/verify-purchase` — DynamoDB lookup keyed on `original_transaction_id`. Duplicate calls return the existing record without re-firing `SUBSCRIPTION_PURCHASED` events.
+- ✅ Product whitelist (`is_known_sku`) — forged receipts claiming non-existent SKUs are rejected. Cross-checks client-claimed product against the verified receipt's product.
+- ✅ `start-trial` schema split off `VerifyPurchaseRequest` (`StartTrialRequest`); endpoint marked `deprecated=True` since the Apple/Google native intro offer replaces it.
+- ✅ Webhook routes now propagate `status_code` from the service so forged ASSN v2 / RTDN payloads return **401 Unauthorized** instead of 500.
 
 Backend (also leaky):
 
