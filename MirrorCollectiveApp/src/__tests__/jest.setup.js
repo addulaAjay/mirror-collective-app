@@ -188,6 +188,21 @@ jest.mock('@react-native-community/blur', () => ({
   BlurView: 'BlurView',
 }));
 
+// Mock react-native-iap. The library accesses native modules at
+// import time (RNIapAmazonModule, etc.) which crash the test runtime.
+// We surface the parts useInAppPurchase actually consumes as no-op
+// fakes; individual tests can override with jest.mocked(...) as needed.
+jest.mock('react-native-iap', () => ({
+  initConnection: jest.fn(() => Promise.resolve()),
+  endConnection: jest.fn(() => Promise.resolve()),
+  getSubscriptions: jest.fn(() => Promise.resolve([])),
+  getAvailablePurchases: jest.fn(() => Promise.resolve([])),
+  requestSubscription: jest.fn(() => Promise.resolve()),
+  finishTransaction: jest.fn(() => Promise.resolve()),
+  purchaseUpdatedListener: jest.fn(() => ({ remove: jest.fn() })),
+  purchaseErrorListener: jest.fn(() => ({ remove: jest.fn() })),
+}));
+
 // Mock @react-native-firebase/messaging — the native bridge throws
 // "Super expression must either be null or a function" inside the
 // RNFBNativeEventEmitter ES5 helper in jest. PushNotificationService
@@ -227,11 +242,14 @@ jest.mock('@react-native-firebase/app', () => ({
 
 // Default useEntitlement → entitled. Tests that need to exercise the
 // paywall/lock paths should override this mock locally with
-// `jest.mocked(useEntitlement).mockReturnValue({...})`. Returning
-// `entitled: true` here keeps existing tests working without needing to
-// wrap them in a SubscriptionProvider.
+// `(useEntitlement as jest.MockedFunction<...>).mockReturnValue({...})`.
+//
+// The factory body is referentially closed — jest.mock is hoisted to
+// the top of the file before the surrounding scope is evaluated, so
+// any captured variable must either be inlined or prefixed with
+// `mock` (per Jest's hoisting allowlist).
 jest.mock('@hooks/useEntitlement', () => ({
-  useEntitlement: () => ({
+  useEntitlement: jest.fn(() => ({
     entitled: true,
     loading: false,
     status: 'active',
@@ -245,7 +263,7 @@ jest.mock('@hooks/useEntitlement', () => ({
     quotaApproaching: false,
     canUpload: () => ({ allowed: true, reason: null }),
     refresh: jest.fn(() => Promise.resolve()),
-  }),
+  })),
 }));
 
 // Mock react-native-document-picker — native module would crash jest.

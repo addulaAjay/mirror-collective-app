@@ -1,5 +1,5 @@
 import { palette } from '@theme';
-import React, { type ReactNode, useState } from 'react';
+import React, { type ReactNode } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
@@ -33,11 +33,6 @@ function SubscriptionGate({
   loadingFallback,
 }: SubscriptionGateProps): React.JSX.Element {
   const entitlement = useEntitlement();
-  // We open the modal on mount when locked, and keep it open — the user
-  // can dismiss it but the underlying screen is still hidden, so they
-  // just see the gate background. The only way out is the UPGRADE CTA
-  // (which navigates to StartFreeTrial) or backing out of the route.
-  const [modalVisible, setModalVisible] = useState(true);
 
   if (entitlement.loading) {
     if (loadingFallback !== undefined) {
@@ -56,12 +51,21 @@ function SubscriptionGate({
     if (lockedFallback !== undefined) {
       return <View style={styles.fill}>{lockedFallback}</View>;
     }
+    // Modal visibility is derived directly from entitlement state — no
+    // local dismiss flag. Children stay unmounted regardless of modal
+    // state, so "dismiss" never reveals locked content. The only ways
+    // forward are UPGRADE NOW (navigates) or system back / parent
+    // navigation. `onClose` is a no-op handler to satisfy the modal's
+    // contract; we explicitly do NOT toggle anything when the user
+    // taps Not Now, because there's nothing to reveal underneath.
     return (
       <BackgroundWrapper style={styles.fill}>
         <View style={styles.center} />
         <UpgradePrompt
-          visible={modalVisible}
-          onClose={() => setModalVisible(false)}
+          visible
+          onClose={() => {
+            /* gate stays visible — no underlying content to expose */
+          }}
           reason={entitlement.promptReason}
           quotaInfo={{
             usage_gb: entitlement.usedGb,

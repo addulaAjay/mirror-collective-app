@@ -61,7 +61,7 @@ function StorageMeter({ banner = false }: StorageMeterProps): React.JSX.Element 
   const barFillStyle: ViewStyle = {
     width: `${Math.max(2, Math.round(entitlement.quotaPercent * 100))}%`,
     backgroundColor: isFull
-      ? palette.status?.errorHover ?? '#c4564f'
+      ? palette.status.errorHover
       : isApproaching
       ? palette.gold.warm
       : palette.gold.DEFAULT,
@@ -145,7 +145,7 @@ const styles = StyleSheet.create<{
     textAlign: 'center',
   },
   labelError: {
-    color: palette.status?.errorHover ?? '#c4564f',
+    color: palette.status.errorHover,
   },
   track: {
     width: '100%',

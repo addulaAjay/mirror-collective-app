@@ -56,7 +56,7 @@ import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
 
 import { useSubscription } from '@/context/SubscriptionContext';
-import { findProductBySku } from '@/constants/products';
+import { ALL_PRODUCT_SKUS, findProductBySku } from '@/constants/products';
 import {
     useInAppPurchase,
     formatLocalizedPrice,
@@ -75,8 +75,17 @@ function openSubscriptionManagement(sku?: string) {
         return;
     }
     if (Platform.OS === 'android') {
-        const url = sku
-            ? `https://play.google.com/store/account/subscriptions?sku=${sku}&package=${PLAY_PACKAGE}`
+        // Allowlist the sku against our canonical product catalog
+        // BEFORE interpolating it into the Play Store URL. The value
+        // ultimately comes from a backend API response; if it's ever
+        // malformed or unexpected we'd otherwise be passing
+        // user-influenced data straight into Linking.openURL.
+        const safeSku =
+            sku && (ALL_PRODUCT_SKUS as readonly string[]).includes(sku)
+                ? encodeURIComponent(sku)
+                : undefined;
+        const url = safeSku
+            ? `https://play.google.com/store/account/subscriptions?sku=${safeSku}&package=${PLAY_PACKAGE}`
             : 'https://play.google.com/store/account/subscriptions';
         Linking.openURL(url);
     }
