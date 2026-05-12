@@ -17,6 +17,68 @@ import {
 import {ALL_PRODUCT_SKUS, PRODUCTS} from '@/constants/products';
 import {subscriptionApiService} from '@/services/api/subscriptionApi';
 
+/**
+ * iOS-only fields that react-native-iap exposes on its base
+ * SubscriptionPurchase type but doesn't declare in its TS surface (the
+ * union has the field as optional only on the iOS purchase shape and
+ * the lib's union doesn't expose it).
+ *
+ * Locally extending the type here gives us safe access without
+ * `(purchase as any)` at each call site.
+ */
+interface IosSubscriptionPurchase extends SubscriptionPurchase {
+  originalTransactionIdentifierIOS?: string;
+}
+
+/**
+ * Android-only field on Subscription for the StoreKit equivalent of
+ * pricing phases. Used by `formatLocalizedPrice` / `hasIntroductoryOffer`.
+ * Same rationale as above — narrow at the boundary, never `as any`.
+ */
+interface AndroidSubscriptionMeta {
+  subscriptionOfferDetails?: Array<{
+    pricingPhases?: {
+      pricingPhaseList?: Array<{formattedPrice?: string}>;
+    };
+  }>;
+}
+
+/**
+ * Narrow an `unknown` thrown value to a user-facing error string.
+ * Project rule: prefer `catch (error: unknown)` + this helper over the
+ * convenience-but-unsafe `catch (error: any)` pattern.
+ */
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (typeof error === 'string') return error;
+  return 'Unexpected error';
+}
+
+/**
+ * Gate console output behind __DEV__. In a real-money flow these logs
+ * fired in production were potentially leaking receipt blobs to the
+ * device console — not a bearer-token leak, but unnecessary noise +
+ * a project lint violation.
+ */
+function devLog(...args: unknown[]): void {
+  if (__DEV__) {
+    // eslint-disable-next-line no-console
+    console.log(...args);
+  }
+}
+function devWarn(...args: unknown[]): void {
+  if (__DEV__) {
+    // eslint-disable-next-line no-console
+    console.warn(...args);
+  }
+}
+function devError(...args: unknown[]): void {
+  if (__DEV__) {
+    // eslint-disable-next-line no-console
+    console.error(...args);
+  }
+}
+
 // Re-export under the legacy shape (PRODUCT_IDS) so existing consumers
 // keep working. New code should import PRODUCTS from @/constants/products.
 const PRODUCT_IDS = {
@@ -43,13 +105,22 @@ export const useInAppPurchase = () => {
 
   // Initialize IAP connection
   useEffect(() => {
-    let purchaseUpdateSubscription: any;
-    let purchaseErrorSubscription: any;
+    // react-native-iap returns event-emitter subscription handles
+    // from `purchaseUpdatedListener` / `purchaseErrorListener`. The
+    // lib's types call this `EmitterSubscription | null`. Inferring
+    // the type via `ReturnType<>` keeps it tied to the lib's declared
+    // shape without a hard `any`.
+    let purchaseUpdateSubscription:
+      | ReturnType<typeof purchaseUpdatedListener>
+      | undefined;
+    let purchaseErrorSubscription:
+      | ReturnType<typeof purchaseErrorListener>
+      | undefined;
 
     const initIAP = async () => {
       try {
         await initConnection();
-        console.log('IAP connection initialized');
+        devLog('IAP connection initialized');
 
         // Fetch available products
         const availableProducts = await getSubscriptions({
@@ -65,7 +136,14 @@ export const useInAppPurchase = () => {
         // Listen for purchase updates
         purchaseUpdateSubscription = purchaseUpdatedListener(
           async (purchase: SubscriptionPurchase | ProductPurchase) => {
-            console.log('Purchase updated:', purchase);
+            // Don't log the full purchase object — `transactionReceipt`
+            // contains the raw receipt blob. Log only the productId +
+            // transactionId metadata.
+            devLog(
+              'Purchase updated',
+              purchase.productId,
+              purchase.transactionId,
+            );
 
             const receipt = Platform.select({
               ios: purchase.transactionReceipt,
@@ -82,9 +160,10 @@ export const useInAppPurchase = () => {
                 // On Android: react-native-iap exposes the orderId via
                 // `transactionId`; the field doesn't change semantics
                 // between purchase and renewal the same way it does on iOS.
+                const iosPurchase = purchase as IosSubscriptionPurchase;
                 const originalTransactionId =
                   (Platform.OS === 'ios'
-                    ? (purchase as any).originalTransactionIdentifierIOS
+                    ? iosPurchase.originalTransactionIdentifierIOS
                     : undefined) ?? purchase.transactionId;
 
                 if (!originalTransactionId) {
@@ -120,8 +199,8 @@ export const useInAppPurchase = () => {
                 } else {
                   throw new Error(result.message || 'Verification failed');
                 }
-              } catch (error: any) {
-                console.error('Purchase verification error:', error);
+              } catch (error: unknown) {
+                devError('Purchase verification error:', getErrorMessage(error));
                 setState(prev => ({
                   ...prev,
                   purchasing: false,
@@ -134,15 +213,15 @@ export const useInAppPurchase = () => {
 
         // Listen for purchase errors
         purchaseErrorSubscription = purchaseErrorListener(error => {
-          console.warn('Purchase error:', error);
+          devWarn('Purchase error:', error.message);
           setState(prev => ({
             ...prev,
             purchasing: false,
             error: error.message,
           }));
         });
-      } catch (error: any) {
-        console.error('IAP initialization error:', error);
+      } catch (error: unknown) {
+        devError('IAP initialization error:', getErrorMessage(error));
         setState(prev => ({
           ...prev,
           loading: false,
@@ -173,12 +252,13 @@ export const useInAppPurchase = () => {
       await requestSubscription({
         sku: productId,
       });
-    } catch (error: any) {
-      console.error('Purchase error:', error);
+    } catch (error: unknown) {
+      const message = getErrorMessage(error);
+      devError('Purchase error:', message);
       setState(prev => ({
         ...prev,
         purchasing: false,
-        error: error.message || 'Purchase failed',
+        error: message,
       }));
     }
   }, []);
@@ -231,8 +311,8 @@ export const useInAppPurchase = () => {
 
       setState(prev => ({...prev, loading: false}));
       return result;
-    } catch (error: any) {
-      console.error('Restore error:', error);
+    } catch (error: unknown) {
+      devError('Restore error:', getErrorMessage(error));
       setState(prev => ({
         ...prev,
         loading: false,
@@ -292,7 +372,7 @@ export function formatLocalizedPrice(
 
   // Android shape — pick the LAST pricing phase, which is the
   // recurring price after any intro / trial phase.
-  const offers = (sub as any).subscriptionOfferDetails;
+  const offers = (sub as AndroidSubscriptionMeta).subscriptionOfferDetails;
   if (Array.isArray(offers) && offers.length > 0) {
     const phases = offers[0]?.pricingPhases?.pricingPhaseList;
     if (Array.isArray(phases) && phases.length > 0) {
@@ -315,8 +395,11 @@ export function formatLocalizedPrice(
  */
 export function hasIntroductoryOffer(sub: Subscription | undefined): boolean {
   if (!sub) return false;
-  if ((sub as any).introductoryPrice) return true;
-  const offers = (sub as any).subscriptionOfferDetails;
+  // iOS exposes introductoryPrice on the Subscription union but the
+  // lib's types omit it from the generic Subscription. Read defensively.
+  const iosSub = sub as Subscription & {introductoryPrice?: string};
+  if (iosSub.introductoryPrice) return true;
+  const offers = (sub as AndroidSubscriptionMeta).subscriptionOfferDetails;
   const phases = offers?.[0]?.pricingPhases?.pricingPhaseList;
   return Array.isArray(phases) && phases.length > 1;
 }

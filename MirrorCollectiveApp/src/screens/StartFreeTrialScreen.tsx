@@ -25,6 +25,7 @@ import {
     TouchableOpacity,
     Image,
     Alert,
+    Linking,
     ScrollView,
     type ViewStyle,
     type TextStyle,
@@ -38,6 +39,7 @@ import Button from '@components/Button/Button';
 import LogoHeader from '@components/LogoHeader';
 import StarIcon from '@components/StarIcon';
 
+import { PRIVACY_POLICY_URL, TERMS_OF_SERVICE_URL } from '@/constants/legalUrls';
 import { useSubscription } from '@/context/SubscriptionContext';
 import { useInAppPurchase, formatLocalizedPrice, hasIntroductoryOffer } from '@/hooks/useInAppPurchase';
 
@@ -97,8 +99,9 @@ const StartFreeTrialScreen = () => {
             // /verify-purchase webhook in the purchase listener.
             await purchaseSubscription(productId);
             await refreshSubscriptionStatus();
-        } catch (error: any) {
-            Alert.alert('Purchase Failed', error.message || 'Unable to complete purchase');
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : 'Unable to complete purchase';
+            Alert.alert('Purchase Failed', message);
         }
     };
 
@@ -320,10 +323,27 @@ const StartFreeTrialScreen = () => {
           </View>
 
           {/* ── Footer ───────────────────────────────────────────────── */}
+          {/* App Store Review (Guideline 3.1.2(a)) requires tappable
+              Terms + Privacy links inside any subscription flow. URLs
+              live in src/constants/legalUrls.ts. */}
           <View style={styles.footerLinksRow}>
-            <Text style={styles.footerLinkText}>Terms</Text>
+            <TouchableOpacity
+              accessibilityRole="link"
+              accessibilityLabel="Open Terms of Service"
+              onPress={() => Linking.openURL(TERMS_OF_SERVICE_URL)}
+              hitSlop={8}
+            >
+              <Text style={styles.footerLinkText}>Terms</Text>
+            </TouchableOpacity>
             <Text style={styles.footerLinkText}>•</Text>
-            <Text style={styles.footerLinkText}>Privacy</Text>
+            <TouchableOpacity
+              accessibilityRole="link"
+              accessibilityLabel="Open Privacy Policy"
+              onPress={() => Linking.openURL(PRIVACY_POLICY_URL)}
+              hitSlop={8}
+            >
+              <Text style={styles.footerLinkText}>Privacy</Text>
+            </TouchableOpacity>
             <Text style={styles.footerLinkText}>•</Text>
             <TouchableOpacity
               accessibilityRole="button"
