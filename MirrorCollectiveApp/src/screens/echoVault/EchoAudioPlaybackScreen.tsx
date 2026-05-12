@@ -27,6 +27,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
+import SubscriptionGate from '@components/SubscriptionGate';
 import Button from '@components/Button';
 import LogoHeader from '@components/LogoHeader';
 import { echoApiService, EchoResponse } from '@services/api/echo';
@@ -322,7 +323,14 @@ const EchoAudioPlaybackScreen: React.FC<Props> = ({ navigation, route }) => {
   );
 };
 
-export default EchoAudioPlaybackScreen;
+// Full lock per entitlement matrix — locked users can't play back an audio echo.
+const EchoAudioPlaybackScreenGated: React.FC<Props> = (props) => (
+  <SubscriptionGate>
+    <EchoAudioPlaybackScreen {...props} />
+  </SubscriptionGate>
+);
+
+export default EchoAudioPlaybackScreenGated;
 
 /* ---------- UI Bits ---------- */
 

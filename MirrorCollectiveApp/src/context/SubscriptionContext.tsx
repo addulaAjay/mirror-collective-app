@@ -5,7 +5,9 @@ import React, {
   useEffect,
   ReactNode,
   useCallback,
+  useRef,
 } from 'react';
+import {AppState, type AppStateStatus} from 'react-native';
 
 import {useUser} from './UserContext';
 
@@ -41,11 +43,14 @@ interface SubscriptionContextType {
   hasUsedTrial: boolean;
 }
 
+// Fail-closed defaults: every paid feature is OFF until the backend confirms
+// otherwise. The previous default of mirror_gpt_enabled:true allowed
+// unauthenticated / loading users to call MirrorGPT.
 const defaultFeatures: SubscriptionFeatures = {
   echo_vault_enabled: false,
   quota_gb: 0,
   used_gb: 0,
-  mirror_gpt_enabled: true,
+  mirror_gpt_enabled: false,
   echo_map_enabled: false,
 };
 
@@ -104,7 +109,33 @@ export const SubscriptionProvider = ({
     refreshSubscriptionStatus();
   }, [refreshSubscriptionStatus, user]);
 
-  const hasActiveSubscription = status === 'active' || status === 'trial';
+  // Re-hydrate when the app returns to the foreground. A user whose
+  // subscription expired in the background, or who renewed in the App
+  // Store / Play Store while we were suspended, gets correct state on
+  // their next interaction instead of stale "active" until next launch.
+  const appStateRef = useRef<AppStateStatus>(AppState.currentState);
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (next: AppStateStatus) => {
+      const prev = appStateRef.current;
+      appStateRef.current = next;
+      if (
+        user &&
+        (prev === 'background' || prev === 'inactive') &&
+        next === 'active'
+      ) {
+        refreshSubscriptionStatus();
+      }
+    });
+    return () => sub.remove();
+  }, [refreshSubscriptionStatus, user]);
+
+  // Entitlement predicate. Locked in 2026-05-11: see
+  // docs/IAP_SUBSCRIPTION_REVIEW.md §"Entitlement matrix".
+  // grace_period covers Apple's billing grace window where access continues.
+  // billing_retry is intentionally NOT entitled (we want the user to update
+  // their payment method).
+  const hasActiveSubscription =
+    status === 'active' || status === 'trial' || status === 'grace_period';
   const isInTrial = status === 'trial';
 
   const contextValue: SubscriptionContextType = {

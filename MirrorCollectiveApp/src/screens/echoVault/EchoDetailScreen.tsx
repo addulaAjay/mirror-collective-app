@@ -27,6 +27,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
+import SubscriptionGate from '@components/SubscriptionGate';
 import Button from '@components/Button';
 import LogoHeader from '@components/LogoHeader';
 import { echoApiService, EchoResponse } from '@services/api/echo';
@@ -278,7 +279,14 @@ const EchoDetailScreen: React.FC<Props> = ({ navigation, route }) => {
   );
 };
 
-export default EchoDetailScreen;
+// Full lock per entitlement matrix — locked users can't view a stored echo.
+const EchoDetailScreenGated: React.FC<Props> = (props) => (
+  <SubscriptionGate>
+    <EchoDetailScreen {...props} />
+  </SubscriptionGate>
+);
+
+export default EchoDetailScreenGated;
 
 /* ---------- Icon-only action button ---------- */
 

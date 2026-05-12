@@ -54,6 +54,8 @@ import BackgroundWrapper from '@components/BackgroundWrapper';
 import Button from '@components/Button/Button';
 import LogoHeader from '@components/LogoHeader';
 import StarIcon from '@components/StarIcon';
+import StorageMeter from '@components/StorageMeter';
+import SubscriptionGate from '@components/SubscriptionGate';
 
 type MirrorEchoNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -149,6 +151,10 @@ export function MirrorEchoContent() {
               VIEW VAULT uses Transparent White Gradient (more transparent)
               Both use Radius/M (16), border 0.5px, Cormorant 24px gold.
             */}
+            {/* Storage indicator — usage / quota with a progress bar.
+                Tappable when approaching/full to open the upgrade prompt. */}
+            <StorageMeter />
+
             <View style={styles.ctaWrap}>
               {/* VIEW VAULT — primary (prominent CTA) */}
               {/* START ECHO — secondary (supporting action) */}
@@ -233,7 +239,14 @@ export function MirrorEchoContent() {
 }
 
 export default function MirrorEchoScreen() {
-  return <MirrorEchoContent />;
+  // Per locked entitlement matrix: non-entitled users get a full lock —
+  // they can't even view existing Echo Vault entries.
+  // (docs/IAP_SUBSCRIPTION_REVIEW.md "Entitlement matrix".)
+  return (
+    <SubscriptionGate>
+      <MirrorEchoContent />
+    </SubscriptionGate>
+  );
 }
 
 // ── Styles ────────────────────────────────────────────────────────────────────

@@ -38,6 +38,8 @@ jest.mock('react-native', () => {
     SafeAreaView: 'SafeAreaView',
     KeyboardAvoidingView: 'KeyboardAvoidingView',
     ActivityIndicator: 'ActivityIndicator',
+    Modal: 'Modal',
+    Pressable: 'Pressable',
     Alert: { alert: jest.fn() },
     Linking: { openURL: jest.fn() },
     StatusBar: Object.assign(jest.fn(() => null), { 
@@ -48,6 +50,11 @@ jest.mock('react-native', () => {
       setBackgroundColor: jest.fn() 
     }),
     Keyboard: { dismiss: jest.fn() },
+    AppState: {
+      currentState: 'active',
+      addEventListener: jest.fn(() => ({ remove: jest.fn() })),
+      removeEventListener: jest.fn(),
+    },
   };
 });
 
@@ -179,6 +186,66 @@ jest.mock('react-native-safe-area-context', () => ({
 // crash render(). String component name keeps snapshots readable.
 jest.mock('@react-native-community/blur', () => ({
   BlurView: 'BlurView',
+}));
+
+// Mock @react-native-firebase/messaging — the native bridge throws
+// "Super expression must either be null or a function" inside the
+// RNFBNativeEventEmitter ES5 helper in jest. PushNotificationService
+// imports this at module top level, so anything pulling in UserContext
+// or SubscriptionContext fails to load otherwise.
+jest.mock('@react-native-firebase/messaging', () => {
+  const messaging = () => ({
+    requestPermission: jest.fn(() => Promise.resolve(1)),
+    hasPermission: jest.fn(() => Promise.resolve(1)),
+    getToken: jest.fn(() => Promise.resolve('test-token')),
+    onTokenRefresh: jest.fn(),
+    onMessage: jest.fn(),
+    onNotificationOpenedApp: jest.fn(),
+    getInitialNotification: jest.fn(() => Promise.resolve(null)),
+    setBackgroundMessageHandler: jest.fn(),
+    subscribeToTopic: jest.fn(() => Promise.resolve()),
+    unsubscribeFromTopic: jest.fn(() => Promise.resolve()),
+  });
+  messaging.AuthorizationStatus = {
+    NOT_DETERMINED: -1,
+    DENIED: 0,
+    AUTHORIZED: 1,
+    PROVISIONAL: 2,
+  };
+  return {
+    __esModule: true,
+    default: messaging,
+    firebase: { messaging },
+  };
+});
+
+jest.mock('@react-native-firebase/app', () => ({
+  __esModule: true,
+  default: { app: jest.fn(() => ({})) },
+  firebase: { app: jest.fn(() => ({})) },
+}));
+
+// Default useEntitlement → entitled. Tests that need to exercise the
+// paywall/lock paths should override this mock locally with
+// `jest.mocked(useEntitlement).mockReturnValue({...})`. Returning
+// `entitled: true` here keeps existing tests working without needing to
+// wrap them in a SubscriptionProvider.
+jest.mock('@hooks/useEntitlement', () => ({
+  useEntitlement: () => ({
+    entitled: true,
+    loading: false,
+    status: 'active',
+    tier: 'core',
+    lockReason: null,
+    promptReason: 'trial_expired',
+    quotaGb: 50,
+    usedGb: 0,
+    quotaPercent: 0,
+    quotaExceeded: false,
+    quotaApproaching: false,
+    canUpload: () => ({ allowed: true, reason: null }),
+    refresh: jest.fn(() => Promise.resolve()),
+  }),
 }));
 
 // Mock react-native-document-picker — native module would crash jest.

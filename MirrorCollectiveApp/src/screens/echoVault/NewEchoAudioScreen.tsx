@@ -27,6 +27,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
 import StarIcon from '@components/StarIcon';
+import UpgradePrompt from '@components/UpgradePrompt';
+import { useEntitlement } from '@hooks/useEntitlement';
 import { echoApiService } from '@services/api';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'NewEchoAudioScreen'>;
@@ -47,6 +49,8 @@ const NewEchoAudioScreen: React.FC<Props> = ({ navigation, route }) => {
   const [recordedUri, setRecordedUri] = useState<string | null>(null);
   const [recordingDuration, setRecordingDuration] = useState(0);
   const [saving, setSaving] = useState(false);
+  const entitlement = useEntitlement();
+  const [paywallVisible, setPaywallVisible] = useState(false);
 
   // Singleton instance (default export). Ref stops React from treating it as state.
   const audioRecorderPlayer = useRef(AudioRecorderPlayer).current;
@@ -242,6 +246,15 @@ const NewEchoAudioScreen: React.FC<Props> = ({ navigation, route }) => {
       await stopAudioRecording();
     }
 
+    // Second-layer entitlement gate (see NewEchoComposeScreen.onSave).
+    if (!entitlement.loading) {
+      const { allowed } = entitlement.canUpload();
+      if (!allowed) {
+        setPaywallVisible(true);
+        return;
+      }
+    }
+
     try {
       setSaving(true);
 
@@ -368,6 +381,16 @@ const NewEchoAudioScreen: React.FC<Props> = ({ navigation, route }) => {
             )}
           </TouchableOpacity>
         </View>
+
+        <UpgradePrompt
+          visible={paywallVisible}
+          onClose={() => setPaywallVisible(false)}
+          reason={entitlement.promptReason}
+          quotaInfo={{
+            usage_gb: entitlement.usedGb,
+            quota_gb: entitlement.quotaGb,
+          }}
+        />
       </SafeAreaView>
     </BackgroundWrapper>
   );

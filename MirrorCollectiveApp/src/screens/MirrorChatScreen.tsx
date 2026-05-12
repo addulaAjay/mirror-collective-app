@@ -1,5 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import { theme, palette, spacing, shadows, textShadow } from '@theme';
+import type { Message } from '@types';
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import {
   View,
@@ -11,7 +12,6 @@ import {
   type NativeScrollEvent,
   type TextInputContentSizeChangeEventData,
 } from 'react-native';
-import type { Message } from '@types';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -19,7 +19,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AuthenticatedRoute from '@components/AuthenticatedRoute';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
+import SubscriptionGate from '@components/SubscriptionGate';
 import { MessageBubble, ChatInput, LoadingIndicator } from '@components/ui';
+import UpgradePrompt from '@components/UpgradePrompt';
 import { useChat } from '@hooks/useChat';
 
 // Export content component for testing
@@ -34,6 +36,9 @@ export function MirrorChatContent() {
     initializeSession,
     sendMessage,
     setDraft,
+    paywallReason,
+    quotaInfo,
+    dismissPaywall,
   } = useChat();
 
   // Initialize session when component mounts
@@ -186,15 +191,27 @@ export function MirrorChatContent() {
             </LinearGradient>
           </View>
         </KeyboardAvoidingView>
+
+        <UpgradePrompt
+          visible={paywallReason !== null}
+          onClose={dismissPaywall}
+          reason={paywallReason ?? undefined}
+          quotaInfo={quotaInfo}
+        />
       </SafeAreaView>
     </BackgroundWrapper>
   );
 }
 
 export default function MirrorChatScreen() {
+  // Per locked entitlement matrix: non-entitled users get a full lock —
+  // can't even view existing chat history.
+  // (docs/IAP_SUBSCRIPTION_REVIEW.md "Entitlement matrix".)
   return (
     <AuthenticatedRoute>
-      <MirrorChatContent />
+      <SubscriptionGate>
+        <MirrorChatContent />
+      </SubscriptionGate>
     </AuthenticatedRoute>
   );
 }

@@ -31,6 +31,8 @@ import {
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import Button from '@components/Button/Button';
 import LogoHeader from '@components/LogoHeader';
+import UpgradePrompt from '@components/UpgradePrompt';
+import { useEntitlement } from '@hooks/useEntitlement';
 import { echoApiService } from '@services/api';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'NewEchoVideoScreen'>;
@@ -56,6 +58,8 @@ const NewEchoVideoScreen: React.FC<Props> = ({ navigation, route }) => {
   const [recordingSeconds, setRecordingSeconds] = useState(0);
   const [saving, setSaving] = useState(false);
   const [isPicking, setIsPicking] = useState(false);
+  const entitlement = useEntitlement();
+  const [paywallVisible, setPaywallVisible] = useState(false);
   // True between "user tapped stop" and "onRecordingFinished/Error fires" —
   // gives the user immediate visual feedback during the async file finalize step.
   const [isStopping, setIsStopping] = useState(false);
@@ -202,6 +206,14 @@ const NewEchoVideoScreen: React.FC<Props> = ({ navigation, route }) => {
       Alert.alert('Nothing to save', 'Please record or upload a video first.');
       return;
     }
+    // Second-layer entitlement gate (see NewEchoComposeScreen.onSave).
+    if (!entitlement.loading) {
+      const { allowed } = entitlement.canUpload();
+      if (!allowed) {
+        setPaywallVisible(true);
+        return;
+      }
+    }
     try {
       setSaving(true);
       const createRes = await echoApiService.createEcho({
@@ -223,7 +235,7 @@ const NewEchoVideoScreen: React.FC<Props> = ({ navigation, route }) => {
     } finally {
       setSaving(false);
     }
-  }, [pickedVideo, recordingUri, echoTitle, category, recipientId, navigation]);
+  }, [pickedVideo, recordingUri, echoTitle, category, recipientId, navigation, entitlement]);
 
   const formatTime = (s: number) =>
     `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
@@ -349,6 +361,16 @@ const NewEchoVideoScreen: React.FC<Props> = ({ navigation, route }) => {
           </View>
 
         </View>
+
+        <UpgradePrompt
+          visible={paywallVisible}
+          onClose={() => setPaywallVisible(false)}
+          reason={entitlement.promptReason}
+          quotaInfo={{
+            usage_gb: entitlement.usedGb,
+            quota_gb: entitlement.quotaGb,
+          }}
+        />
       </SafeAreaView>
     </BackgroundWrapper>
   );

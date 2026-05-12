@@ -51,6 +51,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
+import UpgradePrompt from '@components/UpgradePrompt';
+import { useEntitlement } from '@hooks/useEntitlement';
 
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
@@ -67,6 +69,16 @@ const ReflectionRoomEchoSignatureScreen: React.FC = () => {
   const [status, setStatus] = useState<Status>(
     snapshot ? 'active' : 'loading',
   );
+  const entitlement = useEntitlement();
+  const [paywallVisible, setPaywallVisible] = useState(false);
+
+  const handleOpenEchoMap = useCallback(() => {
+    if (!entitlement.loading && !entitlement.entitled) {
+      setPaywallVisible(true);
+      return;
+    }
+    navigation.navigate('ReflectionRoomEchoMap');
+  }, [entitlement.loading, entitlement.entitled, navigation]);
 
   const fetchSnapshot = useCallback(async () => {
     if (!sessionId) {
@@ -176,7 +188,7 @@ const ReflectionRoomEchoSignatureScreen: React.FC = () => {
 
           {status === 'active' && (
             <Pressable
-              onPress={() => navigation.navigate('ReflectionRoomEchoMap')}
+              onPress={handleOpenEchoMap}
               accessibilityRole="button"
               accessibilityLabel={LANDING.ctaOpenEchoMap}
               style={({ pressed }) => [
@@ -188,6 +200,12 @@ const ReflectionRoomEchoSignatureScreen: React.FC = () => {
             </Pressable>
           )}
         </ScrollView>
+
+        <UpgradePrompt
+          visible={paywallVisible}
+          onClose={() => setPaywallVisible(false)}
+          reason={entitlement.promptReason}
+        />
       </SafeAreaView>
     </BackgroundWrapper>
   );

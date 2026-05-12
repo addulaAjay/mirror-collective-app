@@ -25,6 +25,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Video, { VideoRef } from 'react-native-video';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
+import SubscriptionGate from '@components/SubscriptionGate';
 import Button from '@components/Button';
 import LogoHeader from '@components/LogoHeader';
 import { echoApiService, EchoResponse } from '@services/api/echo';
@@ -306,7 +307,14 @@ const EchoVideoPlaybackScreen: React.FC<Props> = ({ navigation, route }) => {
   );
 };
 
-export default EchoVideoPlaybackScreen;
+// Full lock per entitlement matrix — locked users can't play back a video echo.
+const EchoVideoPlaybackScreenGated: React.FC<Props> = (props) => (
+  <SubscriptionGate>
+    <EchoVideoPlaybackScreen {...props} />
+  </SubscriptionGate>
+);
+
+export default EchoVideoPlaybackScreenGated;
 
 /* ---------- Action Buttons ---------- */
 

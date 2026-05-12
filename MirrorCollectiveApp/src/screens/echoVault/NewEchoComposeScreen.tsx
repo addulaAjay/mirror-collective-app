@@ -34,6 +34,8 @@ import { Camera, useCameraDevice, useCameraPermission, useMicrophonePermission }
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import Button from '@components/Button';
 import LogoHeader from '@components/LogoHeader';
+import UpgradePrompt from '@components/UpgradePrompt';
+import { useEntitlement } from '@hooks/useEntitlement';
 import { echoApiService } from '@services/api';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'NewEchoComposeScreen'>;
@@ -57,6 +59,8 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
   const [isSaving, setIsSaving] = useState(false);
   const [isPicking, setIsPicking] = useState(false);
   const [pendingPicker, setPendingPicker] = useState<'audio' | 'video' | 'text' | null>(null);
+  const entitlement = useEntitlement();
+  const [paywallVisible, setPaywallVisible] = useState(false);
 
   // Audio Playback
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
@@ -288,6 +292,19 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
     if ((mode === 'audio' || mode === 'video') && !mediaUri && !editEchoId) {
       Alert.alert('No Recording', 'Please record a message first.');
       return;
+    }
+
+    // Second-layer entitlement gate. The entry gate in NewEchoVaultScreen
+    // covers the normal navigation path, but a user whose subscription
+    // expires mid-flow (or who deep-links into compose) still needs to be
+    // blocked from saving. Skipped for edits since the user is just
+    // modifying an existing echo, not consuming new quota.
+    if (!editEchoId && !entitlement.loading) {
+      const { allowed } = entitlement.canUpload();
+      if (!allowed) {
+        setPaywallVisible(true);
+        return;
+      }
     }
 
     setIsSaving(true);
@@ -822,6 +839,16 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
             </Pressable>
           </Pressable>
         </Modal>
+
+        <UpgradePrompt
+          visible={paywallVisible}
+          onClose={() => setPaywallVisible(false)}
+          reason={entitlement.promptReason}
+          quotaInfo={{
+            usage_gb: entitlement.usedGb,
+            quota_gb: entitlement.quotaGb,
+          }}
+        />
       </SafeAreaView>
     </BackgroundWrapper>
   );

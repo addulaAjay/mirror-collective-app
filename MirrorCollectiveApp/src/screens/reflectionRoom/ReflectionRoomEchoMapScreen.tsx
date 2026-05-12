@@ -43,6 +43,7 @@ import {
   spacing,
   textShadow,
 } from '@theme';
+import type { RootStackParamList } from '@types';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -62,7 +63,7 @@ import {
 } from '@assets/reflection-room-ech0-map-assets/ReflectionRoomEchoMapAssets';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
-import type { RootStackParamList } from '@types';
+import SubscriptionGate from '@components/SubscriptionGate';
 
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
@@ -359,7 +360,15 @@ const ReflectionRoomEchoMapScreen: React.FC = () => {
   );
 };
 
-export default ReflectionRoomEchoMapScreen;
+// Per locked entitlement matrix: non-entitled users get a full lock —
+// can't even view the map. (docs/IAP_SUBSCRIPTION_REVIEW.md.)
+const ReflectionRoomEchoMapScreenGated: React.FC = () => (
+  <SubscriptionGate>
+    <ReflectionRoomEchoMapScreen />
+  </SubscriptionGate>
+);
+
+export default ReflectionRoomEchoMapScreenGated;
 
 // ---------------------------------------------------------------------------
 // Styles

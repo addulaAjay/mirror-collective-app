@@ -61,6 +61,7 @@ import { SvgXml } from 'react-native-svg';
 
 import { getMotifIcon } from '@assets/motifs/MotifAssets';
 import BackgroundWrapper from '@components/BackgroundWrapper';
+import SubscriptionGate from '@components/SubscriptionGate';
 import Button from '@components/Button/Button';
 import LogoHeader from '@components/LogoHeader';
 import { echoApiService, type EchoResponse } from '@services/api/echo';
@@ -378,7 +379,13 @@ export function EchoLibraryContent() {
 }
 
 export default function MirrorEchoVaultLibraryScreen() {
-  return <EchoLibraryContent />;
+  // Full lock per entitlement matrix — locked users can't view existing
+  // echoes via deep link / restored navigation either.
+  return (
+    <SubscriptionGate>
+      <EchoLibraryContent />
+    </SubscriptionGate>
+  );
 }
 
 // ── Styles ────────────────────────────────────────────────────────────────────

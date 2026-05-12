@@ -65,6 +65,8 @@ import BackgroundWrapper from '@components/BackgroundWrapper';
 import Button from '@components/Button/Button';
 import LogoHeader from '@components/LogoHeader';
 import TextInputField from '@components/TextInputField';
+import UpgradePrompt from '@components/UpgradePrompt';
+import { useEntitlement } from '@hooks/useEntitlement';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'NewEchoScreen'>;
 
@@ -148,9 +150,25 @@ const NewEchoScreen: React.FC = () => {
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [hasRecipient, setHasRecipient] = useState<'yes' | 'no' | null>(null);
   const [mode, setMode] = useState<'text' | 'audio' | 'video'>('text');
+  const entitlement = useEntitlement();
+  const [paywallVisible, setPaywallVisible] = useState(false);
 
   const onNext = () => {
     if (!title.trim()) return;
+
+    // Entitlement gate: Echo Vault writes require an entitled subscription
+    // AND remaining quota. The backend will re-check on /echoes/upload-url,
+    // but a client-side gate avoids a wasted upload attempt and routes the
+    // user straight to UpgradePrompt.
+    // (docs/IAP_SUBSCRIPTION_REVIEW.md "Entitlement matrix".)
+    if (!entitlement.loading) {
+      const { allowed } = entitlement.canUpload();
+      if (!allowed) {
+        setPaywallVisible(true);
+        return;
+      }
+    }
+
     const cat = category || 'Uncategorized';
     if (hasRecipient === 'yes') {
       navigation.navigate('ChooseRecipientScreen', { title, category: cat, mode });
@@ -374,6 +392,15 @@ const NewEchoScreen: React.FC = () => {
             </View>
         </KeyboardAwareScrollView>
 
+        <UpgradePrompt
+          visible={paywallVisible}
+          onClose={() => setPaywallVisible(false)}
+          reason={entitlement.promptReason}
+          quotaInfo={{
+            usage_gb: entitlement.usedGb,
+            quota_gb: entitlement.quotaGb,
+          }}
+        />
       </SafeAreaView>
     </BackgroundWrapper>
   );

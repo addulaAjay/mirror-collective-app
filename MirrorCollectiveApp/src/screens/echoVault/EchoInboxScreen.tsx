@@ -52,6 +52,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
+import SubscriptionGate from '@components/SubscriptionGate';
 import Button from '@components/Button/Button';
 import LogoHeader from '@components/LogoHeader';
 import { echoApiService, type EchoResponse } from '@services/api/echo';
@@ -294,7 +295,12 @@ export function EchoInboxContent() {
 }
 
 export default function EchoInboxScreen() {
-  return <EchoInboxContent />;
+  // Full lock per entitlement matrix — locked users can't view inbox.
+  return (
+    <SubscriptionGate>
+      <EchoInboxContent />
+    </SubscriptionGate>
+  );
 }
 
 // ── Styles ────────────────────────────────────────────────────────────────────
