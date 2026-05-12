@@ -329,12 +329,21 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
         if (mode === 'text') updateData.content = message;
         if (mediaUri && mode !== 'text') {
           const contentType = mediaFile?.type || (mode === 'audio' ? 'audio/mp4' : 'video/mp4');
-          const uploadUrlResponse = await echoApiService.getUploadUrl(contentType, editEchoId);
+          const sizeBytes = await echoApiService.probeLocalFileSize(mediaUri);
+          const uploadUrlResponse = await echoApiService.getUploadUrl(
+            contentType,
+            editEchoId,
+            'echo',
+            sizeBytes,
+          );
           if (!uploadUrlResponse.success || !uploadUrlResponse.data) {
             throw new Error('Could not get upload URL. Please try again.');
           }
           await echoApiService.uploadMedia(uploadUrlResponse.data.upload_url, mediaUri, contentType);
           updateData.media_url = uploadUrlResponse.data.media_url;
+          if (sizeBytes > 0) {
+            updateData.size_bytes = sizeBytes;
+          }
         }
         // Propagate recipient + lock-date changes from the recipient-picker
         // step. Backend treats explicit null as "clear", so when the user
@@ -398,12 +407,21 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
 
       if (mode !== 'text' && mediaUri && newEchoId) {
         const contentType = mediaFile?.type || (mode === 'audio' ? 'audio/mp4' : 'video/mp4');
-        const uploadUrlResponse = await echoApiService.getUploadUrl(contentType, newEchoId);
+        const sizeBytes = await echoApiService.probeLocalFileSize(mediaUri);
+        const uploadUrlResponse = await echoApiService.getUploadUrl(
+          contentType,
+          newEchoId,
+          'echo',
+          sizeBytes,
+        );
         if (!uploadUrlResponse.success || !uploadUrlResponse.data) {
           throw new Error('Could not get upload URL. Please try again.');
         }
         await echoApiService.uploadMedia(uploadUrlResponse.data.upload_url, mediaUri, contentType);
-        await echoApiService.updateEcho(newEchoId, { media_url: uploadUrlResponse.data.media_url });
+        await echoApiService.updateEcho(newEchoId, {
+          media_url: uploadUrlResponse.data.media_url,
+          ...(sizeBytes > 0 ? { size_bytes: sizeBytes } : {}),
+        });
       }
 
       showToast({

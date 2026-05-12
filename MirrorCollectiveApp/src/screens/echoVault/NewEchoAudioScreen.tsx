@@ -278,7 +278,13 @@ const NewEchoAudioScreen: React.FC<Props> = ({ navigation, route }) => {
       const finalUri = pickedFile?.uri ?? recordedUri;
       if (!finalUri) throw new Error('No audio file to upload');
 
-      const uploadUrlResponse = await echoApiService.getUploadUrl(contentType, echoId);
+      const sizeBytes = await echoApiService.probeLocalFileSize(finalUri);
+      const uploadUrlResponse = await echoApiService.getUploadUrl(
+        contentType,
+        echoId,
+        'echo',
+        sizeBytes,
+      );
       if (!uploadUrlResponse.success || !uploadUrlResponse.data) {
         throw new Error('Failed to get upload URL');
       }
@@ -289,6 +295,7 @@ const NewEchoAudioScreen: React.FC<Props> = ({ navigation, route }) => {
       );
       await echoApiService.updateEcho(echoId, {
         media_url: uploadUrlResponse.data.media_url,
+        ...(sizeBytes > 0 ? { size_bytes: sizeBytes } : {}),
       });
 
       showToast({

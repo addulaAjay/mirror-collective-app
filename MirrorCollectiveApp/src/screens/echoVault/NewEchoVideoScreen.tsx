@@ -233,10 +233,19 @@ const NewEchoVideoScreen: React.FC<Props> = ({ navigation, route }) => {
         recipient_id: recipientId,
       });
       if (!createRes.success || !createRes.data) throw new Error('Failed to create echo');
-      const uploadRes = await echoApiService.getUploadUrl(contentType, createRes.data.echo_id);
+      const sizeBytes = await echoApiService.probeLocalFileSize(uri);
+      const uploadRes = await echoApiService.getUploadUrl(
+        contentType,
+        createRes.data.echo_id,
+        'echo',
+        sizeBytes,
+      );
       if (uploadRes.success && uploadRes.data) {
         await echoApiService.uploadMedia(uploadRes.data.upload_url, uri, contentType);
-        await echoApiService.updateEcho(createRes.data.echo_id, { media_url: uploadRes.data.media_url });
+        await echoApiService.updateEcho(createRes.data.echo_id, {
+          media_url: uploadRes.data.media_url,
+          ...(sizeBytes > 0 ? { size_bytes: sizeBytes } : {}),
+        });
       }
       showToast({
         title: 'Echo saved',
