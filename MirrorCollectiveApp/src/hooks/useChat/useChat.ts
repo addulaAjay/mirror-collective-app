@@ -100,7 +100,13 @@ export const useChat = () => {
     // to call the chat API for locked users — both to enforce the paywall
     // and to avoid burning OpenAI cost on users who can't see the response.
     // (See docs/IAP_SUBSCRIPTION_REVIEW.md "Entitlement matrix".)
-    if (!entitlement.loading && !entitlement.entitled) {
+    //
+    // Treat `loading` as locked — during the brief window when
+    // SubscriptionContext is hydrating we don't yet know if the user is
+    // entitled, and the conservative answer is "no". This matches the
+    // fail-closed default in SubscriptionContext (mirror_gpt_enabled
+    // defaults to false on mount).
+    if (entitlement.loading || !entitlement.entitled) {
       setPaywallReason(entitlement.promptReason);
       return;
     }
