@@ -10,6 +10,7 @@ import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { ChatErrorBoundary } from '@components/error';
+import { ToastProvider } from '@components/Toast';
 import { SessionProvider, useSession } from '@context/SessionContext';
 import { SubscriptionProvider } from '@context/SubscriptionContext';
 import { UserProvider } from '@context/UserContext';
@@ -394,14 +395,19 @@ const App = () => {
             <UserProvider>
               <SubscriptionProvider>
                 <JourneyProvider>
-                  <React.Fragment>
-                    <StatusBar
-                      translucent
-                      backgroundColor="transparent"
-                      barStyle="light-content"
-                    />
-                    <AppNavigator />
-                  </React.Fragment>
+                  {/* ToastProvider sits below the data/auth providers
+                      so toasts can fire about subscription state, but
+                      above the navigator so it overlays every screen. */}
+                  <ToastProvider>
+                    <React.Fragment>
+                      <StatusBar
+                        translucent
+                        backgroundColor="transparent"
+                        barStyle="light-content"
+                      />
+                      <AppNavigator />
+                    </React.Fragment>
+                  </ToastProvider>
                 </JourneyProvider>
               </SubscriptionProvider>
             </UserProvider>

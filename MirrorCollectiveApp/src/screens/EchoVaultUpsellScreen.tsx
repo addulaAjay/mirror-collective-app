@@ -43,7 +43,6 @@ import {
     StyleSheet,
     TouchableOpacity,
     Image,
-    Alert,
     Linking,
     ScrollView,
     type ViewStyle,
@@ -57,6 +56,7 @@ import BackgroundWrapper from '@components/BackgroundWrapper';
 import Button from '@components/Button/Button';
 import LogoHeader from '@components/LogoHeader';
 import StarIcon from '@components/StarIcon';
+import { useToast } from '@components/Toast';
 
 import { PRIVACY_POLICY_URL, TERMS_OF_SERVICE_URL } from '@/constants/legalUrls';
 import { useSubscription } from '@/context/SubscriptionContext';
@@ -72,6 +72,7 @@ const EchoVaultUpsellScreen: React.FC = () => {
     const navigation = useNavigation<NavigationProp>();
     const route = useRoute<ScreenRoute>();
     const canGoBack = navigation.canGoBack();
+    const { showToast } = useToast();
     const { refreshSubscriptionStatus } = useSubscription();
     const {
         purchaseSubscription,
@@ -135,7 +136,11 @@ const EchoVaultUpsellScreen: React.FC = () => {
                 error instanceof Error
                     ? error.message
                     : 'Unable to complete purchase';
-            Alert.alert('Purchase Failed', message);
+            showToast({
+                title: 'Purchase failed',
+                message,
+                tone: 'error',
+            });
         }
     };
 

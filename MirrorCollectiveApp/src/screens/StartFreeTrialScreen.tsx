@@ -24,7 +24,6 @@ import {
     StyleSheet,
     TouchableOpacity,
     Image,
-    Alert,
     Linking,
     ScrollView,
     type ViewStyle,
@@ -38,6 +37,7 @@ import BackgroundWrapper from '@components/BackgroundWrapper';
 import Button from '@components/Button/Button';
 import LogoHeader from '@components/LogoHeader';
 import StarIcon from '@components/StarIcon';
+import { useToast } from '@components/Toast';
 
 import { PRIVACY_POLICY_URL, TERMS_OF_SERVICE_URL } from '@/constants/legalUrls';
 import { useSubscription } from '@/context/SubscriptionContext';
@@ -48,6 +48,7 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'StartFreeTr
 const StartFreeTrialScreen = () => {
     const navigation = useNavigation<NavigationProp>();
     const canGoBack = navigation.canGoBack();
+    const { showToast } = useToast();
     const { hasUsedTrial, hasActiveSubscription, refreshSubscriptionStatus } = useSubscription();
     const {
         purchaseSubscription,
@@ -82,7 +83,11 @@ const StartFreeTrialScreen = () => {
 
     const handleButtonPress = async () => {
         if (hasActiveSubscription) {
-            Alert.alert('Already Subscribed', 'You already have an active subscription.');
+            showToast({
+                title: 'Already subscribed',
+                message: 'Your subscription is already active.',
+                tone: 'info',
+            });
             return;
         }
 
@@ -101,7 +106,11 @@ const StartFreeTrialScreen = () => {
             await refreshSubscriptionStatus();
         } catch (error: unknown) {
             const message = error instanceof Error ? error.message : 'Unable to complete purchase';
-            Alert.alert('Purchase Failed', message);
+            showToast({
+                title: 'Purchase failed',
+                message,
+                tone: 'error',
+            });
         }
     };
 

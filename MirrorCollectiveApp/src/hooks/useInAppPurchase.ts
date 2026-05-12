@@ -1,5 +1,5 @@
 import {useEffect, useState, useCallback, useMemo} from 'react';
-import {Platform, Alert} from 'react-native';
+import {Platform} from 'react-native';
 import {
   initConnection,
   endConnection,
@@ -14,6 +14,7 @@ import {
   type ProductPurchase,
 } from 'react-native-iap';
 
+import {useToast} from '@components/Toast';
 import {ALL_PRODUCT_SKUS, PRODUCTS} from '@/constants/products';
 import {subscriptionApiService} from '@/services/api/subscriptionApi';
 
@@ -89,6 +90,7 @@ export const useInAppPurchase = () => {
     purchasing: false,
     error: null,
   });
+  const {showToast} = useToast();
 
   // Initialize IAP connection
   useEffect(() => {
@@ -176,11 +178,11 @@ export const useInAppPurchase = () => {
                   // Finish the transaction
                   await finishTransaction({purchase, isConsumable: false});
 
-                  Alert.alert(
-                    'Subscription Activated',
-                    'Your subscription has been successfully activated!',
-                    [{text: 'OK'}],
-                  );
+                  showToast({
+                    title: 'Subscription Activated',
+                    message: 'Your subscription is active.',
+                    tone: 'success',
+                  });
 
                   setState(prev => ({...prev, purchasing: false}));
                 } else {
@@ -259,11 +261,11 @@ export const useInAppPurchase = () => {
       const availablePurchases = await getAvailablePurchases();
 
       if (!availablePurchases || availablePurchases.length === 0) {
-        Alert.alert(
-          'No Purchases Found',
-          'No previous purchases were found to restore.',
-          [{text: 'OK'}],
-        );
+        showToast({
+          title: 'No purchases found',
+          message: 'There are no previous purchases to restore on this account.',
+          tone: 'info',
+        });
         setState(prev => ({...prev, loading: false}));
         return {success: true, data: {restored_count: 0, subscriptions: []}};
       }
@@ -289,11 +291,15 @@ export const useInAppPurchase = () => {
       });
 
       if (result.success && result.data) {
-        Alert.alert(
-          'Purchases Restored',
-          `${result.data.restored_count} subscription(s) restored successfully.`,
-          [{text: 'OK'}],
-        );
+        const count = result.data.restored_count;
+        showToast({
+          title: 'Purchases restored',
+          message:
+            count === 1
+              ? '1 subscription restored.'
+              : `${count} subscriptions restored.`,
+          tone: 'success',
+        });
       }
 
       setState(prev => ({...prev, loading: false}));
