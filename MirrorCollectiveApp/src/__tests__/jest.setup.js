@@ -68,6 +68,15 @@ jest.mock('@react-navigation/native', () => ({
   }),
   useRoute: () => ({ params: {} }),
   useFocusEffect: jest.fn(),
+  // navigationRef singleton used by PushNotificationService for
+  // deep-link navigation from outside React context.
+  createNavigationContainerRef: () => ({
+    isReady: () => true,
+    navigate: jest.fn(),
+    goBack: jest.fn(),
+    reset: jest.fn(),
+    current: null,
+  }),
 }));
 
 jest.mock('@react-navigation/native-stack', () => ({

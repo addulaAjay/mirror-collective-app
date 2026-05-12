@@ -80,6 +80,7 @@ import TermsAndConditionsScreen from '@screens/TermsAndConditionsScreen';
 import TheMirrorPledgeCommingsoonScreen from '@screens/TheMirrorPledgeCommingsoonScreen';
 import VerifyEmailScreen from '@screens/VerifyEmailScreen';
 import { OnboardingService } from '@services';
+import { navigationRef } from '@services/navigationRef';
 import PushNotificationService from '@services/PushNotificationService';
 import { ThemeProvider } from '@theme';
 import type { RootStackParamList } from '@types';
@@ -319,6 +320,7 @@ const AppNavigator = () => {
 
   return (
     <NavigationContainer
+      ref={navigationRef}
       key={isAuthenticated ? 'authenticated' : 'unauthenticated'}
       onStateChange={navState => {
         if (__DEV__) {
