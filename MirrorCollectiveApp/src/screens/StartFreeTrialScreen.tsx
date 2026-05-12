@@ -38,10 +38,8 @@ import Button from '@components/Button/Button';
 import LogoHeader from '@components/LogoHeader';
 import StarIcon from '@components/StarIcon';
 
-import { useSession } from '@/context/SessionContext';
 import { useSubscription } from '@/context/SubscriptionContext';
-import { useInAppPurchase } from '@/hooks/useInAppPurchase';
-import { subscriptionApiService } from '@/services/api/subscriptionApi';
+import { useInAppPurchase, formatLocalizedPrice, hasIntroductoryOffer } from '@/hooks/useInAppPurchase';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'StartFreeTrial'>;
 
@@ -49,13 +47,36 @@ const StartFreeTrialScreen = () => {
     const navigation = useNavigation<NavigationProp>();
     const canGoBack = navigation.canGoBack();
     const { hasUsedTrial, hasActiveSubscription, refreshSubscriptionStatus } = useSubscription();
-    const { setAuthenticated } = useSession();
-    const { purchaseSubscription, purchasing, PRODUCT_IDS } = useInAppPurchase();
-    const [loading, setLoading] = useState(false);
-    const [selectedPeriod] = useState<'monthly' | 'yearly'>('monthly');
+    const {
+        purchaseSubscription,
+        restorePurchases,
+        purchasing,
+        findProduct,
+        loading: productsLoading,
+        PRODUCT_IDS,
+    } = useInAppPurchase();
 
-    const isTrialMode = !hasUsedTrial && !hasActiveSubscription;
-    const buttonText = isTrialMode ? 'START FREE TRIAL' : 'SUBSCRIBE NOW';
+    // Default to yearly — better unit economics and standard for
+    // consumer subscription apps. The user can switch in one tap.
+    const [selectedPeriod, setSelectedPeriod] = useState<'monthly' | 'yearly'>('yearly');
+    const [restoring, setRestoring] = useState(false);
+
+    const monthlyProduct = findProduct(PRODUCT_IDS.CORE_MONTHLY);
+    const yearlyProduct = findProduct(PRODUCT_IDS.CORE_YEARLY);
+    const selectedProduct = selectedPeriod === 'monthly' ? monthlyProduct : yearlyProduct;
+
+    const monthlyPrice = formatLocalizedPrice(monthlyProduct, '$15.99');
+    const yearlyPrice = formatLocalizedPrice(yearlyProduct, '$139');
+    const hasTrialOffer = hasIntroductoryOffer(selectedProduct);
+
+    // Eligibility for the platform-native intro offer is determined by
+    // Apple/Google (per-Apple-ID / per-Google-account, not per app
+    // session). We trust the store: if the user is eligible the native
+    // sheet shows "14 days free, then $X". If not, they see the regular
+    // recurring price. Either way we surface the same UI here and let
+    // the OS handle the actual offer presentation.
+    const isTrialMode = !hasUsedTrial && !hasActiveSubscription && hasTrialOffer;
+    const buttonText = isTrialMode ? 'START FREE TRIAL' : 'SUBSCRIBE';
 
     const handleButtonPress = async () => {
         if (hasActiveSubscription) {
@@ -63,39 +84,31 @@ const StartFreeTrialScreen = () => {
             return;
         }
 
-        if (isTrialMode) {
-            try {
-                setLoading(true);
-                const response = await subscriptionApiService.startTrial();
-                if (response.success) {
-                    await refreshSubscriptionStatus();
-                    setAuthenticated();
-                } else {
-                    const msg = response.message ?? '';
-                    // Trial already started (user navigated back after success)
-                    // — treat as success and proceed rather than blocking them.
-                    if (msg.toLowerCase().includes('already used') || msg.toLowerCase().includes('already has')) {
-                        await refreshSubscriptionStatus();
-                        setAuthenticated();
-                        return;
-                    }
-                    throw new Error(msg || 'Failed to start trial');
-                }
-            } catch (error: any) {
-                Alert.alert('Error', error.message || 'Failed to start trial');
-            } finally {
-                setLoading(false);
-            }
-        } else {
-            const productId = selectedPeriod === 'monthly'
-                ? PRODUCT_IDS.CORE_MONTHLY
-                : PRODUCT_IDS.CORE_YEARLY;
-            try {
-                await purchaseSubscription(productId);
-                await refreshSubscriptionStatus();
-            } catch (error: any) {
-                Alert.alert('Purchase Failed', error.message || 'Unable to complete purchase');
-            }
+        const productId = selectedPeriod === 'monthly'
+            ? PRODUCT_IDS.CORE_MONTHLY
+            : PRODUCT_IDS.CORE_YEARLY;
+
+        try {
+            // Native intro offer (if configured in App Store Connect / Play
+            // Console for this product) is presented automatically by the
+            // OS sheet. We don't pre-claim it from our backend anymore — the
+            // user enters their payment method in the native sheet, the
+            // trial starts, and our backend hears about it via the
+            // /verify-purchase webhook in the purchase listener.
+            await purchaseSubscription(productId);
+            await refreshSubscriptionStatus();
+        } catch (error: any) {
+            Alert.alert('Purchase Failed', error.message || 'Unable to complete purchase');
+        }
+    };
+
+    const handleRestore = async () => {
+        try {
+            setRestoring(true);
+            await restorePurchases();
+            await refreshSubscriptionStatus();
+        } finally {
+            setRestoring(false);
         }
     };
 
@@ -225,23 +238,64 @@ const StartFreeTrialScreen = () => {
                     style={styles.dividerLine}
                   />
 
-                  {/* Pricing */}
-                  <View style={styles.priceLine}>
-                    <Text style={styles.priceAmount}>$15.99</Text>
-                    <Text style={styles.pricePerMonth}> /month </Text>
-                    <View style={styles.priceOrContainer}>
-                      <Text style={styles.priceOr}> or </Text>
-                    </View>
-                    <Text style={styles.priceYearAmount}> $139</Text>
-                    <Text style={styles.priceYearSuffix}> /year</Text>
+                  {/* Billing-period toggle.
+
+                      Live, store-localized prices via formatLocalizedPrice.
+                      Hardcoded fallbacks are used only for the brief moment
+                      between mount and the StoreKit / BillingClient response. */}
+                  <View style={styles.periodToggleRow}>
+                    <TouchableOpacity
+                      accessibilityRole="button"
+                      accessibilityState={{ selected: selectedPeriod === 'monthly' }}
+                      onPress={() => setSelectedPeriod('monthly')}
+                      style={[
+                        styles.periodOption,
+                        selectedPeriod === 'monthly' && styles.periodOptionSelected,
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.periodAmount,
+                          selectedPeriod === 'monthly' && styles.periodAmountSelected,
+                        ]}
+                      >
+                        {monthlyPrice}
+                      </Text>
+                      <Text style={styles.periodLabel}>/month</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      accessibilityRole="button"
+                      accessibilityState={{ selected: selectedPeriod === 'yearly' }}
+                      onPress={() => setSelectedPeriod('yearly')}
+                      style={[
+                        styles.periodOption,
+                        selectedPeriod === 'yearly' && styles.periodOptionSelected,
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.periodAmount,
+                          selectedPeriod === 'yearly' && styles.periodAmountSelected,
+                        ]}
+                      >
+                        {yearlyPrice}
+                      </Text>
+                      <Text style={styles.periodLabel}>/year</Text>
+                    </TouchableOpacity>
                   </View>
 
                   {/* CTA button — standard Button component, gradient variant */}
                   <Button
                     variant="gradient"
-                    title={loading || purchasing ? 'LOADING...' : buttonText}
+                    title={purchasing ? 'LOADING...' : buttonText}
                     onPress={handleButtonPress}
-                    disabled={loading || purchasing || hasActiveSubscription}
+                    disabled={
+                      purchasing
+                      || hasActiveSubscription
+                      || productsLoading
+                      || !selectedProduct
+                    }
                     style={styles.ctaButtonWrapper}
                     containerStyle={styles.ctaButtonContainer}
                     contentStyle={styles.ctaButtonContent}
@@ -252,7 +306,14 @@ const StartFreeTrialScreen = () => {
                     ]}
                   />
 
-                  <Text style={styles.cancelText}>Cancel anytime.</Text>
+                  {/* Apple-compliant trial disclosure. When there's no
+                      intro offer (user is no longer eligible, or product
+                      doesn't carry one) we show the recurring terms only. */}
+                  <Text style={styles.cancelText}>
+                    {isTrialMode
+                      ? `14-day free trial, then ${selectedPeriod === 'monthly' ? monthlyPrice + '/month' : yearlyPrice + '/year'}. Cancel anytime.`
+                      : `${selectedPeriod === 'monthly' ? monthlyPrice + '/month' : yearlyPrice + '/year'}. Cancel anytime.`}
+                  </Text>
                 </ScrollView>
               </View>
             </View>
@@ -264,7 +325,16 @@ const StartFreeTrialScreen = () => {
             <Text style={styles.footerLinkText}>•</Text>
             <Text style={styles.footerLinkText}>Privacy</Text>
             <Text style={styles.footerLinkText}>•</Text>
-            <Text style={styles.footerLinkText}>Restore Purchase</Text>
+            <TouchableOpacity
+              accessibilityRole="button"
+              onPress={handleRestore}
+              disabled={restoring}
+              hitSlop={8}
+            >
+              <Text style={styles.footerLinkText}>
+                {restoring ? 'Restoring…' : 'Restore Purchase'}
+              </Text>
+            </TouchableOpacity>
           </View>
         </SafeAreaView>
       </BackgroundWrapper>
@@ -297,13 +367,12 @@ const styles = StyleSheet.create<{
   bulletMarker: TextStyle;
   bulletLine: TextStyle;
   bulletLead: TextStyle;
-  priceLine: ViewStyle;
-  priceAmount: TextStyle;
-  pricePerMonth: TextStyle;
-  priceOrContainer: ViewStyle;
-  priceOr: TextStyle;
-  priceYearAmount: TextStyle;
-  priceYearSuffix: TextStyle;
+  periodToggleRow: ViewStyle;
+  periodOption: ViewStyle;
+  periodOptionSelected: ViewStyle;
+  periodAmount: TextStyle;
+  periodAmountSelected: TextStyle;
+  periodLabel: TextStyle;
   ctaButtonWrapper: ViewStyle;
   ctaButtonContainer: ViewStyle;
   ctaButtonContent: ViewStyle;
@@ -481,54 +550,48 @@ const styles = StyleSheet.create<{
     color: palette.gold.subtlest,
   },
 
-  // ── Pricing ───────────────────────────────────────────────────────────────
-  priceLine: {
+  // ── Billing period toggle ────────────────────────────────────────────────
+  // Two-up segmented control. Each cell shows the store-localized price
+  // for monthly / yearly. Selected cell gets a soft gold border and the
+  // amount tints to palette.gold.DEFAULT.
+  periodToggleRow: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'flex-end',
+    alignSelf: 'stretch',
+    gap: scale(12),
   },
-  priceAmount: {
+  periodOption: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: verticalScale(10),
+    paddingHorizontal: scale(8),
+    borderRadius: radius.s,
+    borderWidth: borderWidth.hairline,
+    borderColor: palette.navy.light,
+    backgroundColor: 'rgba(163, 179, 204, 0.04)',
+  },
+  periodOptionSelected: {
+    borderColor: palette.gold.DEFAULT,
+    backgroundColor: 'rgba(242, 226, 177, 0.08)',
+  },
+  periodAmount: {
     fontFamily: fontFamily.heading,
     fontSize: moderateScale(fontSize.xl),
     fontWeight: fontWeight.regular,
-    lineHeight: moderateScale(fontSize.xl) * 1.3,
+    lineHeight: moderateScale(fontSize.xl) * 1.2,
     color: palette.gold.subtlest,
     textAlign: 'center',
   },
-  pricePerMonth: {
-    fontFamily: fontFamily.heading,
-    fontSize: moderateScale(fontSize.l),
-    fontWeight: fontWeight.regular,
-    lineHeight: moderateScale(fontSize.l) * 1.3,
-    color: palette.gold.subtlest,
-    textAlign: 'center',
+  periodAmountSelected: {
+    color: palette.gold.DEFAULT,
   },
-  priceOrContainer: {
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-  },
-  priceOr: {
-    fontFamily: fontFamily.body,
+  periodLabel: {
+    fontFamily: fontFamily.bodyItalic,
+    fontStyle: 'italic',
     fontSize: moderateScale(fontSize.s),
     fontWeight: fontWeight.light,
-    lineHeight: moderateScale(fontSize.s) * 1.5,
+    lineHeight: moderateScale(fontSize.s) * 1.3,
     color: palette.gold.subtlest,
-    textAlign: 'center',
-  },
-  priceYearAmount: {
-    fontFamily: fontFamily.heading,
-    fontSize: moderateScale(fontSize.xl),
-    fontWeight: fontWeight.regular,
-    lineHeight: moderateScale(fontSize.xl) * 1.3,
-    color: palette.gold.DEFAULT,
-    textAlign: 'center',
-  },
-  priceYearSuffix: {
-    fontFamily: fontFamily.headingItalic,
-    fontSize: moderateScale(fontSize.l),
-    fontWeight: fontWeight.regular,
-    lineHeight: moderateScale(fontSize.l) * 1.3,
-    color: palette.gold.DEFAULT,
     textAlign: 'center',
   },
 

@@ -20,6 +20,8 @@ import AboutScreen from '@screens/AboutScreen';
 import AppVideoScreen from '@screens/AppVideoScreen';
 import ArchetypeScreen from '@screens/ArchetypeScreen';
 import CheckoutScreen from '@screens/CheckoutScreen';
+import EchoVaultUpsellScreen from '@screens/EchoVaultUpsellScreen';
+import YourSubscriptionScreen from '@screens/YourSubscriptionScreen';
 import AddNewProfileScreen from '@screens/echoVault/AddNewProfileScreen';
 import ChooseGuardianScreen from '@screens/echoVault/ChooseGuardianScreen';
 import ChooseRecipientScreen from '@screens/echoVault/ChooseRecipientScreen';
@@ -256,6 +258,8 @@ const AuthenticatedNavigator = ({ initialRouteName = 'EnterMirror' }: Authentica
     <Stack.Screen name="Checkout" component={CheckoutScreen} />
     <Stack.Screen name="StartFreeTrial" component={StartFreeTrialScreen} />
     <Stack.Screen name="EchoVaultStorage" component={EchoVaultStorageScreen} />
+    <Stack.Screen name="EchoVaultUpsell" component={EchoVaultUpsellScreen} />
+    <Stack.Screen name="YourSubscription" component={YourSubscriptionScreen} />
   </Stack.Navigator>
 );
 

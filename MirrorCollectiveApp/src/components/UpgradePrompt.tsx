@@ -34,6 +34,15 @@ const UpgradePrompt: React.FC<UpgradePromptProps> = ({
 
   const handleUpgrade = () => {
     onClose();
+    // Route by reason:
+    //  - quota_* → the user already has a subscription; they want MORE
+    //    storage. Send them to the Echo Vault Storage upsell.
+    //  - trial_expired / default → they need (or need to renew) Mirror
+    //    Core itself. Send them to the trial / paywall screen.
+    if (reason === 'quota_exceeded' || reason === 'quota_approaching') {
+      navigation.navigate('EchoVaultUpsell' as never);
+      return;
+    }
     navigation.navigate('StartFreeTrial' as never);
   };
 

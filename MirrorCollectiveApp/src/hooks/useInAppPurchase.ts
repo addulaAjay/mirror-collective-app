@@ -1,4 +1,4 @@
-import {useEffect, useState, useCallback} from 'react';
+import {useEffect, useState, useCallback, useMemo} from 'react';
 import {Platform, Alert} from 'react-native';
 import {
   initConnection,
@@ -14,27 +14,17 @@ import {
   type ProductPurchase,
 } from 'react-native-iap';
 
+import {ALL_PRODUCT_SKUS, PRODUCTS} from '@/constants/products';
 import {subscriptionApiService} from '@/services/api/subscriptionApi';
 
-// Product IDs
+// Re-export under the legacy shape (PRODUCT_IDS) so existing consumers
+// keep working. New code should import PRODUCTS from @/constants/products.
 const PRODUCT_IDS = {
-  CORE_MONTHLY: Platform.select({
-    ios: 'com.themirrorcollective.mirror.core.monthly',
-    android: 'com.themirrorcollective.mirror.core.monthly',
-  })!,
-  CORE_YEARLY: Platform.select({
-    ios: 'com.themirrorcollective.mirror.core.yearly',
-    android: 'com.themirrorcollective.mirror.core.yearly',
-  })!,
-  STORAGE_MONTHLY: Platform.select({
-    ios: 'com.themirrorcollective.mirror.storage.monthly',
-    android: 'com.themirrorcollective.mirror.storage.monthly',
-  })!,
-  STORAGE_YEARLY: Platform.select({
-    ios: 'com.themirrorcollective.mirror.storage.yearly',
-    android: 'com.themirrorcollective.mirror.storage.yearly',
-  })!,
-};
+  CORE_MONTHLY: PRODUCTS.CORE_MONTHLY.sku,
+  CORE_YEARLY: PRODUCTS.CORE_YEARLY.sku,
+  STORAGE_MONTHLY: PRODUCTS.STORAGE_MONTHLY.sku,
+  STORAGE_YEARLY: PRODUCTS.STORAGE_YEARLY.sku,
+} as const;
 
 interface PurchaseState {
   products: Subscription[];
@@ -62,8 +52,9 @@ export const useInAppPurchase = () => {
         console.log('IAP connection initialized');
 
         // Fetch available products
-        const productIds = Object.values(PRODUCT_IDS);
-        const availableProducts = await getSubscriptions({skus: productIds});
+        const availableProducts = await getSubscriptions({
+          skus: [...ALL_PRODUCT_SKUS],
+        });
 
         setState(prev => ({
           ...prev,
@@ -227,6 +218,15 @@ export const useInAppPurchase = () => {
     }
   }, []);
 
+  // Lookup helper — returns the Subscription metadata (price, title,
+  // intro offer) for a given SKU. Used by paywall screens to render
+  // store-localized pricing instead of hard-coded numbers.
+  const findProduct = useCallback(
+    (sku: string): Subscription | undefined =>
+      state.products.find(p => p.productId === sku),
+    [state.products],
+  );
+
   return {
     products: state.products,
     loading: state.loading,
@@ -234,6 +234,65 @@ export const useInAppPurchase = () => {
     error: state.error,
     purchaseSubscription,
     restorePurchases,
+    findProduct,
     PRODUCT_IDS,
   };
 };
+
+/**
+ * Return a store-localized display price for a Subscription.
+ *
+ * iOS:
+ *   - `localizedPrice` is the formatted string from StoreKit.
+ *
+ * Android:
+ *   - For one-time products `localizedPrice` exists.
+ *   - For subscriptions (the case here) the price lives inside
+ *     `subscriptionOfferDetails[].pricingPhases.pricingPhaseList[]` —
+ *     we read the LAST phase (the recurring/converted price after any
+ *     intro offer or free trial).
+ *
+ * Falls back to a string that's safe to render — never an empty string,
+ * never `undefined`.
+ */
+export function formatLocalizedPrice(
+  sub: Subscription | undefined,
+  fallback = '',
+): string {
+  if (!sub) return fallback;
+
+  // iOS shape
+  if ('localizedPrice' in sub && sub.localizedPrice) {
+    return String(sub.localizedPrice);
+  }
+
+  // Android shape — pick the LAST pricing phase, which is the
+  // recurring price after any intro / trial phase.
+  const offers = (sub as any).subscriptionOfferDetails;
+  if (Array.isArray(offers) && offers.length > 0) {
+    const phases = offers[0]?.pricingPhases?.pricingPhaseList;
+    if (Array.isArray(phases) && phases.length > 0) {
+      const last = phases[phases.length - 1];
+      if (last?.formattedPrice) return String(last.formattedPrice);
+    }
+  }
+
+  return fallback;
+}
+
+/**
+ * Does this Subscription carry an introductory offer (free trial /
+ * discounted intro period)?
+ *
+ * iOS exposes `introductoryPrice` on the Subscription. Android exposes
+ * multiple pricing phases — anything beyond a single phase indicates
+ * an intro offer (the first phase is the promo, the last phase is the
+ * recurring price).
+ */
+export function hasIntroductoryOffer(sub: Subscription | undefined): boolean {
+  if (!sub) return false;
+  if ((sub as any).introductoryPrice) return true;
+  const offers = (sub as any).subscriptionOfferDetails;
+  const phases = offers?.[0]?.pricingPhases?.pricingPhaseList;
+  return Array.isArray(phases) && phases.length > 1;
+}
