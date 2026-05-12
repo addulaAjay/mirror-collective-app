@@ -162,10 +162,13 @@ There is **no real free tier**. Every paid feature follows the same rule.
 - ✅ **Used-GB recompute on soft-delete** — `delete_echo` triggers `quota_service.update_user_quota(user_id)` after success (best-effort; failures logged, delete still returns 200). Note: soft-delete itself doesn't free S3 storage; the recompute is correct relative to the actual S3 inventory at that moment.
 - ✅ **GET routes now locked on expiry** — read routes share the same gate as writes (full-lock policy from the matrix).
 
+**Product decision (2026-05-12):** Echo Vault delete is **soft-delete by design** — returning users must be able to see history of their deleted echoes. S3 objects stay; the previously listed "hard-delete to free `used_gb`" follow-up is dropped. Reflected `used_gb` therefore continues to count soft-deleted objects, which matches S3 reality. If the designer later wants the user-facing quota number to exclude soft-deleted echoes, scope the change to `StorageQuotaService.calculate_user_storage_usage` (filter against `Echo.deleted_at`); it does not require touching S3.
+
 **Backend — known follow-ups:**
 
-- ⏳ (Phase C) S3 hard-delete or lifecycle rule on soft-deleted echoes so `used_gb` actually frees up (currently soft-delete keeps the object).
-- ⏳ (Phase C) Replace per-call S3 inventory in `calculate_user_storage_usage` with per-echo size stored at upload time (perf — fragile and slow on large vaults).
+- ✅ (Phase C, wired 2026-05-12) Per-echo `size_bytes` stored on `Echo`; `calculate_user_storage_usage` now sums it via the `user-echoes-index` GSI. Legacy rows without `size_bytes` are back-filled lazily from a single S3 HeadObject and persisted, so the first call after upgrade pays the migration cost row-by-row and every subsequent call is pure DynamoDB. Soft-deleted rows are intentionally included.
+- ⏳ (Frontend plumbing, paired with quota pre-flight) Frontend should send `file_size_bytes` on `POST /echoes/upload-url` and forward `size_bytes` on `POST /echoes` / `PATCH /echoes/{id}`. Without this, the new column is still populated via the S3 backfill — but the upload-url pre-flight quota check effectively passes `0 bytes` today and only catches `no_quota`, not `quota_exceeded`. Wire both together when surfacing real-money "approaching capacity" UX.
+- ⏳ (Future, designer-pending) "Deleted echoes / history" surface — the soft-delete decision implies a way for returning users to view (and possibly restore) past echoes. No UI spec yet.
 
 **Backend — Phase A (receipt security) — wired 2026-05-11:**
 
