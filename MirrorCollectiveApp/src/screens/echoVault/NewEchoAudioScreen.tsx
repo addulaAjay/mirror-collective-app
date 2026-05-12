@@ -27,6 +27,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
 import StarIcon from '@components/StarIcon';
+import { useToast } from '@components/Toast';
 import UpgradePrompt from '@components/UpgradePrompt';
 import { useEntitlement } from '@hooks/useEntitlement';
 import { echoApiService } from '@services/api';
@@ -51,6 +52,7 @@ const NewEchoAudioScreen: React.FC<Props> = ({ navigation, route }) => {
   const [saving, setSaving] = useState(false);
   const entitlement = useEntitlement();
   const [paywallVisible, setPaywallVisible] = useState(false);
+  const { showToast } = useToast();
 
   // Singleton instance (default export). Ref stops React from treating it as state.
   const audioRecorderPlayer = useRef(AudioRecorderPlayer).current;
@@ -182,7 +184,7 @@ const NewEchoAudioScreen: React.FC<Props> = ({ navigation, route }) => {
           '• Close other audio apps (Music, Spotify, Podcasts)\n' +
           '• Then try again';
       }
-      Alert.alert('Recording Error', userMessage);
+      showToast({ title: 'Recording error', message: userMessage, tone: 'error' });
     }
   };
 
@@ -224,7 +226,7 @@ const NewEchoAudioScreen: React.FC<Props> = ({ navigation, route }) => {
     } catch (err) {
       if (!DocumentPicker.isCancel(err)) {
         console.error('Picker error:', err);
-        Alert.alert('Error', 'Failed to pick audio file');
+        showToast({ title: 'Error', message: 'Failed to pick audio file', tone: 'error' });
       }
     } finally {
       setIsUploading(false);
@@ -237,7 +239,11 @@ const NewEchoAudioScreen: React.FC<Props> = ({ navigation, route }) => {
     const contentType = pickedFile?.type ?? 'audio/m4a';
 
     if (!uri) {
-      Alert.alert('Nothing to save', 'Please record or upload an audio file first.');
+      showToast({
+        title: 'Nothing to save',
+        message: 'Please record or upload an audio file first.',
+        tone: 'error',
+      });
       return;
     }
 
@@ -285,11 +291,15 @@ const NewEchoAudioScreen: React.FC<Props> = ({ navigation, route }) => {
         media_url: uploadUrlResponse.data.media_url,
       });
 
-      Alert.alert('Success', 'Echo saved successfully');
+      showToast({
+        title: 'Echo saved',
+        message: 'Your audio echo is saved.',
+        tone: 'success',
+      });
       navigation.navigate('MirrorEchoVaultHome');
     } catch (err) {
       console.error('Save audio echo failed:', err);
-      Alert.alert('Error', 'Failed to save Echo');
+      showToast({ title: 'Error', message: 'Failed to save Echo', tone: 'error' });
     } finally {
       setSaving(false);
     }

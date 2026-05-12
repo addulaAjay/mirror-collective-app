@@ -30,6 +30,7 @@ import BackgroundWrapper from '@components/BackgroundWrapper';
 import SubscriptionGate from '@components/SubscriptionGate';
 import Button from '@components/Button';
 import LogoHeader from '@components/LogoHeader';
+import { useToast } from '@components/Toast';
 import { echoApiService, EchoResponse } from '@services/api/echo';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'EchoDetailScreen'>;
@@ -45,7 +46,8 @@ const BORDER_SOFT = 'rgba(253,253,249,0.08)';
 const SURFACE = 'rgba(7,9,14,0.36)';
 
 const EchoDetailScreen: React.FC<Props> = ({ navigation, route }) => {
-  const { echoId } = route.params; 
+  const { echoId } = route.params;
+  const { showToast } = useToast();
   const [echo, setEcho] = useState<EchoResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -80,9 +82,13 @@ const EchoDetailScreen: React.FC<Props> = ({ navigation, route }) => {
         content: echo.content,
       });
       if (!res.success) throw new Error('Failed to save to vault.');
-      Alert.alert('Saved', 'Echo added to your vault.');
+      showToast({ title: 'Saved', message: 'Echo added to your vault.', tone: 'success' });
     } catch (e: any) {
-      Alert.alert('Error', e.message || 'Failed to add to vault.');
+      showToast({
+        title: 'Error',
+        message: e.message || 'Failed to add to vault.',
+        tone: 'error',
+      });
     } finally {
       setVaulting(false);
     }
@@ -112,12 +118,16 @@ const EchoDetailScreen: React.FC<Props> = ({ navigation, route }) => {
       if (response.data) {
         setEcho(response.data);
       } else {
-        Alert.alert('Error', 'Echo not found');
+        showToast({ title: 'Error', message: 'Echo not found', tone: 'error' });
         navigation.goBack();
       }
     } catch (error: any) {
       console.error('Failed to fetch echo details:', error);
-      Alert.alert('Error', error.message || 'Failed to load echo details');
+      showToast({
+        title: 'Error',
+        message: error.message || 'Failed to load echo details',
+        tone: 'error',
+      });
       navigation.goBack();
     } finally {
       setLoading(false);

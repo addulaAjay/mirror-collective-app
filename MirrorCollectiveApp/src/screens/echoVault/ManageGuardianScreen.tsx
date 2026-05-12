@@ -20,6 +20,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
+import { useToast } from '@components/Toast';
 import { echoApiService, Guardian } from '@services/api/echo';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ManageGuardianScreen'>;
@@ -33,6 +34,7 @@ const BORDER = 'rgba(253,253,249,0.16)';
 const SURFACE = 'rgba(7,9,14,0.35)';
 
 const ManageGuardianScreen: React.FC<Props> = ({ navigation }) => {
+  const { showToast } = useToast();
   const [guardians, setGuardians] = useState<Guardian[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -77,10 +79,18 @@ const ManageGuardianScreen: React.FC<Props> = ({ navigation }) => {
               if (response.success) {
                 setGuardians(prev => prev.filter(g => g.guardian_id !== id));
               } else {
-                Alert.alert('Error', response.error || 'Failed to remove guardian');
+                showToast({
+                  title: 'Error',
+                  message: response.error || 'Failed to remove guardian',
+                  tone: 'error',
+                });
               }
             } catch (err) {
-              Alert.alert('Error', 'Failed to remove guardian');
+              showToast({
+                title: 'Error',
+                message: 'Failed to remove guardian',
+                tone: 'error',
+              });
             }
           },
         },

@@ -54,7 +54,6 @@ import BackgroundWrapper from '@components/BackgroundWrapper';
 import Button from '@components/Button/Button';
 import LogoHeader from '@components/LogoHeader';
 import StarIcon from '@components/StarIcon';
-import StorageMeter from '@components/StorageMeter';
 import SubscriptionGate from '@components/SubscriptionGate';
 
 type MirrorEchoNavigationProp = NativeStackNavigationProp<
@@ -151,9 +150,14 @@ export function MirrorEchoContent() {
               VIEW VAULT uses Transparent White Gradient (more transparent)
               Both use Radius/M (16), border 0.5px, Cormorant 24px gold.
             */}
-            {/* Storage indicator — usage / quota with a progress bar.
-                Tappable when approaching/full to open the upgrade prompt. */}
-            <StorageMeter />
+            {/* Storage indicator intentionally NOT rendered here for v1.
+                Product decision (2026-05-12): the passive "X of Y used"
+                bar isn't desired UX; designer will define how to surface
+                "approaching capacity" later. Backend continues to track
+                echo_vault_used_gb via StorageQuotaService, and the
+                useEntitlement.canUpload() pre-flight + UpgradePrompt
+                modal still block over-quota uploads. Component lives at
+                src/components/StorageMeter.tsx for future re-introduction. */}
 
             <View style={styles.ctaWrap}>
               {/* VIEW VAULT — primary (prominent CTA) */}

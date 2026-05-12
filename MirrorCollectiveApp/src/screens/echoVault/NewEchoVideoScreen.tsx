@@ -31,6 +31,7 @@ import {
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import Button from '@components/Button/Button';
 import LogoHeader from '@components/LogoHeader';
+import { useToast } from '@components/Toast';
 import UpgradePrompt from '@components/UpgradePrompt';
 import { useEntitlement } from '@hooks/useEntitlement';
 import { echoApiService } from '@services/api';
@@ -59,6 +60,7 @@ const NewEchoVideoScreen: React.FC<Props> = ({ navigation, route }) => {
   const [saving, setSaving] = useState(false);
   const [isPicking, setIsPicking] = useState(false);
   const entitlement = useEntitlement();
+  const { showToast } = useToast();
   const [paywallVisible, setPaywallVisible] = useState(false);
   // True between "user tapped stop" and "onRecordingFinished/Error fires" —
   // gives the user immediate visual feedback during the async file finalize step.
@@ -162,7 +164,11 @@ const NewEchoVideoScreen: React.FC<Props> = ({ navigation, route }) => {
           if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
           setIsStopping(false);
           console.error('Recording error:', err);
-          Alert.alert('Recording Error', err.message || 'Recording failed. Please try again.');
+          showToast({
+            title: 'Recording error',
+            message: err.message || 'Recording failed. Please try again.',
+            tone: 'error',
+          });
           setMode('camera');
         },
       });
@@ -193,7 +199,7 @@ const NewEchoVideoScreen: React.FC<Props> = ({ navigation, route }) => {
         setMode('preview');
       }
     } catch {
-      Alert.alert('Error', 'Failed to pick video');
+      showToast({ title: 'Error', message: 'Failed to pick video', tone: 'error' });
     } finally {
       setIsPicking(false);
     }
@@ -203,7 +209,11 @@ const NewEchoVideoScreen: React.FC<Props> = ({ navigation, route }) => {
     const uri = pickedVideo?.uri ?? recordingUri;
     const contentType = pickedVideo?.type ?? 'video/mp4';
     if (!uri) {
-      Alert.alert('Nothing to save', 'Please record or upload a video first.');
+      showToast({
+        title: 'Nothing to save',
+        message: 'Please record or upload a video first.',
+        tone: 'error',
+      });
       return;
     }
     // Second-layer entitlement gate (see NewEchoComposeScreen.onSave).
@@ -228,10 +238,14 @@ const NewEchoVideoScreen: React.FC<Props> = ({ navigation, route }) => {
         await echoApiService.uploadMedia(uploadRes.data.upload_url, uri, contentType);
         await echoApiService.updateEcho(createRes.data.echo_id, { media_url: uploadRes.data.media_url });
       }
-      Alert.alert('Saved', 'Echo saved successfully');
+      showToast({
+        title: 'Echo saved',
+        message: 'Your video echo is saved.',
+        tone: 'success',
+      });
       navigation.navigate('MirrorEchoVaultHome');
     } catch {
-      Alert.alert('Error', 'Failed to save echo');
+      showToast({ title: 'Error', message: 'Failed to save echo', tone: 'error' });
     } finally {
       setSaving(false);
     }

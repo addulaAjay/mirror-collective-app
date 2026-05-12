@@ -44,6 +44,7 @@ import BackgroundWrapper from '@components/BackgroundWrapper';
 import Button from '@components/Button/Button';
 import LogoHeader from '@components/LogoHeader';
 import TextInputField from '@components/TextInputField';
+import { useToast } from '@components/Toast';
 import { echoApiService } from '@services/api/echo';
 import {
   borderWidth,
@@ -76,6 +77,7 @@ const CIRCLE = scale(186);
 const AddNewProfileScreen: React.FC<Props> = ({ navigation, route }) => {
   const mode = route.params?.mode ?? 'recipient';
   const isGuardian = mode === 'guardian';
+  const { showToast } = useToast();
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -97,7 +99,11 @@ const AddNewProfileScreen: React.FC<Props> = ({ navigation, route }) => {
 
   const handleAdd = async () => {
     if (!name.trim() || !email.trim()) {
-      Alert.alert('Required', 'Please enter a name and email address.');
+      showToast({
+        title: 'Required',
+        message: 'Please enter a name and email address.',
+        tone: 'error',
+      });
       return;
     }
     try {
@@ -125,14 +131,22 @@ const AddNewProfileScreen: React.FC<Props> = ({ navigation, route }) => {
           });
 
       if (response.success) {
-        Alert.alert('Success', `${isGuardian ? 'Guardian' : 'Recipient'} added successfully`, [
-          { text: 'OK', onPress: () => navigation.goBack() },
-        ]);
+        showToast({
+          title: 'Success',
+          message: `${isGuardian ? 'Guardian' : 'Recipient'} added successfully`,
+          tone: 'success',
+        });
+        navigation.goBack();
       } else {
-        Alert.alert('Error', response.error || `Failed to add ${isGuardian ? 'guardian' : 'recipient'}`);
+        showToast({
+          title: 'Error',
+          message: response.error || `Failed to add ${isGuardian ? 'guardian' : 'recipient'}`,
+          tone: 'error',
+        });
       }
-    } catch (err: any) {
-      Alert.alert('Error', err?.message ?? 'An unexpected error occurred');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'An unexpected error occurred';
+      showToast({ title: 'Error', message, tone: 'error' });
     } finally {
       setLoading(false);
     }

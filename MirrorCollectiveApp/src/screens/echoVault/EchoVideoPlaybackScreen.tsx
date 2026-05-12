@@ -28,6 +28,7 @@ import BackgroundWrapper from '@components/BackgroundWrapper';
 import SubscriptionGate from '@components/SubscriptionGate';
 import Button from '@components/Button';
 import LogoHeader from '@components/LogoHeader';
+import { useToast } from '@components/Toast';
 import { echoApiService, EchoResponse } from '@services/api/echo';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'EchoVideoPlaybackScreen'>;
@@ -42,6 +43,7 @@ const SURFACE = 'rgba(7,9,14,0.40)';
 
 const EchoVideoPlaybackScreen: React.FC<Props> = ({ navigation, route }) => {
   const { echoId, title } = route.params; // Expect echoId passed in params
+  const { showToast } = useToast();
   const [echo, setEcho] = useState<EchoResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const isRecipient = !!echo?.sender;
@@ -107,12 +109,16 @@ const EchoVideoPlaybackScreen: React.FC<Props> = ({ navigation, route }) => {
       if (response.data) {
         setEcho(response.data);
       } else {
-        Alert.alert('Error', 'Echo not found');
+        showToast({ title: 'Error', message: 'Echo not found', tone: 'error' });
         navigation.goBack();
       }
     } catch (error: any) {
       console.error('Failed to fetch echo details:', error);
-      Alert.alert('Error', error.message || 'Failed to load echo details');
+      showToast({
+        title: 'Error',
+        message: error.message || 'Failed to load echo details',
+        tone: 'error',
+      });
       navigation.goBack();
     } finally {
       setLoading(false);
@@ -139,9 +145,13 @@ const EchoVideoPlaybackScreen: React.FC<Props> = ({ navigation, route }) => {
       if (echo.media_url) {
         await echoApiService.updateEcho(res.data.echo_id, { media_url: echo.media_url });
       }
-      Alert.alert('Saved', 'Echo added to your vault.');
+      showToast({ title: 'Saved', message: 'Echo added to your vault.', tone: 'success' });
     } catch (e: any) {
-      Alert.alert('Error', e.message || 'Failed to add to vault.');
+      showToast({
+        title: 'Error',
+        message: e.message || 'Failed to add to vault.',
+        tone: 'error',
+      });
     } finally {
       setVaulting(false);
     }
@@ -172,7 +182,11 @@ const EchoVideoPlaybackScreen: React.FC<Props> = ({ navigation, route }) => {
 
     // Cap retries — if the fresh URL also fails, don't re-enter onError forever
     if (errorRetryRef.current >= 1) {
-      Alert.alert('Playback Error', 'Could not play this video. Please try again later.');
+      showToast({
+        title: 'Playback error',
+        message: 'Could not play this video. Please try again later.',
+        tone: 'error',
+      });
       return;
     }
     errorRetryRef.current += 1;
@@ -193,7 +207,11 @@ const EchoVideoPlaybackScreen: React.FC<Props> = ({ navigation, route }) => {
     } catch {
       // fall through to alert
     }
-    Alert.alert('Playback Error', 'Could not play this video. Please try again.');
+    showToast({
+      title: 'Playback error',
+      message: 'Could not play this video. Please try again.',
+      tone: 'error',
+    });
   };
 
   return (
