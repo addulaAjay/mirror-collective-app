@@ -152,16 +152,24 @@ There is **no real free tier**. Every paid feature follows the same rule.
 - ⏳ Wrap `EchoVaultLibraryScreen`, `EchoDetailScreen`, `EchoInboxScreen`, audio/video playback in `SubscriptionGate` (currently only the home gate covers them, which is enough for normal flow but not for deep links).
 - ⏳ `NewEchoComposeScreen` / `NewEchoAudioScreen` / `NewEchoVideoScreen` save action — second-layer gate in case entitlement flips mid-flow.
 
-**Backend — leaks still present (Phase A.5 backend track, blocked on access to the Python repo):**
+**Backend — wired 2026-05-11:**
 
-- ❌ **No `@require_entitled` FastAPI dependency exists** in `src/app/services/*` or `src/app/api/*`. Every entitlement check would have to be written by hand inside each handler, and isn't.
-- ❌ **MirrorGPT routes** (`src/app/api/mirrorgpt_routes.py`) — `/chat`, `/analyze`, `/quiz/submit`, `/profile`, `/signals`, `/moments`, `/session/greeting` all check authentication only.
-- ❌ **Echo Vault `POST /echoes/upload-url`** (`src/app/api/echo_routes.py:216`) — issues a presigned S3 URL **without** calling `StorageQuotaService.can_upload()`.
-- ❌ **`StorageQuotaService.can_upload()` is dead code** — defined at `quota_middleware.py:151`, never called.
-- ❌ **`QuotaEnforcementMiddleware`** only checks `quota_exceeded` *after* an upload begins — it doesn't pre-flight the presigned URL request.
-- ❌ **Delete does not decrement `echo_vault_used_gb`.** Quota is recomputed from a full S3 inventory list on the next `check_quota_exceeded()` call, which is fragile and slow on large vaults.
-- ❌ **No read-only mode after expiry.** `trial_management_service.handle_trial_expired()` zeroes the quota (so writes fail), but GET routes for existing echoes have no subscription check. **Per locked entitlement matrix, GET should also lock.**
-- ❌ **Quota math** — `echo_vault_quota_gb` is a single denormalised number on the user profile, recomputed at subscription state transitions. Drift between this number and S3 inventory is reconciled lazily.
+- ✅ **`require_entitled` FastAPI dependency** lives in `src/app/core/entitlement.py`. Single predicate (`status ∈ {trial, active, grace_period}`), 402 Payment Required with structured `{code, reason, message}` detail otherwise. Returns an `EntitledUser` dataclass so handlers don't re-fetch the profile.
+- ✅ **MirrorGPT** — `/chat`, `/analyze`, `/signals`, `/moments`, `/moments/{id}/acknowledge`, `/loops`, `/insights`, `/session/greeting` are all gated. `/quiz/*`, `/profile`, `/archetypes/list`, `/health` remain open (onboarding + static refs).
+- ✅ **Echo Vault** — every route in `src/app/api/echo_routes.py` (writes, reads, recipients, guardians) is gated.
+- ✅ **Echo Map** — `GET /echo/snapshot` and `POST /echo/recommend` (in `echo_v1_routes.py`) are gated. `dev_seed_loop_state` kept open (dev-only).
+- ✅ **Pre-flight quota check** in `POST /echoes/upload-url` — `UploadUrlRequest.file_size_bytes` is now a client-supplied hint; the handler calls `StorageQuotaService.can_upload(user_id, file_size_bytes)` before generating the S3 presigned URL. Returns 413 for `quota_exceeded`, 402 for `no_quota`.
+- ✅ **Used-GB recompute on soft-delete** — `delete_echo` triggers `quota_service.update_user_quota(user_id)` after success (best-effort; failures logged, delete still returns 200). Note: soft-delete itself doesn't free S3 storage; the recompute is correct relative to the actual S3 inventory at that moment.
+- ✅ **GET routes now locked on expiry** — read routes share the same gate as writes (full-lock policy from the matrix).
+
+**Backend — known follow-ups (Phase A, not A.5):**
+
+- ⏳ S3 hard-delete or lifecycle rule on soft-deleted echoes so `used_gb` actually frees up (currently soft-delete keeps the object).
+- ⏳ Replace per-call S3 inventory in `calculate_user_storage_usage` with per-echo size stored at upload time (perf — fragile and slow on large vaults).
+- ⏳ Apple App Store Server API migration (replace deprecated `verifyReceipt`).
+- ⏳ App Store Server Notifications v2 JWS signature verification.
+- ⏳ Google Play RTDN Pub/Sub push JWT verification.
+- ⏳ Idempotency guard on `/verify-purchase`.
 
 Backend (also leaky):
 
