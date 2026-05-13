@@ -1,5 +1,4 @@
 import { useNavigation } from '@react-navigation/native';
-import { theme, palette, spacing, shadows, textShadow } from '@theme';
 import React, { useCallback, useEffect } from 'react';
 import {
   View,
@@ -18,6 +17,7 @@ import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
 import { MessageBubble, ChatInput, LoadingIndicator } from '@components/ui';
 import { useChat } from '@hooks/useChat';
+import { theme, palette, spacing, shadows, textShadow } from '@theme';
 
 // Export content component for testing
 export function MirrorChatContent() {
@@ -52,7 +52,7 @@ export function MirrorChatContent() {
   );
 
   return (
-    <BackgroundWrapper style={styles.background}>
+    <BackgroundWrapper style={styles.background} scrollable>
       <SafeAreaView style={styles.safeArea}>
         <LogoHeader navigation={navigation} />
 
@@ -195,4 +195,3 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xs,
   },
 });
-
