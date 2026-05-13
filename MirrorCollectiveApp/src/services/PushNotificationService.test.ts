@@ -99,12 +99,25 @@ describe('PushNotificationService — payment-failure routing', () => {
     expect(onMessage).toHaveBeenCalledTimes(1);
     const handler = onMessage.mock.calls[0][0];
 
+    // Realistic backend payload: generic lock-screen copy in the
+    // visible notification, detailed in-app copy in data.
     await handler({
-      notification: { title: 'Payment failed', body: 'tap to fix' },
-      data: { type: 'payment_failed', subscription_id: 'sub-1' },
+      notification: { title: 'Mirror Collective', body: 'Tap to open Mirror Collective' },
+      data: {
+        type: 'payment_failed',
+        subscription_id: 'sub-1',
+        in_app_title: "Payment couldn't be processed",
+        in_app_body: "We couldn't renew your Mirror Collective subscription. Update your payment method to keep your subscription.",
+      },
     });
 
     expect(alertSpy).toHaveBeenCalledTimes(1);
+    // Foreground alert should use the detailed in_app_* copy.
+    const alertTitle = alertSpy.mock.calls[0][0];
+    const alertBody = alertSpy.mock.calls[0][1];
+    expect(alertTitle).toBe("Payment couldn't be processed");
+    expect(alertBody).toContain('Update your payment method');
+
     const buttons = alertSpy.mock.calls[0][2];
     expect(Array.isArray(buttons)).toBe(true);
     const labels = (buttons as any[]).map(b => b.text);
@@ -115,6 +128,28 @@ describe('PushNotificationService — payment-failure routing', () => {
     const updateBtn = (buttons as any[]).find(b => b.text === 'Update Payment');
     updateBtn.onPress();
     expect(safeNavigate).toHaveBeenCalledWith('YourSubscription');
+  });
+
+  it('falls back to visible copy when data.in_app_* is missing (legacy payload)', async () => {
+    // Defends against an old backend or third-party push with no
+    // in_app_title/body. The alert still renders something usable.
+    const onMessage = jest.fn();
+    installMessagingMock({ onMessage });
+
+    jest.isolateModules(() => {
+      const svc = require('./PushNotificationService').default;
+      svc.initializeForegroundHandler();
+    });
+    const handler = onMessage.mock.calls[0][0];
+
+    await handler({
+      notification: { title: 'Payment failed', body: 'tap to fix' },
+      data: { type: 'payment_failed', subscription_id: 'sub-1' },
+    });
+
+    expect(alertSpy).toHaveBeenCalledTimes(1);
+    expect(alertSpy.mock.calls[0][0]).toBe('Payment failed');
+    expect(alertSpy.mock.calls[0][1]).toBe('tap to fix');
   });
 
   it('falls back to default alert for non-payment messages', async () => {

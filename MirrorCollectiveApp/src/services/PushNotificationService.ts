@@ -16,6 +16,14 @@ interface PushDataPayload {
   type?: PushDataType;
   subscription_id?: string;
   deep_link?: string;
+  // Two-tier copy: the backend sends generic title/body in the
+  // visible APNS alert / GCM notification block (what shows on lock
+  // screen — kept generic so a passer-by can't see subscription
+  // state), and the detailed copy in `in_app_title` / `in_app_body`
+  // here. The foreground handler reads these when present and falls
+  // back to the visible notification fields otherwise.
+  in_app_title?: string;
+  in_app_body?: string;
   // Additional vendor-specific keys are allowed through; we narrow as
   // we add new dispatch types.
   [k: string]: unknown;
@@ -192,12 +200,20 @@ class PushNotificationService {
   initializeForegroundHandler(): void {
     messaging().onMessage(async (remoteMessage: any) => {
       const data: PushDataPayload = remoteMessage.data ?? {};
-      const title = remoteMessage.notification?.title || 'Mirror Collective';
+      // Visible-notification copy. Generic for lock-screen safety; the
+      // server now sends "Mirror Collective" / "Tap to open" here and
+      // tucks the detailed copy into data.in_app_title / data.in_app_body.
+      const visibleTitle = remoteMessage.notification?.title || 'Mirror Collective';
       const fallbackBody =
         typeof data.message === 'string' ? (data.message as string) : 'New insight available';
-      const body = remoteMessage.notification?.body || fallbackBody;
+      const visibleBody = remoteMessage.notification?.body || fallbackBody;
 
       if (data.type === 'payment_failed') {
+        // Prefer the rich in-app copy from the data block. The visible
+        // notification copy is intentionally generic so the lock screen
+        // doesn't reveal the user's subscription state.
+        const title = data.in_app_title || visibleTitle;
+        const body = data.in_app_body || visibleBody;
         Alert.alert(title, body, [
           { text: 'Later', style: 'cancel' },
           {
@@ -210,7 +226,7 @@ class PushNotificationService {
         return;
       }
 
-      Alert.alert(title, body, [{ text: 'View' }]);
+      Alert.alert(visibleTitle, visibleBody, [{ text: 'View' }]);
     });
   }
 
