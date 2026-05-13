@@ -216,6 +216,30 @@ const YourSubscriptionScreen: React.FC = () => {
                                                 : `Ends ${formatExpiry(storageSubscription.expiry_date)}`}
                                         </Text>
                                     )}
+                                    {/* Per-SKU management deep link. Apple/Play don't let
+                                        us cancel for the user (policy); this drops them
+                                        on the specific subscription's management page so
+                                        they're one tap away from "Cancel" / "Turn off
+                                        auto-renew". On iOS the URL goes to the generic
+                                        Subscriptions list because Apple doesn't expose a
+                                        reliable per-product deep link; on Android we
+                                        pass the storage sku for the per-subscription
+                                        page. The user lands on the right tier either
+                                        way. */}
+                                    <TouchableOpacity
+                                        accessibilityRole="button"
+                                        accessibilityLabel="Manage or remove Echo Vault Storage"
+                                        onPress={() =>
+                                            openSubscriptionManagement(
+                                                storageSubscription?.product_id,
+                                            )
+                                        }
+                                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                                    >
+                                        <Text style={styles.planManageLink}>
+                                            Manage or remove
+                                        </Text>
+                                    </TouchableOpacity>
                                 </View>
                                 <Text style={styles.planAmount}>{storagePrice}</Text>
                             </View>
@@ -305,6 +329,7 @@ const styles = StyleSheet.create<{
     planTitle: TextStyle;
     planSubtitle: TextStyle;
     planMeta: TextStyle;
+    planManageLink: TextStyle;
     planAmount: TextStyle;
     sectionLabel: TextStyle;
     divider: ViewStyle;
@@ -419,6 +444,15 @@ const styles = StyleSheet.create<{
         color: palette.gold.subtlest,
         opacity: 0.6,
         marginTop: verticalScale(2),
+    },
+    planManageLink: {
+        fontFamily: fontFamily.body,
+        fontSize: moderateScale(fontSize.xs),
+        fontWeight: fontWeight.light,
+        lineHeight: moderateScale(fontSize.xs) * 1.4,
+        color: palette.gold.DEFAULT,
+        textDecorationLine: 'underline',
+        marginTop: verticalScale(4),
     },
     planAmount: {
         fontFamily: fontFamily.heading,

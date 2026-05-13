@@ -36,7 +36,7 @@ import {
     modalColors,
 } from '@theme';
 import type { RootStackParamList } from '@types';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     View,
     Text,
@@ -64,6 +64,7 @@ import {
     useInAppPurchase,
     formatLocalizedPrice,
 } from '@/hooks/useInAppPurchase';
+import { telemetryApiService } from '@services/api/telemetry';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'EchoVaultUpsell'>;
 type ScreenRoute = RouteProp<RootStackParamList, 'EchoVaultUpsell'>;
@@ -87,6 +88,13 @@ const EchoVaultUpsellScreen: React.FC = () => {
     // back out to "Not now" with one tap if they don't want it.
     const [intent, setIntent] = useState<'add' | 'skip'>('add');
     const [restoring, setRestoring] = useState(false);
+
+    // Fire paywall_view exactly once per mount with surface tag so the
+    // analytics layer can break the trial conversion funnel down by
+    // where the paywall was shown (pricing spec 2026-05-12 §5).
+    useEffect(() => {
+        void telemetryApiService.firePaywallView('echo_vault_upsell');
+    }, []);
 
     // Default to yearly (better value), then surface monthly as a
     // secondary option inside the price line below.

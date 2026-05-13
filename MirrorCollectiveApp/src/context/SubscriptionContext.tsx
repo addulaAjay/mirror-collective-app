@@ -13,12 +13,20 @@ import {useUser} from './UserContext';
 
 import {subscriptionApiService} from '@/services/api/subscriptionApi';
 
+/**
+ * Subset of the backend's `/subscription/status.features` block that
+ * the client actually consumes. The backend returns boolean flags for
+ * `mirror_gpt_enabled` / `echo_vault_enabled` / `echo_map_enabled` too,
+ * but no client surface reads them — all paid-feature gating is done
+ * server-side via `require_feature` (see core/entitlement.py) and
+ * surfaced to the UI via the single `status`-based `useEntitlement`
+ * hook. Adding those flags here just to mirror the payload would be
+ * dead state; if a future surface needs per-feature gating on the
+ * client, extend this type then.
+ */
 interface SubscriptionFeatures {
-  echo_vault_enabled: boolean;
   quota_gb: number;
   used_gb: number;
-  mirror_gpt_enabled: boolean;
-  echo_map_enabled: boolean;
 }
 
 interface SubscriptionInfo {
@@ -46,15 +54,14 @@ interface SubscriptionContextType {
   hasUsedTrial: boolean;
 }
 
-// Fail-closed defaults: every paid feature is OFF until the backend confirms
-// otherwise. The previous default of mirror_gpt_enabled:true allowed
-// unauthenticated / loading users to call MirrorGPT.
+// Fail-closed defaults — quota=0 means useEntitlement reports
+// `canUpload=false` while the context is still loading or for
+// unauthenticated users. The previous shape also carried per-feature
+// boolean flags (mirror_gpt_enabled etc.) which were never read on the
+// client and have been removed.
 const defaultFeatures: SubscriptionFeatures = {
-  echo_vault_enabled: false,
   quota_gb: 0,
   used_gb: 0,
-  mirror_gpt_enabled: false,
-  echo_map_enabled: false,
 };
 
 const SubscriptionContext = createContext<SubscriptionContextType | undefined>(

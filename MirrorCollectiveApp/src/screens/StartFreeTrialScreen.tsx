@@ -42,6 +42,7 @@ import { useToast } from '@components/Toast';
 import { PRIVACY_POLICY_URL, TERMS_OF_SERVICE_URL } from '@/constants/legalUrls';
 import { useSubscription } from '@/context/SubscriptionContext';
 import { useInAppPurchase, formatLocalizedPrice, hasIntroductoryOffer } from '@/hooks/useInAppPurchase';
+import { purchaseBasicWithOptionalStorage } from '@/hooks/useInAppPurchase.chain';
 import { telemetryApiService } from '@services/api/telemetry';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'StartFreeTrial'>;
@@ -99,6 +100,16 @@ const StartFreeTrialScreen = () => {
         selectedPeriod === 'monthly' ? '$4.99' : '$49',
     );
     const storagePeriodLabel = selectedPeriod === 'monthly' ? '/month' : '/year';
+    // Toggle is unusable until StoreKit / Play returns the storage
+    // product — otherwise the chained sheet would fail silently. Reset
+    // the toggle off if the user somehow enabled it before products
+    // finished loading.
+    const storageProductAvailable = !!selectedStorageProduct;
+    useEffect(() => {
+        if (!storageProductAvailable && addStorage) {
+            setAddStorage(false);
+        }
+    }, [storageProductAvailable, addStorage]);
 
     // Eligibility for the platform-native intro offer is determined by
     // Apple/Google (per-Apple-ID / per-Google-account, not per app
@@ -133,36 +144,19 @@ const StartFreeTrialScreen = () => {
             // user enters their payment method in the native sheet, the
             // trial starts, and our backend hears about it via the
             // /verify-purchase webhook in the purchase listener.
-            const basicOk = await purchaseSubscription(basicSku);
-            await refreshSubscriptionStatus();
-
-            if (!basicOk) {
-                // User cancelled the Basic sheet (or it errored). Don't
-                // chain the add-on — purchaseSubscription already wrote
-                // the error to state, and a cancel should be silent.
-                return;
-            }
-
-            // Optional storage add-on — chained as a second native sheet.
-            // Native IAP can't bundle two subscriptions in one
-            // transaction; sequencing them is the "toggle on paywall"
-            // pattern from pricing spec 2026-05-12 §8 without violating
-            // the no-cart rule from the 2026-05-11 architectural lock.
-            if (addStorage) {
-                const storageOk = await purchaseSubscription(storageSku);
-                await refreshSubscriptionStatus();
-                if (!storageOk) {
-                    // Basic succeeded; user backed out of the storage
-                    // sheet. Leave them on Basic, surface a non-blocking
-                    // pointer to the contextual upsell so the option
-                    // stays discoverable.
-                    showToast({
-                        title: "You're on Mirror Basic",
-                        message: 'You can add 100 GB storage anytime from Echo Vault.',
-                        tone: 'info',
-                    });
-                }
-            }
+            //
+            // The sequencing for the optional +100 GB storage add-on lives
+            // in `purchaseBasicWithOptionalStorage` so the chain can be
+            // unit-tested without rendering this screen.
+            await purchaseBasicWithOptionalStorage({
+                basicSku,
+                storageSku,
+                addStorage,
+                storageProductAvailable,
+                purchaseSubscription,
+                refreshSubscriptionStatus,
+                showToast,
+            });
         } catch (error: unknown) {
             // purchaseSubscription no longer throws — this catch is
             // defensive in case refreshSubscriptionStatus or a future
@@ -361,15 +355,23 @@ const StartFreeTrialScreen = () => {
 
                   {/* Optional storage add-on toggle (pricing spec
                       2026-05-12 §8). Tapping anywhere on the row
-                      toggles it; the indicator dot fills when on. */}
+                      toggles it; the indicator dot fills when on.
+                      Disabled until StoreKit / Play returns the
+                      storage product so the chained second sheet
+                      can't fail silently on slow networks. */}
                   <TouchableOpacity
                     style={[
                       styles.storageToggleRow,
                       addStorage && styles.storageToggleRowSelected,
+                      !storageProductAvailable && styles.storageToggleRowDisabled,
                     ]}
                     onPress={() => setAddStorage(prev => !prev)}
+                    disabled={!storageProductAvailable}
                     accessibilityRole="switch"
-                    accessibilityState={{ checked: addStorage }}
+                    accessibilityState={{
+                      checked: addStorage,
+                      disabled: !storageProductAvailable,
+                    }}
                     accessibilityLabel={
                       `Add 100 GB Echo Vault storage for ${storagePriceLabel}${storagePeriodLabel}`
                     }
@@ -377,7 +379,9 @@ const StartFreeTrialScreen = () => {
                     <View style={styles.storageToggleText}>
                       <Text style={styles.storageToggleTitle}>+ Add 100 GB storage</Text>
                       <Text style={styles.storageToggleSubtitle}>
-                        {storagePriceLabel}{storagePeriodLabel} · Optional
+                        {storageProductAvailable
+                          ? `${storagePriceLabel}${storagePeriodLabel} · Optional`
+                          : 'Loading…'}
                       </Text>
                     </View>
                     <View style={[
@@ -495,6 +499,7 @@ const styles = StyleSheet.create<{
   periodLabel: TextStyle;
   storageToggleRow: ViewStyle;
   storageToggleRowSelected: ViewStyle;
+  storageToggleRowDisabled: ViewStyle;
   storageToggleText: ViewStyle;
   storageToggleTitle: TextStyle;
   storageToggleSubtitle: TextStyle;
@@ -738,6 +743,9 @@ const styles = StyleSheet.create<{
   storageToggleRowSelected: {
     borderColor: palette.gold.DEFAULT,
     backgroundColor: 'rgba(216, 194, 120, 0.08)',
+  },
+  storageToggleRowDisabled: {
+    opacity: 0.5,
   },
   storageToggleText: {
     flex: 1,
