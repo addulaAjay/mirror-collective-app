@@ -262,7 +262,7 @@ jest.mock('@hooks/useEntitlement', () => ({
     entitled: true,
     loading: false,
     status: 'active',
-    tier: 'core',
+    tier: 'basic',
     lockReason: null,
     promptReason: 'trial_expired',
     quotaGb: 50,

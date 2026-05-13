@@ -37,7 +37,7 @@ interface MockSubscriptionContext {
 function mockContext(overrides: Partial<MockSubscriptionContext> = {}): MockSubscriptionContext {
   return {
     status: 'active',
-    tier: 'core',
+    tier: 'basic',
     features: {
       quota_gb: 50,
       used_gb: 5,

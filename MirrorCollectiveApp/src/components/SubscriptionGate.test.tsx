@@ -34,7 +34,7 @@ function setEntitlement(overrides: EntitlementOverrides) {
     entitled: overrides.entitled ?? true,
     loading: overrides.loading ?? false,
     status: 'active',
-    tier: 'core',
+    tier: 'basic',
     lockReason: null,
     promptReason: overrides.promptReason ?? 'trial_expired',
     quotaGb: overrides.quotaGb ?? 50,

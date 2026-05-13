@@ -30,7 +30,10 @@ interface SubscriptionInfo {
 }
 
 interface SubscriptionContextType {
-  tier: string; // "free" | "trial" | "core" | "core_plus"
+  // Tier values per pricing spec 2026-05-12: free | trial | basic
+  // (future: plus). Storage add-on is signalled separately by the
+  // backend `storage_add_on_active` flag — tier is orthogonal to it.
+  tier: string; // "free" | "trial" | "basic"  (future: "plus")
   status: string; // "none" | "trial" | "trial_expired" | "active" | "expired"
   trialDaysRemaining: number;
   features: SubscriptionFeatures;

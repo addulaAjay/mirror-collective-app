@@ -26,14 +26,17 @@ interface EntitlementInfo {
   loading: boolean;
   /** Raw status from backend, e.g. 'trial' | 'active' | 'expired'. */
   status: string;
-  /** Raw tier, e.g. 'core' | 'core_plus'. Only affects quota numbers. */
+  /** Raw tier, e.g. 'basic' (future: 'plus'). Storage upgrade is
+   *  signalled separately via the backend's `storage_add_on_active`
+   *  flag — it does NOT promote the tier value. */
   tier: string;
   /** Why the user is locked, or null if entitled. */
   lockReason: LockReason | null;
   /** Reason to feed into <UpgradePrompt>'s `reason` prop. */
   promptReason: 'quota_exceeded' | 'trial_expired';
 
-  /** Total quota in GB (50 for core/trial, 150 for core_plus, 0 if locked). */
+  /** Total quota in GB (50 for basic/trial, +100 with the storage
+   *  add-on, 0 if locked). */
   quotaGb: number;
   /** Bytes used, expressed in GB. */
   usedGb: number;
