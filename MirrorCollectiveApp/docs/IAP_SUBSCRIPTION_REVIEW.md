@@ -1,271 +1,188 @@
-# In-App Purchase & Subscription — Current State Review
+# In-App Purchase & Subscription — State of Implementation
 
-> **Date:** 2026-05-11
+> **Date:** 2026-05-12 (refresh after the pricing spec landed)
 > **Scope:** Mirror Collective React Native app + Python (FastAPI / serverless) backend
-> **Goal of this doc:** Establish a shared, accurate picture of what already exists for trial/subscription/IAP before we (a) tighten the implementation and (b) ship real in-app purchases to production.
+> **Status:** Code complete against pricing spec **"MIRROR PRICING & PACKAGING — DEV HANDOFF 5.12.16"** (launch 2026-06-15). Remaining work is external store/AWS setup + manual sandbox QA.
 
 ---
 
 ## 1. Executive summary
 
-The trial + subscription system is **~70 % built end-to-end**. A 14-day free trial path is functional (no payment captured). The IAP stack (`react-native-iap` on the client, Apple/Google receipt validation on the server, DynamoDB persistence, App Store + Play Store webhooks) is wired but **not production-ready**: receipt-signature verification is incomplete, the Checkout screen is a static stub, native capabilities/permissions are not declared, and several auth/idempotency/security gaps remain.
+The trial + subscription + storage add-on stack is **~95% built end-to-end** and aligned to the canonical pricing spec. All P0/P1 items from the 2026-05-11 review are closed; the architecture is ready for the future Mirror Plus tier without rewrites.
 
-Recommendation: keep the existing DIY stack (do **not** introduce RevenueCat now — too much is already built). Tighten in three phases (security → wiring → store readiness) before flipping IAP on for real users.
+Backend PR open at [addulaAjay/mirror-collective-python-api#47](https://github.com/addulaAjay/mirror-collective-python-api/pull/47) — 16 commits, +5288 / −508 across 35 files, full suite 665 passed / 2 skipped.
+
+Recommendation: hold the DIY stack (react-native-iap + custom validators + DynamoDB). Next step is external setup (App Store Connect, Play Console, SNS, AWS env config) followed by sandbox QA per spec §9.
 
 ---
 
-## 2. Frontend — what exists
+## 2. Pricing-spec coverage
 
-### 2.1 Screens & UI
-
-| Path | Status | Notes |
+| Spec § | Item | Status |
 |---|---|---|
-| `src/screens/StartFreeTrialScreen.tsx` | Live | 14-day trial CTA. Calls `subscriptionApiService.startTrial()`. Pricing **hardcoded** ($15.99/mo, $139/yr) — should come from store / config. |
-| `src/screens/CheckoutScreen.tsx` | **Stub** | Static UI. No purchase logic wired. This is where post-trial / direct-paid subscriptions need to be plumbed. |
-| `src/components/TrialCountdown.tsx` | Live | Urgency banner at 14 / 7 / 3-day thresholds. |
-| `src/components/UpgradePrompt.tsx` | Live | Modal for `quota_exceeded`, `quota_approaching`, `trial_expired`. |
-
-### 2.2 State & hooks
-
-| Path | Notes |
-|---|---|
-| `src/context/SubscriptionContext.tsx` | Single source of truth on the client. Fields: `tier`, `status`, `trialDaysRemaining`, `hasUsedTrial`, `isInTrial`, `hasActiveSubscription`, plus a features object (`echo_vault_enabled`, `quota_gb`, `used_gb`, `mirror_gpt_enabled`, `echo_map_enabled`). Hydrates from backend after auth. |
-| `src/hooks/useInAppPurchase.ts` | `react-native-iap@^12.16.4`. Init connection, fetch products, `purchaseUpdatedListener` → backend verify → `finishTransaction`. Restore flow collects iOS receipts / Android purchase tokens and POSTs to backend. |
-| `src/services/api/subscriptionApi.ts` | Client for all `/api/subscriptions/*` endpoints (see § 3.1). |
-| `src/context/UserContext.tsx` | Auth user state. Deliberately does **not** carry plan/trial fields — those live in `SubscriptionContext`. Clean separation. |
-
-### 2.3 Product catalog (hardcoded in `useInAppPurchase.ts`)
-
-```
-com.themirrorcollective.mirror.core.monthly
-com.themirrorcollective.mirror.core.yearly
-com.themirrorcollective.mirror.storage.monthly
-com.themirrorcollective.mirror.storage.yearly
-```
-
-These must match App Store Connect + Play Console SKUs exactly. **Not yet centralised** with the backend.
-
-### 2.4 Native config
-
-- **iOS:** no In-App Purchase capability declared in `MirrorCollectiveApp.entitlements`. Must be added in Xcode before TestFlight.
-- **Android:** `com.android.vending.BILLING` permission is auto-merged from `react-native-iap`'s manifest, but we still need a Play Console subscription product configured and tested with a license-test account.
-- **No App Store / Play Console screenshots, descriptions, or pricing tiers** yet.
+| §1 | Mirror Basic plan ($9.99/mo, $89/yr, 14-day trial, MirrorGPT + Echo Vault + 50 GB) | ✅ Shipped |
+| §2 | Echo Vault Storage add-on (+100 GB, $4.99/mo, $49/yr) | ✅ Shipped |
+| §3 | Future Plus tier reserved | ✅ Architecture ready (feature flags + tier enum); UI is V2 work |
+| §4 | Subscription groups (mirror_basic, vault_storage, mirror_plus future) | ⏸ ASC / Play Console product setup |
+| §5 | 14-day trial rules + 5 trial events (`paywall_view`, `start_trial`, `trial_convert`, `trial_cancel`, `trial_expire`) | ✅ All wired |
+| §6 | Entitlements (basic_access + 9 reserved Plus features) | ✅ Shipped via `Feature` enum + `require_feature` factory |
+| §7 | Server tasks (receipt validation, S2S, trial state, billing failure, storage attach/remove, Plus-ready arch) | ✅ All wired |
+| §8 | Client tasks (paywall toggle, 14-day display, +100 GB toggle, restore, manage sub, manage add-on, Plus-ready, lock-screen-safe push) | ✅ All wired |
+| §9 | QA scenarios | ⏸ Manual sandbox testing once §4 setup is done |
+| §10 | Launch product scope (Basic only) | ✅ Code aligned |
+| §11–§12 | Core product rule + feature-flag architecture | ✅ Followed throughout |
 
 ---
 
-## 3. Backend — what exists
+## 3. What's shipped
 
-### 3.1 API surface (`src/app/api/subscription_routes.py`)
+### 3.1 Frontend
 
-| Method & Path | Purpose |
-|---|---|
-| `POST /api/subscriptions/start-trial` | Activates 14-day free trial. Currently uses `VerifyPurchaseRequest` schema — should be its own empty/typed request (see § 4). |
-| `GET /api/subscriptions/trial-status` | `trial_available`, `days_remaining`, `has_used_trial`. |
-| `GET /api/subscriptions/status` | Full subscription state (tier, status, features, quota). |
-| `POST /api/subscriptions/verify-purchase` | Validates IAP receipt and activates a subscription. |
-| `POST /api/subscriptions/restore-purchases` | Bulk-restores from a list of iOS receipts or Android tokens. |
-| `POST /api/subscriptions/cancel` | Cancels auto-renewal; access retained until `expiry_date`. |
-| `GET /api/subscriptions/billing-history` | Event audit log. |
-| `GET /api/subscriptions/quota-status` | Storage quota usage. |
-| `POST /api/subscriptions/webhook/apple` | App Store Server Notifications v2 handler. |
-| `POST /api/subscriptions/webhook/google` | Google Play RTDN (Pub/Sub) handler. |
+| Surface | File | What it does |
+|---|---|---|
+| Paywall | `src/screens/StartFreeTrialScreen.tsx` | Monthly/Yearly toggle. Optional **+100 GB storage toggle** that fires a second native sheet sequentially on submit (pricing spec §8). Live store prices, fail-closed defaults, restore-purchases button, tappable Terms/Privacy. Fires `paywall_view` (`surface=start_trial`) on mount. |
+| Contextual storage upsell | `src/screens/EchoVaultUpsellScreen.tsx` | Reached from quota-exceeded UpgradePrompt or "Add Echo Vault Storage" on YourSubscription. Fires `paywall_view` (`surface=echo_vault_upsell`) on mount. |
+| Subscription management | `src/screens/YourSubscriptionScreen.tsx` | Plan + storage rows. "Manage in App Store / Play Store" deep link for Basic; per-SKU "Manage or remove" link for storage. |
+| Sequential-sheets helper | `src/hooks/useInAppPurchase.chain.ts` | Pure-ish `purchaseBasicWithOptionalStorage` function that owns the Basic → optional storage sequencing; 6 unit tests pin every `storageOutcome` path. |
+| IAP hook | `src/hooks/useInAppPurchase.ts` | `react-native-iap@^12.16.4`. `purchaseSubscription` returns `Promise<boolean>` so callers can branch on Basic outcome. Restore collects iOS receipts / Android tokens → backend. |
+| Subscription context | `src/context/SubscriptionContext.tsx` | Single source of truth on the client. Fail-closed defaults. `AppState → active` rehydrate. Tier values: `free` &#124; `trial` &#124; `basic` (future: `plus`). Storage signalled by `storage_add_on_active` separately. |
+| Entitlement hook | `src/hooks/useEntitlement.ts` | Single predicate (`status ∈ {trial, active, grace_period}`) + storage quota numbers. Used by every UI gate. |
+| Gate wrapper | `src/components/SubscriptionGate.tsx` | Reusable wrapper; full-lock paywall when not entitled. |
+| Upgrade prompt | `src/components/UpgradePrompt.tsx` | Modal for `quota_exceeded`, `quota_approaching`, `trial_expired`. Routes to right paywall surface. |
+| Toast | `src/components/Toast/*` | In-house transient feedback (replaced Alert.alert across the IAP + Echo Vault flows). Three tones. |
+| Push notifications | `src/services/PushNotificationService.ts` | FCM init + token registration with backend. Foreground/background/cold-start handlers. Branches on `data.type === 'payment_failed'` and deep-links to YourSubscription. Reads `data.in_app_*` first (lock-screen-safe two-tier copy). |
+| Navigation ref | `src/services/navigationRef.ts` | Module-level nav ref for deep-linking from non-React modules (push handlers). |
+| Telemetry beacon | `src/services/api/telemetry.ts` | `firePaywallView(surface?)` — fire-and-forget, error-swallowed. |
 
-### 3.2 Data model
+### 3.2 Backend
 
-- **`UserProfile`** (`src/app/models/user_profile.py`) — `subscription_tier`, `subscription_status`, `trial_started_at`, `trial_expires_at`, `trial_notifications_sent`, `echo_vault_quota_gb`, `echo_vault_used_gb`, `primary_subscription_id`, `storage_subscription_id`, `has_used_trial`.
-- **`Subscription`** (`src/app/models/subscription.py`) — `subscription_id`, `product_id`, `subscription_type` (MIRROR_CORE | STORAGE_ADD_ON), `platform`, `status` (NONE/TRIAL/TRIAL_EXPIRED/ACTIVE/EXPIRED/CANCELLED/GRACE_PERIOD/REFUNDED), `billing_period`, `purchase_date`, `expiry_date`, `cancellation_date`, `trial_start_date`/`trial_end_date`, `receipt_data`, `original_transaction_id`, `latest_receipt_info`, `last_validation_date`, `validation_environment`, `auto_renew_enabled`, `is_in_trial`, `events[]`.
-- **`SubscriptionEvent`** — audit log per lifecycle event.
+| Component | File | What it does |
+|---|---|---|
+| Entitlement gate | `src/app/core/entitlement.py` | `require_feature(Feature.X)` async dependency factory. Composes status gate (`{trial, active, grace_period}`) with tier gate. Status precedence: a Plus user whose card expired sees `trial_expired`/`expired`, not the feature lock. `require_entitled` kept as back-compat alias for `require_feature(BASIC_ACCESS)`. |
+| Feature catalog | `src/app/core/features.py` | `Feature` enum (BASIC_ACCESS live + 9 reserved Plus features). `FEATURE_TIER_MAP` — single source for tier→feature grants. `tier_grants()` pure predicate. ECHO_MAP_ACCESS is Basic at launch (spec §10) and flips to `{plus}` in V2 by editing one line. |
+| Subscription service | `src/app/services/subscription_service.py` | Receipt verification orchestration, activation, renewal/expiry/cancel/refund webhook handling. Idempotency via conditional DynamoDB put. Auto-renew status tracking. Trial-event emission. Payment-failure push dispatch. |
+| Apple client | `src/app/services/apple_app_store_client.py` | App Store Server API SDK wrapper (replaced deprecated `verifyReceipt`). JWS x5c verification with bundled Apple Root CA - G3. |
+| Google client | `src/app/services/google_pubsub_client.py` | RTDN Pub/Sub OIDC JWT verification + base64 decoding. |
+| Receipt validator | `src/app/services/receipt_validator.py` | Cross-platform validation glue. |
+| Storage quota | `src/app/services/storage_quota_service.py` | Quota math = `50 GB` (basic/trial) + `100 GB` if `storage_add_on_active`. Per-echo size sums via `user-echoes-index` GSI (no more per-call S3 inventory). |
+| Push dispatch | `src/app/services/sns_service.py` | SNS endpoint creation + `publish_to_endpoint` with cross-platform APNS/GCM payload. |
+| Telemetry | `src/app/services/telemetry/subscription_events.py` | 5 trial events. PII-filtered StructuredLogEmitter. Swappable to Mixpanel/Segment in one place. |
+| Routes | `src/app/api/subscription_routes.py` | `/start-trial` (deprecated, kept for backwards compat), `/trial-status`, `/status`, `/verify-purchase`, `/restore-purchases`, `/cancel`, `/billing-history`, `/quota-status`, `/webhook/apple`, `/webhook/google`. |
+| Telemetry routes | `src/app/api/telemetry_routes.py` | `/telemetry/paywall-view` and 3 Reflection Room beacons. |
+| Echo routes | `src/app/api/echo_routes.py` | Every route gated via `require_entitled`. Pre-flight quota check on upload-url. Per-echo `size_bytes` stored at create/update; backend HeadObjects to verify client-claimed size (defence against tampered clients). |
 
-### 3.3 Services
+### 3.3 Data model
 
-| File | Responsibility |
-|---|---|
-| `src/app/services/subscription_service.py` | Receipt validation orchestration, activation, renewal/expiry/refund webhook handling, cancellation, billing history. |
-| `src/app/services/trial_management_service.py` | Start trial, status, daily expiration check, notification dispatch (7 / 3 / 1-day + expired). |
-| `src/app/services/receipt_validator.py` | Apple `verifyReceipt` legacy endpoint + Google `purchases.subscriptions.get`. |
+- **`UserProfile.subscription_tier`** ∈ `{free, trial, basic}` (future: `plus`). Storage signalled separately by `storage_add_on_active`. No `core_plus` legacy value.
+- **`Subscription.subscription_type`** = `SubscriptionType.MIRROR_BASIC` &#124; `STORAGE_ADD_ON` (wire values `"basic"` / `"storage"`).
+- **`Subscription.status`** = 8-value enum (`NONE`, `TRIAL`, `TRIAL_EXPIRED`, `ACTIVE`, `EXPIRED`, `CANCELLED`, `GRACE_PERIOD`, `REFUNDED`). Idempotency keyed on `subscription_id` (= `original_transaction_id`).
+- **`SubscriptionEvent`** = audit row per lifecycle transition.
+- **`Echo.size_bytes`** = persisted at create/update; backend HeadObjects to verify; quota service sums these instead of S3-scanning.
+- **`device_tokens`** (DynamoDB) = FCM/APNs tokens per user + SNS endpoint ARN.
 
-### 3.4 Infra (`serverless.yml`)
+### 3.4 Telemetry
 
-- DynamoDB: `subscriptions-{stage}` (PK `user_id` + SK `subscription_id`, GSI `subscription-id-index`), `subscription_events-{stage}` (PK `user_id` + SK `timestamp`). Billing: `PAY_PER_REQUEST`.
-- Scheduled Lambda: `trialExpirationCheck` cron `0 12 * * ? *` (daily 12:00 UTC).
-- Env vars: `APPLE_SHARED_SECRET`, `GOOGLE_SERVICE_ACCOUNT_KEY`, `GOOGLE_PACKAGE_NAME` (default `com.mirrorcollective.app`).
-- Deps: `PyJWT 2.8.0`, `google-auth`, `google-api-python-client`.
+- **`paywall_view`** (FE → `POST /api/telemetry/paywall-view`, surface ∈ `start_trial` / `echo_vault_upsell`)
+- **`start_trial`** (BE, on successful trial activation)
+- **`trial_convert`** (BE, on first successful renewal after `TRIAL` status)
+- **`trial_cancel`** (BE, on user-initiated cancel while status is `trial`)
+- **`trial_expire`** (BE, on `TRIAL → EXPIRED` transition)
 
----
+Plus lifecycle audit events (`SUBSCRIPTION_PURCHASED`, `renewed`, `renewal_failed`, `expired`, `refunded`, `SUBSCRIPTION_CANCELLED`, `auto_renew_status_changed`) persisted to the `subscription_events` table.
 
-## 4. Gaps & risks (prioritised)
+### 3.5 Push notifications
 
-### P0 — block production
-
-1. **Apple receipt validation is using the deprecated `verifyReceipt` legacy endpoint and JWT signature verification is disabled** (`receipt_validator.py:79` — decodes JWS without verifying the x5c chain). Apple is sunsetting `verifyReceipt`; move to **App Store Server API** + **StoreKit 2 JWS** verification with the x5c certificate chain.
-2. **`/verify-purchase` idempotency** — replaying the same `transaction_id` should be a no-op, not a re-activation. Confirm DynamoDB write uses a conditional put on `original_transaction_id`.
-3. **App Store Server Notifications v2 — signed payload not verified.** Same JWS gap as #1. Anyone who knows the URL can forge a notification today.
-4. **`start-trial` request schema is wrong** — declared as `VerifyPurchaseRequest`. Should be `StartTrialRequest` (no body or just device metadata) to prevent confusing clients/SDK auto-generation.
-5. **Native IAP capability not enabled on iOS.** Must add the "In-App Purchase" capability in Xcode and re-run `pod install`.
-
-### P1 — block real-user trial
-
-6. **Pricing is hardcoded** in `StartFreeTrialScreen.tsx`. After IAP init we should display **store-supplied** localized prices (`subscription.localizedPrice`), with the backend as a fallback for users who can't reach the store.
-7. **`CheckoutScreen.tsx` is a static stub.** Either delete it or wire it to `useInAppPurchase.purchaseSubscription(productId)`. Today there is no UI path to buy a subscription outside of the trial-start screen.
-8. **No "purchase deferred" / "pending" handling.** Android in particular can defer purchases (parental approval, slow card). The hook treats anything that isn't success as an error.
-9. **Restore flow does not finish unacknowledged Android purchases.** Google revokes purchases not acknowledged within 3 days. We need `acknowledgePurchase` on the backend or `finishTransaction` on the client for each restored entitlement.
-10. **`SubscriptionContext` hydrates once on mount.** If the user purchases in another device / web / restore mid-session, the local state is stale. Add a re-hydrate on `AppState → active` and after every purchase event.
-
-### Entitlement matrix (locked 2026-05-11)
-
-There is **no real free tier**. Every paid feature follows the same rule.
-
-| `tier` | `subscription_status` | MirrorGPT | Echo Map | Echo Vault writes | Echo Vault reads | Quota |
-|---|---|---|---|---|---|---|
-| `free` | `none` (pre-trial) | paywall | paywall | paywall | paywall | 0 |
-| `trial` | `trial` | ✅ | ✅ | ✅ | ✅ | 50 GB |
-| `core` | `active` | ✅ | ✅ | ✅ | ✅ | 50 GB |
-| `core_plus` | `active` | ✅ | ✅ | ✅ | ✅ | 150 GB |
-| any | `grace_period` *(Apple billing retry)* | ✅ | ✅ | ✅ | ✅ | last known |
-| any | `trial_expired` / `expired` / `cancelled` | **🔒 LOCK** | **🔒 LOCK** | **🔒 LOCK** | **🔒 LOCK (full lock — no read either)** | 0 |
-
-**Implication for the entitlement check:** the gate collapses to a single predicate — `status ∈ {trial, active, grace_period}`. `tier` only matters for the storage quota number. This means one `require_entitled` FastAPI dependency and one `<SubscriptionGate>` React wrapper covers MirrorGPT, Echo Map, and Echo Vault — no per-feature flags needed in code (the `features.*_enabled` booleans become a derived computed value on top of the single status check).
-
-**Edge case still open:** Apple's `grace_period` vs. `billing_retry` — Apple distinguishes these. Grace period (opt-in, configurable 6 / 16 / 30 days, app continues to grant entitlement) is treated as entitled above. Billing retry (up to 60 days of dunning, entitlement choice is up to us) — flagging this as the one decision still needed; recommendation is to **not** entitle during billing retry, so users see a "Update payment method" prompt and Apple's machinery does the work.
-
-### P0.5 — entitlement enforcement (frontend ✅ wired 2026-05-11, backend ⏳ pending)
-
-**The buy flow is irrelevant if anyone can use anything regardless of subscription state.** Below is the post-fix state.
-
-**Frontend — wired:**
-
-- ✅ **MirrorGPT chat** — `src/hooks/useChat/useChat.ts` `sendMessage` calls `useEntitlement()` and sets `paywallReason` instead of hitting the API when locked. Chat screen shows `<UpgradePrompt>`.
-- ✅ **MirrorChat screen** — wrapped in `<SubscriptionGate>` (full lock — locked users see paywall, not chat history).
-- ✅ **Echo Map** — `ReflectionRoomEchoSignatureScreen` button gated via `useEntitlement`; routes to `<UpgradePrompt>` instead of `navigation.navigate('ReflectionRoomEchoMap')`.
-- ✅ **Echo Map screen** — wrapped in `<SubscriptionGate>` (full lock for direct deep-link / restored navigation).
-- ✅ **Echo Vault uploads** — `NewEchoVaultScreen` NEXT button calls `useEntitlement.canUpload()` and shows `<UpgradePrompt>` if not entitled or quota exceeded.
-- ✅ **Echo Vault home** — wrapped in `<SubscriptionGate>` (full lock — can't view existing entries after expiry).
-- ✅ **`SubscriptionContext`** — fail-closed defaults (`mirror_gpt_enabled: false`); `hasActiveSubscription` now includes `grace_period`.
-- ✅ **`AppState → active`** rehydration — `SubscriptionContext` refetches when the app foregrounds.
-- ✅ **`useEntitlement` hook** — single predicate (`status ∈ {trial, active, grace_period}`) used by every gate.
-- ✅ **`SubscriptionGate` component** — reusable wrapper for any locked-content screen.
-
-**Frontend — still open:**
-
-- ⏳ Storage quota indicator on Echo Vault home (`32.1 / 50 GB` text). Data is in `useEntitlement`; just needs the UI.
-- ⏳ Banner on Echo Vault home when `quotaApproaching` (>=90 %).
-- ⏳ Wrap `EchoVaultLibraryScreen`, `EchoDetailScreen`, `EchoInboxScreen`, audio/video playback in `SubscriptionGate` (currently only the home gate covers them, which is enough for normal flow but not for deep links).
-- ⏳ `NewEchoComposeScreen` / `NewEchoAudioScreen` / `NewEchoVideoScreen` save action — second-layer gate in case entitlement flips mid-flow.
-
-**Backend — wired 2026-05-11:**
-
-- ✅ **`require_entitled` FastAPI dependency** lives in `src/app/core/entitlement.py`. Single predicate (`status ∈ {trial, active, grace_period}`), 402 Payment Required with structured `{code, reason, message}` detail otherwise. Returns an `EntitledUser` dataclass so handlers don't re-fetch the profile.
-- ✅ **MirrorGPT** — `/chat`, `/analyze`, `/signals`, `/moments`, `/moments/{id}/acknowledge`, `/loops`, `/insights`, `/session/greeting` are all gated. `/quiz/*`, `/profile`, `/archetypes/list`, `/health` remain open (onboarding + static refs).
-- ✅ **Echo Vault** — every route in `src/app/api/echo_routes.py` (writes, reads, recipients, guardians) is gated.
-- ✅ **Echo Map** — `GET /echo/snapshot` and `POST /echo/recommend` (in `echo_v1_routes.py`) are gated. `dev_seed_loop_state` kept open (dev-only).
-- ✅ **Pre-flight quota check** in `POST /echoes/upload-url` — `UploadUrlRequest.file_size_bytes` is now a client-supplied hint; the handler calls `StorageQuotaService.can_upload(user_id, file_size_bytes)` before generating the S3 presigned URL. Returns 413 for `quota_exceeded`, 402 for `no_quota`.
-- ✅ **Used-GB recompute on soft-delete** — `delete_echo` triggers `quota_service.update_user_quota(user_id)` after success (best-effort; failures logged, delete still returns 200). Note: soft-delete itself doesn't free S3 storage; the recompute is correct relative to the actual S3 inventory at that moment.
-- ✅ **GET routes now locked on expiry** — read routes share the same gate as writes (full-lock policy from the matrix).
-
-**Product decision (2026-05-12):** Echo Vault delete is **soft-delete by design** — returning users must be able to see history of their deleted echoes. S3 objects stay; the previously listed "hard-delete to free `used_gb`" follow-up is dropped. Reflected `used_gb` therefore continues to count soft-deleted objects, which matches S3 reality. If the designer later wants the user-facing quota number to exclude soft-deleted echoes, scope the change to `StorageQuotaService.calculate_user_storage_usage` (filter against `Echo.deleted_at`); it does not require touching S3.
-
-**Backend — known follow-ups:**
-
-- ✅ (Phase C, wired 2026-05-12) Per-echo `size_bytes` stored on `Echo`; `calculate_user_storage_usage` now sums it via the `user-echoes-index` GSI. Legacy rows without `size_bytes` are back-filled lazily from a single S3 HeadObject and persisted, so the first call after upgrade pays the migration cost row-by-row and every subsequent call is pure DynamoDB. Soft-deleted rows are intentionally included.
-- ⏳ (Frontend plumbing, paired with quota pre-flight) Frontend should send `file_size_bytes` on `POST /echoes/upload-url` and forward `size_bytes` on `POST /echoes` / `PATCH /echoes/{id}`. Without this, the new column is still populated via the S3 backfill — but the upload-url pre-flight quota check effectively passes `0 bytes` today and only catches `no_quota`, not `quota_exceeded`. Wire both together when surfacing real-money "approaching capacity" UX.
-- ⏳ (Future, designer-pending) "Deleted echoes / history" surface — the soft-delete decision implies a way for returning users to view (and possibly restore) past echoes. No UI spec yet.
-
-**Backend — Phase A (receipt security) — wired 2026-05-11:**
-
-- ✅ Apple App Store Server API migration — replaced deprecated `verifyReceipt` with the `app-store-server-library` SDK (`get_all_subscription_statuses` keyed on `originalTransactionId`).
-- ✅ JWS x5c verification on every Apple receipt + ASSN v2 webhook payload + inner `signedTransactionInfo`. Bundled Apple Root CA - G3 at `src/app/resources/apple_root_certificates/AppleRootCA-G3.cer`.
-- ✅ Google Play RTDN Pub/Sub push JWT verification (`google.oauth2.id_token.verify_oauth2_token` with audience + service-account email check). Set `GOOGLE_PUBSUB_VERIFY=false` only for local dev.
-- ✅ Idempotency guard on `/verify-purchase` — DynamoDB lookup keyed on `original_transaction_id`. Duplicate calls return the existing record without re-firing `SUBSCRIPTION_PURCHASED` events.
-- ✅ Product whitelist (`is_known_sku`) — forged receipts claiming non-existent SKUs are rejected. Cross-checks client-claimed product against the verified receipt's product.
-- ✅ `start-trial` schema split off `VerifyPurchaseRequest` (`StartTrialRequest`); endpoint marked `deprecated=True` since the Apple/Google native intro offer replaces it.
-- ✅ Webhook routes now propagate `status_code` from the service so forged ASSN v2 / RTDN payloads return **401 Unauthorized** instead of 500.
-
-Backend (also leaky):
-
-- **No `@requires_active_subscription` dependency exists** in `src/app/services/*` or `src/app/api/*`. Every entitlement check would have to be written by hand inside each handler, and isn't.
-- **MirrorGPT routes** (`src/app/api/mirrorgpt_routes.py`) — `/chat`, `/analyze`, `/quiz/submit`, `/profile`, `/signals`, `/moments`, `/session/greeting` all check authentication only. **Product question:** is MirrorGPT intentionally free, or is the lack of gating a bug? The frontend `features` object suggests it's meant to be gated.
-- **Echo Vault `POST /echoes/upload-url`** (`src/app/api/echo_routes.py:216`) — issues a presigned S3 URL **without** calling `StorageQuotaService.can_upload()`. The presigned URL is valid for hours; even if the middleware later rejects the upload, the user already has a signed URL they can retry against. Pre-flight quota check is missing.
-- **`StorageQuotaService.can_upload()` exists but is dead code** — defined at `quota_middleware.py:151`, never called.
-- **`QuotaEnforcementMiddleware`** only checks `quota_exceeded` *after* an upload begins — it doesn't pre-flight the presigned URL request.
-- **Delete does not decrement `echo_vault_used_gb`.** Quota is recomputed from a full S3 inventory list on the next `check_quota_exceeded()` call, which is fragile and slow on large vaults.
-- **No read-only mode after expiry.** `trial_management_service.handle_trial_expired()` zeroes the quota (so writes fail), but GET routes for existing echoes have no subscription check. Whether expired users should retain read access is a product policy decision that's not yet been made.
-- **Quota math** — `echo_vault_quota_gb` is a single denormalised number on the user profile, recomputed at subscription state transitions. Drift between this number and the truth (S3 inventory) is reconciled lazily on the next quota check.
-
-### P2 — quality / DX
-
-11. **`console.log` in `useInAppPurchase.ts`** (against project ESLint/global rule). Swap for the existing logger or strip.
-12. **`error: any` throughout the hook** — should be `unknown` + narrowing, per `~/.claude/rules/typescript/coding-style.md`.
-13. **Product IDs duplicated** between client hook and (likely) backend constants — extract a single source (a `productCatalog.ts` + matching Python module) or fetch from `/subscriptions/catalog`.
-14. **No test coverage on `useInAppPurchase.ts`** (other hooks have `.test.ts` siblings). Mock `react-native-iap` and the backend client, cover happy / failure / restore paths.
-15. **`Alert.alert` for success/failure** is jarring UX for a paid flow — replace with the project's existing toast/modal components.
-16. **No analytics events** on `trial_started`, `purchase_initiated`, `purchase_succeeded`, `purchase_failed`, `restore_succeeded` — needed for funnel monitoring and refund-fraud detection.
-17. **No gating decorator on backend routes.** Entitlement is checked manually inside business logic. A `@requires_tier("core")` dependency would centralise this.
+- **Lock-screen-safe two-tier copy**: visible APNS `aps.alert` always generic (`"Mirror Collective"` / `"Tap to open Mirror Collective"`); detailed copy lives in `data.in_app_title` / `data.in_app_body` for the in-app alert. `mutable-content=1` already set for a future Notification Service Extension.
+- **Payment-failure dispatch**: triggered from `_handle_renewal_failure`. Fans out to every registered device via `SNSService.publish_to_endpoint`. Best-effort; never bubbles. Cross-platform payload (APNS + GCM rendered by `_generate_payload`).
+- **Client routing**: foreground → action-bearing alert with "Update Payment" CTA; background tap + cold-start → deep-link to `YourSubscriptionScreen` via the `navigationRef` singleton.
 
 ---
 
-## 5. Proposed plan to tighten + ship
+## 4. Entitlement matrix (locked 2026-05-11, refreshed 2026-05-12)
 
-Three phases. Each phase ends with a shippable, testable artifact.
+Two-axis gate. **Status precedence:** an entitled tier with an expired status still gets 402; conversely a live status with the wrong tier gets 402 with a feature-locked reason.
 
-### Phase A — Security & correctness (P0)
+### 4.1 Status axis
 
-- Replace legacy `verifyReceipt` with App Store Server API (`/inApps/v1/subscriptions/{originalTransactionId}`); verify JWS via Apple's x5c root certs.
-- Verify App Store Server Notifications v2 payload signature.
-- Verify Google Play RTDN messages via Pub/Sub push auth (JWT from `iss=accounts.google.com`).
-- Add idempotency guard on `/verify-purchase` (conditional put keyed on `original_transaction_id`).
-- Split `start-trial` schema out from `VerifyPurchaseRequest`.
-- Add unit + integration tests for both validators (happy / sandbox / replay / forged signature).
+| `subscription_status` | Entitled? | 402 reason |
+|---|---|---|
+| `trial` | ✅ | — |
+| `active` | ✅ | — |
+| `grace_period` | ✅ (Apple billing retry; user can still use the app while Apple retries the charge) | — |
+| `none` | ❌ | `"free"` |
+| `trial_expired` | ❌ | `"trial_expired"` |
+| `expired` | ❌ | `"expired"` |
+| `cancelled` | ❌ | `"expired"` |
 
-### Phase B — Wire the real purchase flow (P1)
+### 4.2 Tier axis (`FEATURE_TIER_MAP`)
 
-- Add iOS "In-App Purchase" capability + matching Apple paid-apps agreement / banking; configure four products in App Store Connect Sandbox.
-- Configure four products + a license-test account in Play Console.
-- Replace hardcoded pricing in `StartFreeTrialScreen` with `subscription.localizedPrice` from `useInAppPurchase`.
-- Wire `CheckoutScreen` to `purchaseSubscription(productId)` and handle pending/deferred / cancelled / failed states with first-class UI.
-- Add `AppState → active` re-hydrate on `SubscriptionContext` and re-hydrate after every successful purchase / restore.
-- Acknowledge Android purchases server-side after successful validation.
-- Add `analytics.track` calls on each lifecycle event.
-- E2E (Playwright + sandbox account) smoke test for: trial → expire → resubscribe.
+| Feature | Tier set | Notes |
+|---|---|---|
+| `BASIC_ACCESS` | `{trial, basic, plus}` | MirrorGPT, Echo Vault — live at launch |
+| `ECHO_MAP_ACCESS` | `{trial, basic, plus}` | Spec §10 exception — ships with Basic; flips to `{plus}` in V2 |
+| `PLUS_ACCESS` | `{plus}` | Reserved; gate-on for any future Plus-only route |
+| `REFLECTION_ROOM_ACCESS` | `{plus}` | Reserved (V2) |
+| `ECHO_SIGNATURE_ACCESS` | `{plus}` | Reserved (V2) |
+| `MIRROR_MOMENT_ACCESS` | `{plus}` | Reserved (V2) |
+| `MIRROR_PLEDGE_ACCESS` | `{plus}` | Reserved (V2) |
+| `CODE_LIBRARY_ACCESS` | `{plus}` | Reserved (V3) |
+| `MEMORY_TIMELINE_ACCESS` | `{plus}` | Reserved (V4) |
+| `ROLE_PATTERN_TIMELINE_ACCESS` | `{plus}` | Reserved (V3) |
 
-### Phase A.5 — Entitlement enforcement (P0.5; must ship with or before B)
+### 4.3 Storage quota
 
-**Backend**
-
-- Add a FastAPI dependency `require_active_subscription(tiers: list[str] = ["core", "core_plus", "trial"])`. Returns 402 Payment Required if the user is not in an entitled state.
-- Apply the dependency to:
-  - All Echo Vault write routes (`POST /echoes`, `POST /echoes/upload-url`, `PUT /echoes/{id}`).
-  - Echo Map endpoints (once they exist or once we confirm gating policy).
-  - MirrorGPT routes — **pending product decision** on whether MirrorGPT is free or paid.
-- Add a real pre-flight call to `StorageQuotaService.can_upload(user, declared_size_bytes)` inside `POST /echoes/upload-url`. Reject with 413 / 402 if `used + declared > quota`. Require clients to declare file size in the upload-url request.
-- On echo soft-delete, kick off an async job to recompute `echo_vault_used_gb` (or eagerly decrement using the stored object size).
-- Decide and implement read-only-after-expiry policy: either gate GET routes the same way, or allow GETs for a fixed grace period (e.g., 30 days) before locking.
-
-**Frontend**
-
-- Replace `SubscriptionContext`'s default-allow defaults — `mirror_gpt_enabled`, `echo_vault_enabled`, `echo_map_enabled` should default to `false` while loading. Build a `<SubscriptionGate>` wrapper that returns a skeleton on `loading`, a paywall on `expired`/`trial_expired`/`free`, and children otherwise.
-- Wire `UpgradePrompt.tsx` into the three places it's meant to fire:
-  - `quota_approaching` — banner on Echo Vault home when `used_gb / quota_gb > 0.9`.
-  - `quota_exceeded` — blocks all upload screens when a fresh quota check fails.
-  - `trial_expired` — full-screen overlay on next app open after status transitions.
-- Add a tiny "Storage: 32.1 / 50 GB" indicator on the Echo Vault home screen (the `features` object already has the data).
-- Re-hydrate `SubscriptionContext` on `AppState → active` and immediately after every successful purchase / restore / `quota_status` 402 response.
-- Add subscription-aware navigation guards in `AppNavigator` for `EchoVault`, `EchoMap`, and (if gated) `MirrorChat`.
-
-### Phase C — Polish & maintainability (P2)
-
-- Extract single product catalog (`src/constants/products.ts` + matching backend).
-- Replace `Alert.alert` with project toast components.
-- Strip `console.log`, fix `error: any`.
-- Backend `@requires_tier` dependency; apply to all gated routes.
-- Test coverage to 80 % on `useInAppPurchase.ts` + `subscriptionApi.ts`.
-- Visual-QA report at `docs/visual-qa/checkout/` per Figma workflow rule.
+Decoupled from tier. Quota = `50 GB` (when tier ∈ `{trial, basic, plus}`) + `100 GB` (when `storage_add_on_active = True`). Buying the add-on does **not** promote the tier value — preserves orthogonality with the future `plus` tier.
 
 ---
 
-## 6. Open decisions (need product / business input)
+## 5. Locked architectural decisions
 
-1. **Trial gating policy** — currently a user can call `/start-trial` exactly once per account. What's the policy if a user uninstalls + reinstalls? Per device? Per Apple ID? Per email?
-2. **Storage add-on UX** — sold as a separate subscription product. Should Checkout offer it alongside Core, or only inside a quota-exceeded prompt?
-3. **Pricing display when offline / store unreachable** — fall back to backend-supplied prices, or block the screen with a retry?
-4. **Refund policy** on Apple / Google initiated refunds — auto-revoke vs. grace period?
-5. **Family Sharing** (iOS) — enable on the products? If yes, validation flow changes.
+See `~/.claude/projects/.../memory/project_iap_decisions.md` for full details.
+
+1. **Trial mechanism: native intro offer (Option α).** 14-day, card up-front, owned by Apple/Google. Legacy `/start-trial` deprecated.
+2. **Checkout UX: contextual / no cart.** Validated 2026-05-12 against the new spec — "toggle on paywall + sequential native sheets" is the IAP-native ceiling for cart-like UX. Apple/Google forbid real subscription carts.
+3. **DIY stack** (`react-native-iap` + custom validators + DynamoDB). Not switching to RevenueCat.
+4. **Tier decoupled from storage add-on.** `subscription_tier ∈ {free, trial, basic, plus}`; storage signalled by `storage_add_on_active`.
+5. **Echo Vault delete is soft-delete by design.** Users may come back and need to see history. `used_gb` includes soft-deleted objects (S3 reality).
+6. **Lock-screen safety.** Generic copy in `aps.alert`, rich copy in `data.in_app_*`.
+
+---
+
+## 6. Open items
+
+### 6.1 Engineering (small, can land soon)
+
+- **Open frontend PR** — 12 IAP commits + 5 pre-IAP `mirror-chat` commits on `fix/mirror-chat-scroll-keyboard`. No hard rule but worth doing before more stacks on top.
+- **Screen-level rendering tests** for `StartFreeTrialScreen`, `EchoVaultUpsellScreen`, `YourSubscriptionScreen`. The new chain logic is tested via the extracted helper; screen-level integration coverage is the gap. ~150 lines per screen.
+- **`subscription_service.py` size refactor** — 1297 lines, over the 800-line guideline. Could split into core CRUD / webhooks / telemetry helpers. Pure refactor; deferred.
+
+### 6.2 External setup (blocks launch — not engineering work)
+
+See `docs/IAP_STORE_SETUP.md` for the full checklist.
+
+- Apple paid-apps agreement + banking/tax in App Store Connect.
+- Create 4 products in ASC: `com.themirrorcollective.mirror.{core.monthly,core.yearly,storage.monthly,storage.yearly}` at $9.99 / $89 / $4.99 / $49. 14-day intro offer on the two Basic SKUs, first-time subscribers only. **Note:** the SKU strings still contain `core` (legacy); renaming to `.basic.` is a store-side migration deferred post-launch.
+- Mirror products in Play Console.
+- Enable "In-App Purchase" capability in Xcode project.
+- SNS Platform Application ARNs (APNS + FCM); set `SNS_IOS_APP_ARN`, `SNS_ANDROID_APP_ARN`.
+- DynamoDB tables in target env: `subscriptions`, `subscription_events`, `user_device_tokens` + indexes.
+- Env vars: Apple `.p8` key + key ID + issuer ID, Google service account JSON, `GOOGLE_PUBSUB_VERIFY=true` in prod.
+- Sandbox accounts + run spec §9 QA scenarios (free trial start/convert/cancel, monthly/annual purchase, restore, storage add-on attach/remove, billing failure, device swap, webhook entitlement updates).
+
+### 6.3 Future / V2 (deferred by design)
+
+- **Plus-tier UI** (paywall, upgrade entry point, plan indicators). Backend architecture ready; awaits V2 product spec.
+- **iOS Notification Service Extension** to let the lock screen show rich copy on unlocked phones. Today's payload sends generic copy that's safe everywhere; the extension is a future polish.
+- **"Approaching capacity" quota UX.** `StorageMeter.tsx` component built but hidden per product decision; designer to spec.
+- **"Deleted echoes / history" surface.** Implied by the soft-delete decision; no UI spec yet.
+- **SKU rename** `com.themirrorcollective.mirror.core.*` → `com.themirrorcollective.mirror.basic.*`. Store-side migration with receipt implications; deferred indefinitely.
+
+---
+
+## 7. Reference
+
+- Memory: `project_iap_decisions.md` — locked architectural decisions, validated 2026-05-12
+- `docs/IAP_DESIGN_FEASIBILITY.md` — Figma → IAP feasibility mapping
+- `docs/IAP_STORE_SETUP.md` — external setup checklist
+- Backend PR: [addulaAjay/mirror-collective-python-api#47](https://github.com/addulaAjay/mirror-collective-python-api/pull/47)
+- Pricing spec: "MIRROR PRICING & PACKAGING — DEV HANDOFF 5.12.16", launch 2026-06-15
