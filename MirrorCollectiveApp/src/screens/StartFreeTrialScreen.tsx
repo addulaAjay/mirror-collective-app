@@ -17,7 +17,7 @@ import {
   modalColors,
 } from '@theme';
 import type { RootStackParamList } from '@types';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     View,
     Text,
@@ -42,6 +42,7 @@ import { useToast } from '@components/Toast';
 import { PRIVACY_POLICY_URL, TERMS_OF_SERVICE_URL } from '@/constants/legalUrls';
 import { useSubscription } from '@/context/SubscriptionContext';
 import { useInAppPurchase, formatLocalizedPrice, hasIntroductoryOffer } from '@/hooks/useInAppPurchase';
+import { telemetryApiService } from '@services/api/telemetry';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'StartFreeTrial'>;
 
@@ -63,6 +64,13 @@ const StartFreeTrialScreen = () => {
     // consumer subscription apps. The user can switch in one tap.
     const [selectedPeriod, setSelectedPeriod] = useState<'monthly' | 'yearly'>('yearly');
     const [restoring, setRestoring] = useState(false);
+
+    // Fire paywall_view exactly once per mount so the analytics layer
+    // can compute view→start_trial conversion (pricing spec 2026-05-12
+    // §5). Fire-and-forget; failures are swallowed inside the helper.
+    useEffect(() => {
+        void telemetryApiService.firePaywallView('start_trial');
+    }, []);
 
     const monthlyProduct = findProduct(PRODUCT_IDS.CORE_MONTHLY);
     const yearlyProduct = findProduct(PRODUCT_IDS.CORE_YEARLY);
