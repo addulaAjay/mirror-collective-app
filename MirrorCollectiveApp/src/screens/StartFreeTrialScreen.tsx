@@ -65,6 +65,13 @@ const StartFreeTrialScreen = () => {
     const [selectedPeriod, setSelectedPeriod] = useState<'monthly' | 'yearly'>('yearly');
     const [restoring, setRestoring] = useState(false);
 
+    // Optional +100 GB storage add-on per pricing spec 2026-05-12 §8.
+    // Off by default — the user opts in. Native IAP sheets can't bundle
+    // two subscriptions in one transaction; if this is on, we present
+    // the storage sheet sequentially after the Basic sheet completes
+    // (see handleButtonPress below).
+    const [addStorage, setAddStorage] = useState(false);
+
     // Fire paywall_view exactly once per mount so the analytics layer
     // can compute view→start_trial conversion (pricing spec 2026-05-12
     // §5). Fire-and-forget; failures are swallowed inside the helper.
@@ -76,9 +83,22 @@ const StartFreeTrialScreen = () => {
     const yearlyProduct = findProduct(PRODUCT_IDS.BASIC_YEARLY);
     const selectedProduct = selectedPeriod === 'monthly' ? monthlyProduct : yearlyProduct;
 
-    const monthlyPrice = formatLocalizedPrice(monthlyProduct, '$15.99');
-    const yearlyPrice = formatLocalizedPrice(yearlyProduct, '$139');
+    const monthlyPrice = formatLocalizedPrice(monthlyProduct, '$9.99');
+    const yearlyPrice = formatLocalizedPrice(yearlyProduct, '$89');
     const hasTrialOffer = hasIntroductoryOffer(selectedProduct);
+
+    // Storage add-on lookups — mirror Basic on the same billing period
+    // so the user only sees one price unit. Fallback prices come from
+    // the pricing spec 2026-05-12 §2.
+    const storageMonthlyProduct = findProduct(PRODUCT_IDS.STORAGE_MONTHLY);
+    const storageYearlyProduct = findProduct(PRODUCT_IDS.STORAGE_YEARLY);
+    const selectedStorageProduct =
+        selectedPeriod === 'monthly' ? storageMonthlyProduct : storageYearlyProduct;
+    const storagePriceLabel = formatLocalizedPrice(
+        selectedStorageProduct,
+        selectedPeriod === 'monthly' ? '$4.99' : '$49',
+    );
+    const storagePeriodLabel = selectedPeriod === 'monthly' ? '/month' : '/year';
 
     // Eligibility for the platform-native intro offer is determined by
     // Apple/Google (per-Apple-ID / per-Google-account, not per app
@@ -99,9 +119,12 @@ const StartFreeTrialScreen = () => {
             return;
         }
 
-        const productId = selectedPeriod === 'monthly'
+        const basicSku = selectedPeriod === 'monthly'
             ? PRODUCT_IDS.BASIC_MONTHLY
             : PRODUCT_IDS.BASIC_YEARLY;
+        const storageSku = selectedPeriod === 'monthly'
+            ? PRODUCT_IDS.STORAGE_MONTHLY
+            : PRODUCT_IDS.STORAGE_YEARLY;
 
         try {
             // Native intro offer (if configured in App Store Connect / Play
@@ -110,9 +133,40 @@ const StartFreeTrialScreen = () => {
             // user enters their payment method in the native sheet, the
             // trial starts, and our backend hears about it via the
             // /verify-purchase webhook in the purchase listener.
-            await purchaseSubscription(productId);
+            const basicOk = await purchaseSubscription(basicSku);
             await refreshSubscriptionStatus();
+
+            if (!basicOk) {
+                // User cancelled the Basic sheet (or it errored). Don't
+                // chain the add-on — purchaseSubscription already wrote
+                // the error to state, and a cancel should be silent.
+                return;
+            }
+
+            // Optional storage add-on — chained as a second native sheet.
+            // Native IAP can't bundle two subscriptions in one
+            // transaction; sequencing them is the "toggle on paywall"
+            // pattern from pricing spec 2026-05-12 §8 without violating
+            // the no-cart rule from the 2026-05-11 architectural lock.
+            if (addStorage) {
+                const storageOk = await purchaseSubscription(storageSku);
+                await refreshSubscriptionStatus();
+                if (!storageOk) {
+                    // Basic succeeded; user backed out of the storage
+                    // sheet. Leave them on Basic, surface a non-blocking
+                    // pointer to the contextual upsell so the option
+                    // stays discoverable.
+                    showToast({
+                        title: "You're on Mirror Basic",
+                        message: 'You can add 100 GB storage anytime from Echo Vault.',
+                        tone: 'info',
+                    });
+                }
+            }
         } catch (error: unknown) {
+            // purchaseSubscription no longer throws — this catch is
+            // defensive in case refreshSubscriptionStatus or a future
+            // step in the chain does.
             const message = error instanceof Error ? error.message : 'Unable to complete purchase';
             showToast({
                 title: 'Purchase failed',
@@ -305,6 +359,35 @@ const StartFreeTrialScreen = () => {
                     </TouchableOpacity>
                   </View>
 
+                  {/* Optional storage add-on toggle (pricing spec
+                      2026-05-12 §8). Tapping anywhere on the row
+                      toggles it; the indicator dot fills when on. */}
+                  <TouchableOpacity
+                    style={[
+                      styles.storageToggleRow,
+                      addStorage && styles.storageToggleRowSelected,
+                    ]}
+                    onPress={() => setAddStorage(prev => !prev)}
+                    accessibilityRole="switch"
+                    accessibilityState={{ checked: addStorage }}
+                    accessibilityLabel={
+                      `Add 100 GB Echo Vault storage for ${storagePriceLabel}${storagePeriodLabel}`
+                    }
+                  >
+                    <View style={styles.storageToggleText}>
+                      <Text style={styles.storageToggleTitle}>+ Add 100 GB storage</Text>
+                      <Text style={styles.storageToggleSubtitle}>
+                        {storagePriceLabel}{storagePeriodLabel} · Optional
+                      </Text>
+                    </View>
+                    <View style={[
+                      styles.storageToggleIndicator,
+                      addStorage && styles.storageToggleIndicatorOn,
+                    ]}>
+                      {addStorage ? <View style={styles.storageToggleDot} /> : null}
+                    </View>
+                  </TouchableOpacity>
+
                   {/* CTA button — standard Button component, gradient variant */}
                   <Button
                     variant="gradient"
@@ -410,6 +493,14 @@ const styles = StyleSheet.create<{
   periodAmount: TextStyle;
   periodAmountSelected: TextStyle;
   periodLabel: TextStyle;
+  storageToggleRow: ViewStyle;
+  storageToggleRowSelected: ViewStyle;
+  storageToggleText: ViewStyle;
+  storageToggleTitle: TextStyle;
+  storageToggleSubtitle: TextStyle;
+  storageToggleIndicator: ViewStyle;
+  storageToggleIndicatorOn: ViewStyle;
+  storageToggleDot: ViewStyle;
   ctaButtonWrapper: ViewStyle;
   ctaButtonContainer: ViewStyle;
   ctaButtonContent: ViewStyle;
@@ -630,6 +721,57 @@ const styles = StyleSheet.create<{
     lineHeight: moderateScale(fontSize.s) * 1.3,
     color: palette.gold.subtlest,
     textAlign: 'center',
+  },
+
+  // ── Optional storage add-on toggle (pricing spec 2026-05-12 §8) ───────────
+  storageToggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: verticalScale(12),
+    paddingHorizontal: scale(14),
+    borderRadius: radius.m,
+    borderWidth: borderWidth.thin,
+    borderColor: palette.gold.subtlest,
+    marginTop: verticalScale(12),
+    marginBottom: verticalScale(16),
+  },
+  storageToggleRowSelected: {
+    borderColor: palette.gold.DEFAULT,
+    backgroundColor: 'rgba(216, 194, 120, 0.08)',
+  },
+  storageToggleText: {
+    flex: 1,
+    paddingRight: scale(12),
+  },
+  storageToggleTitle: {
+    fontFamily: fontFamily.heading,
+    fontSize: moderateScale(fontSize.m),
+    color: palette.gold.DEFAULT,
+    lineHeight: moderateScale(fontSize.m) * 1.2,
+  },
+  storageToggleSubtitle: {
+    fontFamily: fontFamily.body,
+    fontSize: moderateScale(fontSize.s),
+    color: palette.gold.subtlest,
+    marginTop: verticalScale(2),
+  },
+  storageToggleIndicator: {
+    width: scale(22),
+    height: scale(22),
+    borderRadius: scale(11),
+    borderWidth: borderWidth.thin,
+    borderColor: palette.gold.subtlest,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  storageToggleIndicatorOn: {
+    borderColor: palette.gold.DEFAULT,
+  },
+  storageToggleDot: {
+    width: scale(10),
+    height: scale(10),
+    borderRadius: scale(5),
+    backgroundColor: palette.gold.DEFAULT,
   },
 
   // ── CTA button — overrides for standard Button (gradient variant) ─────────

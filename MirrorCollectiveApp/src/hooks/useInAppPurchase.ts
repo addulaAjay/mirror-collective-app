@@ -233,24 +233,42 @@ export const useInAppPurchase = () => {
     };
   }, []);
 
-  // Purchase a subscription
-  const purchaseSubscription = useCallback(async (productId: string) => {
-    setState(prev => ({...prev, purchasing: true, error: null}));
+  /**
+   * Request the native subscription sheet for `productId`.
+   *
+   * Returns `true` when the underlying `requestSubscription` resolves
+   * (user confirmed the sheet), `false` when it throws (user cancelled
+   * or a real error). The boolean lets callers sequence multi-SKU
+   * flows (e.g., StartFreeTrialScreen presenting Basic followed by
+   * the optional +100GB sheet only after Basic succeeded).
+   *
+   * Errors are NOT re-thrown — the legacy callers that ignore the
+   * return value keep their no-op-on-cancel UX. The `error` state on
+   * the hook is set on failure so consumers that want a single source
+   * of truth can still read it.
+   */
+  const purchaseSubscription = useCallback(
+    async (productId: string): Promise<boolean> => {
+      setState(prev => ({...prev, purchasing: true, error: null}));
 
-    try {
-      await requestSubscription({
-        sku: productId,
-      });
-    } catch (error: unknown) {
-      const message = getErrorMessage(error);
-      devError('Purchase error:', message);
-      setState(prev => ({
-        ...prev,
-        purchasing: false,
-        error: message,
-      }));
-    }
-  }, []);
+      try {
+        await requestSubscription({
+          sku: productId,
+        });
+        return true;
+      } catch (error: unknown) {
+        const message = getErrorMessage(error);
+        devError('Purchase error:', message);
+        setState(prev => ({
+          ...prev,
+          purchasing: false,
+          error: message,
+        }));
+        return false;
+      }
+    },
+    [],
+  );
 
   // Restore purchases
   const restorePurchases = useCallback(async () => {
