@@ -5,7 +5,7 @@
  * docs/IAP_DESIGN_FEASIBILITY.md §0 for the locked decision).
  *
  * Surfaces:
- *   - Current plan card (Mirror Core)
+ *   - Current plan card (Mirror Basic)
  *   - Add-on card (Echo Vault Storage) — present if held, "Add" CTA if not
  *   - Total monthly equivalent display
  *   - Three trust pillars (Private by design / Cancel anytime / Export your data)
@@ -168,7 +168,7 @@ const YourSubscriptionScreen: React.FC = () => {
                         {hasCore ? (
                             <View style={styles.planRow}>
                                 <View style={styles.planTextColumn}>
-                                    <Text style={styles.planTitle}>Mirror Core</Text>
+                                    <Text style={styles.planTitle}>Mirror Basic</Text>
                                     <Text style={styles.planSubtitle}>{corePeriodLabel}</Text>
                                     {coreSubscription?.expiry_date && (
                                         <Text style={styles.planMeta}>
@@ -183,7 +183,7 @@ const YourSubscriptionScreen: React.FC = () => {
                         ) : (
                             <View style={styles.planRow}>
                                 <View style={styles.planTextColumn}>
-                                    <Text style={styles.planTitle}>Mirror Core</Text>
+                                    <Text style={styles.planTitle}>Mirror Basic</Text>
                                     <Text style={styles.planSubtitle}>
                                         {status === 'trial_expired' || status === 'expired'
                                             ? 'Subscription ended'

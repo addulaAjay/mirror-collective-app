@@ -38,7 +38,7 @@ const UpgradePrompt: React.FC<UpgradePromptProps> = ({
     //  - quota_* → the user already has a subscription; they want MORE
     //    storage. Send them to the Echo Vault Storage upsell.
     //  - trial_expired / default → they need (or need to renew) Mirror
-    //    Core itself. Send them to the trial / paywall screen.
+    //    Basic itself. Send them to the trial / paywall screen.
     if (reason === 'quota_exceeded' || reason === 'quota_approaching') {
       navigation.navigate('EchoVaultUpsell' as never);
       return;
@@ -74,7 +74,7 @@ const UpgradePrompt: React.FC<UpgradePromptProps> = ({
       default:
         return {
           title: 'Upgrade Your Plan',
-          message: 'Get more features with Mirror Core.',
+          message: 'Get more features with Mirror Basic.',
         };
     }
   };

@@ -70,8 +70,8 @@ function devError(...args: unknown[]): void {
 // Re-export under the legacy shape (PRODUCT_IDS) so existing consumers
 // keep working. New code should import PRODUCTS from @/constants/products.
 const PRODUCT_IDS = {
-  CORE_MONTHLY: PRODUCTS.CORE_MONTHLY.sku,
-  CORE_YEARLY: PRODUCTS.CORE_YEARLY.sku,
+  BASIC_MONTHLY: PRODUCTS.BASIC_MONTHLY.sku,
+  BASIC_YEARLY: PRODUCTS.BASIC_YEARLY.sku,
   STORAGE_MONTHLY: PRODUCTS.STORAGE_MONTHLY.sku,
   STORAGE_YEARLY: PRODUCTS.STORAGE_YEARLY.sku,
 } as const;

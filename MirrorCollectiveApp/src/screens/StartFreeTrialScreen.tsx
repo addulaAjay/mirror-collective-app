@@ -72,8 +72,8 @@ const StartFreeTrialScreen = () => {
         void telemetryApiService.firePaywallView('start_trial');
     }, []);
 
-    const monthlyProduct = findProduct(PRODUCT_IDS.CORE_MONTHLY);
-    const yearlyProduct = findProduct(PRODUCT_IDS.CORE_YEARLY);
+    const monthlyProduct = findProduct(PRODUCT_IDS.BASIC_MONTHLY);
+    const yearlyProduct = findProduct(PRODUCT_IDS.BASIC_YEARLY);
     const selectedProduct = selectedPeriod === 'monthly' ? monthlyProduct : yearlyProduct;
 
     const monthlyPrice = formatLocalizedPrice(monthlyProduct, '$15.99');
@@ -100,8 +100,8 @@ const StartFreeTrialScreen = () => {
         }
 
         const productId = selectedPeriod === 'monthly'
-            ? PRODUCT_IDS.CORE_MONTHLY
-            : PRODUCT_IDS.CORE_YEARLY;
+            ? PRODUCT_IDS.BASIC_MONTHLY
+            : PRODUCT_IDS.BASIC_YEARLY;
 
         try {
             // Native intro offer (if configured in App Store Connect / Play
@@ -195,7 +195,7 @@ const StartFreeTrialScreen = () => {
                   bounces={true}
                 >
                   {/* Card heading */}
-                  <Text style={styles.cardTitle}>Mirror Core</Text>
+                  <Text style={styles.cardTitle}>Mirror Basic</Text>
                   <Text style={styles.cardSubtitle}>
                     Your daily reflective companion.
                   </Text>

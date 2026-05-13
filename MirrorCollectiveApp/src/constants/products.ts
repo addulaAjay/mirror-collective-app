@@ -13,7 +13,11 @@ import {Platform} from 'react-native';
  */
 
 export type BillingPeriod = 'monthly' | 'yearly';
-export type ProductKind = 'core' | 'storage';
+// Naming aligned to pricing spec 2026-05-12 — launch tier is "Mirror
+// Basic" (previously referred to internally as "core" / "Mirror Core").
+// External SKU IDs in App Store Connect / Play Console still contain
+// the legacy `core` token; renaming those is a store-side migration.
+export type ProductKind = 'basic' | 'storage';
 
 export interface ProductDescriptor {
   /** Stable identifier used inside the app to refer to a product. */
@@ -26,11 +30,15 @@ export interface ProductDescriptor {
   displayName: string;
 }
 
-const CORE_MONTHLY_SKU = Platform.select({
+// SKU strings still contain `core` because they're the registered
+// App Store Connect / Play Console product IDs — renaming those
+// requires creating new store products and migrating receipts.
+// Internal naming (BASIC_*) is aligned to the launch tier name.
+const BASIC_MONTHLY_SKU = Platform.select({
   ios: 'com.themirrorcollective.mirror.core.monthly',
   android: 'com.themirrorcollective.mirror.core.monthly',
 })!;
-const CORE_YEARLY_SKU = Platform.select({
+const BASIC_YEARLY_SKU = Platform.select({
   ios: 'com.themirrorcollective.mirror.core.yearly',
   android: 'com.themirrorcollective.mirror.core.yearly',
 })!;
@@ -44,19 +52,19 @@ const STORAGE_YEARLY_SKU = Platform.select({
 })!;
 
 export const PRODUCTS = {
-  CORE_MONTHLY: {
-    key: 'CORE_MONTHLY',
-    sku: CORE_MONTHLY_SKU,
-    kind: 'core',
+  BASIC_MONTHLY: {
+    key: 'BASIC_MONTHLY',
+    sku: BASIC_MONTHLY_SKU,
+    kind: 'basic',
     billingPeriod: 'monthly',
-    displayName: 'Mirror Core (Monthly)',
+    displayName: 'Mirror Basic (Monthly)',
   },
-  CORE_YEARLY: {
-    key: 'CORE_YEARLY',
-    sku: CORE_YEARLY_SKU,
-    kind: 'core',
+  BASIC_YEARLY: {
+    key: 'BASIC_YEARLY',
+    sku: BASIC_YEARLY_SKU,
+    kind: 'basic',
     billingPeriod: 'yearly',
-    displayName: 'Mirror Core (Yearly)',
+    displayName: 'Mirror Basic (Yearly)',
   },
   STORAGE_MONTHLY: {
     key: 'STORAGE_MONTHLY',
