@@ -1,7 +1,7 @@
 
 import {useNavigation} from '@react-navigation/native';
 import React from 'react';
-import { palette } from '@theme';
+import { palette, fontFamily } from '@theme';
 import {
   View,
   Text,
@@ -136,14 +136,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    fontFamily: 'CormorantGaramond-Regular',
+    fontFamily: fontFamily.heading,
     fontSize: 28,
     color: palette.gold.DEFAULT,
     textAlign: 'center',
     marginBottom: 16,
   },
   message: {
-    fontFamily: 'Inter',
+    fontFamily: fontFamily.body,
     fontSize: 16,
     color: palette.gold.subtlest,
     textAlign: 'center',
@@ -163,7 +163,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   upgradeText: {
-    fontFamily: 'CormorantGaramond-Regular',
+    fontFamily: fontFamily.heading,
     fontSize: 20,
     color: palette.gold.DEFAULT,
     fontWeight: '400',
@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   closeText: {
-    fontFamily: 'Inter',
+    fontFamily: fontFamily.body,
     fontSize: 14,
     color: palette.navy.light,
   },

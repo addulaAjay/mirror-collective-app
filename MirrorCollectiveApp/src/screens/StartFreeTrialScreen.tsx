@@ -40,6 +40,7 @@ import StarIcon from '@components/StarIcon';
 import { useToast } from '@components/Toast';
 
 import { PRIVACY_POLICY_URL, TERMS_OF_SERVICE_URL } from '@/constants/legalUrls';
+import { FALLBACK_PRICES } from '@/constants/products';
 import { useSubscription } from '@/context/SubscriptionContext';
 import { useInAppPurchase, formatLocalizedPrice, hasIntroductoryOffer } from '@/hooks/useInAppPurchase';
 import { purchaseBasicWithOptionalStorage } from '@/hooks/useInAppPurchase.chain';
@@ -84,8 +85,8 @@ const StartFreeTrialScreen = () => {
     const yearlyProduct = findProduct(PRODUCT_IDS.BASIC_YEARLY);
     const selectedProduct = selectedPeriod === 'monthly' ? monthlyProduct : yearlyProduct;
 
-    const monthlyPrice = formatLocalizedPrice(monthlyProduct, '$9.99');
-    const yearlyPrice = formatLocalizedPrice(yearlyProduct, '$89');
+    const monthlyPrice = formatLocalizedPrice(monthlyProduct, FALLBACK_PRICES.BASIC_MONTHLY);
+    const yearlyPrice = formatLocalizedPrice(yearlyProduct, FALLBACK_PRICES.BASIC_YEARLY);
     const hasTrialOffer = hasIntroductoryOffer(selectedProduct);
 
     // Storage add-on lookups — mirror Basic on the same billing period
@@ -97,7 +98,9 @@ const StartFreeTrialScreen = () => {
         selectedPeriod === 'monthly' ? storageMonthlyProduct : storageYearlyProduct;
     const storagePriceLabel = formatLocalizedPrice(
         selectedStorageProduct,
-        selectedPeriod === 'monthly' ? '$4.99' : '$49',
+        selectedPeriod === 'monthly'
+            ? FALLBACK_PRICES.STORAGE_MONTHLY
+            : FALLBACK_PRICES.STORAGE_YEARLY,
     );
     const storagePeriodLabel = selectedPeriod === 'monthly' ? '/month' : '/year';
     // Toggle is unusable until StoreKit / Play returns the storage

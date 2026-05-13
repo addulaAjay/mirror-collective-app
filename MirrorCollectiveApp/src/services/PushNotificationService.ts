@@ -6,6 +6,31 @@ import { registerDeviceApiService } from '@services/api/register-device';
 import { safeNavigate } from '@services/navigationRef';
 
 /**
+ * __DEV__-gated console helpers — matches the pattern in
+ * `useInAppPurchase`. PushNotificationService runs on every cold
+ * start and every AppState→active, so unconditional console output
+ * fills the production device console with low-value noise.
+ */
+function devLog(...args: unknown[]): void {
+  if (__DEV__) {
+    // eslint-disable-next-line no-console
+    console.log(...args);
+  }
+}
+function devWarn(...args: unknown[]): void {
+  if (__DEV__) {
+    // eslint-disable-next-line no-console
+    console.warn(...args);
+  }
+}
+function devError(...args: unknown[]): void {
+  if (__DEV__) {
+    // eslint-disable-next-line no-console
+    console.error(...args);
+  }
+}
+
+/**
  * Notification payload types the backend tags messages with. Keep in
  * sync with `subscription_service._send_payment_failure_notification`
  * and any future dispatcher (`type` field in the `data` block).
@@ -73,12 +98,12 @@ class PushNotificationService {
         authStatus === messaging.AuthorizationStatus.PROVISIONAL;
 
       if (!enabled && Platform.OS === 'ios') {
-        console.warn('iOS Notification permission not granted');
+        devWarn('iOS Notification permission not granted');
       }
 
       return enabled;
     } catch (error) {
-      console.error('Permission request error:', error);
+      devError('Permission request error:', error);
       return false;
     }
   }
@@ -108,12 +133,12 @@ class PushNotificationService {
       // last hold-out flagged in code review.
       const message = error instanceof Error ? error.message : String(error);
       if (message.includes('no apns token specified')) {
-        console.warn(
+        devWarn(
           'FCM Warning: No APNs token available. This is expected on iOS Simulator. Push notifications will not work.',
         );
         return undefined;
       }
-      console.error('Error getting FCM token:', error);
+      devError('Error getting FCM token:', error);
       return await AsyncStorage.getItem('fcmToken') || undefined;
     }
   }
@@ -141,9 +166,9 @@ class PushNotificationService {
         device_token: token,
         platform: Platform.OS,
       });
-      console.log(`Device registered successfully for user ${this.userId} on ${Platform.OS}`);
+      devLog(`Device registered successfully for user ${this.userId} on ${Platform.OS}`);
     } catch (error) {
-      console.error('Failed to register device with backend:', error);
+      devError('Failed to register device with backend:', error);
     }
   }
 
@@ -176,7 +201,7 @@ class PushNotificationService {
                     }
                   }
                 } catch (error) {
-                  console.error('Error in permission/registration flow:', error);
+                  devError('Error in permission/registration flow:', error);
                 } finally {
                   resolve();
                 }
@@ -282,7 +307,7 @@ class PushNotificationService {
           const routed = this.routeFromData(data);
           if (!routed && __DEV__) {
             // eslint-disable-next-line no-console
-            console.warn(
+            devWarn(
               'Cold-start push could not be routed after 250 ms retry — '
               + 'navigator likely never mounted or user is unauthenticated. '
               + 'Payload type:',
@@ -292,7 +317,7 @@ class PushNotificationService {
         }, 250);
       }
     } catch (error) {
-      console.error('Cold-start notification handling failed:', error);
+      devError('Cold-start notification handling failed:', error);
     }
   }
 
@@ -328,12 +353,12 @@ class PushNotificationService {
       const token = await this.getFCMToken();
       if (token) {
         await registerDeviceApiService.unregisterDevice(token);
-        console.log('Device unregistered successfully from backend');
+        devLog('Device unregistered successfully from backend');
       }
       // Also clear local token cache
       await AsyncStorage.removeItem('fcmToken');
     } catch (error) {
-      console.error('Failed to unregister device:', error);
+      devError('Failed to unregister device:', error);
     }
   }
 }

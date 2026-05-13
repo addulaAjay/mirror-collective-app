@@ -87,6 +87,24 @@ export const ALL_PRODUCT_SKUS: readonly string[] = Object.values(PRODUCTS).map(
   p => p.sku,
 );
 
+/**
+ * Cold-load fallback prices per pricing spec 2026-05-12 §1, §2.
+ *
+ * `formatLocalizedPrice` pulls live prices from StoreKit / Play
+ * Billing once the products load; these strings show only during the
+ * brief window before that happens. Centralised here so a future
+ * price change is a one-line diff — previously these strings appeared
+ * inline in four call sites across StartFreeTrialScreen and
+ * EchoVaultUpsellScreen, which is the kind of magic-string drift code
+ * review caught.
+ */
+export const FALLBACK_PRICES = {
+  BASIC_MONTHLY: '$9.99',
+  BASIC_YEARLY: '$89',
+  STORAGE_MONTHLY: '$4.99',
+  STORAGE_YEARLY: '$49',
+} as const;
+
 /** Lookup helper — find a product descriptor by its SKU. */
 export function findProductBySku(sku: string): ProductDescriptor | undefined {
   return Object.values(PRODUCTS).find(p => p.sku === sku);

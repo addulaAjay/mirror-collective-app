@@ -59,6 +59,7 @@ import StarIcon from '@components/StarIcon';
 import { useToast } from '@components/Toast';
 
 import { PRIVACY_POLICY_URL, TERMS_OF_SERVICE_URL } from '@/constants/legalUrls';
+import { FALLBACK_PRICES } from '@/constants/products';
 import { useSubscription } from '@/context/SubscriptionContext';
 import {
     useInAppPurchase,
@@ -101,8 +102,8 @@ const EchoVaultUpsellScreen: React.FC = () => {
     const monthlyProduct = findProduct(PRODUCT_IDS.STORAGE_MONTHLY);
     const yearlyProduct = findProduct(PRODUCT_IDS.STORAGE_YEARLY);
 
-    const monthlyPrice = formatLocalizedPrice(monthlyProduct, '$4.99');
-    const yearlyPrice = formatLocalizedPrice(yearlyProduct, '$49');
+    const monthlyPrice = formatLocalizedPrice(monthlyProduct, FALLBACK_PRICES.STORAGE_MONTHLY);
+    const yearlyPrice = formatLocalizedPrice(yearlyProduct, FALLBACK_PRICES.STORAGE_YEARLY);
 
     const [selectedPeriod, setSelectedPeriod] = useState<'monthly' | 'yearly'>('yearly');
     const selectedProduct = selectedPeriod === 'monthly' ? monthlyProduct : yearlyProduct;
@@ -118,7 +119,11 @@ const EchoVaultUpsellScreen: React.FC = () => {
         // sensibly when launched as a modal.
         const next = route.params?.onCompleteRoute;
         if (next) {
-            navigation.reset({ index: 0, routes: [{ name: next as any }] });
+            // `next` is already typed `keyof RootStackParamList` from
+            // the route params definition; the previous `as any` cast
+            // was redundant. React Navigation's reset accepts the
+            // route name directly when typed.
+            navigation.reset({ index: 0, routes: [{ name: next }] });
         } else if (canGoBack) {
             navigation.goBack();
         }

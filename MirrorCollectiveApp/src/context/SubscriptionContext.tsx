@@ -108,7 +108,15 @@ export const SubscriptionProvider = ({
         setHasUsedTrial(response.data.has_used_trial || false);
       }
     } catch (error) {
-      console.error('Failed to fetch subscription status:', error);
+      // Gated behind __DEV__ — this is called on every AppState→active
+      // foreground event, so a flaky network in production would spam
+      // the device console without dev-time benefit. Real errors that
+      // affect the user surface via SubscriptionGate / useEntitlement
+      // (fail-closed defaults).
+      if (__DEV__) {
+        // eslint-disable-next-line no-console
+        console.error('Failed to fetch subscription status:', error);
+      }
     } finally {
       setLoading(false);
     }
