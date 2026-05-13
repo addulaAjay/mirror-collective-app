@@ -2,7 +2,8 @@
 
 > **Owner:** product/founder (requires Apple Developer + Google Play Console + Xcode access).
 > **Status:** TODO — gates real-money flow.
-> **Companion docs:** [`IAP_SUBSCRIPTION_REVIEW.md`](./IAP_SUBSCRIPTION_REVIEW.md), [`IAP_DESIGN_FEASIBILITY.md`](./IAP_DESIGN_FEASIBILITY.md).
+> **Companion docs:** [`IAP_SUBSCRIPTION_REVIEW.md`](./IAP_SUBSCRIPTION_REVIEW.md), [`IAP_SANDBOX_QA.md`](./IAP_SANDBOX_QA.md) (run after this), [`IAP_DESIGN_FEASIBILITY.md`](./IAP_DESIGN_FEASIBILITY.md).
+> **Prices locked to pricing spec 2026-05-12:** $9.99/mo Basic, $89/yr Basic, $4.99/mo Storage, $49/yr Storage.
 
 This is everything that has to happen outside the codebase before the app can actually charge real money. The code is ready for these — once they're done and an env var or two are set, purchases work end-to-end.
 
@@ -21,21 +22,22 @@ This is everything that has to happen outside the codebase before the app can ac
 
 Subscriptions live inside a **Subscription Group**. Products in the same group are upgrade/downgrade options for the user; products in different groups can be held concurrently. We want Mirror Core monthly+yearly in one group (mutually exclusive) and Storage monthly+yearly in another (separately purchasable).
 
-- [ ] Create group **"Mirror Core"** (Subscription Group)
+- [ ] Create group **"Mirror Basic"** (Subscription Group)
   - [ ] `com.themirrorcollective.mirror.core.monthly` — Auto-renewable, Monthly
-    - Price tier: e.g. $15.99 USD
-    - Reference name: "Mirror Core Monthly"
-    - Display name + description (App Store-visible)
-    - **Introductory offer**: Free trial, 14 days, "Pay as you go" (no — that's discount; use **"Free trial"** type), eligibility: New Subscribers only.
+    - Price tier: **$9.99 USD**
+    - Reference name: "Mirror Basic Monthly"
+    - Display name + description (App Store-visible). User-visible name: **Mirror Basic**.
+    - **Introductory offer**: Free trial, 14 days, eligibility: **New Subscribers only**.
   - [ ] `com.themirrorcollective.mirror.core.yearly` — Auto-renewable, Yearly
-    - Price tier: e.g. $139 USD
-    - Same display copy
+    - Price tier: **$89 USD**
+    - Same display copy.
     - **Introductory offer**: Free trial, 14 days, New Subscribers only.
+  - **Note on SKU strings:** the IDs still contain `core` (legacy from before the "Mirror Core" → "Mirror Basic" rename). They appear in receipts and are registered with Apple; renaming to `.basic.*` is a separate store-side migration. Internal code already uses `BASIC_*` constants pointing at these strings.
 
 - [ ] Create group **"Echo Vault Storage"** (Subscription Group)
-  - [ ] `com.themirrorcollective.mirror.storage.monthly` — Monthly, $3.99 (or whichever price the product team locks)
-  - [ ] `com.themirrorcollective.mirror.storage.yearly` — Yearly, e.g. $49
-  - **No** introductory offer (add-ons typically don't offer trials).
+  - [ ] `com.themirrorcollective.mirror.storage.monthly` — Monthly, **$4.99 USD**
+  - [ ] `com.themirrorcollective.mirror.storage.yearly` — Yearly, **$49 USD**
+  - **No** introductory offer (add-ons don't offer trials per spec).
 
 Display copy / promotional images for each product (see App Store Connect minimums).
 
@@ -44,7 +46,7 @@ Display copy / promotional images for each product (see App Store Connect minimu
 - [ ] In App Store Connect → App Information → **App Store Server Notifications**, set **Version 2** URL to the backend webhook:
   - Production: `https://api.themirrorcollective.com/api/subscriptions/webhook/apple`
   - Sandbox: `https://api-sandbox.themirrorcollective.com/api/subscriptions/webhook/apple`
-- [ ] Apple **JWS signing**: no setup needed on our side beyond verifying the x5c chain — but the backend has to be ready for it (see "Phase A backend hardening" in `IAP_SUBSCRIPTION_REVIEW.md`).
+- [ ] Apple **JWS signing**: no setup needed on our side beyond verifying the x5c chain. Backend verification is already wired (App Store Server SDK + bundled Apple Root CA - G3 at `src/app/resources/apple_root_certificates/AppleRootCA-G3.cer`). Forged payloads return **401 Unauthorized**; see `IAP_SANDBOX_QA.md` S11 for the cross-cutting check.
 
 ### A4. App Store Server API credentials (for receipt validation v2)
 
@@ -85,14 +87,14 @@ Display copy / promotional images for each product (see App Store Connect minimu
 Google's model: each "subscription" can have multiple **base plans**, each with optional **offers** (trials, promos).
 
 - [ ] Create subscription **`com.themirrorcollective.mirror.core`** (yes, the parent product uses a slightly different ID layout than iOS — but the CLIENT-side SKU is per base plan, so we match by base-plan ID below).
-  - [ ] Base plan **monthly** (id: `monthly`) → price e.g. $15.99/mo, auto-renewing.
+  - [ ] Base plan **monthly** (id: `monthly`) → price **$9.99/mo**, auto-renewing.
     - [ ] Offer: **Free trial**, 14 days, eligibility "New subscriber".
-  - [ ] Base plan **yearly** (id: `yearly`) → e.g. $139/yr.
+  - [ ] Base plan **yearly** (id: `yearly`) → **$89/yr**.
     - [ ] Offer: **Free trial**, 14 days, eligibility "New subscriber".
 
 - [ ] Create subscription **`com.themirrorcollective.mirror.storage`**
-  - [ ] Base plan `monthly` → $3.99/mo.
-  - [ ] Base plan `yearly` → $49/yr.
+  - [ ] Base plan `monthly` → **$4.99/mo**.
+  - [ ] Base plan `yearly` → **$49/yr**.
 
 **The client-side SKU is `productId:basePlanId`** in some library versions. `react-native-iap` 12.x abstracts this — confirm the actual SKU shape by logging `getSubscriptions()` result in a sandbox run before relying on the catalog (`src/constants/products.ts`).
 
@@ -124,25 +126,11 @@ If the SKU shape differs from iOS, we'll need a platform-specific entry in the c
 
 ## C. Verify end-to-end (sandbox)
 
-After A1–A6 and B1–B5 are complete:
+After A1–A6 and B1–B5 are complete, run the full QA matrix.
 
-1. iOS:
-   - Run on a real device signed in to a sandbox tester Apple ID.
-   - Open `StartFreeTrial` → tap CTA → confirm native sheet shows **"14-day free trial, then $X/month"**.
-   - Confirm purchase → app receives purchase event → backend `/verify-purchase` succeeds → `SubscriptionContext.status === 'trial'`.
-   - Go to Settings → Apple ID → Subscriptions → confirm it's listed.
-   - Cancel from there → app reflects status change on next foreground (`AppState → active` rehydrate already wired).
+> **See [`IAP_SANDBOX_QA.md`](./IAP_SANDBOX_QA.md)** — comprehensive 12-scenario runbook covering pricing spec §9: trial start/conversion/cancellation, monthly/annual purchase, restore, storage add-on attach/remove, billing failure, device swap, webhook entitlement updates, future feature-flag readiness, plus cross-cutting checks (lock-screen safety, `/docs` disabled in production, log payload hygiene, SKU whitelist enforcement).
 
-2. Android:
-   - Run a signed internal-test build on a device whose Google account is a license tester.
-   - Same flow: tap → native bottom sheet → trial → confirm `/verify-purchase` succeeds.
-   - Confirm an RTDN message arrives at `/webhook/google` (check Lambda logs).
-
-3. Restore Purchases:
-   - Sign out, reinstall, sign back in → tap "Restore Purchase" on `StartFreeTrial` → confirm the existing subscription is surfaced.
-
-4. Quota path:
-   - Force `echo_vault_used_gb` near the cap (or temporarily lower `echo_vault_quota_gb` for the test user) → confirm `StorageMeter` turns amber → tap it → `UpgradePrompt` opens with `reason='quota_approaching'` → tap UPGRADE → routes to `EchoVaultUpsell` → purchase the storage add-on → quota expands to 150 GB and the banner clears.
+Each scenario lists steps → expected → verification points (CloudWatch log lines, DynamoDB row shapes, telemetry events) so the QA team has a deterministic pass/fail per scenario.
 
 ---
 
@@ -162,12 +150,18 @@ For reference — these are done in code and won't need a second pass when you f
 
 ---
 
-## E. Open product / business decisions
+## E. Resolved / open product decisions
 
-These still need answers and they may change SKU pricing / setup above:
+### Resolved by pricing spec 2026-05-12
 
-1. **Storage add-on price** — design has both `$4.99/mo` (Screen 3) and `$3.99/mo` (Screens 2/4). Pick one and configure in both stores.
-2. **Yearly storage price** — confirm `$49/yr` (current Figma) or override.
-3. **Family Sharing on Core** — enable in App Store Connect? Affects validation flow (shared subscriptions report as `purchaserId != originalTransactionId.appAccountToken`).
-4. **Refund handling** — Apple/Google initiated refunds: auto-revoke entitlement immediately, or honor through expiry_date? Wire in `SubscriptionService.handle_refund`.
-5. **Promotional offers** (post-launch retention) — discount codes, win-back offers. Out of scope for v1 but Apple's offer code redemption sheet needs an entry point if used.
+1. ✅ **Storage add-on price** — $4.99/mo, $49/yr (spec §2).
+2. ✅ **Basic price** — $9.99/mo, $89/yr (spec §1).
+3. ✅ **Trial length and eligibility** — 14 days, first-time subscribers only (spec §5).
+4. ✅ **Storage add-on in Basic group?** — no, separate subscription group so users can hold both concurrently (spec §4).
+
+### Still open
+
+1. **Family Sharing on Basic** — enable in App Store Connect? Affects validation flow (shared subscriptions report as `purchaserId != originalTransactionId.appAccountToken`). Default recommendation: **off** for v1 to keep the entitlement model simple; revisit when consumer feedback comes in.
+2. **Refund handling** — Apple/Google initiated refunds: auto-revoke entitlement immediately, or honor through expiry_date? Current code (`SubscriptionService._handle_refund`) sets `status=refunded` and revokes immediately. Confirm this matches business policy.
+3. **Promotional offers** (post-launch retention) — discount codes, win-back offers. Out of scope for v1 but Apple's offer code redemption sheet needs an entry point if used.
+4. **SKU rename** — should `com.themirrorcollective.mirror.core.*` migrate to `.basic.*` to match the spec naming? Deferred — store-side migration with receipt implications. Internal code is already using `BASIC_*` keys; only the wire string lags. Re-evaluate after launch.
