@@ -102,8 +102,12 @@ class PushNotificationService {
 
       // Fallback to cached token if Firebase is unavailable
       return await AsyncStorage.getItem('fcmToken') || undefined;
-    } catch (error: any) {
-      if (error?.message?.includes('no apns token specified')) {
+    } catch (error: unknown) {
+      // Narrow before reading .message — the rest of this service uses
+      // the same `unknown` + instanceof pattern, and `any` here was the
+      // last hold-out flagged in code review.
+      const message = error instanceof Error ? error.message : String(error);
+      if (message.includes('no apns token specified')) {
         console.warn(
           'FCM Warning: No APNs token available. This is expected on iOS Simulator. Push notifications will not work.',
         );
@@ -267,8 +271,25 @@ class PushNotificationService {
       // First attempt; if the container isn't ready, retry once after
       // 250 ms — covers the typical cold-start mount delay without
       // looping forever if something else is broken.
+      //
+      // The retry only guards against the "navigator not yet mounted"
+      // race. If the user is unauthenticated at cold-start, the gated
+      // YourSubscription route won't actually accept the user even
+      // when safeNavigate succeeds — we log that in dev so it's not a
+      // completely silent miss.
       if (!this.routeFromData(data)) {
-        setTimeout(() => this.routeFromData(data), 250);
+        setTimeout(() => {
+          const routed = this.routeFromData(data);
+          if (!routed && __DEV__) {
+            // eslint-disable-next-line no-console
+            console.warn(
+              'Cold-start push could not be routed after 250 ms retry — '
+              + 'navigator likely never mounted or user is unauthenticated. '
+              + 'Payload type:',
+              data.type,
+            );
+          }
+        }, 250);
       }
     } catch (error) {
       console.error('Cold-start notification handling failed:', error);

@@ -94,15 +94,20 @@ export async function purchaseBasicWithOptionalStorage(
   } = args;
 
   const basicPurchased = await purchaseSubscription(basicSku);
-  await refreshSubscriptionStatus();
 
   if (!basicPurchased) {
+    // Skip the refresh on cancel — nothing changed server-side, and
+    // the unnecessary round-trip causes a brief loading-spinner flash
+    // on the screen behind the dismissed sheet. The error/state on
+    // useInAppPurchase is already set by purchaseSubscription itself.
     return {
       basicPurchased: false,
       storagePurchased: false,
       storageOutcome: 'skipped_basic_failed',
     };
   }
+
+  await refreshSubscriptionStatus();
 
   if (!addStorage) {
     return {

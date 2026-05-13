@@ -157,10 +157,25 @@ describe('purchaseBasicWithOptionalStorage', () => {
     expect(stubs.showToast).not.toHaveBeenCalled();
   });
 
-  it('refreshes subscription status after Basic even when cancelled', async () => {
-    // Belt-and-braces: even on cancel the helper should sync state so
-    // the UI doesn't show stale entitlement.
+  it('skips refresh on Basic cancel — nothing changed server-side', async () => {
+    // Cancel path: server state didn't change, so a refresh is just
+    // a wasted round-trip and a UX-jarring loading-spinner flash on
+    // the screen behind the dismissed sheet.
     const stubs = makeStubs([false]);
+    await purchaseBasicWithOptionalStorage({
+      basicSku: BASIC_SKU,
+      storageSku: STORAGE_SKU,
+      addStorage: false,
+      storageProductAvailable: true,
+      ...stubs,
+    });
+    expect(stubs.refreshSubscriptionStatus).not.toHaveBeenCalled();
+  });
+
+  it('refreshes subscription status after Basic succeeds', async () => {
+    // Success path: the new entitlement state needs to land in the
+    // SubscriptionContext before the user's next interaction.
+    const stubs = makeStubs([true]);
     await purchaseBasicWithOptionalStorage({
       basicSku: BASIC_SKU,
       storageSku: STORAGE_SKU,
