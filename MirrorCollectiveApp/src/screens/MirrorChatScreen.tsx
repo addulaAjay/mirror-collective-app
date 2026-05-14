@@ -1,10 +1,12 @@
 import { useNavigation } from '@react-navigation/native';
+import { theme, palette, spacing, shadows, textShadow } from '@theme';
 import React, { useCallback, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
+  Keyboard,
   type NativeSyntheticEvent,
   type TextInputContentSizeChangeEventData,
 } from 'react-native';
@@ -17,7 +19,6 @@ import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
 import { MessageBubble, ChatInput, LoadingIndicator } from '@components/ui';
 import { useChat } from '@hooks/useChat';
-import { theme, palette, spacing, shadows, textShadow } from '@theme';
 
 // Export content component for testing
 export function MirrorChatContent() {
@@ -42,14 +43,26 @@ export function MirrorChatContent() {
 
   // When the chat input grows (user typing multiline), the messages region
   // shrinks. Re-anchor to the bottom so the latest message stays visible.
-  // Replaces the old Keyboard.addListener('keyboardDidShow', scrollToEnd)
-  // pattern — keyboard-controller handles keyboard offsets natively.
   const handleInputContentSizeChange = useCallback(
     (_e: NativeSyntheticEvent<TextInputContentSizeChangeEventData>) => {
       scrollViewRef.current?.scrollToEnd({ animated: false });
     },
     [scrollViewRef],
   );
+
+  // Re-anchor to the bottom whenever the keyboard appears. KeyboardAvoidingView
+  // (from keyboard-controller) handles the layout shift — it adds bottom padding
+  // equal to the keyboard height — but it does NOT adjust the ScrollView's
+  // scroll offset. Without this, the visible area shrinks when the keyboard
+  // comes up and the latest message ends up behind the input. Native RN
+  // Keyboard events work alongside keyboard-controller's KAV; the library
+  // doesn't replace the event API.
+  useEffect(() => {
+    const showSub = Keyboard.addListener('keyboardDidShow', () => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    });
+    return () => showSub.remove();
+  }, [scrollViewRef]);
 
   return (
     <BackgroundWrapper style={styles.background} scrollable>
