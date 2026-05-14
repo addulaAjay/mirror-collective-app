@@ -81,6 +81,13 @@ export function MirrorChatContent() {
   //
   // Kept as a callback (instead of removing the prop on ChatInput) so the
   // component contract is unchanged — it's just a no-op now.
+  //
+  // Note on the `keyboardDidShow → scrollToEnd` listener that other branches
+  // sometimes carry: it's unnecessary here because the inverted FlatList's
+  // visual bottom is `contentOffset.y=0`, which is where the layout already
+  // sits when the keyboard appears (KeyboardAvoidingView shrinks the
+  // FlatList from the bottom up). Adding an explicit scroll would only
+  // re-introduce the gesture-cancel race described above.
   const handleInputContentSizeChange = useCallback(
     (_e: NativeSyntheticEvent<TextInputContentSizeChangeEventData>) => {
       /* intentional no-op — see comment above */
@@ -109,7 +116,7 @@ export function MirrorChatContent() {
   const messagesReversed = useMemo(() => [...messages].reverse(), [messages]);
 
   return (
-    <BackgroundWrapper style={styles.background}>
+    <BackgroundWrapper style={styles.background} scrollable>
       <SafeAreaView style={styles.safeArea}>
         <LogoHeader navigation={navigation} />
 
@@ -289,4 +296,3 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xs,
   },
 });
-

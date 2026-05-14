@@ -84,7 +84,8 @@ describe('ChatInput', () => {
     // it sets disabled=true to block duplicate submits. The TextInput stays
     // editable so the user can type their next message — toggling editable
     // on a focused TextInput dismisses the iOS keyboard, which broke the
-    // chat UX (keyboard closed on every send).
+    // chat UX (keyboard closed on every send). Matches the ChatGPT /
+    // Claude / iMessage pattern.
     const { getByPlaceholderText, getByTestId } = render(
       <ChatInput
         value="some draft"
