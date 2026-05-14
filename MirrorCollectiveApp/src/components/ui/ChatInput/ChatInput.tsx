@@ -93,6 +93,15 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           </G>
         </Svg>
       </TouchableOpacity>
+      {/*
+        editable stays `true` even while the parent is loading. Toggling
+        editable to false on a focused TextInput is what dismisses the iOS
+        keyboard — so doing so on every send made the keyboard close right
+        as the API request fired. `disabled` is propagated to the send
+        button only (preventing duplicate submits); the input remains
+        usable so the user can type their next message while waiting for
+        a response, matching ChatGPT / Claude / iMessage behaviour.
+      */}
       <TextInput
         style={styles.input}
         value={value}
@@ -100,7 +109,6 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         onContentSizeChange={onContentSizeChange}
         placeholder={placeholder}
         placeholderTextColor="rgba(186, 194, 207, 0.5)"
-        editable={!disabled}
         multiline
         scrollEnabled
       />

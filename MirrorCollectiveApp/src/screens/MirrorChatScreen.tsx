@@ -6,6 +6,7 @@ import {
   Text,
   StyleSheet,
   ScrollView,
+  Keyboard,
   type NativeSyntheticEvent,
   type TextInputContentSizeChangeEventData,
 } from 'react-native';
@@ -42,8 +43,6 @@ export function MirrorChatContent() {
 
   // When the chat input grows (user typing multiline), the messages region
   // shrinks. Re-anchor to the bottom so the latest message stays visible.
-  // Replaces the old Keyboard.addListener('keyboardDidShow', scrollToEnd)
-  // pattern — keyboard-controller handles keyboard offsets natively.
   const handleInputContentSizeChange = useCallback(
     (_e: NativeSyntheticEvent<TextInputContentSizeChangeEventData>) => {
       scrollViewRef.current?.scrollToEnd({ animated: false });
@@ -51,8 +50,22 @@ export function MirrorChatContent() {
     [scrollViewRef],
   );
 
+  // Re-anchor to the bottom whenever the keyboard appears. KeyboardAvoidingView
+  // (from keyboard-controller) handles the layout shift — it adds bottom padding
+  // equal to the keyboard height — but it does NOT adjust the ScrollView's
+  // scroll offset. Without this, the visible area shrinks when the keyboard
+  // comes up and the latest message ends up behind the input. Native RN
+  // Keyboard events work alongside keyboard-controller's KAV; the library
+  // doesn't replace the event API.
+  useEffect(() => {
+    const showSub = Keyboard.addListener('keyboardDidShow', () => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    });
+    return () => showSub.remove();
+  }, [scrollViewRef]);
+
   return (
-    <BackgroundWrapper style={styles.background}>
+    <BackgroundWrapper style={styles.background} scrollable>
       <SafeAreaView style={styles.safeArea}>
         <LogoHeader navigation={navigation} />
 
@@ -195,4 +208,3 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xs,
   },
 });
-

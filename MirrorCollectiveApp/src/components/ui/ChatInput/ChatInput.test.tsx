@@ -79,7 +79,14 @@ describe('ChatInput', () => {
     expect(mockOnSend).toHaveBeenCalled();
   });
 
-  it('disables input when disabled prop is true', () => {
+  it('keeps the TextInput editable when the disabled prop is true', () => {
+    // Regression pin for the keyboard-dismiss-on-send bug.
+    // Parent screen passes `disabled={loading}` to block duplicate
+    // sends during the API call. We forward `disabled` to the send
+    // button only — NOT to the TextInput's `editable` — because
+    // toggling editable on a focused TextInput dismisses the iOS
+    // keyboard. Standard chat behaviour (ChatGPT / Claude / iMessage)
+    // keeps the input editable while a response is in flight.
     const { getByPlaceholderText } = render(
       <ChatInput
         value=""
@@ -88,9 +95,11 @@ describe('ChatInput', () => {
         disabled={true}
       />
     );
-    
+
     const input = getByPlaceholderText('Ask me anything...');
-    expect(input.props.editable).toBe(false);
+    // Editable is not toggled off; default is `undefined` which RN
+    // treats as `true`. Anything truthy (or undefined) is acceptable.
+    expect(input.props.editable).not.toBe(false);
   });
 
   it('disables send button when input is empty', () => {
