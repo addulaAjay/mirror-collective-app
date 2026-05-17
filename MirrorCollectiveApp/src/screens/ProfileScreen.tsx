@@ -38,6 +38,7 @@ import Svg, { Path } from 'react-native-svg';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import Button from '@components/Button/Button';
+import { CachedImage } from '@components/CachedImage';
 import LogoHeader from '@components/LogoHeader';
 import TextInputField from '@components/TextInputField';
 import { useUser } from '@context/UserContext';
@@ -90,12 +91,6 @@ const ProfileScreen: React.FC = () => {
     digits = digits.slice(0, 10);
     setPhone(digits.length === 0 ? '+1' : `+1${digits}`);
   };
-
-  const profileImageSource = localImageUri
-    ? { uri: localImageUri }
-    : user?.profileImageUrl
-    ? { uri: user.profileImageUrl }
-    : null;
 
   const handlePickImage = useCallback(async () => {
     const result = await launchImageLibrary({
@@ -198,11 +193,21 @@ const ProfileScreen: React.FC = () => {
                 accessibilityLabel="Add or change profile photo"
               >
                 <View style={styles.avatarRing}>
-                  {profileImageSource ? (
+                  {localImageUri ? (
+                    // Just-picked photo from the library — render directly
+                    // via RN Image. Caching this temp file would be wrong;
+                    // it gets cleaned up by the OS / overwritten by the
+                    // next pick.
                     <Image
-                      source={profileImageSource}
+                      source={{ uri: localImageUri }}
                       style={styles.avatarImage}
                       resizeMode="cover"
+                    />
+                  ) : user?.profileImageUrl ? (
+                    <CachedImage
+                      source={{ uri: user.profileImageUrl }}
+                      style={styles.avatarImage}
+                      contentFit="cover"
                     />
                   ) : (
                     <Text style={styles.avatarPlaceholder}>Add Image</Text>

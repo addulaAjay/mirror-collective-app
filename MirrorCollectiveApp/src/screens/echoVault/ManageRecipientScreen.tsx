@@ -20,6 +20,7 @@ import { SvgXml } from 'react-native-svg';
 import { getMotifIcon } from '@assets/motifs/MotifAssets';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import Button from '@components/Button/Button';
+import { CachedImage } from '@components/CachedImage';
 import LogoHeader from '@components/LogoHeader';
 import { echoApiService, Recipient } from '@services/api/echo';
 
@@ -94,10 +95,10 @@ const ManageRecipientScreen: React.FC<Props> = ({ navigation }) => {
       <View style={styles.avatarGlow}>
         <View style={styles.avatarRing}>
           {item.profile_image_url ? (
-            <Image
+            <CachedImage
               source={{ uri: item.profile_image_url }}
               style={styles.avatarImage}
-              resizeMode="cover"
+              contentFit="cover"
             />
           ) : motifIcon ? (
             <SvgXml xml={motifIcon.xml} width={28} height={28} />
