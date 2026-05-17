@@ -70,13 +70,16 @@ import { echoApiService, type Recipient } from '@services/api/echo';
 type Props = NativeStackScreenProps<RootStackParamList, 'ChooseRecipientScreen'>;
 
 // ── Back arrow ────────────────────────────────────────────────────────────────
+// Use the shared `back-arrow.png` asset to stay pixel-aligned with every
+// other screen. The Material arrow_back SVG path occupies only ~67% of its
+// viewBox, so rendering it at 20×20 made the glyph visibly smaller than
+// the PNG which fills its frame edge-to-edge.
 const BackIcon: React.FC = () => (
-  <Svg width={scale(20)} height={scale(20)} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
-      fill={palette.gold.DEFAULT}
-    />
-  </Svg>
+  <Image
+    source={require('@assets/back-arrow.png')}
+    style={styles.backArrowImg}
+    resizeMode="contain"
+  />
 );
 
 // ── Screen ────────────────────────────────────────────────────────────────────
@@ -301,6 +304,7 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
                       <TextInputField
                         label="Lock Date (only if required)"
                         placeholder="When do you want to open it?"
+                        placeholderAlign="left"
                         value={lockDate ? formatDate(lockDate) : ''}
                       />
                     </View>
@@ -397,6 +401,7 @@ const styles = StyleSheet.create<{
   addNewRow: ViewStyle;
   addNewText: TextStyle;
   calendarIcon: ImageStyle;
+  backArrowImg: ImageStyle;
 }>({
   bg:   { flex: 1 },
   safe: { flex: 1, backgroundColor: 'transparent' },
@@ -444,11 +449,12 @@ const styles = StyleSheet.create<{
   fieldGroup: { gap: verticalScale(spacing.xs) },
 
   fieldLabel: {
-    fontFamily: fontFamily.heading,
-    fontWeight: fontWeight.medium,
-    fontSize:   moderateScale(fontSize.l),
-    lineHeight: lineHeight.m,
-    color:      palette.gold.DEFAULT,
+    // Mirror the TextInputField label so the Recipient and Lock Date labels
+    // are visually identical: Cormorant Medium 20/32, Text/Paragraph-2 white.
+    fontFamily: fontFamily.headingMedium,
+    fontSize:   moderateScale(fontSize.l, 0.3),
+    lineHeight: lineHeight.xl,
+    color:      palette.gold.subtlest,
   },
   fieldWithIcon:  { position: 'relative' },
   fieldTouchable: { width: '100%' },
@@ -471,7 +477,8 @@ const styles = StyleSheet.create<{
     paddingVertical:   verticalScale(spacing.xs),
     borderRadius:      radius.s,
     borderWidth:       0.5,
-    borderColor:       palette.navy.medium,
+    // Match TextInputField (Lock Date) — Figma: Border/Subtle.
+    borderColor:       palette.navy.light,
     backgroundColor:   'rgba(253,253,249,0.01)',
   },
   dropdownTriggerOpen: {
@@ -488,7 +495,7 @@ const styles = StyleSheet.create<{
     fontSize:   moderateScale(fontSize.s),
     lineHeight: lineHeight.m,
     color:      palette.gold.subtlest,
-    textAlign:  'center',
+    textAlign:  'left',
   },
   dropdownTriggerSelected: {
     fontFamily: fontFamily.body,
@@ -505,7 +512,7 @@ const styles = StyleSheet.create<{
     width:                   '100%',
     borderWidth:             0.25,
     borderTopWidth:          0,
-    borderColor:             palette.navy.medium,
+    borderColor:             palette.navy.light,
     borderBottomLeftRadius:  radius.xs,
     borderBottomRightRadius: radius.xs,
     overflow:                'hidden',
@@ -516,7 +523,7 @@ const styles = StyleSheet.create<{
     paddingVertical:   verticalScale(spacing.s),
     paddingHorizontal: scale(spacing.m),
     borderBottomWidth: 0.25,
-    borderBottomColor: palette.navy.medium,
+    borderBottomColor: palette.navy.light,
     alignItems:        'center',
   },
   dropdownOptionLast: { borderBottomWidth: 0 },
@@ -564,5 +571,10 @@ const styles = StyleSheet.create<{
     width:     scale(20),
     height:    scale(20),
     tintColor: palette.navy.light,    // matches placeholder color (#a3b3cc = Text/Inverse Paragraph-2)
+  },
+  backArrowImg: {
+    width:     scale(20),
+    height:    scale(20),
+    tintColor: palette.gold.DEFAULT,
   },
 });

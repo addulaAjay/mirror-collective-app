@@ -27,7 +27,27 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
 import StarIcon from '@components/StarIcon';
+import UploadProgressOverlay from '@components/UploadProgressOverlay';
 import { echoApiService } from '@services/api';
+import type { UploadStage } from '@services/api/echo';
+
+// Audio files are small — compression rarely runs — so the bar advances
+// almost entirely during the upload phase. Mirror the mapping used by
+// the video/compose screens so the user sees consistent pacing.
+const stageToProgress = (stage: UploadStage): number => {
+  switch (stage.type) {
+    case 'compressing':
+      return stage.fraction * 0.1;
+    case 'requesting_url':
+      return 0.1;
+    case 'uploading':
+      return stage.total > 0
+        ? 0.1 + 0.85 * (stage.sent / stage.total)
+        : 0.1;
+    case 'finalizing':
+      return 0.97;
+  }
+};
 
 type Props = NativeStackScreenProps<RootStackParamList, 'NewEchoAudioScreen'>;
 
@@ -47,6 +67,8 @@ const NewEchoAudioScreen: React.FC<Props> = ({ navigation, route }) => {
   const [recordedUri, setRecordedUri] = useState<string | null>(null);
   const [recordingDuration, setRecordingDuration] = useState(0);
   const [saving, setSaving] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadStage, setUploadStage] = useState<UploadStage | null>(null);
 
   // Singleton instance (default export). Ref stops React from treating it as state.
   const audioRecorderPlayer = useRef(AudioRecorderPlayer).current;
@@ -244,6 +266,8 @@ const NewEchoAudioScreen: React.FC<Props> = ({ navigation, route }) => {
 
     try {
       setSaving(true);
+      setUploadProgress(0);
+      setUploadStage(null);
 
       const createResponse = await echoApiService.createEcho({
         title: title || 'Untitled Audio Echo',
@@ -266,6 +290,10 @@ const NewEchoAudioScreen: React.FC<Props> = ({ navigation, route }) => {
         echoId,
         finalUri,
         contentType,
+        stage => {
+          setUploadStage(stage);
+          setUploadProgress(stageToProgress(stage));
+        },
       );
       if (!result.success) {
         throw new Error(result.error ?? 'Upload failed');
@@ -276,6 +304,8 @@ const NewEchoAudioScreen: React.FC<Props> = ({ navigation, route }) => {
     } catch (err) {
       console.error('Save audio echo failed:', err);
       Alert.alert('Error', 'Failed to save Echo');
+      setUploadProgress(0);
+      setUploadStage(null);
     } finally {
       setSaving(false);
     }
@@ -368,6 +398,12 @@ const NewEchoAudioScreen: React.FC<Props> = ({ navigation, route }) => {
           </TouchableOpacity>
         </View>
       </SafeAreaView>
+
+      <UploadProgressOverlay
+        visible={saving}
+        progress={uploadProgress}
+        stage={uploadStage}
+      />
     </BackgroundWrapper>
   );
 };
