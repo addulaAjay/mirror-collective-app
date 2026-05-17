@@ -20,6 +20,7 @@
  */
 
 import { API_CONFIG } from '@constants/config';
+import { tokenManager } from '@services/tokenManager';
 
 import type { LoopId, PracticeSurface } from '../types/ids';
 
@@ -30,19 +31,33 @@ export type RRTelemetryEvent =
 
 /**
  * POSTs a telemetry event to the backend's `/telemetry/event` endpoint.
- * Authentication uses the same JWT pattern as other RR endpoints
- * (handled by the caller — typically the screen passes a fetch wrapper).
  *
- * For V1 we use plain fetch so a transport hiccup doesn't surface as
- * a thrown ReflectionRoomApiError to the UI.
+ * Authentication: Reflection Room is post-signup, so a JWT exists by
+ * the time any of these events fire. The API Gateway authorizer rejects
+ * unauthenticated requests with 401, so we must include the bearer
+ * token. We fetch it via tokenManager (same path the rest of the API
+ * client uses) — if no token is present we skip the call entirely
+ * rather than firing an event we know will 401.
+ *
+ * Fire-and-forget by design — any thrown error (network, 4xx, 5xx) is
+ * swallowed so the UI flow never breaks because telemetry hiccuped.
  */
 export async function fireTelemetry(payload: RRTelemetryEvent): Promise<void> {
   try {
+    const token = await tokenManager.getValidToken();
+    if (!token) {
+      // No session = no user to attribute the event to. Drop silently
+      // (vs. firing an anonymous request that the authorizer will 401).
+      return;
+    }
     await fetch(
       `${API_CONFIG.HOST}${API_CONFIG.ENDPOINTS.REFLECTION_ROOM.TELEMETRY_EVENT}`,
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify(payload),
       },
     );

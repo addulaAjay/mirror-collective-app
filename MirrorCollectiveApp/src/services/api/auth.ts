@@ -115,8 +115,14 @@ export class AuthApiService extends BaseApiService {
   }
 
   async signOut(): Promise<ApiResponse> {
+    // Backend route is mounted under `/api` (see app/handler.py
+    // include_router(api_router, prefix="/api")), so the full path is
+    // `/api/auth/logout`. The previous `/auth/logout` produced a 404 on
+    // the gateway — tokens were still cleared client-side so the user
+    // saw a successful sign-out, but the Cognito session was never
+    // server-side invalidated.
     const response = await this.makeRequest<any>(
-      '/auth/logout',
+      '/api/auth/logout',
       'POST',
       {},
       true,
