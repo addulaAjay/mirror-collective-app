@@ -6,6 +6,7 @@ import {
   compressVideoIfNeeded,
   unlinkQuietly,
 } from '@utils/media/compress';
+import { uuidV4 } from '@utils/uuid';
 
 import { BaseApiService } from './base';
 import { ApiErrorHandler } from './errorHandler';
@@ -360,11 +361,19 @@ export class EchoApiService extends BaseApiService {
   }
 
   async createEcho(data: CreateEchoRequest): Promise<ApiResponse<EchoResponse>> {
+    // One UUID per logical createEcho call. The BaseApiService 429
+    // retry-with-backoff loop replays with the same headers, so a
+    // 429-driven retry hits the server's idempotency cache on
+    // subsequent attempts within the same flow. A fresh call from
+    // the screen (e.g. the user tapping Save again after a manual
+    // failure) generates a new UUID — that's a new logical attempt
+    // and should not be deduped.
     const response = await this.makeRequest<EchoResponse>(
       '/api/echoes',
       'POST',
       data,
-      true // requiresAuth
+      true,
+      { 'Idempotency-Key': uuidV4() },
     );
     return ApiErrorHandler.handleApiResponse(response, 'Echo created successfully');
   }
@@ -547,6 +556,11 @@ export class EchoApiService extends BaseApiService {
     key: string,
     contentType?: string,
   ): Promise<ApiResponse<EchoResponse>> {
+    // Same idempotency contract as createEcho — survives the 429 retry
+    // loop within one logical attempt. Particularly important here
+    // because the finalize call comes AFTER the S3 PUT succeeded: a
+    // duplicate finalize without dedup would race the first one and
+    // can produce a "media already finalized" reject on the second.
     const response = await this.makeRequest<EchoResponse>(
       `/api/echoes/${encodeURIComponent(echoId)}/finalize-media`,
       'POST',
@@ -555,6 +569,7 @@ export class EchoApiService extends BaseApiService {
         ...(contentType ? { content_type: contentType } : {}),
       },
       true,
+      { 'Idempotency-Key': uuidV4() },
     );
     return ApiErrorHandler.handleApiResponse(response, 'Media finalized');
   }
