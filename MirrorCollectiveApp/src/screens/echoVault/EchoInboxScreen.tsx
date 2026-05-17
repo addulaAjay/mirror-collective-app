@@ -89,7 +89,17 @@ export function EchoInboxContent() {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'SENDER' | 'CATEGORY'>('SENDER');
 
-  const fetchInboxEchoes = useCallback(async () => {
+  // TODO(infinite-scroll): convert this screen to FlatList +
+  // useInfiniteList. The outer ScrollView wraps a stylized card that
+  // contains tabs + the echo rows; splitting them into ListHeader/
+  // ListFooter requires reshaping the gradient + border to live on
+  // the FlatList container. Tracked separately so we don't reshape
+  // the visual design in this PR.
+  //
+  // Until then the legacy auto-paginating getInboxEchoes() (which
+  // loops through the backend's cursor pages internally) makes sure
+  // power users don't see a silently-truncated inbox.
+  const refresh = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -100,7 +110,6 @@ export function EchoInboxContent() {
       if (response.success && Array.isArray(response.data)) {
         setEchoes(response.data);
       } else if (response.success && response.data == null) {
-        // Endpoint exists but returned no data array — treat as empty
         setEchoes([]);
       } else {
         setError(response.message || response.error || 'Failed to load inbox');
@@ -112,7 +121,9 @@ export function EchoInboxContent() {
     }
   }, []);
 
-  useEffect(() => { fetchInboxEchoes(); }, [fetchInboxEchoes]);
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
 
   const handleOpenItem = (item: EchoResponse) => {
     if (item.echo_type === 'AUDIO') {
@@ -228,7 +239,7 @@ export function EchoInboxContent() {
             ) : error ? (
               <View style={styles.stateBox}>
                 <Text style={styles.errorText}>{error}</Text>
-                <TouchableOpacity onPress={fetchInboxEchoes} style={styles.retryBtn}>
+                <TouchableOpacity onPress={refresh} style={styles.retryBtn}>
                   <Text style={styles.retryText}>Retry</Text>
                 </TouchableOpacity>
               </View>
