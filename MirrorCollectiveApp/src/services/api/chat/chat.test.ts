@@ -60,5 +60,34 @@ describe('ChatApiService', () => {
       const fetchCall = (global.fetch as jest.Mock).mock.calls[0];
       expect(fetchCall).toBeDefined();
     });
+
+    it('passes a 60s timeoutMs override to makeRequest, not the 10s default', async () => {
+      // Pin the timeout contract by spying on the underlying
+      // makeRequest call. A behavioral test against AbortController
+      // timing is unreliable inside jest's fake-timer model — RN's
+      // setTimeout under the AbortController callback wires through
+      // multiple Promise microtasks. Asserting the option that
+      // _reaches_ BaseApiService is the cleanest pin.
+      const spy = jest
+        .spyOn(ChatApiService.prototype as unknown as {
+          makeRequest: (
+            endpoint: string,
+            method: string,
+            data: unknown,
+            requiresAuth: boolean,
+            extraHeaders?: unknown,
+            options?: { timeoutMs?: number },
+          ) => Promise<unknown>;
+        }, 'makeRequest')
+        .mockResolvedValueOnce({ success: true, data: {} });
+
+      await chatService.sendMessage({ message: 'hi', session_id: 's-1' });
+
+      // 6th positional arg is the per-call options bag.
+      const callArgs = spy.mock.calls[0];
+      expect(callArgs[5]).toEqual({ timeoutMs: 60_000 });
+
+      spy.mockRestore();
+    });
   });
 });
