@@ -577,6 +577,12 @@ export class EchoApiService extends BaseApiService {
     // because the finalize call comes AFTER the S3 PUT succeeded: a
     // duplicate finalize without dedup would race the first one and
     // can produce a "media already finalized" reject on the second.
+    //
+    // Longer timeout (20 s) than the default 10 s: the server-side
+    // HeadObject + DDB write is normally <3 s, but a cold S3 partition
+    // or transient cross-AZ latency can push it past 10 s, and a
+    // timeout here is bad UX — the upload bytes ARE in S3 at this
+    // point, the user just sees a "could not be confirmed" error.
     const response = await this.makeRequest<EchoResponse>(
       `/api/echoes/${encodeURIComponent(echoId)}/finalize-media`,
       'POST',
@@ -586,6 +592,7 @@ export class EchoApiService extends BaseApiService {
       },
       true,
       { 'Idempotency-Key': uuidV4() },
+      { timeoutMs: 20_000 },
     );
     return ApiErrorHandler.handleApiResponse(response, 'Media finalized');
   }
@@ -636,12 +643,21 @@ export class EchoApiService extends BaseApiService {
     key: string,
     parts: Array<{ part_number: number; etag: string }>,
   ): Promise<ApiResponse<EchoResponse>> {
+    // 30 s timeout — well above the 10 s default. S3's
+    // CompleteMultipartUpload is roughly O(parts) on the server side;
+    // a 2 GB file split into 400 parts can take 5-10 s to assemble,
+    // and a 5 GB / 1000-part file can land at 10-15 s. Plus the
+    // server-side HeadObject + DDB write that finalize_upload runs
+    // afterward. A tight timeout here would surface as "upload
+    // failed" to the user even though the bytes successfully landed
+    // and S3 was simply busy assembling them.
     const response = await this.makeRequest<EchoResponse>(
       `/api/echoes/${encodeURIComponent(echoId)}/multipart/complete`,
       'POST',
       { upload_id: uploadId, key, parts },
       true,
       { 'Idempotency-Key': uuidV4() },
+      { timeoutMs: 30_000 },
     );
     return ApiErrorHandler.handleApiResponse(response, 'Multipart upload completed');
   }

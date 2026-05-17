@@ -51,6 +51,21 @@ function computeRetryDelayMs(
   return Math.min(jittered, RETRY_MAX_DELAY_MS);
 }
 
+/**
+ * Per-call options for makeRequest. Lives in an options bag so future
+ * additions don't keep growing the positional-arg list.
+ */
+export interface MakeRequestOptions {
+  /**
+   * Override the default request timeout for this single call. Useful for
+   * routes whose server-side work is legitimately slow (e.g. S3
+   * CompleteMultipartUpload for 1000+ part files). Default is
+   * `API_CONFIG.TIMEOUT` (10 s) — keep it tight on routes that should be
+   * fast so a real backend hang doesn't go unnoticed.
+   */
+  timeoutMs?: number;
+}
+
 export class BaseApiService {
   public readonly baseUrl: string;
   private readonly timeout: number;
@@ -66,6 +81,7 @@ export class BaseApiService {
     data?: any,
     requiresAuth: boolean = false,
     extraHeaders?: Record<string, string>,
+    options?: MakeRequestOptions,
   ): Promise<ApiResponse<T>> {
     let lastError: any;
     for (let attempt = 0; attempt <= MAX_429_RETRIES; attempt++) {
@@ -76,6 +92,7 @@ export class BaseApiService {
           data,
           requiresAuth,
           extraHeaders,
+          options,
         );
       } catch (error: any) {
         lastError = error;
@@ -110,9 +127,14 @@ export class BaseApiService {
     data?: any,
     requiresAuth: boolean = false,
     extraHeaders?: Record<string, string>,
+    options?: MakeRequestOptions,
   ): Promise<ApiResponse<T>> {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+    // Per-call override beats the instance default. Callers that pass a
+    // timeoutMs here are opting in to a longer wait for routes whose
+    // server-side work is known-slow (S3 assembly, etc.).
+    const effectiveTimeout = options?.timeoutMs ?? this.timeout;
+    const timeoutId = setTimeout(() => controller.abort(), effectiveTimeout);
     let response: Response | undefined;
 
     try {
