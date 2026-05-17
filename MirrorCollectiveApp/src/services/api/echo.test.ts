@@ -395,6 +395,74 @@ describe('EchoApiService', () => {
     });
   });
 
+  describe('idempotency keys', () => {
+    function headersFromCall(call: unknown): Record<string, string> {
+      // fetch is called as fetch(url, init). `init.headers` is the
+      // merged header map that BaseApiService builds.
+      const [, init] = call as [string, { headers: Record<string, string> }];
+      return init.headers;
+    }
+
+    it('attaches Idempotency-Key on createEcho', async () => {
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ success: true, data: { echo_id: 'e-1' } }),
+      });
+
+      await echoApiService.createEcho({
+        title: 't',
+        category: 'c',
+        echo_type: 'TEXT',
+      });
+
+      const call = (global.fetch as jest.Mock).mock.calls[0];
+      const headers = headersFromCall(call);
+      expect(headers['Idempotency-Key']).toBeTruthy();
+      // UUID v4 shape.
+      expect(headers['Idempotency-Key']).toMatch(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
+      );
+    });
+
+    it('attaches Idempotency-Key on finalizeMedia', async () => {
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ success: true, data: { echo_id: 'e-1' } }),
+      });
+
+      await echoApiService.finalizeMedia('e-1', 'echoes/u-1/e-1.mp4', 'video/mp4');
+
+      const call = (global.fetch as jest.Mock).mock.calls[0];
+      const headers = headersFromCall(call);
+      expect(headers['Idempotency-Key']).toBeTruthy();
+    });
+
+    it('uses a distinct key per createEcho call', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: async () => ({ success: true, data: { echo_id: 'e' } }),
+      });
+
+      await echoApiService.createEcho({
+        title: 'a',
+        category: 'c',
+        echo_type: 'TEXT',
+      });
+      await echoApiService.createEcho({
+        title: 'b',
+        category: 'c',
+        echo_type: 'TEXT',
+      });
+
+      const calls = (global.fetch as jest.Mock).mock.calls;
+      const k1 = headersFromCall(calls[0])['Idempotency-Key'];
+      const k2 = headersFromCall(calls[1])['Idempotency-Key'];
+      expect(k1).toBeTruthy();
+      expect(k2).toBeTruthy();
+      expect(k1).not.toBe(k2);
+    });
+  });
+
   describe('finalizeMedia', () => {
     it('POSTs to /api/echoes/{id}/finalize-media with key + content_type', async () => {
       (global.fetch as jest.Mock).mockResolvedValueOnce({

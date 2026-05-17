@@ -66,6 +66,7 @@ import { SvgXml } from 'react-native-svg';
 import { getMotifIcon } from '@assets/motifs/MotifAssets';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import Button from '@components/Button/Button';
+import { CachedImage } from '@components/CachedImage';
 import LogoHeader from '@components/LogoHeader';
 import { echoApiService, type EchoResponse } from '@services/api/echo';
 
@@ -148,10 +149,13 @@ const EchoAvatar: React.FC<AvatarProps> = ({ motif, profileImage }) => (
   <View style={styles.avatarGlow}>
     <View style={styles.avatarRing}>
       {profileImage ? (
-        <Image
+        // CachedImage strips presigned-URL query params for the cache
+        // key, so paging back through the vault list doesn't re-download
+        // the same avatar bytes on every refresh.
+        <CachedImage
           source={{ uri: profileImage }}
           style={styles.avatarImg}
-          resizeMode="cover"
+          contentFit="cover"
         />
       ) : motif && getMotifIcon(motif) ? (
         <SvgXml xml={getMotifIcon(motif)?.xml || ''} width="60%" height="60%" />

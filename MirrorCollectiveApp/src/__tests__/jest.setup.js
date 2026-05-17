@@ -255,3 +255,12 @@ jest.mock('react-native-compressor', () => ({
   Video: { compress: jest.fn((uri) => Promise.resolve(uri)) },
   Image: { compress: jest.fn((uri) => Promise.resolve(uri)) },
 }));
+
+// Mock expo-image — its native module touches a TurboModule registry
+// that doesn't exist in Jest. Render as a string component so snapshot
+// tests stay readable; expose the same prop surface so CachedImage's
+// passthrough keeps compiling.
+jest.mock('expo-image', () => ({
+  __esModule: true,
+  Image: 'Image',
+}));

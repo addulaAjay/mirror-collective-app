@@ -50,6 +50,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import OvalMirrorSvg from '@assets/talk-to-mirror/oval-mirror.svg';
 import BackgroundWrapper from '@components/BackgroundWrapper';
+import { CachedImage } from '@components/CachedImage';
 import CodeLibraryIcon from '@components/icons/CodeLibraryIcon';
 import MirrorEchoIcon from '@components/icons/MirrorEchoIcon';
 import MirrorPledgeIcon from '@components/icons/MirrorPledgeIcon';
@@ -147,12 +148,21 @@ const TalkToMirrorScreen: React.FC<Props> = ({ navigation }) => {
               <View style={styles.avatarGlow}>
                 <View style={styles.avatarRing}>
                   {user?.profileImageUrl ? (
-                    <Image
-                      source={{ uri: user.profileImageUrl }}
-                      style={styles.avatarImage}
-                      resizeMode="cover"
+                    // accessibilityIgnoresInvertColors is honored by RN's
+                    // native View but expo-image does not forward it to
+                    // the underlying native image view. Wrap with a View
+                    // that carries the prop so Smart-Invert on iOS leaves
+                    // the avatar untouched.
+                    <View
                       accessibilityIgnoresInvertColors
-                    />
+                      style={styles.avatarImage}
+                    >
+                      <CachedImage
+                        source={{ uri: user.profileImageUrl }}
+                        style={styles.avatarImage}
+                        contentFit="cover"
+                      />
+                    </View>
                   ) : null}
                 </View>
               </View>
