@@ -7,7 +7,12 @@
  * complete) plus failure / abort behavior.
  */
 
-import { uploadMediaMultipart, MULTIPART_THRESHOLD } from './multipart';
+import {
+  uploadMediaMultipart,
+  MULTIPART_THRESHOLD,
+  resumeMediaMultipart,
+} from './multipart';
+import type { PendingUpload } from './pendingUploads';
 
 // Pull the same mock surface BaseApiService tests use.
 const mockFetch = jest.fn();
@@ -16,6 +21,7 @@ const mockSlice = jest.fn();
 const mockUnlink = jest.fn();
 const mockMkdir = jest.fn();
 const mockStat = jest.fn();
+const mockCp = jest.fn();
 
 jest.mock('react-native-blob-util', () => ({
   __esModule: true,
@@ -28,6 +34,7 @@ jest.mock('react-native-blob-util', () => ({
       unlink: (...args: unknown[]) => mockUnlink(...args),
       mkdir: (...args: unknown[]) => mockMkdir(...args),
       stat: (...args: unknown[]) => mockStat(...args),
+      cp: (...args: unknown[]) => mockCp(...args),
     },
   },
 }));
@@ -72,9 +79,11 @@ describe('uploadMediaMultipart', () => {
     mockUnlink.mockReset();
     mockMkdir.mockReset();
     mockStat.mockReset();
+    mockCp.mockReset();
     mockSlice.mockResolvedValue(undefined);
     mockUnlink.mockResolvedValue(undefined);
     mockMkdir.mockResolvedValue(undefined);
+    mockCp.mockResolvedValue(undefined);
   });
 
   it('runs initiate → part-urls → slice+upload (in parallel) → complete', async () => {
@@ -191,7 +200,11 @@ describe('uploadMediaMultipart', () => {
     });
 
     const uploadingStages = stages.filter(s => s.type === 'uploading');
-    expect(uploadingStages.length).toBe(2);
+    // The runner seeds progress with an initial event before the parts
+    // loop (so a resume that starts at non-zero uploads shows the
+    // right bar from the start), then one per completed part. 7 MB
+    // file → 2 parts → 1 initial + 2 part = 3 uploading events.
+    expect(uploadingStages.length).toBeGreaterThanOrEqual(2);
     // Last 'uploading' event must have sent === total.
     const last = uploadingStages[uploadingStages.length - 1];
     expect(last.sent).toBe(7 * 1024 * 1024);
@@ -382,5 +395,131 @@ describe('uploadMediaMultipart', () => {
 describe('MULTIPART_THRESHOLD', () => {
   it('is 50 MB', () => {
     expect(MULTIPART_THRESHOLD).toBe(50 * 1024 * 1024);
+  });
+});
+
+describe('resumeMediaMultipart', () => {
+  function makePending(
+    overrides: Partial<PendingUpload> = {},
+  ): PendingUpload {
+    return {
+      echoId: 'e-1',
+      uploadId: 'UPLOAD-1',
+      key: 'echoes/u-1/e-1.mp4',
+      cachedFileUri: '/cache/mc-pending/e-1.mp4',
+      contentType: 'video/mp4',
+      fileSize: 12 * 1024 * 1024, // 3 parts at 5 MB each (last is 2 MB)
+      completedParts: [],
+      createdAt: new Date().toISOString(),
+      lastUpdatedAt: new Date().toISOString(),
+      title: 'A test echo',
+      ...overrides,
+    };
+  }
+
+  beforeEach(() => {
+    mockFetch.mockReset();
+    mockSlice.mockReset();
+    mockUnlink.mockReset();
+    mockMkdir.mockReset();
+    mockCp.mockReset();
+    mockSlice.mockResolvedValue(undefined);
+    mockUnlink.mockResolvedValue(undefined);
+    mockMkdir.mockResolvedValue(undefined);
+    mockCp.mockResolvedValue(undefined);
+  });
+
+  it('skips initiate and re-presigns ONLY missing parts', async () => {
+    const api = buildFakeApi();
+    // Pretend parts 1 and 2 of 3 already uploaded successfully on
+    // a previous attempt; only part 3 needs to be re-presigned.
+    const pending = makePending({
+      completedParts: [
+        { part_number: 1, etag: 'e1' },
+        { part_number: 2, etag: 'e2' },
+      ],
+    });
+    api.getMultipartPartUrls.mockResolvedValueOnce({
+      success: true,
+      data: { part_urls: [{ part_number: 3, url: 'u3' }] },
+    });
+    mockFetch.mockReturnValue(buildOkPutResponse('"e3"'));
+
+    await resumeMediaMultipart(api as never, pending);
+
+    expect(api.initiateMultipart).not.toHaveBeenCalled();
+    // Backend was asked for URLs for [3], not [1,2,3].
+    const [, , , askedFor] = (api.getMultipartPartUrls as jest.Mock).mock
+      .calls[0];
+    expect(askedFor).toEqual([3]);
+  });
+
+  it('completes with the merged parts list (existing + freshly uploaded)', async () => {
+    const api = buildFakeApi();
+    const pending = makePending({
+      completedParts: [
+        { part_number: 1, etag: 'e1' },
+        { part_number: 2, etag: 'e2' },
+      ],
+    });
+    api.getMultipartPartUrls.mockResolvedValueOnce({
+      success: true,
+      data: { part_urls: [{ part_number: 3, url: 'u3' }] },
+    });
+    mockFetch.mockReturnValue(buildOkPutResponse('"e3"'));
+
+    await resumeMediaMultipart(api as never, pending);
+
+    const [, , , finalParts] = (api.completeMultipart as jest.Mock).mock
+      .calls[0];
+    expect(finalParts).toHaveLength(3);
+    // Parts must be sorted ascending by part_number.
+    expect(finalParts.map((p: { part_number: number }) => p.part_number)).toEqual([
+      1, 2, 3,
+    ]);
+  });
+
+  it('short-circuits to complete when no parts are missing', async () => {
+    const api = buildFakeApi();
+    const pending = makePending({
+      completedParts: [
+        { part_number: 1, etag: 'e1' },
+        { part_number: 2, etag: 'e2' },
+        { part_number: 3, etag: 'e3' },
+      ],
+    });
+
+    await resumeMediaMultipart(api as never, pending);
+
+    // No presign call, no slicing, no PUTs.
+    expect(api.getMultipartPartUrls).not.toHaveBeenCalled();
+    expect(mockSlice).not.toHaveBeenCalled();
+    expect(mockFetch).not.toHaveBeenCalled();
+    // Just the final assemble.
+    expect(api.completeMultipart).toHaveBeenCalledTimes(1);
+  });
+
+  it('seeds the initial progress event with already-uploaded bytes', async () => {
+    const api = buildFakeApi();
+    const pending = makePending({
+      completedParts: [
+        { part_number: 1, etag: 'e1' },
+        { part_number: 2, etag: 'e2' },
+      ],
+    });
+    api.getMultipartPartUrls.mockResolvedValueOnce({
+      success: true,
+      data: { part_urls: [{ part_number: 3, url: 'u3' }] },
+    });
+    mockFetch.mockReturnValue(buildOkPutResponse('"e3"'));
+
+    const stages: Array<{ type: string; sent?: number; total?: number }> = [];
+    await resumeMediaMultipart(api as never, pending, stage =>
+      stages.push(stage as never),
+    );
+
+    const firstUploading = stages.find(s => s.type === 'uploading');
+    expect(firstUploading?.sent).toBe(2 * 5 * 1024 * 1024);
+    expect(firstUploading?.total).toBe(12 * 1024 * 1024);
   });
 });
