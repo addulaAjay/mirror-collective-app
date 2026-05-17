@@ -218,3 +218,23 @@ jest.mock('react-native-keyboard-controller', () => ({
 jest.mock('react-native-reanimated', () =>
   require('react-native-reanimated/mock'),
 );
+
+// Mock react-native-blob-util — its index module touches a TurboModule
+// registry that doesn't exist in Jest, so importing echoApiService (which
+// uses it for native-streaming uploads) would otherwise crash every test
+// that transitively pulls in src/services/api/echo.ts.
+jest.mock('react-native-blob-util', () => {
+  const uploadProgress = jest.fn();
+  const task = Promise.resolve({
+    respInfo: { status: 200 },
+    text: () => '',
+  });
+  task.uploadProgress = uploadProgress;
+  return {
+    __esModule: true,
+    default: {
+      fetch: jest.fn(() => task),
+      wrap: jest.fn((p) => p),
+    },
+  };
+});

@@ -1,7 +1,18 @@
+import ReactNativeBlobUtil from 'react-native-blob-util';
+
 import type { ApiResponse } from '@types';
 
 import { BaseApiService } from './base';
 import { ApiErrorHandler } from './errorHandler';
+
+/**
+ * Strip the `file://` scheme from a local URI. react-native-blob-util's
+ * `wrap()` wants a plain filesystem path; passing the scheme can produce
+ * "file not found" errors on iOS.
+ */
+function stripFileScheme(uri: string): string {
+  return uri.startsWith('file://') ? uri.replace(/^file:\/\//, '') : uri;
+}
 
 export interface CreateEchoRequest {
   title: string;
@@ -433,31 +444,53 @@ export class EchoApiService extends BaseApiService {
     return ApiErrorHandler.handleApiResponse(response, 'Upload URL retrieved');
   }
 
-  async uploadMedia(uploadUrl: string, fileUri: string, contentType: string): Promise<void> {
-    // Step 1: Read the local file into a blob
-    let blob: Blob;
+  async uploadMedia(
+    uploadUrl: string,
+    fileUri: string,
+    contentType: string,
+    onProgress?: (sent: number, total: number) => void,
+  ): Promise<void> {
+    // Stream the file natively to S3 via react-native-blob-util.
+    // The previous implementation used `fetch(fileUri).blob()` which copies
+    // the entire file across the JS bridge as a base64 string, then ships
+    // it back across the bridge a second time as the request body —
+    // catastrophic for video (a 1m14s clip could take 5+ minutes and
+    // routinely OOM'd the JS thread). `ReactNativeBlobUtil.wrap(path)`
+    // tells the native module to stream the file directly from disk into
+    // the HTTP request, bypassing the bridge entirely.
+    const localPath = stripFileScheme(fileUri);
+
     try {
-      const fileResponse = await fetch(fileUri);
-      if (!fileResponse.ok) {
-        throw new Error(`Failed to read local file: ${fileResponse.status}`);
+      const task = ReactNativeBlobUtil.fetch(
+        'PUT',
+        uploadUrl,
+        { 'Content-Type': contentType },
+        ReactNativeBlobUtil.wrap(localPath),
+      );
+
+      if (onProgress) {
+        task.uploadProgress({ interval: 250 }, (sent, total) => {
+          onProgress(Number(sent), Number(total));
+        });
       }
-      blob = await fileResponse.blob();
-    } catch (error: any) {
-      console.error('Failed to read media file:', error);
-      throw new Error(`Cannot read media file: ${error.message}`);
-    }
 
-    // Step 2: PUT the blob to the presigned S3 URL
-    const uploadResponse = await fetch(uploadUrl, {
-      method: 'PUT',
-      headers: { 'Content-Type': contentType },
-      body: blob,
-    });
+      const response = await task;
+      const status = response.respInfo?.status ?? 0;
 
-    if (!uploadResponse.ok) {
-      const body = await uploadResponse.text().catch(() => '');
-      console.error('S3 upload failed:', uploadResponse.status, body);
-      throw new Error(`Media upload failed (${uploadResponse.status})`);
+      if (status < 200 || status >= 300) {
+        const body = response.text?.() ?? '';
+        console.error('S3 upload failed:', status, body);
+        throw new Error(`Media upload failed (${status})`);
+      }
+    } catch (error: unknown) {
+      // ReactNativeBlobUtil throws on network failure / cancellation;
+      // surface a consistent message to the caller.
+      if (error instanceof Error && error.message.startsWith('Media upload failed')) {
+        throw error;
+      }
+      const message = error instanceof Error ? error.message : 'Unknown upload error';
+      console.error('Native upload error:', message);
+      throw new Error(`Cannot upload media file: ${message}`);
     }
   }
 

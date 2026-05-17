@@ -21,6 +21,21 @@ jest.mock('./errorHandler', () => ({
   },
 }));
 
+// Mock react-native-blob-util — uploadMedia streams via the native module.
+type UploadTask = Promise<{ respInfo: { status: number }; text: () => string }> & {
+  uploadProgress: jest.Mock;
+};
+const mockUploadProgress = jest.fn();
+const mockFetch = jest.fn();
+const mockWrap = jest.fn((p: string) => `WRAPPED:${p}`);
+jest.mock('react-native-blob-util', () => ({
+  __esModule: true,
+  default: {
+    fetch: (...args: unknown[]) => mockFetch(...args),
+    wrap: (p: string) => mockWrap(p),
+  },
+}));
+
 // Mock fetch
 global.fetch = jest.fn();
 
@@ -276,6 +291,101 @@ describe('EchoApiService', () => {
       const calls = (global.fetch as jest.Mock).mock.calls;
       expect(calls[0][0]).toContain('/api/recipients');
       expect(calls[1][0]).toContain('/api/guardians');
+    });
+  });
+
+  describe('uploadMedia (native streaming)', () => {
+    const buildTask = (status: number, body = ''): UploadTask => {
+      const task = Promise.resolve({
+        respInfo: { status },
+        text: () => body,
+      }) as UploadTask;
+      task.uploadProgress = mockUploadProgress;
+      return task;
+    };
+
+    beforeEach(() => {
+      mockFetch.mockReset();
+      mockUploadProgress.mockReset();
+      mockWrap.mockClear();
+    });
+
+    it('streams the file via ReactNativeBlobUtil.fetch + wrap()', async () => {
+      mockFetch.mockReturnValue(buildTask(200));
+
+      await echoApiService.uploadMedia(
+        'https://s3.example.com/presigned',
+        'file:///var/mobile/cache/clip.mp4',
+        'video/mp4',
+      );
+
+      expect(mockWrap).toHaveBeenCalledWith('/var/mobile/cache/clip.mp4');
+      expect(mockFetch).toHaveBeenCalledWith(
+        'PUT',
+        'https://s3.example.com/presigned',
+        { 'Content-Type': 'video/mp4' },
+        'WRAPPED:/var/mobile/cache/clip.mp4',
+      );
+    });
+
+    it('leaves Android-style content:// URIs untouched', async () => {
+      mockFetch.mockReturnValue(buildTask(200));
+
+      await echoApiService.uploadMedia(
+        'https://s3.example.com/presigned',
+        'content://media/external/video/clip.mp4',
+        'video/mp4',
+      );
+
+      expect(mockWrap).toHaveBeenCalledWith(
+        'content://media/external/video/clip.mp4',
+      );
+    });
+
+    it('wires the progress callback when provided', async () => {
+      mockFetch.mockReturnValue(buildTask(200));
+      const onProgress = jest.fn();
+
+      await echoApiService.uploadMedia(
+        'https://s3.example.com/presigned',
+        '/local/clip.mp4',
+        'video/mp4',
+        onProgress,
+      );
+
+      expect(mockUploadProgress).toHaveBeenCalledTimes(1);
+      const [opts, cb] = mockUploadProgress.mock.calls[0];
+      expect(opts).toEqual({ interval: 250 });
+
+      // Simulate the native module pushing a progress tick.
+      cb('1024', '2048');
+      expect(onProgress).toHaveBeenCalledWith(1024, 2048);
+    });
+
+    it('throws "Media upload failed" with the HTTP status on a non-2xx response', async () => {
+      mockFetch.mockReturnValue(buildTask(403, 'AccessDenied'));
+
+      await expect(
+        echoApiService.uploadMedia(
+          'https://s3.example.com/presigned',
+          '/local/clip.mp4',
+          'video/mp4',
+        ),
+      ).rejects.toThrow('Media upload failed (403)');
+    });
+
+    it('wraps native-side errors in a "Cannot upload media file" error', async () => {
+      mockFetch.mockImplementation(() => {
+        throw new Error('ECONNRESET');
+      });
+
+      await expect(
+        echoApiService.uploadMedia(
+          'https://s3.example.com/presigned',
+          '/local/clip.mp4',
+          'video/mp4',
+        ),
+      ).rejects.toThrow('Cannot upload media file: ECONNRESET');
     });
   });
 });
