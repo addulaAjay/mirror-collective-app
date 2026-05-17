@@ -8,6 +8,8 @@ import {
 } from '@utils/media/compress';
 import { uuidV4 } from '@utils/uuid';
 
+import { AppState } from 'react-native';
+
 import { BaseApiService } from './base';
 import { ApiErrorHandler } from './errorHandler';
 import {
@@ -16,6 +18,10 @@ import {
   uploadMediaMultipart,
 } from './multipart';
 import { withUploadLifecycle } from './uploadLifecycle';
+import {
+  UploadMetricsAccumulator,
+  fireUploadTelemetry,
+} from './uploadTelemetry';
 
 /**
  * Strip the `file://` scheme from a local URI. react-native-blob-util's
@@ -737,13 +743,63 @@ export class EchoApiService extends BaseApiService {
   ): Promise<ApiResponse<EchoResponse>> {
     // Wrap the entire pipeline (compress → upload → finalize) in an
     // AppState listener so the screen can surface a "save will pause"
-    // hint if the user backgrounds mid-upload. Today's upload pipeline
-    // pauses when the OS suspends the JS thread; the lifecycle helper
-    // documents this honestly rather than papering over it. See
-    // src/services/api/uploadLifecycle.ts for the roadmap toward true
-    // NSURLSession background uploads.
-    return withUploadLifecycle({ onBackground }, async () => {
-      return this._uploadEchoMediaInner(echoId, fileUri, contentType, onStage);
+    // hint if the user backgrounds mid-upload. The monitor also feeds
+    // backgrounded_during_upload into the telemetry event below.
+    return withUploadLifecycle({ onBackground }, async monitor => {
+      // Pre-pipeline: measure source size so the telemetry event has
+      // a denominator for "compression ratio" analyses. Failing to
+      // stat (PHAsset URI, etc.) yields 0 — not meaningful but
+      // doesn't break anything.
+      const originalBytes = (await getFileSize(fileUri)) ?? 0;
+      const accumulator = new UploadMetricsAccumulator(
+        echoId,
+        contentType,
+        originalBytes,
+        'single-put', // _uploadEchoMediaInner flips to 'multipart' if the
+        // post-compression size crosses MULTIPART_THRESHOLD.
+      );
+
+      try {
+        const result = await this._uploadEchoMediaInner(
+          echoId,
+          fileUri,
+          contentType,
+          onStage,
+          accumulator,
+        );
+        // Fire-and-forget — never block on telemetry. void to keep
+        // the promise floating; uploadTelemetry handles its own
+        // errors internally.
+        void fireUploadTelemetry(
+          accumulator.build({
+            status: result.success ? 'success' : 'failed',
+            failureStage: result.success
+              ? undefined
+              : // The inner function only returns a failure envelope
+                // for the finalize step today (other failures throw);
+                // accumulator.lastEnteredStage gives a defensible
+                // best-guess for the failed-envelope case.
+                accumulator.lastEnteredStage ?? 'finalize',
+            errorMessage: result.success ? undefined : result.error,
+            backgroundedDuringUpload: monitor.isBackgroundedSinceStart,
+            appStateAtCompletion:
+              AppState.currentState === 'background' ? 'background' : 'active',
+          }),
+        );
+        return result;
+      } catch (err) {
+        void fireUploadTelemetry(
+          accumulator.build({
+            status: 'failed',
+            failureStage: accumulator.lastEnteredStage ?? 'upload',
+            errorMessage: err instanceof Error ? err.message : String(err),
+            backgroundedDuringUpload: monitor.isBackgroundedSinceStart,
+            appStateAtCompletion:
+              AppState.currentState === 'background' ? 'background' : 'active',
+          }),
+        );
+        throw err;
+      }
     });
   }
 
@@ -752,6 +808,7 @@ export class EchoApiService extends BaseApiService {
     fileUri: string,
     contentType: string,
     onStage?: (stage: UploadStage) => void,
+    accumulator?: UploadMetricsAccumulator,
   ): Promise<ApiResponse<EchoResponse>> {
     // workingUri tracks the file we're actually uploading. If
     // compression runs, it's a compressed copy in the cache dir; the
@@ -763,23 +820,32 @@ export class EchoApiService extends BaseApiService {
     try {
       // 1. Compress when the source is large.
       if (contentType.startsWith('video/')) {
+        accumulator?.markStageStart('compress');
         const { uri } = await compressVideoIfNeeded(fileUri, fraction => {
           onStage?.({ type: 'compressing', fraction });
         });
         workingUri = uri;
+        accumulator?.markStageEnd('compress');
       } else if (contentType.startsWith('image/')) {
+        accumulator?.markStageStart('compress');
         onStage?.({ type: 'compressing', fraction: 0 });
         const { uri } = await compressImageIfNeeded(fileUri);
         workingUri = uri;
         onStage?.({ type: 'compressing', fraction: 1 });
+        accumulator?.markStageEnd('compress');
       }
 
       // 2. Decide single-PUT vs multipart based on (post-compression)
       // file size. Anything we can't measure (PHAsset-style URI before
       // export) defaults to single-PUT.
       const fileSize = await getFileSize(workingUri);
+      if (fileSize !== null) {
+        accumulator?.setCompressedBytes(fileSize);
+      }
       if (fileSize !== null && fileSize >= MULTIPART_THRESHOLD) {
-        return await uploadMediaMultipart({
+        accumulator?.setUploadPath('multipart');
+        accumulator?.markStageStart('upload');
+        const result = await uploadMediaMultipart({
           api: this,
           echoId,
           fileUri: workingUri,
@@ -787,17 +853,22 @@ export class EchoApiService extends BaseApiService {
           fileSize,
           onStage,
         });
+        accumulator?.markStageEnd('upload');
+        return result;
       }
 
       // 3. Single-PUT path. Ask the backend for a presigned PUT URL.
+      accumulator?.markStageStart('presign');
       onStage?.({ type: 'requesting_url' });
       const presigned = await this.getUploadUrl(contentType, echoId, 'echo');
       if (!presigned.success || !presigned.data) {
         return forwardFailure<EchoResponse>(presigned);
       }
       const { upload_url, key } = presigned.data;
+      accumulator?.markStageEnd('presign');
 
       // 4. Stream the (possibly compressed) file to S3.
+      accumulator?.markStageStart('upload');
       await this.uploadMedia(
         upload_url,
         workingUri,
@@ -806,13 +877,16 @@ export class EchoApiService extends BaseApiService {
           onStage?.({ type: 'uploading', sent, total });
         },
       );
+      accumulator?.markStageEnd('upload');
 
       // 5. Atomic commit. Server HEADs S3, captures truth, writes DDB.
       // If this fails, the bytes are in S3 but the echo row has no
       // media_url — the user must re-attempt media attach. We surface
       // a specific error message so the UI can tell them so.
+      accumulator?.markStageStart('finalize');
       onStage?.({ type: 'finalizing' });
       const finalized = await this.finalizeMedia(echoId, key, contentType);
+      accumulator?.markStageEnd('finalize');
       if (!finalized.success) {
         // Use || (not ??) — backend may return `error: ''` for a 500.
         // The user-facing copy is intentionally specific: the bytes ARE
