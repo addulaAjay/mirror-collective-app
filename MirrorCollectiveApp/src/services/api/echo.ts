@@ -15,6 +15,7 @@ import {
   getFileSize,
   uploadMediaMultipart,
 } from './multipart';
+import { withUploadLifecycle } from './uploadLifecycle';
 
 /**
  * Strip the `file://` scheme from a local URI. react-native-blob-util's
@@ -683,12 +684,37 @@ export class EchoApiService extends BaseApiService {
    *   MIME so the backend's HeadObject sees the right value.
    * @param onStage Optional progress reporter. Fires for compressing /
    *   requesting URL / uploading (bytes) / finalizing transitions.
+   * @param onBackground Optional callback fired the FIRST time the user
+   *   backgrounds the app while the upload is in flight. Use it to
+   *   surface a "your save will pause when the app is backgrounded"
+   *   hint. Today's upload pipeline does not survive full backgrounding
+   *   (see uploadLifecycle.ts for the roadmap); the callback exists so
+   *   screens can warn the user rather than silently failing.
    *
    * @returns The fully populated echo row (status, media_url, recipient,
    *   etc.) — same shape as `GET /echoes/{id}` so callers can drop it
    *   straight into their cached state.
    */
   async uploadEchoMedia(
+    echoId: string,
+    fileUri: string,
+    contentType: string,
+    onStage?: (stage: UploadStage) => void,
+    onBackground?: () => void,
+  ): Promise<ApiResponse<EchoResponse>> {
+    // Wrap the entire pipeline (compress → upload → finalize) in an
+    // AppState listener so the screen can surface a "save will pause"
+    // hint if the user backgrounds mid-upload. Today's upload pipeline
+    // pauses when the OS suspends the JS thread; the lifecycle helper
+    // documents this honestly rather than papering over it. See
+    // src/services/api/uploadLifecycle.ts for the roadmap toward true
+    // NSURLSession background uploads.
+    return withUploadLifecycle({ onBackground }, async () => {
+      return this._uploadEchoMediaInner(echoId, fileUri, contentType, onStage);
+    });
+  }
+
+  private async _uploadEchoMediaInner(
     echoId: string,
     fileUri: string,
     contentType: string,

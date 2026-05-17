@@ -48,6 +48,15 @@ jest.mock('react-native', () => {
       setBackgroundColor: jest.fn() 
     }),
     Keyboard: { dismiss: jest.fn() },
+    AppState: {
+      // currentState is read at import time by some libs; default to
+      // 'active'. Tests that care override via spyOn.
+      currentState: 'active',
+      // Real RN returns a Subscription with .remove(). Default mock
+      // returns one with a no-op remove.
+      addEventListener: jest.fn(() => ({ remove: jest.fn() })),
+      removeEventListener: jest.fn(),
+    },
   };
 });
 

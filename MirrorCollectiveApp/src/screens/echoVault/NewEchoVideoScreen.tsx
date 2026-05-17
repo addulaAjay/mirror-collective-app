@@ -232,6 +232,15 @@ const NewEchoVideoScreen: React.FC<Props> = ({ navigation, route }) => {
             setUploadProgress(0.97);
           }
         },
+        // Warn once if the user backgrounds mid-upload. Today's pipeline
+        // pauses when the OS suspends the JS thread; the warning lets
+        // the user know to come back rather than silently waiting.
+        () => {
+          Alert.alert(
+            'Save paused',
+            'Bring the app back to the foreground to finish saving your echo.',
+          );
+        },
       );
       if (!result.success) throw new Error(result.error ?? 'Upload failed');
       setUploadProgress(1);
