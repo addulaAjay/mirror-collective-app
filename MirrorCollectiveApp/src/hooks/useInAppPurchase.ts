@@ -1,5 +1,5 @@
-import {useEffect, useState, useCallback} from 'react';
-import {Platform, Alert} from 'react-native';
+import {useEffect, useState, useCallback, useMemo} from 'react';
+import {Platform} from 'react-native';
 import {
   initConnection,
   endConnection,
@@ -14,27 +14,67 @@ import {
   type ProductPurchase,
 } from 'react-native-iap';
 
+import {useToast} from '@components/Toast';
+import {ALL_PRODUCT_SKUS, PRODUCTS} from '@/constants/products';
 import {subscriptionApiService} from '@/services/api/subscriptionApi';
 
-// Product IDs
+/**
+ * iOS-only fields that react-native-iap exposes on its base
+ * SubscriptionPurchase type but doesn't declare in its TS surface (the
+ * union has the field as optional only on the iOS purchase shape and
+ * the lib's union doesn't expose it).
+ *
+ * Locally extending the type here gives us safe access without
+ * `(purchase as any)` at each call site.
+ */
+interface IosSubscriptionPurchase extends SubscriptionPurchase {
+  originalTransactionIdentifierIOS?: string;
+}
+
+/**
+ * Narrow an `unknown` thrown value to a user-facing error string.
+ * Project rule: prefer `catch (error: unknown)` + this helper over the
+ * convenience-but-unsafe `catch (error: any)` pattern.
+ */
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (typeof error === 'string') return error;
+  return 'Unexpected error';
+}
+
+/**
+ * Gate console output behind __DEV__. In a real-money flow these logs
+ * fired in production were potentially leaking receipt blobs to the
+ * device console — not a bearer-token leak, but unnecessary noise +
+ * a project lint violation.
+ */
+function devLog(...args: unknown[]): void {
+  if (__DEV__) {
+    // eslint-disable-next-line no-console
+    console.log(...args);
+  }
+}
+function devWarn(...args: unknown[]): void {
+  if (__DEV__) {
+    // eslint-disable-next-line no-console
+    console.warn(...args);
+  }
+}
+function devError(...args: unknown[]): void {
+  if (__DEV__) {
+    // eslint-disable-next-line no-console
+    console.error(...args);
+  }
+}
+
+// Re-export under the legacy shape (PRODUCT_IDS) so existing consumers
+// keep working. New code should import PRODUCTS from @/constants/products.
 const PRODUCT_IDS = {
-  CORE_MONTHLY: Platform.select({
-    ios: 'com.themirrorcollective.mirror.core.monthly',
-    android: 'com.themirrorcollective.mirror.core.monthly',
-  })!,
-  CORE_YEARLY: Platform.select({
-    ios: 'com.themirrorcollective.mirror.core.yearly',
-    android: 'com.themirrorcollective.mirror.core.yearly',
-  })!,
-  STORAGE_MONTHLY: Platform.select({
-    ios: 'com.themirrorcollective.mirror.storage.monthly',
-    android: 'com.themirrorcollective.mirror.storage.monthly',
-  })!,
-  STORAGE_YEARLY: Platform.select({
-    ios: 'com.themirrorcollective.mirror.storage.yearly',
-    android: 'com.themirrorcollective.mirror.storage.yearly',
-  })!,
-};
+  BASIC_MONTHLY: PRODUCTS.BASIC_MONTHLY.sku,
+  BASIC_YEARLY: PRODUCTS.BASIC_YEARLY.sku,
+  STORAGE_MONTHLY: PRODUCTS.STORAGE_MONTHLY.sku,
+  STORAGE_YEARLY: PRODUCTS.STORAGE_YEARLY.sku,
+} as const;
 
 interface PurchaseState {
   products: Subscription[];
@@ -50,20 +90,31 @@ export const useInAppPurchase = () => {
     purchasing: false,
     error: null,
   });
+  const {showToast} = useToast();
 
   // Initialize IAP connection
   useEffect(() => {
-    let purchaseUpdateSubscription: any;
-    let purchaseErrorSubscription: any;
+    // react-native-iap returns event-emitter subscription handles
+    // from `purchaseUpdatedListener` / `purchaseErrorListener`. The
+    // lib's types call this `EmitterSubscription | null`. Inferring
+    // the type via `ReturnType<>` keeps it tied to the lib's declared
+    // shape without a hard `any`.
+    let purchaseUpdateSubscription:
+      | ReturnType<typeof purchaseUpdatedListener>
+      | undefined;
+    let purchaseErrorSubscription:
+      | ReturnType<typeof purchaseErrorListener>
+      | undefined;
 
     const initIAP = async () => {
       try {
         await initConnection();
-        console.log('IAP connection initialized');
+        devLog('IAP connection initialized');
 
         // Fetch available products
-        const productIds = Object.values(PRODUCT_IDS);
-        const availableProducts = await getSubscriptions({skus: productIds});
+        const availableProducts = await getSubscriptions({
+          skus: [...ALL_PRODUCT_SKUS],
+        });
 
         setState(prev => ({
           ...prev,
@@ -74,7 +125,14 @@ export const useInAppPurchase = () => {
         // Listen for purchase updates
         purchaseUpdateSubscription = purchaseUpdatedListener(
           async (purchase: SubscriptionPurchase | ProductPurchase) => {
-            console.log('Purchase updated:', purchase);
+            // Don't log the full purchase object — `transactionReceipt`
+            // contains the raw receipt blob. Log only the productId +
+            // transactionId metadata.
+            devLog(
+              'Purchase updated',
+              purchase.productId,
+              purchase.transactionId,
+            );
 
             const receipt = Platform.select({
               ios: purchase.transactionReceipt,
@@ -83,30 +141,55 @@ export const useInAppPurchase = () => {
 
             if (receipt) {
               try {
+                // Resolve the canonical identifier for backend idempotency.
+                // On iOS: `originalTransactionIdentifierIOS` is the
+                // StoreKit-canonical id and stays constant across
+                // renewals — exactly what we want as the dedupe key.
+                // It's only undefined for non-StoreKit purchases.
+                // On Android: react-native-iap exposes the orderId via
+                // `transactionId`; the field doesn't change semantics
+                // between purchase and renewal the same way it does on iOS.
+                const iosPurchase = purchase as IosSubscriptionPurchase;
+                const originalTransactionId =
+                  (Platform.OS === 'ios'
+                    ? iosPurchase.originalTransactionIdentifierIOS
+                    : undefined) ?? purchase.transactionId;
+
+                if (!originalTransactionId) {
+                  // No usable id from the SDK. Don't fabricate one —
+                  // a productId-as-transaction-id (the old fallback)
+                  // would 404 against Apple's API and surface a
+                  // misleading "Purchase Failed" alert.
+                  throw new Error(
+                    'Purchase succeeded but the platform did not return a transaction id. Please tap "Restore Purchase" or contact support.',
+                  );
+                }
+
                 // Verify purchase with backend
                 const result = await subscriptionApiService.verifyPurchase({
                   platform: Platform.OS as 'ios' | 'android',
                   receipt_data: receipt,
                   product_id: purchase.productId,
-                  transaction_id: purchase.transactionId || purchase.productId,
+                  original_transaction_id: originalTransactionId,
+                  transaction_id: purchase.transactionId || originalTransactionId,
                 });
 
                 if (result.success) {
                   // Finish the transaction
                   await finishTransaction({purchase, isConsumable: false});
 
-                  Alert.alert(
-                    'Subscription Activated',
-                    'Your subscription has been successfully activated!',
-                    [{text: 'OK'}],
-                  );
+                  showToast({
+                    title: 'Subscription Activated',
+                    message: 'Your subscription is active.',
+                    tone: 'success',
+                  });
 
                   setState(prev => ({...prev, purchasing: false}));
                 } else {
                   throw new Error(result.message || 'Verification failed');
                 }
-              } catch (error: any) {
-                console.error('Purchase verification error:', error);
+              } catch (error: unknown) {
+                devError('Purchase verification error:', getErrorMessage(error));
                 setState(prev => ({
                   ...prev,
                   purchasing: false,
@@ -119,15 +202,15 @@ export const useInAppPurchase = () => {
 
         // Listen for purchase errors
         purchaseErrorSubscription = purchaseErrorListener(error => {
-          console.warn('Purchase error:', error);
+          devWarn('Purchase error:', error.message);
           setState(prev => ({
             ...prev,
             purchasing: false,
             error: error.message,
           }));
         });
-      } catch (error: any) {
-        console.error('IAP initialization error:', error);
+      } catch (error: unknown) {
+        devError('IAP initialization error:', getErrorMessage(error));
         setState(prev => ({
           ...prev,
           loading: false,
@@ -150,23 +233,42 @@ export const useInAppPurchase = () => {
     };
   }, []);
 
-  // Purchase a subscription
-  const purchaseSubscription = useCallback(async (productId: string) => {
-    setState(prev => ({...prev, purchasing: true, error: null}));
+  /**
+   * Request the native subscription sheet for `productId`.
+   *
+   * Returns `true` when the underlying `requestSubscription` resolves
+   * (user confirmed the sheet), `false` when it throws (user cancelled
+   * or a real error). The boolean lets callers sequence multi-SKU
+   * flows (e.g., StartFreeTrialScreen presenting Basic followed by
+   * the optional +100GB sheet only after Basic succeeded).
+   *
+   * Errors are NOT re-thrown — the legacy callers that ignore the
+   * return value keep their no-op-on-cancel UX. The `error` state on
+   * the hook is set on failure so consumers that want a single source
+   * of truth can still read it.
+   */
+  const purchaseSubscription = useCallback(
+    async (productId: string): Promise<boolean> => {
+      setState(prev => ({...prev, purchasing: true, error: null}));
 
-    try {
-      await requestSubscription({
-        sku: productId,
-      });
-    } catch (error: any) {
-      console.error('Purchase error:', error);
-      setState(prev => ({
-        ...prev,
-        purchasing: false,
-        error: error.message || 'Purchase failed',
-      }));
-    }
-  }, []);
+      try {
+        await requestSubscription({
+          sku: productId,
+        });
+        return true;
+      } catch (error: unknown) {
+        const message = getErrorMessage(error);
+        devError('Purchase error:', message);
+        setState(prev => ({
+          ...prev,
+          purchasing: false,
+          error: message,
+        }));
+        return false;
+      }
+    },
+    [],
+  );
 
   // Restore purchases
   const restorePurchases = useCallback(async () => {
@@ -177,11 +279,11 @@ export const useInAppPurchase = () => {
       const availablePurchases = await getAvailablePurchases();
 
       if (!availablePurchases || availablePurchases.length === 0) {
-        Alert.alert(
-          'No Purchases Found',
-          'No previous purchases were found to restore.',
-          [{text: 'OK'}],
-        );
+        showToast({
+          title: 'No purchases found',
+          message: 'There are no previous purchases to restore on this account.',
+          tone: 'info',
+        });
         setState(prev => ({...prev, loading: false}));
         return {success: true, data: {restored_count: 0, subscriptions: []}};
       }
@@ -207,17 +309,21 @@ export const useInAppPurchase = () => {
       });
 
       if (result.success && result.data) {
-        Alert.alert(
-          'Purchases Restored',
-          `${result.data.restored_count} subscription(s) restored successfully.`,
-          [{text: 'OK'}],
-        );
+        const count = result.data.restored_count;
+        showToast({
+          title: 'Purchases restored',
+          message:
+            count === 1
+              ? '1 subscription restored.'
+              : `${count} subscriptions restored.`,
+          tone: 'success',
+        });
       }
 
       setState(prev => ({...prev, loading: false}));
       return result;
-    } catch (error: any) {
-      console.error('Restore error:', error);
+    } catch (error: unknown) {
+      devError('Restore error:', getErrorMessage(error));
       setState(prev => ({
         ...prev,
         loading: false,
@@ -227,6 +333,15 @@ export const useInAppPurchase = () => {
     }
   }, []);
 
+  // Lookup helper — returns the Subscription metadata (price, title,
+  // intro offer) for a given SKU. Used by paywall screens to render
+  // store-localized pricing instead of hard-coded numbers.
+  const findProduct = useCallback(
+    (sku: string): Subscription | undefined =>
+      state.products.find(p => p.productId === sku),
+    [state.products],
+  );
+
   return {
     products: state.products,
     loading: state.loading,
@@ -234,6 +349,12 @@ export const useInAppPurchase = () => {
     error: state.error,
     purchaseSubscription,
     restorePurchases,
+    findProduct,
     PRODUCT_IDS,
   };
 };
+
+// Pure helpers extracted to a dependency-free module so they can be
+// unit-tested without dragging in the full IAP / api import chain.
+// Re-exported here so existing call sites continue to work.
+export {formatLocalizedPrice, hasIntroductoryOffer} from './useInAppPurchase.helpers';

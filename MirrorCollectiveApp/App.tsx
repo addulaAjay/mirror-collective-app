@@ -10,6 +10,7 @@ import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { ChatErrorBoundary } from '@components/error';
+import { ToastProvider } from '@components/Toast';
 import { SessionProvider, useSession } from '@context/SessionContext';
 import { SubscriptionProvider } from '@context/SubscriptionContext';
 import { UserProvider } from '@context/UserContext';
@@ -20,6 +21,8 @@ import AboutScreen from '@screens/AboutScreen';
 import AppVideoScreen from '@screens/AppVideoScreen';
 import ArchetypeScreen from '@screens/ArchetypeScreen';
 import CheckoutScreen from '@screens/CheckoutScreen';
+import EchoVaultUpsellScreen from '@screens/EchoVaultUpsellScreen';
+import YourSubscriptionScreen from '@screens/YourSubscriptionScreen';
 import AddNewProfileScreen from '@screens/echoVault/AddNewProfileScreen';
 import ChooseGuardianScreen from '@screens/echoVault/ChooseGuardianScreen';
 import ChooseRecipientScreen from '@screens/echoVault/ChooseRecipientScreen';
@@ -77,6 +80,7 @@ import TermsAndConditionsScreen from '@screens/TermsAndConditionsScreen';
 import TheMirrorPledgeCommingsoonScreen from '@screens/TheMirrorPledgeCommingsoonScreen';
 import VerifyEmailScreen from '@screens/VerifyEmailScreen';
 import { OnboardingService } from '@services';
+import { navigationRef } from '@services/navigationRef';
 import PushNotificationService from '@services/PushNotificationService';
 import { ThemeProvider } from '@theme';
 import type { RootStackParamList } from '@types';
@@ -256,6 +260,8 @@ const AuthenticatedNavigator = ({ initialRouteName = 'EnterMirror' }: Authentica
     <Stack.Screen name="Checkout" component={CheckoutScreen} />
     <Stack.Screen name="StartFreeTrial" component={StartFreeTrialScreen} />
     <Stack.Screen name="EchoVaultStorage" component={EchoVaultStorageScreen} />
+    <Stack.Screen name="EchoVaultUpsell" component={EchoVaultUpsellScreen} />
+    <Stack.Screen name="YourSubscription" component={YourSubscriptionScreen} />
   </Stack.Navigator>
 );
 
@@ -314,6 +320,7 @@ const AppNavigator = () => {
 
   return (
     <NavigationContainer
+      ref={navigationRef}
       key={isAuthenticated ? 'authenticated' : 'unauthenticated'}
       onStateChange={navState => {
         if (__DEV__) {
@@ -390,14 +397,19 @@ const App = () => {
             <UserProvider>
               <SubscriptionProvider>
                 <JourneyProvider>
-                  <React.Fragment>
-                    <StatusBar
-                      translucent
-                      backgroundColor="transparent"
-                      barStyle="light-content"
-                    />
-                    <AppNavigator />
-                  </React.Fragment>
+                  {/* ToastProvider sits below the data/auth providers
+                      so toasts can fire about subscription state, but
+                      above the navigator so it overlays every screen. */}
+                  <ToastProvider>
+                    <React.Fragment>
+                      <StatusBar
+                        translucent
+                        backgroundColor="transparent"
+                        barStyle="light-content"
+                      />
+                      <AppNavigator />
+                    </React.Fragment>
+                  </ToastProvider>
                 </JourneyProvider>
               </SubscriptionProvider>
             </UserProvider>

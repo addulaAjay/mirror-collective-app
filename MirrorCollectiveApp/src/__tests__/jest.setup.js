@@ -38,6 +38,8 @@ jest.mock('react-native', () => {
     SafeAreaView: 'SafeAreaView',
     KeyboardAvoidingView: 'KeyboardAvoidingView',
     ActivityIndicator: 'ActivityIndicator',
+    Modal: 'Modal',
+    Pressable: 'Pressable',
     Alert: { alert: jest.fn() },
     Linking: { openURL: jest.fn() },
     StatusBar: Object.assign(jest.fn(() => null), { 
@@ -48,6 +50,11 @@ jest.mock('react-native', () => {
       setBackgroundColor: jest.fn() 
     }),
     Keyboard: { dismiss: jest.fn() },
+    AppState: {
+      currentState: 'active',
+      addEventListener: jest.fn(() => ({ remove: jest.fn() })),
+      removeEventListener: jest.fn(),
+    },
   };
 });
 
@@ -61,6 +68,15 @@ jest.mock('@react-navigation/native', () => ({
   }),
   useRoute: () => ({ params: {} }),
   useFocusEffect: jest.fn(),
+  // navigationRef singleton used by PushNotificationService for
+  // deep-link navigation from outside React context.
+  createNavigationContainerRef: () => ({
+    isReady: () => true,
+    navigate: jest.fn(),
+    goBack: jest.fn(),
+    reset: jest.fn(),
+    current: null,
+  }),
 }));
 
 jest.mock('@react-navigation/native-stack', () => ({
@@ -179,6 +195,84 @@ jest.mock('react-native-safe-area-context', () => ({
 // crash render(). String component name keeps snapshots readable.
 jest.mock('@react-native-community/blur', () => ({
   BlurView: 'BlurView',
+}));
+
+// Mock react-native-iap. The library accesses native modules at
+// import time (RNIapAmazonModule, etc.) which crash the test runtime.
+// We surface the parts useInAppPurchase actually consumes as no-op
+// fakes; individual tests can override with jest.mocked(...) as needed.
+jest.mock('react-native-iap', () => ({
+  initConnection: jest.fn(() => Promise.resolve()),
+  endConnection: jest.fn(() => Promise.resolve()),
+  getSubscriptions: jest.fn(() => Promise.resolve([])),
+  getAvailablePurchases: jest.fn(() => Promise.resolve([])),
+  requestSubscription: jest.fn(() => Promise.resolve()),
+  finishTransaction: jest.fn(() => Promise.resolve()),
+  purchaseUpdatedListener: jest.fn(() => ({ remove: jest.fn() })),
+  purchaseErrorListener: jest.fn(() => ({ remove: jest.fn() })),
+}));
+
+// Mock @react-native-firebase/messaging — the native bridge throws
+// "Super expression must either be null or a function" inside the
+// RNFBNativeEventEmitter ES5 helper in jest. PushNotificationService
+// imports this at module top level, so anything pulling in UserContext
+// or SubscriptionContext fails to load otherwise.
+jest.mock('@react-native-firebase/messaging', () => {
+  const messaging = () => ({
+    requestPermission: jest.fn(() => Promise.resolve(1)),
+    hasPermission: jest.fn(() => Promise.resolve(1)),
+    getToken: jest.fn(() => Promise.resolve('test-token')),
+    onTokenRefresh: jest.fn(),
+    onMessage: jest.fn(),
+    onNotificationOpenedApp: jest.fn(),
+    getInitialNotification: jest.fn(() => Promise.resolve(null)),
+    setBackgroundMessageHandler: jest.fn(),
+    subscribeToTopic: jest.fn(() => Promise.resolve()),
+    unsubscribeFromTopic: jest.fn(() => Promise.resolve()),
+  });
+  messaging.AuthorizationStatus = {
+    NOT_DETERMINED: -1,
+    DENIED: 0,
+    AUTHORIZED: 1,
+    PROVISIONAL: 2,
+  };
+  return {
+    __esModule: true,
+    default: messaging,
+    firebase: { messaging },
+  };
+});
+
+jest.mock('@react-native-firebase/app', () => ({
+  __esModule: true,
+  default: { app: jest.fn(() => ({})) },
+  firebase: { app: jest.fn(() => ({})) },
+}));
+
+// Default useEntitlement → entitled. Tests that need to exercise the
+// paywall/lock paths should override this mock locally with
+// `(useEntitlement as jest.MockedFunction<...>).mockReturnValue({...})`.
+//
+// The factory body is referentially closed — jest.mock is hoisted to
+// the top of the file before the surrounding scope is evaluated, so
+// any captured variable must either be inlined or prefixed with
+// `mock` (per Jest's hoisting allowlist).
+jest.mock('@hooks/useEntitlement', () => ({
+  useEntitlement: jest.fn(() => ({
+    entitled: true,
+    loading: false,
+    status: 'active',
+    tier: 'basic',
+    lockReason: null,
+    promptReason: 'trial_expired',
+    quotaGb: 50,
+    usedGb: 0,
+    quotaPercent: 0,
+    quotaExceeded: false,
+    quotaApproaching: false,
+    canUpload: () => ({ allowed: true, reason: null }),
+    refresh: jest.fn(() => Promise.resolve()),
+  })),
 }));
 
 // Mock react-native-document-picker — native module would crash jest.

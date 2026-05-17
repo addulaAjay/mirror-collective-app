@@ -54,6 +54,7 @@ import BackgroundWrapper from '@components/BackgroundWrapper';
 import Button from '@components/Button/Button';
 import LogoHeader from '@components/LogoHeader';
 import StarIcon from '@components/StarIcon';
+import SubscriptionGate from '@components/SubscriptionGate';
 
 type MirrorEchoNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -149,6 +150,15 @@ export function MirrorEchoContent() {
               VIEW VAULT uses Transparent White Gradient (more transparent)
               Both use Radius/M (16), border 0.5px, Cormorant 24px gold.
             */}
+            {/* Storage indicator intentionally NOT rendered here for v1.
+                Product decision (2026-05-12): the passive "X of Y used"
+                bar isn't desired UX; designer will define how to surface
+                "approaching capacity" later. Backend continues to track
+                echo_vault_used_gb via StorageQuotaService, and the
+                useEntitlement.canUpload() pre-flight + UpgradePrompt
+                modal still block over-quota uploads. Component lives at
+                src/components/StorageMeter.tsx for future re-introduction. */}
+
             <View style={styles.ctaWrap}>
               {/* VIEW VAULT — primary (prominent CTA) */}
               {/* START ECHO — secondary (supporting action) */}
@@ -233,7 +243,14 @@ export function MirrorEchoContent() {
 }
 
 export default function MirrorEchoScreen() {
-  return <MirrorEchoContent />;
+  // Per locked entitlement matrix: non-entitled users get a full lock —
+  // they can't even view existing Echo Vault entries.
+  // (docs/IAP_SUBSCRIPTION_REVIEW.md "Entitlement matrix".)
+  return (
+    <SubscriptionGate>
+      <MirrorEchoContent />
+    </SubscriptionGate>
+  );
 }
 
 // ── Styles ────────────────────────────────────────────────────────────────────

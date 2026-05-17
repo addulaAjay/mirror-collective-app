@@ -27,6 +27,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
 import StarIcon from '@components/StarIcon';
+import { useToast } from '@components/Toast';
+import UpgradePrompt from '@components/UpgradePrompt';
+import { useEntitlement } from '@hooks/useEntitlement';
 import { echoApiService } from '@services/api';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'NewEchoAudioScreen'>;
@@ -47,6 +50,9 @@ const NewEchoAudioScreen: React.FC<Props> = ({ navigation, route }) => {
   const [recordedUri, setRecordedUri] = useState<string | null>(null);
   const [recordingDuration, setRecordingDuration] = useState(0);
   const [saving, setSaving] = useState(false);
+  const entitlement = useEntitlement();
+  const [paywallVisible, setPaywallVisible] = useState(false);
+  const { showToast } = useToast();
 
   // Singleton instance (default export). Ref stops React from treating it as state.
   const audioRecorderPlayer = useRef(AudioRecorderPlayer).current;
@@ -178,7 +184,7 @@ const NewEchoAudioScreen: React.FC<Props> = ({ navigation, route }) => {
           '• Close other audio apps (Music, Spotify, Podcasts)\n' +
           '• Then try again';
       }
-      Alert.alert('Recording Error', userMessage);
+      showToast({ title: 'Recording error', message: userMessage, tone: 'error' });
     }
   };
 
@@ -220,7 +226,7 @@ const NewEchoAudioScreen: React.FC<Props> = ({ navigation, route }) => {
     } catch (err) {
       if (!DocumentPicker.isCancel(err)) {
         console.error('Picker error:', err);
-        Alert.alert('Error', 'Failed to pick audio file');
+        showToast({ title: 'Error', message: 'Failed to pick audio file', tone: 'error' });
       }
     } finally {
       setIsUploading(false);
@@ -233,13 +239,26 @@ const NewEchoAudioScreen: React.FC<Props> = ({ navigation, route }) => {
     const contentType = pickedFile?.type ?? 'audio/m4a';
 
     if (!uri) {
-      Alert.alert('Nothing to save', 'Please record or upload an audio file first.');
+      showToast({
+        title: 'Nothing to save',
+        message: 'Please record or upload an audio file first.',
+        tone: 'error',
+      });
       return;
     }
 
     // If still recording, stop and use the resulting URI
     if (isRecording) {
       await stopAudioRecording();
+    }
+
+    // Second-layer entitlement gate (see NewEchoComposeScreen.onSave).
+    if (!entitlement.loading) {
+      const { allowed } = entitlement.canUpload();
+      if (!allowed) {
+        setPaywallVisible(true);
+        return;
+      }
     }
 
     try {
@@ -259,7 +278,13 @@ const NewEchoAudioScreen: React.FC<Props> = ({ navigation, route }) => {
       const finalUri = pickedFile?.uri ?? recordedUri;
       if (!finalUri) throw new Error('No audio file to upload');
 
-      const uploadUrlResponse = await echoApiService.getUploadUrl(contentType, echoId);
+      const sizeBytes = await echoApiService.probeLocalFileSize(finalUri);
+      const uploadUrlResponse = await echoApiService.getUploadUrl(
+        contentType,
+        echoId,
+        'echo',
+        sizeBytes,
+      );
       if (!uploadUrlResponse.success || !uploadUrlResponse.data) {
         throw new Error('Failed to get upload URL');
       }
@@ -270,13 +295,18 @@ const NewEchoAudioScreen: React.FC<Props> = ({ navigation, route }) => {
       );
       await echoApiService.updateEcho(echoId, {
         media_url: uploadUrlResponse.data.media_url,
+        ...(sizeBytes > 0 ? { size_bytes: sizeBytes } : {}),
       });
 
-      Alert.alert('Success', 'Echo saved successfully');
+      showToast({
+        title: 'Echo saved',
+        message: 'Your audio echo is saved.',
+        tone: 'success',
+      });
       navigation.navigate('MirrorEchoVaultHome');
     } catch (err) {
       console.error('Save audio echo failed:', err);
-      Alert.alert('Error', 'Failed to save Echo');
+      showToast({ title: 'Error', message: 'Failed to save Echo', tone: 'error' });
     } finally {
       setSaving(false);
     }
@@ -368,6 +398,16 @@ const NewEchoAudioScreen: React.FC<Props> = ({ navigation, route }) => {
             )}
           </TouchableOpacity>
         </View>
+
+        <UpgradePrompt
+          visible={paywallVisible}
+          onClose={() => setPaywallVisible(false)}
+          reason={entitlement.promptReason}
+          quotaInfo={{
+            usage_gb: entitlement.usedGb,
+            quota_gb: entitlement.quotaGb,
+          }}
+        />
       </SafeAreaView>
     </BackgroundWrapper>
   );

@@ -28,6 +28,24 @@ export type RootStackParamList = {
   };
   StartFreeTrial: undefined;
   EchoVaultStorage: undefined;
+  /**
+   * Echo Vault Storage add-on upsell (Figma 4928-8944).
+   * `onCompleteRoute` lets the caller specify where to navigate after
+   * the user confirms (purchase succeeds) or chooses "Not now". When
+   * omitted, the screen calls navigation.goBack().
+   */
+  EchoVaultUpsell:
+    | {
+        onCompleteRoute?: keyof RootStackParamList;
+      }
+    | undefined;
+  /**
+   * Read-only subscription management view (repurposes Figma
+   * 4928-8699 / 4928-8823 visual treatment). Lists current plan,
+   * billing period, next-renewal date, and offers deep links to the
+   * platform's subscription-management UI for changes / cancellation.
+   */
+  YourSubscription: undefined;
   MirrorEcho: undefined;
   ReflectionRoom: undefined;
   ReflectionRoomCommingsoon: undefined;

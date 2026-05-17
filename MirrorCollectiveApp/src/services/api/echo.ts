@@ -14,6 +14,12 @@ export interface CreateEchoRequest {
   unlock_on_death?: boolean; // If true, echo is released when creator dies (verified by guardian)
   /** Optional cover note shown alongside the echo in the recipient's inbox. */
   letter_to_recipient?: string;
+  /**
+   * Size of the uploaded media in bytes. Forwarded to the backend so storage
+   * quota can be summed from DynamoDB without a per-call S3 scan. Omit for
+   * TEXT echoes; set on AUDIO/VIDEO after `probeLocalFileSize`.
+   */
+  size_bytes?: number;
 }
 
 /**
@@ -333,6 +339,8 @@ export class EchoApiService extends BaseApiService {
       release_date?: string | null;
       recipient_id?: string | null;
       letter_to_recipient?: string | null;
+      /** Set alongside media_url after upload so storage quota stays accurate. */
+      size_bytes?: number;
     },
   ): Promise<ApiResponse<EchoResponse>> {
     const response = await this.makeRequest<EchoResponse>(
@@ -419,6 +427,13 @@ export class EchoApiService extends BaseApiService {
     fileType: string,
     echoId?: string,
     uploadType: 'echo' | 'profile' = 'echo',
+    /**
+     * Declared byte size of the file the client is about to upload. The
+     * backend pre-flights the storage quota using this value (only for
+     * upload_type='echo') and persists it on the echo row so the quota
+     * service can sum sizes from DynamoDB without a per-call S3 scan.
+     */
+    fileSizeBytes?: number,
   ): Promise<ApiResponse<UploadUrlResponse>> {
     const response = await this.makeRequest<UploadUrlResponse>(
       '/api/echoes/upload-url',
@@ -427,10 +442,36 @@ export class EchoApiService extends BaseApiService {
         file_type:   fileType,
         upload_type: uploadType,
         ...(echoId ? { echo_id: echoId } : {}),
+        ...(typeof fileSizeBytes === 'number' && fileSizeBytes >= 0
+          ? { file_size_bytes: fileSizeBytes }
+          : {}),
       },
       true,
     );
     return ApiErrorHandler.handleApiResponse(response, 'Upload URL retrieved');
+  }
+
+  /**
+   * Read a local file (file:// URI or content://) and report its byte size.
+   *
+   * Used by the audio / video compose flows to declare `file_size_bytes`
+   * on the upload-url call so the backend can pre-flight the storage
+   * quota before issuing a presigned S3 URL. Returns 0 on failure rather
+   * than throwing — the upload itself will still happen; a missing size
+   * just degrades the pre-flight to the same "no_quota only" gate the
+   * server applies when the field is omitted.
+   */
+  async probeLocalFileSize(fileUri: string): Promise<number> {
+    try {
+      const res = await fetch(fileUri);
+      if (!res.ok) {
+        return 0;
+      }
+      const blob = await res.blob();
+      return blob.size || 0;
+    } catch {
+      return 0;
+    }
   }
 
   async uploadMedia(uploadUrl: string, fileUri: string, contentType: string): Promise<void> {

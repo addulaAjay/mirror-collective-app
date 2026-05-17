@@ -21,6 +21,7 @@ import { getMotifIcon } from '@assets/motifs/MotifAssets';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import Button from '@components/Button/Button';
 import LogoHeader from '@components/LogoHeader';
+import { useToast } from '@components/Toast';
 import { echoApiService, Recipient } from '@services/api/echo';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ManageRecipientScreen'>;
@@ -28,6 +29,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'ManageRecipientScreen'>
 const GOLD = palette.gold.mid;
 
 const ManageRecipientScreen: React.FC<Props> = ({ navigation }) => {
+  const { showToast } = useToast();
   const [recipients, setRecipients] = useState<Recipient[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -70,10 +72,18 @@ const ManageRecipientScreen: React.FC<Props> = ({ navigation }) => {
               if (response.success) {
                 setRecipients(prev => prev.filter(r => r.recipient_id !== id));
               } else {
-                Alert.alert('Error', response.error || 'Failed to remove recipient');
+                showToast({
+                  title: 'Error',
+                  message: response.error || 'Failed to remove recipient',
+                  tone: 'error',
+                });
               }
             } catch {
-              Alert.alert('Error', 'Failed to remove recipient');
+              showToast({
+                title: 'Error',
+                message: 'Failed to remove recipient',
+                tone: 'error',
+              });
             }
           },
         },

@@ -75,7 +75,10 @@ describe('NewEchoComposeScreen - Guardian Support (TDD)', () => {
       };
 
       const { getByPlaceholderText } = render(
-        <NewEchoComposeScreen route={route} navigation={jest.fn() as any} />
+        <NewEchoComposeScreen
+          route={{ ...route, key: 'test-key', name: 'NewEchoComposeScreen' }}
+          navigation={jest.fn() as any}
+        />
       );
 
       // Component should render without errors when guardianId is present
@@ -101,7 +104,10 @@ describe('NewEchoComposeScreen - Guardian Support (TDD)', () => {
       };
 
       const { getByPlaceholderText, getByText } = render(
-        <NewEchoComposeScreen route={route} navigation={jest.fn() as any} />
+        <NewEchoComposeScreen
+          route={{ ...route, key: 'test-key', name: 'NewEchoComposeScreen' }}
+          navigation={jest.fn() as any}
+        />
       );
 
       // Fill in echo content
@@ -146,7 +152,10 @@ describe('NewEchoComposeScreen - Guardian Support (TDD)', () => {
       };
 
       const { getByPlaceholderText, getByText } = render(
-        <NewEchoComposeScreen route={route} navigation={jest.fn() as any} />
+        <NewEchoComposeScreen
+          route={{ ...route, key: 'test-key', name: 'NewEchoComposeScreen' }}
+          navigation={jest.fn() as any}
+        />
       );
 
       const textInput = getByPlaceholderText(/write your message/i);

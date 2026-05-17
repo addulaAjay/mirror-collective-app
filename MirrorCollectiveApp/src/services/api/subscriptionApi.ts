@@ -26,6 +26,20 @@ interface VerifyPurchaseRequest {
   platform: 'ios' | 'android';
   receipt_data: string;
   product_id: string;
+  /**
+   * Apple's `originalTransactionId` (iOS) or Google's order base
+   * (Android). This is the stable identifier — for iOS renewals the
+   * `transaction_id` field below changes per-renewal, but
+   * `original_transaction_id` is constant for the lifetime of the
+   * subscription. Backend uses this as the idempotency key.
+   */
+  original_transaction_id: string;
+  /**
+   * Current transaction id from the SDK (kept for analytics +
+   * backwards compat with older clients). On iOS this is
+   * `originalTransactionId` for the first purchase but a renewal
+   * transactionId for subsequent receipts.
+   */
   transaction_id: string;
 }
 
@@ -44,12 +58,17 @@ interface SubscriptionStatusResponse extends ApiResponse {
     tier: string;
     status: string;
     trial_days_remaining: number;
+    // Wire shape: the backend's `/subscription/status.features` block
+    // also returns boolean flags (`mirror_gpt_enabled`, `echo_vault_enabled`,
+    // `echo_map_enabled`) but the client doesn't read them — all paid-
+    // feature gating runs server-side via `require_feature` and is
+    // surfaced to the UI by `useEntitlement`'s status predicate. Keep
+    // this type aligned to what the client actually consumes; extra
+    // wire fields are dropped at the type level (TypeScript structural
+    // subtyping) without breaking the runtime payload.
     features: {
-      echo_vault_enabled: boolean;
       quota_gb: number;
       used_gb: number;
-      mirror_gpt_enabled: boolean;
-      echo_map_enabled: boolean;
     };
     core_subscription?: any;
     storage_subscription?: any;

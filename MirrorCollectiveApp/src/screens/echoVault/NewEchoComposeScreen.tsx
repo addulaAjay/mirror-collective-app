@@ -34,6 +34,9 @@ import { Camera, useCameraDevice, useCameraPermission, useMicrophonePermission }
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import Button from '@components/Button';
 import LogoHeader from '@components/LogoHeader';
+import { useToast } from '@components/Toast';
+import UpgradePrompt from '@components/UpgradePrompt';
+import { useEntitlement } from '@hooks/useEntitlement';
 import { echoApiService } from '@services/api';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'NewEchoComposeScreen'>;
@@ -57,6 +60,9 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
   const [isSaving, setIsSaving] = useState(false);
   const [isPicking, setIsPicking] = useState(false);
   const [pendingPicker, setPendingPicker] = useState<'audio' | 'video' | 'text' | null>(null);
+  const entitlement = useEntitlement();
+  const [paywallVisible, setPaywallVisible] = useState(false);
+  const { showToast } = useToast();
 
   // Audio Playback
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
@@ -221,7 +227,11 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
       setIsRecording(true);
     } catch (error: any) {
       console.error('Failed to start audio recording:', error);
-      Alert.alert('Recording Error', `Recording setup failed: ${error.message || 'Unknown error'}`);
+      showToast({
+        title: 'Recording error',
+        message: `Recording setup failed: ${error.message || 'Unknown error'}`,
+        tone: 'error',
+      });
     }
   };
 
@@ -282,12 +292,33 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
 
   const onSave = async () => {
     if (mode === 'text' && !message.trim()) {
-      Alert.alert('Empty Echo', 'Please write something.');
+      showToast({
+        title: 'Empty echo',
+        message: 'Please write something.',
+        tone: 'error',
+      });
       return;
     }
     if ((mode === 'audio' || mode === 'video') && !mediaUri && !editEchoId) {
-      Alert.alert('No Recording', 'Please record a message first.');
+      showToast({
+        title: 'No recording',
+        message: 'Please record a message first.',
+        tone: 'error',
+      });
       return;
+    }
+
+    // Second-layer entitlement gate. The entry gate in NewEchoVaultScreen
+    // covers the normal navigation path, but a user whose subscription
+    // expires mid-flow (or who deep-links into compose) still needs to be
+    // blocked from saving. Skipped for edits since the user is just
+    // modifying an existing echo, not consuming new quota.
+    if (!editEchoId && !entitlement.loading) {
+      const { allowed } = entitlement.canUpload();
+      if (!allowed) {
+        setPaywallVisible(true);
+        return;
+      }
     }
 
     setIsSaving(true);
@@ -298,12 +329,21 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
         if (mode === 'text') updateData.content = message;
         if (mediaUri && mode !== 'text') {
           const contentType = mediaFile?.type || (mode === 'audio' ? 'audio/mp4' : 'video/mp4');
-          const uploadUrlResponse = await echoApiService.getUploadUrl(contentType, editEchoId);
+          const sizeBytes = await echoApiService.probeLocalFileSize(mediaUri);
+          const uploadUrlResponse = await echoApiService.getUploadUrl(
+            contentType,
+            editEchoId,
+            'echo',
+            sizeBytes,
+          );
           if (!uploadUrlResponse.success || !uploadUrlResponse.data) {
             throw new Error('Could not get upload URL. Please try again.');
           }
           await echoApiService.uploadMedia(uploadUrlResponse.data.upload_url, mediaUri, contentType);
           updateData.media_url = uploadUrlResponse.data.media_url;
+          if (sizeBytes > 0) {
+            updateData.size_bytes = sizeBytes;
+          }
         }
         // Propagate recipient + lock-date changes from the recipient-picker
         // step. Backend treats explicit null as "clear", so when the user
@@ -334,17 +374,16 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
           }
         }
 
-        Alert.alert(
-          'Success',
-          shouldRelease ? 'Echo sent!' : 'Echo updated!',
-          [{
-            text: 'OK',
-            // Match the create flow: drop the user back into the vault
-            // library so they can see the row update in context, rather
-            // than popping all the way to the stack root (TalkToMirror).
-            onPress: () => navigation.navigate('MirrorEchoVaultLibrary' as any),
-          }],
-        );
+        // Toast + immediate navigate (used to be an Alert that
+        // required tapping OK before navigation). Toast auto-dismisses
+        // on the destination screen, which is the standard pattern
+        // for non-blocking confirmation feedback.
+        showToast({
+          title: 'Success',
+          message: shouldRelease ? 'Echo sent!' : 'Echo updated!',
+          tone: 'success',
+        });
+        navigation.navigate('MirrorEchoVaultLibrary' as any);
         return;
       }
 
@@ -368,21 +407,37 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
 
       if (mode !== 'text' && mediaUri && newEchoId) {
         const contentType = mediaFile?.type || (mode === 'audio' ? 'audio/mp4' : 'video/mp4');
-        const uploadUrlResponse = await echoApiService.getUploadUrl(contentType, newEchoId);
+        const sizeBytes = await echoApiService.probeLocalFileSize(mediaUri);
+        const uploadUrlResponse = await echoApiService.getUploadUrl(
+          contentType,
+          newEchoId,
+          'echo',
+          sizeBytes,
+        );
         if (!uploadUrlResponse.success || !uploadUrlResponse.data) {
           throw new Error('Could not get upload URL. Please try again.');
         }
         await echoApiService.uploadMedia(uploadUrlResponse.data.upload_url, mediaUri, contentType);
-        await echoApiService.updateEcho(newEchoId, { media_url: uploadUrlResponse.data.media_url });
+        await echoApiService.updateEcho(newEchoId, {
+          media_url: uploadUrlResponse.data.media_url,
+          ...(sizeBytes > 0 ? { size_bytes: sizeBytes } : {}),
+        });
       }
 
-      Alert.alert('Success', 'Echo saved to vault!', [
-        { text: 'OK', onPress: () => navigation.navigate('MirrorEchoVaultLibrary' as any) },
-      ]);
+      showToast({
+        title: 'Success',
+        message: 'Echo saved to vault!',
+        tone: 'success',
+      });
+      navigation.navigate('MirrorEchoVaultLibrary' as any);
 
     } catch (error: any) {
       console.error('Save failed:', error);
-      Alert.alert('Error', error?.message || 'Failed to save echo. Please try again.');
+      showToast({
+        title: 'Error',
+        message: error?.message || 'Failed to save echo. Please try again.',
+        tone: 'error',
+      });
     } finally {
       setIsSaving(false);
     }
@@ -442,7 +497,7 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
     } catch (err) {
       if (!DocumentPicker.isCancel(err)) {
         console.error('Picker error:', err);
-        Alert.alert('Error', 'Failed to pick audio file');
+        showToast({ title: 'Error', message: 'Failed to pick audio file', tone: 'error' });
       }
     } finally {
       setIsPicking(false);
@@ -512,7 +567,7 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
     } catch (err) {
       if (!DocumentPicker.isCancel(err)) {
         console.error('Picker error:', err);
-        Alert.alert('Error', 'Failed to pick text file');
+        showToast({ title: 'Error', message: 'Failed to pick text file', tone: 'error' });
       }
     } finally {
       setIsPicking(false);
@@ -822,6 +877,16 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
             </Pressable>
           </Pressable>
         </Modal>
+
+        <UpgradePrompt
+          visible={paywallVisible}
+          onClose={() => setPaywallVisible(false)}
+          reason={entitlement.promptReason}
+          quotaInfo={{
+            usage_gb: entitlement.usedGb,
+            quota_gb: entitlement.quotaGb,
+          }}
+        />
       </SafeAreaView>
     </BackgroundWrapper>
   );

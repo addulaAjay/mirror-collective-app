@@ -1,12 +1,15 @@
 import type { Message } from '@types';
 import { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ScrollView } from 'react-native';
+import { FlatList } from 'react-native';
 
 import { useUser } from '@context/UserContext';
+import { useEntitlement } from '@hooks/useEntitlement';
 import { chatApiService, sessionApiService } from '@services/api';
 import { SessionManager } from '@services/sessionManager';
 import { getApiErrorMessage } from '@utils/apiErrorUtils';
+
+type PaywallReason = 'trial_expired' | 'quota_exceeded';
 
 /**
  * Custom hook for managing chat functionality with MirrorGPT integration
@@ -29,11 +32,19 @@ const toFirstNameOnly = (text: string, fullName: string | undefined): string => 
 export const useChat = () => {
   const { t } = useTranslation();
   const { user } = useUser();
+  const entitlement = useEntitlement();
   const [messages, setMessages] = useState<Message[]>([]);
   const [draft, setDraft] = useState('');
   const [loading, setLoading] = useState(false);
   const [greetingLoaded, setGreetingLoaded] = useState(false);
-  const scrollViewRef = useRef<ScrollView>(null);
+  const [paywallReason, setPaywallReason] = useState<PaywallReason | null>(
+    null,
+  );
+  // FlatList ref. Keeping the old name (`scrollViewRef`) so existing
+  // consumers don't break — the screen now uses FlatList with
+  // inverted={true}, which delegates scrolling to a native ScrollView
+  // anyway, so the contract on the ref (scrollToOffset, etc.) holds.
+  const scrollViewRef = useRef<FlatList>(null);
 
   /**
    * Initialize a new session and get greeting message
@@ -84,6 +95,21 @@ export const useChat = () => {
   const sendMessage = async () => {
     const text = draft.trim();
     if (!text) return;
+
+    // Entitlement gate: MirrorGPT is paid after the 14-day trial. We refuse
+    // to call the chat API for locked users — both to enforce the paywall
+    // and to avoid burning OpenAI cost on users who can't see the response.
+    // (See docs/IAP_SUBSCRIPTION_REVIEW.md "Entitlement matrix".)
+    //
+    // Treat `loading` as locked — during the brief window when
+    // SubscriptionContext is hydrating we don't yet know if the user is
+    // entitled, and the conservative answer is "no". This matches the
+    // fail-closed default in SubscriptionContext (mirror_gpt_enabled
+    // defaults to false on mount).
+    if (entitlement.loading || !entitlement.entitled) {
+      setPaywallReason(entitlement.promptReason);
+      return;
+    }
 
     // 1) Create and add user message optimistically
     const userMessage = createMessage(text, 'user');
@@ -177,7 +203,8 @@ export const useChat = () => {
    * Scroll to the bottom of the chat
    */
   const scrollToBottom = () => {
-    scrollViewRef.current?.scrollToEnd({ animated: true });
+    // In inverted FlatList, offset 0 is the bottom (newest message).
+    scrollViewRef.current?.scrollToOffset({ offset: 0, animated: true });
   };
 
   /**
@@ -194,6 +221,8 @@ export const useChat = () => {
     setMessages([createMessage('The Mirror reflects…', 'system')]);
   };
 
+  const dismissPaywall = () => setPaywallReason(null);
+
   return {
     // State
     messages,
@@ -201,6 +230,11 @@ export const useChat = () => {
     loading,
     greetingLoaded,
     scrollViewRef,
+    paywallReason,
+    quotaInfo:
+      paywallReason === 'quota_exceeded'
+        ? { usage_gb: entitlement.usedGb, quota_gb: entitlement.quotaGb }
+        : undefined,
 
     // Actions
     initializeSession,
@@ -209,5 +243,6 @@ export const useChat = () => {
     scrollToBottom,
     clearDraft,
     clearMessages,
+    dismissPaywall,
   };
 };
