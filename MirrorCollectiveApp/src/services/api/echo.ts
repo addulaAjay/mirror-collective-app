@@ -201,6 +201,31 @@ export interface CreateRecipientRequest {
  *  items/page = 20,000 items — well above any real-user scenario. */
 const MAX_PAGES_FULL_FETCH = 200;
 
+/**
+ * Per-route timeout overrides for media-finalize calls. Both are well above
+ * the default {@link API_CONFIG.TIMEOUT} (10 s) because the operations they
+ * gate are bounded by S3 server-side work, not network — a tight timeout
+ * would surface as "upload failed" to the user even though the bytes
+ * landed successfully and S3 was simply busy.
+ *
+ * Scope: these timeouts apply to the BACKEND JSON call only. The actual
+ * S3 PUT operations during a multipart upload run on
+ * `react-native-blob-util`'s native transport (~60 s default per part),
+ * which is independent of `API_CONFIG.TIMEOUT` and unaffected by these
+ * constants.
+ */
+
+/** Time budget for `POST /echoes/:id/finalize-media`. Server work: HEAD on
+ *  the S3 object + DDB write committing the canonical media_url. Typically
+ *  <3 s, but cold S3 partitions or cross-AZ latency can push past 10 s. */
+const FINALIZE_MEDIA_TIMEOUT_MS = 20_000;
+
+/** Time budget for `POST /echoes/:id/multipart/complete`. Server-side
+ *  CompleteMultipartUpload is O(parts) — a 2 GB / 400-part file can take
+ *  5–10 s to assemble, a 5 GB / 1000-part file 10–15 s — plus the
+ *  HeadObject + DDB write that runs afterward. */
+const COMPLETE_MULTIPART_TIMEOUT_MS = 30_000;
+
 /** Safe per-page size for the "fetch all" loop. The backend caps `limit` at
  *  100, so requesting 100 minimizes round-trips while staying inside the
  *  contract. */
@@ -468,6 +493,12 @@ export class EchoApiService extends BaseApiService {
    * Backend preconditions (enforced server-side): echo must be DRAFT, owned
    * by caller, have a `recipient_id`, and have no `guardian_id`. The server
    * transitions the echo to RELEASED and emails the recipient.
+   *
+   * Idempotency key: same contract as createEcho. The recipient
+   * notification email is a user-visible side effect, so a 429-retry
+   * within the same logical attempt must NOT trigger a duplicate email.
+   * A fresh tap from the UI generates a new UUID — that's a new
+   * logical attempt.
    */
   async releaseEcho(echoId: string): Promise<ApiResponse<EchoResponse>> {
     const response = await this.makeRequest<EchoResponse>(
@@ -475,6 +506,7 @@ export class EchoApiService extends BaseApiService {
       'PATCH',
       null,
       true,
+      { 'Idempotency-Key': uuidV4() },
     );
     return ApiErrorHandler.handleApiResponse(response, 'Echo released successfully');
   }
@@ -601,11 +633,8 @@ export class EchoApiService extends BaseApiService {
     // duplicate finalize without dedup would race the first one and
     // can produce a "media already finalized" reject on the second.
     //
-    // Longer timeout (20 s) than the default 10 s: the server-side
-    // HeadObject + DDB write is normally <3 s, but a cold S3 partition
-    // or transient cross-AZ latency can push it past 10 s, and a
-    // timeout here is bad UX — the upload bytes ARE in S3 at this
-    // point, the user just sees a "could not be confirmed" error.
+    // Per-route timeout: see FINALIZE_MEDIA_TIMEOUT_MS rationale near
+    // the top of the file.
     const response = await this.makeRequest<EchoResponse>(
       `/api/echoes/${encodeURIComponent(echoId)}/finalize-media`,
       'POST',
@@ -615,7 +644,7 @@ export class EchoApiService extends BaseApiService {
       },
       true,
       { 'Idempotency-Key': uuidV4() },
-      { timeoutMs: 20_000 },
+      { timeoutMs: FINALIZE_MEDIA_TIMEOUT_MS },
     );
     return ApiErrorHandler.handleApiResponse(response, 'Media finalized');
   }
@@ -694,14 +723,10 @@ export class EchoApiService extends BaseApiService {
     key: string,
     parts: Array<{ part_number: number; etag: string }>,
   ): Promise<ApiResponse<EchoResponse>> {
-    // 30 s timeout — well above the 10 s default. S3's
-    // CompleteMultipartUpload is roughly O(parts) on the server side;
-    // a 2 GB file split into 400 parts can take 5-10 s to assemble,
-    // and a 5 GB / 1000-part file can land at 10-15 s. Plus the
-    // server-side HeadObject + DDB write that finalize_upload runs
-    // afterward. A tight timeout here would surface as "upload
-    // failed" to the user even though the bytes successfully landed
-    // and S3 was simply busy assembling them.
+    // Per-route timeout: see COMPLETE_MULTIPART_TIMEOUT_MS rationale near
+    // the top of the file. The timeout gates the BACKEND complete call,
+    // not the per-part S3 PUTs (those run on react-native-blob-util's
+    // native transport with its own ~60 s default).
     //
     // Idempotency key is DERIVED from upload_id (not a fresh UUID per
     // call): two complete attempts for the same S3 upload session must
@@ -716,7 +741,7 @@ export class EchoApiService extends BaseApiService {
       { upload_id: uploadId, key, parts },
       true,
       { 'Idempotency-Key': idempotencyKey },
-      { timeoutMs: 30_000 },
+      { timeoutMs: COMPLETE_MULTIPART_TIMEOUT_MS },
     );
     return ApiErrorHandler.handleApiResponse(response, 'Multipart upload completed');
   }
@@ -1027,12 +1052,18 @@ export class EchoApiService extends BaseApiService {
     );
   }
 
+  /**
+   * Add a guardian. Sends an invitation email — same idempotency rationale
+   * as createEcho / releaseEcho: a 429-driven retry within one logical
+   * attempt must not produce duplicate emails. Fresh UUID per call.
+   */
   async addGuardian(data: CreateGuardianRequest): Promise<ApiResponse<Guardian>> {
     const response = await this.makeRequest<Guardian>(
       '/api/guardians',
       'POST',
       data,
-      true
+      true,
+      { 'Idempotency-Key': uuidV4() },
     );
     return ApiErrorHandler.handleApiResponse(response, 'Guardian added');
   }
@@ -1066,12 +1097,17 @@ export class EchoApiService extends BaseApiService {
     );
   }
 
+  /**
+   * Add a recipient. Sends an invitation email — same idempotency rationale
+   * as createEcho / addGuardian. Fresh UUID per call.
+   */
   async addRecipient(data: CreateRecipientRequest): Promise<ApiResponse<Recipient>> {
     const response = await this.makeRequest<Recipient>(
       '/api/recipients',
       'POST',
       data,
-      true
+      true,
+      { 'Idempotency-Key': uuidV4() },
     );
     return ApiErrorHandler.handleApiResponse(response, 'Recipient added');
   }
