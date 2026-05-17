@@ -40,9 +40,10 @@ import {
   verticalScale,
 } from '@theme';
 import type { RootStackParamList } from '@types';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
+  FlatList,
   Image,
   ScrollView,
   StatusBar,
@@ -51,9 +52,12 @@ import {
   TouchableOpacity,
   View,
   type ImageStyle,
+  type ListRenderItem,
   type TextStyle,
   type ViewStyle,
 } from 'react-native';
+
+import { useInfiniteList } from '@hooks/useInfiniteList';
 import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
@@ -81,6 +85,15 @@ import { echoApiService, type EchoResponse } from '@services/api/echo';
  *                      creator skipped recipient/schedule on creation.
  */
 type EchoUiState = 'sent' | 'scheduled' | 'guardian-locked' | 'saved';
+
+const formatDate = (dateString: string): string => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  });
+};
 
 const deriveUiState = (item: EchoResponse): EchoUiState => {
   if (item.status === 'RELEASED') return 'sent';
@@ -149,33 +162,100 @@ const EchoAvatar: React.FC<AvatarProps> = ({ motif, profileImage }) => (
   </View>
 );
 
+// ── Row renderer ─────────────────────────────────────────────────────────────
+// Factored out so FlatList's renderItem reference is stable across renders.
+// Returns a ListRenderItem<EchoResponse> closed over the active tab + the
+// row tap handler; `total` is used to suppress the trailing border on the
+// last row (matches the pre-FlatList visual).
+function renderEchoRow(
+  activeTab: 'RECIPIENT' | 'CATEGORY',
+  onOpen: (item: EchoResponse) => void,
+  total: number,
+): ListRenderItem<EchoResponse> {
+  return ({ item, index }) => {
+    const isLast = index === total - 1;
+    const uiState = deriveUiState(item);
+    const showLock = uiState === 'scheduled' || uiState === 'guardian-locked';
+    const showSentPill = uiState === 'sent';
+    const subtitle =
+      uiState === 'scheduled'
+        ? `Unlocks ${formatDate(item.release_date!)}`
+        : uiState === 'guardian-locked' && item.lock_date
+          ? `Locked ${formatDate(item.lock_date)}`
+          : `Saved ${formatDate(item.created_at)}`;
+    const rightLabel =
+      activeTab === 'RECIPIENT'
+        ? item.recipient?.name?.toUpperCase() || 'UNASSIGNED'
+        : item.category?.toUpperCase() || 'UNCATEGORIZED';
+    return (
+      <View style={[styles.rowGroup, !isLast && styles.rowBorder]}>
+        <TouchableOpacity
+          activeOpacity={0.9}
+          onPress={() => onOpen(item)}
+          style={styles.row}
+        >
+          <View style={styles.rowLeft}>
+            <EchoAvatar
+              motif={item.recipient?.motif}
+              profileImage={item.recipient?.profile_image_url}
+            />
+            <View style={styles.rowText}>
+              <Text style={styles.rowTitle} numberOfLines={2}>
+                {item.title}
+              </Text>
+              <Text style={styles.rowSub} numberOfLines={1}>
+                {subtitle}
+              </Text>
+            </View>
+          </View>
+          <View style={styles.rowRight}>
+            <Text style={styles.rowLabel} numberOfLines={1}>
+              {rightLabel}
+            </Text>
+            {showLock && <LockIcon />}
+          </View>
+        </TouchableOpacity>
+        {/* Echo Sent pill — renders only on RELEASED status (the
+            authoritative signal from the backend, set when the recipient
+            notification has been sent). */}
+        {showSentPill && (
+          <View style={styles.echoSentPillWrap}>
+            <View style={styles.echoSentPill}>
+              <EchoSentCheckIcon />
+              <Text style={styles.echoSentText}>Echo Sent</Text>
+            </View>
+          </View>
+        )}
+      </View>
+    );
+  };
+}
+
 // ── Screen ───────────────────────────────────────────────────────────────────
 
 export function EchoLibraryContent() {
   const navigation = useNavigation<EchoLibraryNavigationProp>();
-  const [echoes, setEchoes] = useState<EchoResponse[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'RECIPIENT' | 'CATEGORY'>('RECIPIENT');
 
-  const fetchEchoes = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await echoApiService.getEchoes();
-      if (response.success && response.data) {
-        setEchoes(response.data);
-      } else {
-        setError(response.error || 'Failed to load echoes');
-      }
-    } catch (err: any) {
-      setError(`Failed to load echoes: ${err.message || ''}`);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  // Bound to the new paginated /api/echoes contract. Page size 50 matches
+  // the backend's clamp default; loadMore fires from FlatList.onEndReached
+  // until next_cursor is null.
+  const fetchEchoPage = useCallback(
+    (opts: { limit?: number; cursor?: string | null }) =>
+      echoApiService.getEchoesPage(opts),
+    [],
+  );
 
-  useEffect(() => { fetchEchoes(); }, [fetchEchoes]);
+  const {
+    items: echoes,
+    loading,
+    loadingMore,
+    refreshing,
+    error,
+    hasMore,
+    loadMore,
+    refresh,
+  } = useInfiniteList<EchoResponse>(fetchEchoPage);
 
   const handleOpenItem = (item: EchoResponse) => {
     if (item.echo_type === 'AUDIO') {
@@ -185,11 +265,6 @@ export function EchoLibraryContent() {
     } else {
       navigation.navigate('EchoDetailScreen', { echoId: item.echo_id, title: item.title });
     }
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
   };
 
   return (
@@ -253,7 +328,7 @@ export function EchoLibraryContent() {
           ) : error ? (
             <View style={styles.stateBox}>
               <Text style={styles.errorText}>{error}</Text>
-              <TouchableOpacity onPress={fetchEchoes} style={styles.retryBtn}>
+              <TouchableOpacity onPress={refresh} style={styles.retryBtn}>
                 <Text style={styles.retryText}>Retry</Text>
               </TouchableOpacity>
             </View>
@@ -291,63 +366,33 @@ export function EchoLibraryContent() {
                   </TouchableOpacity>
                 ))}
               </View>
-              {/* Echo rows — scrollable */}
-              <ScrollView
+              {/* Echo rows — virtualized via FlatList so a 1k-echo vault
+                  doesn't pin 1k row Views in memory and the JS thread
+                  doesn't render them all upfront. onEndReached drives
+                  the cursor-paginated /api/echoes/page fetcher. */}
+              <FlatList<EchoResponse>
+                data={echoes}
+                keyExtractor={item => item.echo_id}
+                renderItem={renderEchoRow(activeTab, handleOpenItem, echoes.length)}
                 showsVerticalScrollIndicator={false}
                 style={styles.listScroll}
                 contentContainerStyle={styles.listScrollContent}
-              >
-                {echoes.map((item, index) => {
-                  const isLast = index === echoes.length - 1;
-                  const uiState = deriveUiState(item);
-                  const showLock = uiState === 'scheduled' || uiState === 'guardian-locked';
-                  const showSentPill = uiState === 'sent';
-                  const subtitle =
-                    uiState === 'scheduled'
-                      ? `Unlocks ${formatDate(item.release_date!)}`
-                      : uiState === 'guardian-locked' && item.lock_date
-                        ? `Locked ${formatDate(item.lock_date)}`
-                        : `Saved ${formatDate(item.created_at)}`;
-                  const rightLabel = activeTab === 'RECIPIENT'
-                    ? (item.recipient?.name?.toUpperCase() || 'UNASSIGNED')
-                    : (item.category?.toUpperCase() || 'UNCATEGORIZED');
-                  return (
-                    <View
-                      key={item.echo_id}
-                      style={[styles.rowGroup, !isLast && styles.rowBorder]}
-                    >
-                      <TouchableOpacity
-                        activeOpacity={0.9}
-                        onPress={() => handleOpenItem(item)}
-                        style={styles.row}
-                      >
-                        <View style={styles.rowLeft}>
-                          <EchoAvatar motif={item.recipient?.motif} profileImage={item.recipient?.profile_image_url} />
-                          <View style={styles.rowText}>
-                            <Text style={styles.rowTitle} numberOfLines={2}>{item.title}</Text>
-                            <Text style={styles.rowSub} numberOfLines={1}>{subtitle}</Text>
-                          </View>
-                        </View>
-                        <View style={styles.rowRight}>
-                          <Text style={styles.rowLabel} numberOfLines={1}>{rightLabel}</Text>
-                          {showLock && <LockIcon />}
-                        </View>
-                      </TouchableOpacity>
-                      {/* Echo Sent pill — renders only on RELEASED status
-                          (the authoritative signal from the backend, set
-                          when the recipient notification has been sent). */}
-                      {showSentPill && (
-                        <View style={styles.echoSentPillWrap}>
-                          <View style={styles.echoSentPill}>
-                            <EchoSentCheckIcon />
-                            <Text style={styles.echoSentText}>Echo Sent</Text>
-                          </View>
-                        </View>
-                      )}
+                onEndReached={loadMore}
+                onEndReachedThreshold={0.5}
+                removeClippedSubviews
+                initialNumToRender={12}
+                maxToRenderPerBatch={10}
+                windowSize={5}
+                refreshing={refreshing}
+                onRefresh={refresh}
+                ListFooterComponent={
+                  loadingMore ? (
+                    <View style={styles.footerLoader}>
+                      <ActivityIndicator size="small" color="#f2e1b0" />
                     </View>
-                  );
-                })}
-              </ScrollView>
+                  ) : null
+                }
+              />
             </View>
           )}
 
@@ -390,6 +435,7 @@ const styles = StyleSheet.create<{
   outerColumn: ViewStyle;
   listScroll: ViewStyle;
   listScrollContent: ViewStyle;
+  footerLoader: ViewStyle;
   titleGroup: ViewStyle;
   headerRow: ViewStyle;
   backBtn: ViewStyle;
@@ -449,6 +495,10 @@ const styles = StyleSheet.create<{
   // Inner ScrollView — only the echo rows scroll
   listScroll: { flex: 1 },
   listScrollContent: { flexGrow: 1 },
+  footerLoader: {
+    paddingVertical: verticalScale(12),
+    alignItems: 'center',
+  },
 
   // ── Title + Subtitle ───────────────────────────────────────────────────────
   // Figma 211:1223 — flex-col gap:16, items-center
