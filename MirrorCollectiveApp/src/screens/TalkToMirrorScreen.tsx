@@ -153,9 +153,19 @@ const TalkToMirrorScreen: React.FC<Props> = ({ navigation }) => {
                     // the underlying native image view. Wrap with a View
                     // that carries the prop so Smart-Invert on iOS leaves
                     // the avatar untouched.
+                    //
+                    // NOTE: the wrapper uses StyleSheet.absoluteFillObject
+                    // (not styles.avatarImage). Applying avatarImage to
+                    // BOTH the wrapper and the inner CachedImage caused
+                    // the inner image's height: '150%' to resolve against
+                    // the wrapper instead of avatarRing, compounding to
+                    // 225% — a visible regression on every device. The
+                    // wrapper only needs to be a positioned ancestor that
+                    // fills its parent; the inner image carries the real
+                    // sizing.
                     <View
                       accessibilityIgnoresInvertColors
-                      style={styles.avatarImage}
+                      style={StyleSheet.absoluteFillObject}
                     >
                       <CachedImage
                         source={{ uri: user.profileImageUrl }}

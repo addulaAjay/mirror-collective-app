@@ -36,7 +36,7 @@ import React from 'react';
 const DEFAULT_BLURHASH = 'L3I1=}A^00WB00ay~qj]00fQ?aof';
 
 export interface CachedImageProps
-  extends Omit<ImageProps, 'source' | 'placeholder' | 'cachePolicy'> {
+  extends Omit<ImageProps, 'source' | 'placeholder'> {
   /** Remote URI to render. Pass `null`/`undefined` and the placeholder shows. */
   source: { uri?: string | null } | undefined;
   /**
@@ -54,6 +54,11 @@ export interface CachedImageProps
    * `resizeMode`; defaults to 'cover' for avatar-style use.
    */
   contentFit?: ImageContentFit;
+  // NOTE: cachePolicy is inherited from ImageProps. Defaults to
+  // 'memory-disk' here, but callers can override for e.g. a one-time
+  // preview where on-disk caching would be wasted writes. The earlier
+  // version Omit'd this from the interface, which silently rejected
+  // any caller override at the type level — the review surfaced it.
 }
 
 /**
@@ -78,6 +83,7 @@ export function CachedImage({
   blurhash,
   contentFit = 'cover',
   transition = 250,
+  cachePolicy = 'memory-disk',
   ...rest
 }: CachedImageProps) {
   const uri = source?.uri ?? null;
@@ -100,7 +106,7 @@ export function CachedImage({
     <Image
       {...rest}
       source={expoSource}
-      cachePolicy="memory-disk"
+      cachePolicy={cachePolicy}
       contentFit={contentFit}
       transition={transition}
       placeholder={placeholder}

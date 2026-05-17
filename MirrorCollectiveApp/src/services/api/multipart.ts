@@ -255,6 +255,15 @@ export async function uploadMediaMultipart({
       }),
     );
 
+    // Defensive density check before complete. partResults is allocated
+    // sparse (new Array(partCount)) and filled by Promise.all — which
+    // either resolves all positions or rejects. A future refactor that
+    // switched to allSettled would silently leave holes, and we'd ship
+    // `undefined` parts to the backend. The contract here pins it.
+    if (partResults.some(p => !p)) {
+      throw new Error('Internal error: multipart upload missing parts');
+    }
+
     // 4. Complete. The server runs HEAD + DDB write atomically, same
     // as the single-PUT finalize path.
     onStage?.({ type: 'finalizing' });

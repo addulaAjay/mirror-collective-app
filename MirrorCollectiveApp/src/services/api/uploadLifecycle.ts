@@ -56,18 +56,32 @@ export function startUploadLifecycleMonitor(
 ): UploadLifecycleMonitor {
   let backgrounded = false;
   let firedOnce = false;
+  // Set to true once stop() runs OR the host promise resolves — any
+  // late AppState event after that is for the next screen, not this
+  // upload, and firing onBackground would surface a bogus "Save paused"
+  // alert on the wrong screen.
+  let stopped = false;
+  // .remove() is safe to call multiple times on modern RN, but pinning
+  // the guarantee here makes us robust to future lib changes.
+  let removed = false;
 
   const handle = (next: AppStateStatus) => {
+    if (stopped) return;
+    // 'inactive' is iOS-only and fires on incoming calls, Control Center
+    // swipes, screen-dimming transitions — none of which suspend the
+    // JS thread. Track it on `backgrounded` for telemetry, but DON'T
+    // fire onBackground (the user would see "Save paused" during an
+    // incoming call that they immediately decline).
     if (next === 'background' || next === 'inactive') {
       backgrounded = true;
-      if (!firedOnce && opts.onBackground) {
-        firedOnce = true;
-        try {
-          opts.onBackground();
-        } catch (err) {
-          // Don't let a buggy callback take down the upload.
-          console.warn('uploadLifecycle.onBackground threw:', err);
-        }
+    }
+    if (next === 'background' && !firedOnce && opts.onBackground) {
+      firedOnce = true;
+      try {
+        opts.onBackground();
+      } catch (err) {
+        // Don't let a buggy callback take down the upload.
+        console.warn('uploadLifecycle.onBackground threw:', err);
       }
     }
   };
@@ -81,7 +95,11 @@ export function startUploadLifecycleMonitor(
       return backgrounded;
     },
     stop() {
-      sub.remove();
+      stopped = true;
+      if (!removed) {
+        removed = true;
+        sub.remove();
+      }
     },
   };
 }

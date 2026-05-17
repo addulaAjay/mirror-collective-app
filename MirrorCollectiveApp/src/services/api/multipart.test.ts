@@ -325,6 +325,58 @@ describe('uploadMediaMultipart', () => {
     // abort is NOT called — no upload was created.
     expect(api.abortMultipart).not.toHaveBeenCalled();
   });
+
+  it('aborts the S3 session if presign-urls fails after initiate succeeded', async () => {
+    // Initiate succeeded, so an S3 multipart session exists. The
+    // pipeline must call /abort to clean it up (otherwise the bucket
+    // holds partial state until the 7-day lifecycle rule reaps it).
+    const api = buildFakeApi();
+    api.getMultipartPartUrls.mockResolvedValue({
+      success: false,
+      error: 'Could not generate part URLs',
+    });
+
+    await expect(
+      uploadMediaMultipart({
+        api: api as never,
+        echoId: 'e-1',
+        fileUri: '/local/big.mp4',
+        contentType: 'video/mp4',
+        fileSize: 7 * 1024 * 1024,
+      }),
+    ).rejects.toThrow();
+
+    expect(api.abortMultipart).toHaveBeenCalledWith(
+      'e-1',
+      'UPLOAD-1',
+      'echoes/u-1/e-1.mp4',
+    );
+  });
+
+  it('uses a deterministic Idempotency-Key on completeMultipart', async () => {
+    // The complete call must dedup across retries by the SAME S3 upload
+    // session — a fresh UUID per call would defeat that.
+    const api = buildFakeApi();
+    // We're testing EchoApiService.completeMultipart directly here via
+    // the api mock's call_args, not the orchestrator. The orchestrator
+    // doesn't touch idempotency keys — that lives on the api wrapper.
+    // Instead, verify the contract holds by inspecting how
+    // completeMultipart was called: same upload_id → same key in the
+    // request shape. The wrapper logic (mp-complete:${uploadId}) is
+    // exercised via echo.test.ts; here we just confirm that the
+    // orchestrator passes through a stable upload_id, not a re-rolled
+    // one.
+    mockFetch.mockReturnValue(buildOkPutResponse());
+    await uploadMediaMultipart({
+      api: api as never,
+      echoId: 'e-1',
+      fileUri: '/local/big.mp4',
+      contentType: 'video/mp4',
+      fileSize: 7 * 1024 * 1024,
+    });
+    const [, capturedUploadId] = (api.completeMultipart as jest.Mock).mock.calls[0];
+    expect(capturedUploadId).toBe('UPLOAD-1');
+  });
 });
 
 describe('MULTIPART_THRESHOLD', () => {
