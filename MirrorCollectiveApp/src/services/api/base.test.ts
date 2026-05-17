@@ -47,6 +47,13 @@ class TestApiService extends BaseApiService {
   ): Promise<any> {
     return this.makeRequest<T>(endpoint, method, body, false);
   }
+
+  callWithTimeout<T = any>(
+    endpoint: string,
+    timeoutMs: number,
+  ): Promise<any> {
+    return this.makeRequest<T>(endpoint, 'POST', {}, false, undefined, { timeoutMs });
+  }
 }
 
 const svc = new TestApiService();
@@ -169,5 +176,85 @@ describe('BaseApiService — 429 retry-with-backoff', () => {
 
     expect(global.fetch).toHaveBeenCalledTimes(2);
     expect(result.success).toBe(true);
+  });
+});
+
+describe('BaseApiService — per-route timeout override', () => {
+  /**
+   * Mock fetch that listens to the abort signal and rejects when it
+   * fires (real fetch behaves this way). Without this the test
+   * promise never settles and Jest times out before our assertions.
+   */
+  function mockNeverResolvingFetch(): () => AbortSignal | undefined {
+    let captured: AbortSignal | undefined;
+    (global.fetch as jest.Mock).mockImplementation(
+      (_url: string, init: { signal?: AbortSignal }) => {
+        captured = init.signal;
+        return new Promise((_resolve, reject) => {
+          init.signal?.addEventListener('abort', () => {
+            reject(Object.assign(new Error('aborted'), { name: 'AbortError' }));
+          });
+        });
+      },
+    );
+    return () => captured;
+  }
+
+  beforeEach(() => {
+    jest.useFakeTimers();
+    (global.fetch as jest.Mock).mockReset();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('uses the API_CONFIG.TIMEOUT default when no override is given', async () => {
+    // The mocked config has TIMEOUT: 5000.
+    const getSignal = mockNeverResolvingFetch();
+    const promise = svc.call('/api/slow').catch(() => undefined);
+
+    // Hasn't aborted yet at t = 4999.
+    await Promise.resolve();
+    jest.advanceTimersByTime(4999);
+    expect(getSignal()?.aborted).toBe(false);
+
+    // Aborts at t = 5000.
+    jest.advanceTimersByTime(1);
+    expect(getSignal()?.aborted).toBe(true);
+
+    await promise;
+  });
+
+  it('honors the timeoutMs override (does NOT abort at the default)', async () => {
+    const getSignal = mockNeverResolvingFetch();
+    const promise = svc
+      .callWithTimeout('/api/slow', 30_000)
+      .catch(() => undefined);
+
+    // At t = 5001 the DEFAULT timeout would have fired — assert it didn't.
+    await Promise.resolve();
+    jest.advanceTimersByTime(5001);
+    expect(getSignal()?.aborted).toBe(false);
+
+    // Aborts at t = 30000.
+    jest.advanceTimersByTime(30_000 - 5001);
+    expect(getSignal()?.aborted).toBe(true);
+
+    await promise;
+  });
+
+  it('still aborts at the override deadline', async () => {
+    const getSignal = mockNeverResolvingFetch();
+    const promise = svc
+      .callWithTimeout('/api/slow', 20_000)
+      .catch(() => undefined);
+
+    await Promise.resolve();
+    jest.advanceTimersByTime(19_999);
+    expect(getSignal()?.aborted).toBe(false);
+    jest.advanceTimersByTime(1);
+    expect(getSignal()?.aborted).toBe(true);
+    await promise;
   });
 });
