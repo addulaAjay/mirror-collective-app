@@ -10,6 +10,11 @@ import { uuidV4 } from '@utils/uuid';
 
 import { BaseApiService } from './base';
 import { ApiErrorHandler } from './errorHandler';
+import {
+  MULTIPART_THRESHOLD,
+  getFileSize,
+  uploadMediaMultipart,
+} from './multipart';
 
 /**
  * Strip the `file://` scheme from a local URI. react-native-blob-util's
@@ -121,6 +126,16 @@ export interface UploadUrlResponse {
   /** Bucket the upload lands in (informational; clients rarely need it). */
   bucket: string;
   expires_in: number;
+}
+
+export interface MultipartInitiateResponse {
+  upload_id: string;
+  key: string;
+  bucket: string;
+}
+
+export interface MultipartPartUrlsResponse {
+  part_urls: Array<{ part_number: number; url: string }>;
 }
 
 export interface Guardian {
@@ -574,6 +589,76 @@ export class EchoApiService extends BaseApiService {
     return ApiErrorHandler.handleApiResponse(response, 'Media finalized');
   }
 
+  // ========== Multipart upload (files > MULTIPART_THRESHOLD) ==========
+  //
+  // Wraps the four backend routes that bridge to S3's MultipartUpload
+  // API. Used by uploadEchoMedia when the source file is large enough
+  // that the single-PUT path becomes lossy on cellular. The actual
+  // orchestration (slice → upload parts → complete) lives in
+  // services/api/multipart.ts; these are just typed wrappers around
+  // makeRequest.
+
+  async initiateMultipart(
+    echoId: string,
+    fileType: string,
+  ): Promise<ApiResponse<MultipartInitiateResponse>> {
+    const response = await this.makeRequest<MultipartInitiateResponse>(
+      `/api/echoes/${encodeURIComponent(echoId)}/multipart/initiate`,
+      'POST',
+      { file_type: fileType },
+      true,
+      { 'Idempotency-Key': uuidV4() },
+    );
+    return ApiErrorHandler.handleApiResponse(response, 'Multipart upload initiated');
+  }
+
+  async getMultipartPartUrls(
+    echoId: string,
+    uploadId: string,
+    key: string,
+    partNumbers: number[],
+  ): Promise<ApiResponse<MultipartPartUrlsResponse>> {
+    // NOT idempotency-keyed — the server doesn't cache these either,
+    // because the presigned URLs themselves rotate every call.
+    const response = await this.makeRequest<MultipartPartUrlsResponse>(
+      `/api/echoes/${encodeURIComponent(echoId)}/multipart/part-urls`,
+      'POST',
+      { upload_id: uploadId, key, part_numbers: partNumbers },
+      true,
+    );
+    return ApiErrorHandler.handleApiResponse(response, 'Part URLs generated');
+  }
+
+  async completeMultipart(
+    echoId: string,
+    uploadId: string,
+    key: string,
+    parts: Array<{ part_number: number; etag: string }>,
+  ): Promise<ApiResponse<EchoResponse>> {
+    const response = await this.makeRequest<EchoResponse>(
+      `/api/echoes/${encodeURIComponent(echoId)}/multipart/complete`,
+      'POST',
+      { upload_id: uploadId, key, parts },
+      true,
+      { 'Idempotency-Key': uuidV4() },
+    );
+    return ApiErrorHandler.handleApiResponse(response, 'Multipart upload completed');
+  }
+
+  async abortMultipart(
+    echoId: string,
+    uploadId: string,
+    key: string,
+  ): Promise<ApiResponse<void>> {
+    const response = await this.makeRequest<void>(
+      `/api/echoes/${encodeURIComponent(echoId)}/multipart/abort`,
+      'POST',
+      { upload_id: uploadId, key },
+      true,
+    );
+    return ApiErrorHandler.handleApiResponse(response, 'Multipart upload aborted');
+  }
+
   /**
    * End-to-end echo-media upload: compress → presign → stream → finalize.
    *
@@ -627,7 +712,22 @@ export class EchoApiService extends BaseApiService {
     }
 
     try {
-      // 2. Ask the backend for a presigned PUT URL + the S3 key it picked.
+      // 2. Decide single-PUT vs multipart based on (post-compression)
+      // file size. Anything we can't measure (PHAsset-style URI before
+      // export) defaults to single-PUT.
+      const fileSize = await getFileSize(workingUri);
+      if (fileSize !== null && fileSize >= MULTIPART_THRESHOLD) {
+        return await uploadMediaMultipart({
+          api: this,
+          echoId,
+          fileUri: workingUri,
+          contentType,
+          fileSize,
+          onStage,
+        });
+      }
+
+      // 3. Single-PUT path. Ask the backend for a presigned PUT URL.
       onStage?.({ type: 'requesting_url' });
       const presigned = await this.getUploadUrl(contentType, echoId, 'echo');
       if (!presigned.success || !presigned.data) {
@@ -635,7 +735,7 @@ export class EchoApiService extends BaseApiService {
       }
       const { upload_url, key } = presigned.data;
 
-      // 3. Stream the (possibly compressed) file to S3.
+      // 4. Stream the (possibly compressed) file to S3.
       await this.uploadMedia(
         upload_url,
         workingUri,
@@ -645,7 +745,7 @@ export class EchoApiService extends BaseApiService {
         },
       );
 
-      // 4. Atomic commit. Server HEADs S3, captures truth, writes DDB.
+      // 5. Atomic commit. Server HEADs S3, captures truth, writes DDB.
       // If this fails, the bytes are in S3 but the echo row has no
       // media_url — the user must re-attempt media attach. We surface
       // a specific error message so the UI can tell them so.
