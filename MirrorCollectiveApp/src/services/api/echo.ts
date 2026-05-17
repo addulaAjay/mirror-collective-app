@@ -106,18 +106,159 @@ export interface CreateRecipientRequest {
   profile_image_url?: string;   // S3 URL after upload, not a local file:// URI
 }
 
-export class EchoApiService extends BaseApiService {
-  
-// ========== ECHOES ==========
+// ========== PAGINATION ==========
+// The backend list endpoints (/api/echoes, /api/echoes/inbox, /api/recipients,
+// /api/guardians) accept `?limit=&cursor=` and return `next_cursor` alongside
+// `data`. We expose two flavors of each:
+//   - `getXxx()` — returns the FULL list, loops through pages internally with
+//                  a safety cap. Preserves the legacy contract so existing
+//                  screens (which expect a full list) keep working.
+//   - `getXxxPage({ limit, cursor })` — returns ONE page plus `nextCursor`,
+//                  for future `FlatList.onEndReached` infinite-scroll
+//                  migration.
 
-  async getEchoes(): Promise<ApiResponse<EchoResponse[]>> {
-    const response = await this.makeRequest<EchoResponse[]>(
-      '/api/echoes',
+/** Hard cap on pages a `getXxx()` (full-list) call will fetch. Prevents an
+ *  unbounded loop if the backend's `next_cursor` is buggy. 200 pages × 100
+ *  items/page = 20,000 items — well above any real-user scenario. */
+const MAX_PAGES_FULL_FETCH = 200;
+
+/** Safe per-page size for the "fetch all" loop. The backend caps `limit` at
+ *  100, so requesting 100 minimizes round-trips while staying inside the
+ *  contract. */
+const PAGE_SIZE_FULL_FETCH = 100;
+
+export interface PageOpts {
+  /** 1..100. Backend clamps to this range; sending 200 returns 100. */
+  limit?: number;
+  /** Opaque cursor from a previous page's `nextCursor`. `null`/`undefined` =
+   *  first page. */
+  cursor?: string | null;
+}
+
+export interface Page<T> {
+  items: T[];
+  /** `null` when the server has no more pages. */
+  nextCursor: string | null;
+}
+
+function buildPaginationQuery(opts: PageOpts | undefined): string {
+  if (!opts) return '';
+  const params: string[] = [];
+  if (typeof opts.limit === 'number' && opts.limit > 0) {
+    params.push(`limit=${Math.min(100, Math.max(1, Math.floor(opts.limit)))}`);
+  }
+  if (opts.cursor) {
+    // Backend sends URL-safe base64; encodeURIComponent is belt-and-braces
+    // against any cursor character that needs escaping.
+    params.push(`cursor=${encodeURIComponent(opts.cursor)}`);
+  }
+  return params.length === 0 ? '' : `?${params.join('&')}`;
+}
+
+function extractItemsArray<T>(raw: any): T[] {
+  if (!raw) return [];
+  const r = raw as any;
+  if (Array.isArray(r.data)) return r.data as T[];
+  if (Array.isArray(r.data?.echoes)) return r.data.echoes as T[];
+  if (Array.isArray(r.data?.received_echoes)) return r.data.received_echoes as T[];
+  if (Array.isArray(r.echoes)) return r.echoes as T[];
+  if (Array.isArray(r.received_echoes)) return r.received_echoes as T[];
+  return [];
+}
+
+function extractNextCursor(raw: any): string | null {
+  if (!raw) return null;
+  const r = raw as any;
+  return (
+    (r.next_cursor as string | null) ??
+    (r.data?.next_cursor as string | null) ??
+    null
+  );
+}
+
+export class EchoApiService extends BaseApiService {
+
+  /** Generic single-page fetch. Returns the page items + the next cursor. */
+  private async fetchPage<T>(
+    endpoint: string,
+    opts: PageOpts | undefined,
+    successMsg: string,
+  ): Promise<ApiResponse<Page<T>>> {
+    const qs = buildPaginationQuery(opts);
+    const response = await this.makeRequest<any>(
+      `${endpoint}${qs}`,
       'GET',
       null,
-      true
+      true,
     );
-    return ApiErrorHandler.handleApiResponse(response, 'Echoes retrieved');
+    const items = extractItemsArray<T>(response);
+    const nextCursor = extractNextCursor(response);
+    const wrapped = { ...response, data: { items, nextCursor } };
+    return ApiErrorHandler.handleApiResponse<Page<T>>(wrapped, successMsg);
+  }
+
+  /** Generic full-list fetch — loops through pages until `next_cursor` is
+   *  null (or the safety cap fires). Preserves the legacy contract for
+   *  screens that haven't migrated to infinite-scroll yet. */
+  private async fetchAllPages<T>(
+    endpoint: string,
+    successMsg: string,
+  ): Promise<ApiResponse<T[]>> {
+    const items: T[] = [];
+    let cursor: string | null = null;
+    let lastResponse: any = null;
+
+    for (let page = 0; page < MAX_PAGES_FULL_FETCH; page++) {
+      const qs = buildPaginationQuery({
+        limit: PAGE_SIZE_FULL_FETCH,
+        cursor,
+      });
+      const response = await this.makeRequest<any>(
+        `${endpoint}${qs}`,
+        'GET',
+        null,
+        true,
+      );
+      lastResponse = response;
+      items.push(...extractItemsArray<T>(response));
+      cursor = extractNextCursor(response);
+      if (!cursor) break;
+    }
+
+    if (cursor) {
+      // Safety-cap hit. Surface as a warning but return what we have —
+      // truncated lists are strictly better than 500s.
+      console.warn(
+        `[EchoApi] fetchAllPages hit MAX_PAGES_FULL_FETCH=${MAX_PAGES_FULL_FETCH} ` +
+          `on ${endpoint}; returning ${items.length} items, more remain`,
+      );
+    }
+
+    return ApiErrorHandler.handleApiResponse(
+      { ...lastResponse, data: items },
+      successMsg,
+    );
+  }
+
+// ========== ECHOES ==========
+
+  /** Fetch ALL echoes for the current user (paginates internally). Preserves
+   *  the legacy contract — callers get one flat array. Use `getEchoesPage`
+   *  for infinite-scroll UIs. */
+  async getEchoes(): Promise<ApiResponse<EchoResponse[]>> {
+    return this.fetchAllPages<EchoResponse>('/api/echoes', 'Echoes retrieved');
+  }
+
+  /** Fetch one page of echoes. `opts.cursor` from a prior call's
+   *  `data.nextCursor`; pass `undefined`/`null` for the first page. */
+  async getEchoesPage(
+    opts?: PageOpts,
+  ): Promise<ApiResponse<Page<EchoResponse>>> {
+    return this.fetchPage<EchoResponse>(
+      '/api/echoes',
+      opts,
+      'Echoes page retrieved',
+    );
   }
 
   async getEcho(id: string): Promise<ApiResponse<EchoResponse>> {
@@ -130,14 +271,26 @@ export class EchoApiService extends BaseApiService {
     return ApiErrorHandler.handleApiResponse(response, 'Echo retrieved');
   }
 
+  /** Fetch ALL inbox echoes (received by the current user). Loops through
+   *  pages internally. The legacy shape-normalisation (data.echoes /
+   *  received_echoes) is preserved via `extractItemsArray` so older backend
+   *  versions still resolve. */
   async getInboxEchoes(): Promise<ApiResponse<EchoResponse[]>> {
-    let raw: any;
     try {
-      raw = await this.makeRequest<any>('/api/echoes/inbox', 'GET', null, true);
+      return await this.fetchAllPages<EchoResponse>(
+        '/api/echoes/inbox',
+        'Inbox echoes retrieved',
+      );
     } catch (err: any) {
-      // makeRequest throws on 5xx and network errors — always log so the cause
-      // is visible in Metro even before normalisation runs.
-      console.error('[EchoInbox] request failed:', err?.message, err?.status, err);
+      // makeRequest throws on 5xx and network errors. Mirror the legacy
+      // error envelope so the screens that show "Network error loading
+      // inbox" keep showing it instead of crashing the FlatList.
+      console.error(
+        '[EchoInbox] request failed:',
+        err?.message,
+        err?.status,
+        err,
+      );
       return {
         success: false,
         data: undefined,
@@ -145,21 +298,17 @@ export class EchoApiService extends BaseApiService {
         error: 'NetworkError',
       };
     }
+  }
 
-    console.log('[EchoInbox] raw response:', JSON.stringify(raw, null, 2));
-
-    // Normalise response shape — backend may return echoes under different keys.
-    const r = raw as any;
-    const echoes: EchoResponse[] | undefined =
-      Array.isArray(r.data)                  ? r.data :
-      Array.isArray(r.data?.echoes)          ? r.data.echoes :
-      Array.isArray(r.data?.received_echoes) ? r.data.received_echoes :
-      Array.isArray(r.echoes)                ? r.echoes :
-      Array.isArray(r.received_echoes)       ? r.received_echoes :
-      undefined;
-
-    const normalised = { ...raw, data: echoes };
-    return ApiErrorHandler.handleApiResponse<EchoResponse[]>(normalised, 'Inbox echoes retrieved');
+  /** Fetch one page of inbox echoes. For infinite-scroll callers. */
+  async getInboxEchoesPage(
+    opts?: PageOpts,
+  ): Promise<ApiResponse<Page<EchoResponse>>> {
+    return this.fetchPage<EchoResponse>(
+      '/api/echoes/inbox',
+      opts,
+      'Inbox echoes page retrieved',
+    );
   }
 
   async createEcho(data: CreateEchoRequest): Promise<ApiResponse<EchoResponse>> {
@@ -315,13 +464,17 @@ export class EchoApiService extends BaseApiService {
   // ========== GUARDIANS ==========
 
   async getGuardians(): Promise<ApiResponse<Guardian[]>> {
-    const response = await this.makeRequest<Guardian[]>(
+    return this.fetchAllPages<Guardian>('/api/guardians', 'Guardians retrieved');
+  }
+
+  async getGuardiansPage(
+    opts?: PageOpts,
+  ): Promise<ApiResponse<Page<Guardian>>> {
+    return this.fetchPage<Guardian>(
       '/api/guardians',
-      'GET',
-      null,
-      true
+      opts,
+      'Guardians page retrieved',
     );
-    return ApiErrorHandler.handleApiResponse(response, 'Guardians retrieved');
   }
 
   async addGuardian(data: CreateGuardianRequest): Promise<ApiResponse<Guardian>> {
@@ -347,13 +500,20 @@ export class EchoApiService extends BaseApiService {
   // ========== RECIPIENTS ==========
 
   async getRecipients(): Promise<ApiResponse<Recipient[]>> {
-    const response = await this.makeRequest<Recipient[]>(
+    return this.fetchAllPages<Recipient>(
       '/api/recipients',
-      'GET',
-      null,
-      true
+      'Recipients retrieved',
     );
-    return ApiErrorHandler.handleApiResponse(response, 'Recipients retrieved');
+  }
+
+  async getRecipientsPage(
+    opts?: PageOpts,
+  ): Promise<ApiResponse<Page<Recipient>>> {
+    return this.fetchPage<Recipient>(
+      '/api/recipients',
+      opts,
+      'Recipients page retrieved',
+    );
   }
 
   async addRecipient(data: CreateRecipientRequest): Promise<ApiResponse<Recipient>> {
