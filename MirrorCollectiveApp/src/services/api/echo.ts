@@ -1,6 +1,11 @@
 import ReactNativeBlobUtil from 'react-native-blob-util';
 
 import type { ApiResponse } from '@types';
+import {
+  compressImageIfNeeded,
+  compressVideoIfNeeded,
+  unlinkQuietly,
+} from '@utils/media/compress';
 
 import { BaseApiService } from './base';
 import { ApiErrorHandler } from './errorHandler';
@@ -12,6 +17,34 @@ import { ApiErrorHandler } from './errorHandler';
  */
 function stripFileScheme(uri: string): string {
   return uri.startsWith('file://') ? uri.replace(/^file:\/\//, '') : uri;
+}
+
+/**
+ * Stage in the upload pipeline, reported via the optional onStage callback.
+ * Lets the UI render a "Compressing video…" / "Uploading 42%…" / "Finalizing…"
+ * label that reflects what's actually happening — replacing the all-purpose
+ * "Saving…" spinner that hid 30s of compression time.
+ */
+export type UploadStage =
+  | { type: 'compressing'; fraction: number }
+  | { type: 'requesting_url' }
+  | { type: 'uploading'; sent: number; total: number }
+  | { type: 'finalizing' };
+
+/**
+ * Convert a failed ApiResponse of one data shape into a failed ApiResponse
+ * of another. Used when an early step in a pipeline fails: we want to
+ * propagate the error envelope but the caller's declared return type is
+ * a different data type, so we strip `data` (which is `undefined` on
+ * failure anyway) and re-typed the envelope.
+ *
+ * Safer than `as unknown as ApiResponse<T>` because it explicitly
+ * narrows on `success === false` and drops the foreign `data` field.
+ */
+function forwardFailure<T>(
+  failed: ApiResponse<unknown>,
+): ApiResponse<T> {
+  return { success: false, error: failed.error };
 }
 
 export interface CreateEchoRequest {
@@ -82,6 +115,10 @@ export interface EchoResponse {
 export interface UploadUrlResponse {
   upload_url: string;
   media_url: string;
+  /** Canonical S3 object key — pass to POST /finalize-media. */
+  key: string;
+  /** Bucket the upload lands in (informational; clients rarely need it). */
+  bucket: string;
   expires_in: number;
 }
 
@@ -491,6 +528,133 @@ export class EchoApiService extends BaseApiService {
       const message = error instanceof Error ? error.message : 'Unknown upload error';
       console.error('Native upload error:', message);
       throw new Error(`Cannot upload media file: ${message}`);
+    }
+  }
+
+  /**
+   * Tell the backend "the PUT succeeded — verify and commit it."
+   *
+   * The backend HEADs the S3 object, validates the key prefix matches the
+   * caller's namespace, captures the real Content-Type + size + ETag from
+   * S3 (not from caller input), and atomically writes the canonical
+   * media_url to the echo row. This replaces the older client-driven
+   * `PATCH /echoes/:id` with a `media_url` payload — that path is still
+   * accepted by the backend for compatibility but is no longer the
+   * recommended call shape.
+   */
+  async finalizeMedia(
+    echoId: string,
+    key: string,
+    contentType?: string,
+  ): Promise<ApiResponse<EchoResponse>> {
+    const response = await this.makeRequest<EchoResponse>(
+      `/api/echoes/${encodeURIComponent(echoId)}/finalize-media`,
+      'POST',
+      {
+        key,
+        ...(contentType ? { content_type: contentType } : {}),
+      },
+      true,
+    );
+    return ApiErrorHandler.handleApiResponse(response, 'Media finalized');
+  }
+
+  /**
+   * End-to-end echo-media upload: compress → presign → stream → finalize.
+   *
+   * Why this exists: three screens (NewEchoVideoScreen, NewEchoAudioScreen,
+   * NewEchoComposeScreen) each duplicated the same six lines of glue code
+   * around `getUploadUrl + uploadMedia + updateEcho`. Centralizing the
+   * pipeline lets us:
+   *   - apply compression uniformly (only on this path; profile-photo
+   *     upload-paths in ProfileScreen / AddNewProfileScreen still call
+   *     getUploadUrl + uploadMedia directly because they have a separate
+   *     compression sequence already, via compressImageIfNeeded);
+   *   - emit consistent UploadStage events so each screen's progress UI
+   *     can use the same shape; and
+   *   - migrate to the new POST /finalize-media endpoint in one place.
+   *
+   * @param echoId The echo this media belongs to. Must exist on the
+   *   backend already (a stub row was created by `createEcho`).
+   * @param fileUri Local URI of the file to upload. May be transformed
+   *   by compression before the PUT.
+   * @param contentType MIME type of the *original* file. Compression may
+   *   change the underlying container (mp4 vs mov) but we pass the source
+   *   MIME so the backend's HeadObject sees the right value.
+   * @param onStage Optional progress reporter. Fires for compressing /
+   *   requesting URL / uploading (bytes) / finalizing transitions.
+   *
+   * @returns The fully populated echo row (status, media_url, recipient,
+   *   etc.) — same shape as `GET /echoes/{id}` so callers can drop it
+   *   straight into their cached state.
+   */
+  async uploadEchoMedia(
+    echoId: string,
+    fileUri: string,
+    contentType: string,
+    onStage?: (stage: UploadStage) => void,
+  ): Promise<ApiResponse<EchoResponse>> {
+    // 1. Compress when the source is large. Track the compressed URI
+    // separately so we can clean it up regardless of how the rest of
+    // the pipeline ends — without this, every failed upload leaks a
+    // temp file into the cache directory.
+    let workingUri = fileUri;
+    if (contentType.startsWith('video/')) {
+      const { uri } = await compressVideoIfNeeded(fileUri, fraction => {
+        onStage?.({ type: 'compressing', fraction });
+      });
+      workingUri = uri;
+    } else if (contentType.startsWith('image/')) {
+      onStage?.({ type: 'compressing', fraction: 0 });
+      const { uri } = await compressImageIfNeeded(fileUri);
+      workingUri = uri;
+      onStage?.({ type: 'compressing', fraction: 1 });
+    }
+
+    try {
+      // 2. Ask the backend for a presigned PUT URL + the S3 key it picked.
+      onStage?.({ type: 'requesting_url' });
+      const presigned = await this.getUploadUrl(contentType, echoId, 'echo');
+      if (!presigned.success || !presigned.data) {
+        return forwardFailure<EchoResponse>(presigned);
+      }
+      const { upload_url, key } = presigned.data;
+
+      // 3. Stream the (possibly compressed) file to S3.
+      await this.uploadMedia(
+        upload_url,
+        workingUri,
+        contentType,
+        (sent, total) => {
+          onStage?.({ type: 'uploading', sent, total });
+        },
+      );
+
+      // 4. Atomic commit. Server HEADs S3, captures truth, writes DDB.
+      // If this fails, the bytes are in S3 but the echo row has no
+      // media_url — the user must re-attempt media attach. We surface
+      // a specific error message so the UI can tell them so.
+      onStage?.({ type: 'finalizing' });
+      const finalized = await this.finalizeMedia(echoId, key, contentType);
+      if (!finalized.success) {
+        // Use || (not ??) — backend may return `error: ''` for a 500.
+        // The user-facing copy is intentionally specific: the bytes ARE
+        // in S3 at this point, so "upload failed" is misleading. The
+        // remediation is "try saving again", which re-creates the row.
+        return {
+          ...finalized,
+          error:
+            finalized.error ||
+            'Upload completed but could not be confirmed. Please try saving again.',
+        };
+      }
+      return finalized;
+    } finally {
+      // Best-effort cleanup of the compressed temp file. The original
+      // (picker-supplied) URI is the platform's — never touch it.
+      if (workingUri !== fileUri) {
+        await unlinkQuietly(workingUri);
+      }
     }
   }
 

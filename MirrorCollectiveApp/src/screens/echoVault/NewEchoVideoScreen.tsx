@@ -55,6 +55,10 @@ const NewEchoVideoScreen: React.FC<Props> = ({ navigation, route }) => {
   const [pickedVideo, setPickedVideo] = useState<{ uri: string; name: string; type: string } | null>(null);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
   const [saving, setSaving] = useState(false);
+  // 0..1 wall-clock progress across compress + upload + finalize. The
+  // SAVE button label shows the percentage so the user has feedback
+  // beyond the indeterminate spinner.
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [isPicking, setIsPicking] = useState(false);
   // True between "user tapped stop" and "onRecordingFinished/Error fires" —
   // gives the user immediate visual feedback during the async file finalize step.
@@ -204,6 +208,7 @@ const NewEchoVideoScreen: React.FC<Props> = ({ navigation, route }) => {
     }
     try {
       setSaving(true);
+      setUploadProgress(0);
       const createRes = await echoApiService.createEcho({
         title: echoTitle || 'Untitled Video Echo',
         category: category || 'General',
@@ -211,15 +216,36 @@ const NewEchoVideoScreen: React.FC<Props> = ({ navigation, route }) => {
         recipient_id: recipientId,
       });
       if (!createRes.success || !createRes.data) throw new Error('Failed to create echo');
-      const uploadRes = await echoApiService.getUploadUrl(contentType, createRes.data.echo_id);
-      if (uploadRes.success && uploadRes.data) {
-        await echoApiService.uploadMedia(uploadRes.data.upload_url, uri, contentType);
-        await echoApiService.updateEcho(createRes.data.echo_id, { media_url: uploadRes.data.media_url });
-      }
+
+      // Compress → presign → stream → finalize via the umbrella helper.
+      const result = await echoApiService.uploadEchoMedia(
+        createRes.data.echo_id,
+        uri,
+        contentType,
+        stage => {
+          if (stage.type === 'compressing') {
+            // Compression takes ~25% of perceived progress for 1m clips.
+            setUploadProgress(stage.fraction * 0.25);
+          } else if (stage.type === 'uploading' && stage.total > 0) {
+            setUploadProgress(0.25 + 0.7 * (stage.sent / stage.total));
+          } else if (stage.type === 'finalizing') {
+            setUploadProgress(0.97);
+          }
+        },
+      );
+      if (!result.success) throw new Error(result.error ?? 'Upload failed');
+      setUploadProgress(1);
+
       Alert.alert('Saved', 'Echo saved successfully');
       navigation.navigate('MirrorEchoVaultHome');
+      // NOTE: do NOT reset uploadProgress here. The component is still
+      // mounted while navigation animates away; setting it to 0 would
+      // flash "0%" on the SAVE button momentarily. The state is reset
+      // naturally when the screen unmounts. The catch branch handles
+      // the failure path explicitly.
     } catch {
       Alert.alert('Error', 'Failed to save echo');
+      setUploadProgress(0);
     } finally {
       setSaving(false);
     }
@@ -341,7 +367,7 @@ const NewEchoVideoScreen: React.FC<Props> = ({ navigation, route }) => {
             <Button
               variant="primary"
               size="L"
-              title={saving ? '...' : 'SAVE'}
+              title={saving ? `${Math.round(uploadProgress * 100)}%` : 'SAVE'}
               onPress={handleSave}
               disabled={saving || !hasVideo}
               style={styles.saveBtn}

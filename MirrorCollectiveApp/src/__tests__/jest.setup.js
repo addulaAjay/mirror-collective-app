@@ -235,6 +235,23 @@ jest.mock('react-native-blob-util', () => {
     default: {
       fetch: jest.fn(() => task),
       wrap: jest.fn((p) => p),
+      fs: {
+        // Default to "size unknown" so compress.ts gracefully falls
+        // through. Individual tests can override via
+        //   jest.requireMock('react-native-blob-util').default.fs.stat.mockResolvedValue({size: '12345'})
+        stat: jest.fn().mockRejectedValue(new Error('not mocked')),
+        // No-op cleanup so unlinkQuietly() doesn't throw.
+        unlink: jest.fn().mockResolvedValue(undefined),
+      },
     },
   };
 });
+
+// Mock react-native-compressor — native iOS/Android module. Default
+// pass-through means tests don't need to know about compression unless
+// they want to assert behavior; in that case override per-test.
+jest.mock('react-native-compressor', () => ({
+  __esModule: true,
+  Video: { compress: jest.fn((uri) => Promise.resolve(uri)) },
+  Image: { compress: jest.fn((uri) => Promise.resolve(uri)) },
+}));

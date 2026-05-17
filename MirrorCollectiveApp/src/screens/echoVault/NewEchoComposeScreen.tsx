@@ -298,12 +298,18 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
         if (mode === 'text') updateData.content = message;
         if (mediaUri && mode !== 'text') {
           const contentType = mediaFile?.type || (mode === 'audio' ? 'audio/mp4' : 'video/mp4');
-          const uploadUrlResponse = await echoApiService.getUploadUrl(contentType, editEchoId);
-          if (!uploadUrlResponse.success || !uploadUrlResponse.data) {
-            throw new Error('Could not get upload URL. Please try again.');
+          // Compress + presign + stream + finalize in one call. The
+          // backend HEADs S3 server-side and writes media_url to the row
+          // atomically — we don't need to (and must not) pass it in the
+          // metadata PATCH below.
+          const mediaResult = await echoApiService.uploadEchoMedia(
+            editEchoId,
+            mediaUri,
+            contentType,
+          );
+          if (!mediaResult.success) {
+            throw new Error(mediaResult.error ?? 'Media upload failed');
           }
-          await echoApiService.uploadMedia(uploadUrlResponse.data.upload_url, mediaUri, contentType);
-          updateData.media_url = uploadUrlResponse.data.media_url;
         }
         // Propagate recipient + lock-date changes from the recipient-picker
         // step. Backend treats explicit null as "clear", so when the user
@@ -368,12 +374,14 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
 
       if (mode !== 'text' && mediaUri && newEchoId) {
         const contentType = mediaFile?.type || (mode === 'audio' ? 'audio/mp4' : 'video/mp4');
-        const uploadUrlResponse = await echoApiService.getUploadUrl(contentType, newEchoId);
-        if (!uploadUrlResponse.success || !uploadUrlResponse.data) {
-          throw new Error('Could not get upload URL. Please try again.');
+        const mediaResult = await echoApiService.uploadEchoMedia(
+          newEchoId,
+          mediaUri,
+          contentType,
+        );
+        if (!mediaResult.success) {
+          throw new Error(mediaResult.error ?? 'Media upload failed');
         }
-        await echoApiService.uploadMedia(uploadUrlResponse.data.upload_url, mediaUri, contentType);
-        await echoApiService.updateEcho(newEchoId, { media_url: uploadUrlResponse.data.media_url });
       }
 
       Alert.alert('Success', 'Echo saved to vault!', [
