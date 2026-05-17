@@ -19,6 +19,10 @@ import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
 import { MessageBubble, ChatInput, LoadingIndicator } from '@components/ui';
 import { useChat } from '@hooks/useChat';
+import {
+  useAutoReadOnNewMessage,
+  useAutoReadPreference,
+} from '@services/speech';
 
 // Export content component for testing
 export function MirrorChatContent() {
@@ -33,6 +37,13 @@ export function MirrorChatContent() {
     sendMessage,
     setDraft,
   } = useChat();
+  const { enabled: autoReadEnabled } = useAutoReadPreference();
+
+  // When auto-read is on, this hook speaks each new assistant reply on
+  // arrival. It guards against speaking the initial greeting and stops
+  // any in-flight speech on screen unmount. Tap-to-read via the bubble
+  // speaker button continues to work independently.
+  useAutoReadOnNewMessage(messages, autoReadEnabled);
 
   // Initialize session when component mounts
   useEffect(() => {

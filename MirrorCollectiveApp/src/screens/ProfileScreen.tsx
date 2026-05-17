@@ -44,6 +44,7 @@ import TextInputField from '@components/TextInputField';
 import { useUser } from '@context/UserContext';
 import { authApiService } from '@services/api';
 import { echoApiService } from '@services/api/echo';
+import { SpeechSettingsRow } from './settings/SpeechSettingsRow';
 
 const AVATAR_SIZE = moderateScale(160);
 
@@ -240,6 +241,13 @@ const ProfileScreen: React.FC = () => {
                   placeholderFontFamily="regular"
                   inputTextStyle="gold-regular"
                 />
+              </View>
+
+              {/* Settings — currently just the speech toggle. The row's
+                  hook hydrates from AsyncStorage on its own; we don't
+                  block the rest of the screen waiting for it. */}
+              <View style={styles.form}>
+                <SpeechSettingsRow />
               </View>
 
               {/* Save — no active prop so button renders in default (inactive) state */}

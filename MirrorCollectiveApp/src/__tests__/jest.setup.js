@@ -38,6 +38,7 @@ jest.mock('react-native', () => {
     SafeAreaView: 'SafeAreaView',
     KeyboardAvoidingView: 'KeyboardAvoidingView',
     ActivityIndicator: 'ActivityIndicator',
+    Switch: 'Switch',
     Alert: { alert: jest.fn() },
     Linking: { openURL: jest.fn() },
     StatusBar: Object.assign(jest.fn(() => null), { 
@@ -283,4 +284,22 @@ jest.mock('react-native-compressor', () => ({
 jest.mock('expo-image', () => ({
   __esModule: true,
   Image: 'Image',
+}));
+
+// Mock react-native-tts — its native module would crash jest at import.
+// Provide a minimal stub that records calls; tests that need to assert
+// on speak/stop should use the wrapper at @services/speech and let it
+// drive this mock. Tests that mock the wrapper directly (most of them)
+// bypass this stub entirely.
+jest.mock('react-native-tts', () => ({
+  __esModule: true,
+  default: {
+    speak: jest.fn(),
+    stop: jest.fn(),
+    setDefaultRate: jest.fn(),
+    setDefaultLanguage: jest.fn(),
+    getInitStatus: jest.fn(() => Promise.resolve('success')),
+    addEventListener: jest.fn(() => ({ remove: jest.fn() })),
+    removeAllListeners: jest.fn(),
+  },
 }));
