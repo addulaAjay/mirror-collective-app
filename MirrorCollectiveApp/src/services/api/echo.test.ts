@@ -690,6 +690,14 @@ describe('EchoApiService', () => {
       mockUnlink.mockResolvedValue(undefined);
 
       // Source is large enough to trigger compression; result size is unknown.
+      // Three stat calls in sequence:
+      //   1. uploadEchoMedia → originalBytes (telemetry)
+      //   2. compressVideoIfNeeded → decide skip-or-compress
+      //   3. compressVideoIfNeeded → measure compressed result
+      // Force the first two above the 10 MB compression threshold so
+      // compression actually runs and produces the temp file we want
+      // to assert gets unlinked.
+      mockStat.mockResolvedValueOnce({ size: '50000000' });
       mockStat.mockResolvedValueOnce({ size: '50000000' });
       mockStat.mockResolvedValue({ size: '5000000' });
       Video.compress.mockResolvedValueOnce('/cache/clip.compressed.mp4');
@@ -738,6 +746,14 @@ describe('EchoApiService', () => {
       mockStat.mockReset();
       mockUnlink.mockResolvedValue(undefined);
 
+      // Three stat calls in sequence:
+      //   1. uploadEchoMedia → originalBytes (telemetry)
+      //   2. compressVideoIfNeeded → decide skip-or-compress
+      //   3. compressVideoIfNeeded → measure compressed result
+      // Force the first two above the 10 MB compression threshold so
+      // compression actually runs and produces the temp file we want
+      // to assert gets unlinked.
+      mockStat.mockResolvedValueOnce({ size: '50000000' });
       mockStat.mockResolvedValueOnce({ size: '50000000' });
       mockStat.mockResolvedValue({ size: '5000000' });
       Video.compress.mockResolvedValueOnce('/cache/clip.compressed.mp4');
