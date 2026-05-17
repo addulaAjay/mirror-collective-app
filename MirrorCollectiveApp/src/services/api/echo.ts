@@ -531,9 +531,18 @@ export class EchoApiService extends BaseApiService {
       );
 
       if (onProgress) {
-        task.uploadProgress({ interval: 250 }, (sent, total) => {
-          onProgress(Number(sent), Number(total));
-        });
+        // react-native-blob-util's TypeScript types declare the callback
+        // params as `number`, but the native bridge actually delivers
+        // strings on both iOS and Android. The library's .d.ts is wrong.
+        // Type the inner callback honestly and coerce at the boundary —
+        // anyone reading this in five years won't have to re-discover
+        // the lib's bug.
+        task.uploadProgress(
+          { interval: 250 },
+          (sent: string | number, total: string | number) => {
+            onProgress(Number(sent), Number(total));
+          },
+        );
       }
 
       const response = await task;
@@ -651,12 +660,20 @@ export class EchoApiService extends BaseApiService {
     // afterward. A tight timeout here would surface as "upload
     // failed" to the user even though the bytes successfully landed
     // and S3 was simply busy assembling them.
+    //
+    // Idempotency key is DERIVED from upload_id (not a fresh UUID per
+    // call): two complete attempts for the same S3 upload session must
+    // hit the same server-side cache entry. A fresh UUID per call
+    // would defeat the dedup if the app retried after a crash mid-
+    // flight or the user re-tapped Save before the first attempt's
+    // response landed.
+    const idempotencyKey = `mp-complete:${uploadId}`;
     const response = await this.makeRequest<EchoResponse>(
       `/api/echoes/${encodeURIComponent(echoId)}/multipart/complete`,
       'POST',
       { upload_id: uploadId, key, parts },
       true,
-      { 'Idempotency-Key': uuidV4() },
+      { 'Idempotency-Key': idempotencyKey },
       { timeoutMs: 30_000 },
     );
     return ApiErrorHandler.handleApiResponse(response, 'Multipart upload completed');
@@ -736,24 +753,27 @@ export class EchoApiService extends BaseApiService {
     contentType: string,
     onStage?: (stage: UploadStage) => void,
   ): Promise<ApiResponse<EchoResponse>> {
-    // 1. Compress when the source is large. Track the compressed URI
-    // separately so we can clean it up regardless of how the rest of
-    // the pipeline ends — without this, every failed upload leaks a
-    // temp file into the cache directory.
+    // workingUri tracks the file we're actually uploading. If
+    // compression runs, it's a compressed copy in the cache dir; the
+    // try/finally below guarantees it gets unlinked no matter how the
+    // pipeline ends — including if compression itself throws partway
+    // (the original bug: the try block started AFTER compression, so
+    // a failed compress left a partial temp file behind).
     let workingUri = fileUri;
-    if (contentType.startsWith('video/')) {
-      const { uri } = await compressVideoIfNeeded(fileUri, fraction => {
-        onStage?.({ type: 'compressing', fraction });
-      });
-      workingUri = uri;
-    } else if (contentType.startsWith('image/')) {
-      onStage?.({ type: 'compressing', fraction: 0 });
-      const { uri } = await compressImageIfNeeded(fileUri);
-      workingUri = uri;
-      onStage?.({ type: 'compressing', fraction: 1 });
-    }
-
     try {
+      // 1. Compress when the source is large.
+      if (contentType.startsWith('video/')) {
+        const { uri } = await compressVideoIfNeeded(fileUri, fraction => {
+          onStage?.({ type: 'compressing', fraction });
+        });
+        workingUri = uri;
+      } else if (contentType.startsWith('image/')) {
+        onStage?.({ type: 'compressing', fraction: 0 });
+        const { uri } = await compressImageIfNeeded(fileUri);
+        workingUri = uri;
+        onStage?.({ type: 'compressing', fraction: 1 });
+      }
+
       // 2. Decide single-PUT vs multipart based on (post-compression)
       // file size. Anything we can't measure (PHAsset-style URI before
       // export) defaults to single-PUT.

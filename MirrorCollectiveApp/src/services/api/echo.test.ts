@@ -500,6 +500,58 @@ describe('EchoApiService', () => {
     });
   });
 
+  describe('completeMultipart', () => {
+    it('uses a deterministic Idempotency-Key derived from upload_id', async () => {
+      // Two calls with the SAME upload_id must produce the SAME key —
+      // a fresh UUID per call would defeat backend dedup if the app
+      // retried after a crash mid-flight.
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: async () => ({ success: true, data: { echo_id: 'e-1' } }),
+      });
+
+      await echoApiService.completeMultipart('e-1', 'UPLOAD-X', 'k', [
+        { part_number: 1, etag: 'a' },
+      ]);
+      await echoApiService.completeMultipart('e-1', 'UPLOAD-X', 'k', [
+        { part_number: 1, etag: 'a' },
+      ]);
+
+      const calls = (global.fetch as jest.Mock).mock.calls;
+      const k1 = (calls[0][1] as { headers: Record<string, string> }).headers[
+        'Idempotency-Key'
+      ];
+      const k2 = (calls[1][1] as { headers: Record<string, string> }).headers[
+        'Idempotency-Key'
+      ];
+      expect(k1).toBe(k2);
+      expect(k1).toContain('UPLOAD-X');
+    });
+
+    it('uses different keys for different upload_ids', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: async () => ({ success: true, data: { echo_id: 'e-1' } }),
+      });
+
+      await echoApiService.completeMultipart('e-1', 'UPLOAD-A', 'k', [
+        { part_number: 1, etag: 'a' },
+      ]);
+      await echoApiService.completeMultipart('e-1', 'UPLOAD-B', 'k', [
+        { part_number: 1, etag: 'b' },
+      ]);
+
+      const calls = (global.fetch as jest.Mock).mock.calls;
+      const k1 = (calls[0][1] as { headers: Record<string, string> }).headers[
+        'Idempotency-Key'
+      ];
+      const k2 = (calls[1][1] as { headers: Record<string, string> }).headers[
+        'Idempotency-Key'
+      ];
+      expect(k1).not.toBe(k2);
+    });
+  });
+
   describe('uploadEchoMedia (umbrella)', () => {
     beforeEach(() => {
       mockFetch.mockReset();

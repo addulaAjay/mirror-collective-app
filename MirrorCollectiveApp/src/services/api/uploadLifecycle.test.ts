@@ -43,20 +43,48 @@ describe('startUploadLifecycleMonitor', () => {
     expect(m.isBackgroundedSinceStart).toBe(true);
   });
 
-  it('also flips on the iOS "inactive" intermediate state', () => {
+  it('flips isBackgroundedSinceStart on inactive (for telemetry)', () => {
     const m = startUploadLifecycleMonitor();
     emit('inactive');
     expect(m.isBackgroundedSinceStart).toBe(true);
   });
 
-  it('fires onBackground exactly once even on multiple transitions', () => {
+  it('does NOT fire onBackground for inactive-only transitions', () => {
+    // 'inactive' fires for incoming calls / Control Center swipes —
+    // showing "Save paused" during a declined call would be a false
+    // positive. Only real 'background' transitions fire the callback.
+    const onBackground = jest.fn();
+    startUploadLifecycleMonitor({ onBackground });
+    emit('inactive');
+    emit('active');
+    expect(onBackground).not.toHaveBeenCalled();
+  });
+
+  it('fires onBackground exactly once even on multiple background transitions', () => {
     const onBackground = jest.fn();
     startUploadLifecycleMonitor({ onBackground });
     emit('background');
     emit('active');
     emit('background');
-    emit('inactive');
     expect(onBackground).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not fire onBackground after stop() (post-navigation safety)', () => {
+    // Race: upload finishes → screen navigates away → finally runs
+    // stop(). If a 'background' event lands in the same tick, the
+    // Alert would otherwise pop on the new screen.
+    const onBackground = jest.fn();
+    const m = startUploadLifecycleMonitor({ onBackground });
+    m.stop();
+    emit('background');
+    expect(onBackground).not.toHaveBeenCalled();
+  });
+
+  it('stop() is idempotent (safe to call twice)', () => {
+    const m = startUploadLifecycleMonitor();
+    m.stop();
+    m.stop();
+    expect(removeCalls).toBe(1);
   });
 
   it('ignores active-only transitions', () => {
