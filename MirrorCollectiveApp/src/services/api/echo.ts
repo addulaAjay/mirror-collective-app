@@ -4,6 +4,7 @@ import type { ApiResponse } from '@types';
 import {
   compressImageIfNeeded,
   compressVideoIfNeeded,
+  createPosterThumbnail,
   unlinkQuietly,
 } from '@utils/media/compress';
 import { uuidV4 } from '@utils/uuid';
@@ -92,6 +93,13 @@ export interface EchoResponse {
   status?: EchoStatus;
   created_at: string;
   media_url?: string;
+  /**
+   * Video-only: presigned URL for a poster JPEG extracted client-side
+   * at upload time. Use as the thumbnail in list cards and as the
+   * Video player's poster prop. Absent for audio / text / pre-PR6
+   * video rows.
+   */
+  poster_url?: string;
   content?: string;
   recipient?: {
     recipient_id: string;
@@ -612,6 +620,34 @@ export class EchoApiService extends BaseApiService {
     return ApiErrorHandler.handleApiResponse(response, 'Media finalized');
   }
 
+  /**
+   * Attach a client-extracted poster frame to a video echo.
+   *
+   * The poster is a JPEG produced by
+   * ``react-native-compressor.createVideoThumbnail`` from the same
+   * video the client just uploaded. After uploading the JPEG via the
+   * standard single-PUT path, the client calls this to commit it as
+   * the thumbnail on the echo row.
+   *
+   * No idempotency key — the poster slot is naturally idempotent (a
+   * retry just overwrites the same URL). Default timeout is fine.
+   */
+  async attachPoster(
+    echoId: string,
+    key: string,
+  ): Promise<ApiResponse<{ echo_id: string; poster_url: string }>> {
+    const response = await this.makeRequest<{
+      echo_id: string;
+      poster_url: string;
+    }>(
+      `/api/echoes/${encodeURIComponent(echoId)}/attach-poster`,
+      'POST',
+      { key },
+      true,
+    );
+    return ApiErrorHandler.handleApiResponse(response, 'Poster attached');
+  }
+
   // ========== Multipart upload (files > MULTIPART_THRESHOLD) ==========
   //
   // Wraps the four backend routes that bridge to S3's MultipartUpload
@@ -854,6 +890,13 @@ export class EchoApiService extends BaseApiService {
           onStage,
         });
         accumulator?.markStageEnd('upload');
+        // Fire-and-forget poster extraction for video. Failure is
+        // non-fatal — the echo is already saved; the poster just
+        // won't appear in lists until the user re-uploads. See
+        // _attachPosterIfVideo for details.
+        if (result.success && contentType.startsWith('video/')) {
+          void this._attachPosterIfVideo(echoId, workingUri);
+        }
         return result;
       }
 
@@ -899,12 +942,71 @@ export class EchoApiService extends BaseApiService {
             'Upload completed but could not be confirmed. Please try saving again.',
         };
       }
+      // Fire-and-forget poster extraction for video echoes. Doesn't
+      // block the user's save — if it fails, the echo is still saved
+      // and the list just won't show a thumbnail for this video.
+      if (contentType.startsWith('video/')) {
+        void this._attachPosterIfVideo(echoId, workingUri);
+      }
       return finalized;
     } finally {
       // Best-effort cleanup of the compressed temp file. The original
       // (picker-supplied) URI is the platform's — never touch it.
       if (workingUri !== fileUri) {
         await unlinkQuietly(workingUri);
+      }
+    }
+  }
+
+  /**
+   * Extract a poster frame from a video and attach it to the echo.
+   *
+   * Runs as fire-and-forget AFTER a successful video upload. Failure
+   * at any step is non-fatal — the echo is already saved; the worst
+   * outcome is "no thumbnail in vault list for this video," which
+   * the UI handles by falling back to the existing motif/avatar.
+   *
+   * Pipeline:
+   *   1. createVideoThumbnail(workingUri) → JPEG at app cache path
+   *   2. getUploadUrl(image/jpeg, echoId) → presigned URL + S3 key
+   *   3. uploadMedia(uploadUrl, posterPath) → bytes land in S3
+   *   4. attachPoster(echoId, key) → backend writes poster_url to DDB
+   *   5. cleanup the local poster file
+   *
+   * No retry on failure (don't compound a low-impact secondary task).
+   * No idempotency key (the backend route allows overwrite, so a
+   * retried call is harmless).
+   */
+  private async _attachPosterIfVideo(
+    echoId: string,
+    videoUri: string,
+  ): Promise<void> {
+    let posterPath: string | null = null;
+    try {
+      posterPath = await createPosterThumbnail(videoUri);
+      if (!posterPath) return; // generation failed; logged inside helper
+
+      const presigned = await this.getUploadUrl('image/jpeg', echoId, 'echo');
+      if (!presigned.success || !presigned.data) {
+        console.warn(
+          'Poster upload-url failed:',
+          presigned.error ?? 'unknown',
+        );
+        return;
+      }
+      const { upload_url, key } = presigned.data;
+
+      await this.uploadMedia(upload_url, posterPath, 'image/jpeg');
+      const attached = await this.attachPoster(echoId, key);
+      if (!attached.success) {
+        console.warn('attachPoster failed:', attached.error ?? 'unknown');
+      }
+    } catch (err) {
+      // Never propagate — caller is `void`-ing this.
+      console.warn('Poster attach pipeline failed:', err);
+    } finally {
+      if (posterPath) {
+        await unlinkQuietly(posterPath);
       }
     }
   }
