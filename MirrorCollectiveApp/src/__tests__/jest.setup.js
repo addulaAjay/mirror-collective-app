@@ -251,6 +251,10 @@ jest.mock('react-native-blob-util', () => {
         stat: jest.fn().mockRejectedValue(new Error('not mocked')),
         // No-op cleanup so unlinkQuietly() doesn't throw.
         unlink: jest.fn().mockResolvedValue(undefined),
+        // Default to "no file" so the vault library's resume scanner
+        // sees an empty pending list in tests. Override per-test as
+        // needed for resume-flow scenarios.
+        exists: jest.fn().mockResolvedValue(false),
       },
     },
   };

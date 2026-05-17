@@ -25,7 +25,7 @@
  *   Radius/M: 16, Spacing/M: 16, Spacing/S: 12, Spacing/XL: 24
  */
 
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
   borderWidth,
@@ -69,6 +69,15 @@ import Button from '@components/Button/Button';
 import { CachedImage } from '@components/CachedImage';
 import LogoHeader from '@components/LogoHeader';
 import { echoApiService, type EchoResponse } from '@services/api/echo';
+import { resumeMediaMultipart } from '@services/api/multipart';
+import {
+  type PendingUpload,
+  listResumableUploads,
+  removePending,
+} from '@services/api/pendingUploads';
+import ReactNativeBlobUtil from 'react-native-blob-util';
+
+import { ResumeUploadBanner } from './ResumeUploadBanner';
 
 /**
  * UI-facing echo state — derived from the backend (`status`, `release_date`)
@@ -261,6 +270,104 @@ export function EchoLibraryContent() {
     refresh,
   } = useInfiniteList<EchoResponse>(fetchEchoPage);
 
+  // ── Resume-upload state ───────────────────────────────────────────
+  // Holds the rows returned by listResumableUploads(). Refreshed on
+  // every screen focus so the user sees pending uploads as soon as
+  // they navigate back to the vault, including the cold-start case.
+  const [pending, setPending] = useState<PendingUpload[]>([]);
+  const [resumingEchoId, setResumingEchoId] = useState<string | null>(null);
+  const [resumeProgress, setResumeProgress] = useState(0);
+
+  /** Probe used by listResumableUploads to filter rows whose source
+   *  file has been reclaimed by the OS. Returns false on any error so
+   *  a borderline-broken cache state can't keep a stale row alive. */
+  const fileExists = useCallback(async (path: string): Promise<boolean> => {
+    try {
+      const stripped = path.startsWith('file://') ? path.slice(7) : path;
+      return await ReactNativeBlobUtil.fs.exists(stripped);
+    } catch {
+      return false;
+    }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      let cancelled = false;
+      (async () => {
+        const rows = await listResumableUploads(fileExists);
+        if (!cancelled) setPending(rows);
+      })();
+      return () => {
+        cancelled = true;
+      };
+    }, [fileExists]),
+  );
+
+  const handleResumeContinue = useCallback(
+    async (row: PendingUpload) => {
+      setResumingEchoId(row.echoId);
+      setResumeProgress(0);
+      try {
+        const result = await resumeMediaMultipart(
+          echoApiService,
+          row,
+          stage => {
+            // Map upload progress to a single 0..1 progress fraction
+            // for the banner. We weight 'uploading' as 0..0.95 and
+            // 'finalizing' as 0.95..1 to match the new-echo screens.
+            if (stage.type === 'uploading' && stage.total > 0) {
+              setResumeProgress(Math.min(0.95, stage.sent / stage.total));
+            } else if (stage.type === 'finalizing') {
+              setResumeProgress(0.97);
+            }
+          },
+        );
+        setResumeProgress(1);
+        if (!result.success) {
+          // The resume helper handles abort + pending-row cleanup on
+          // failure internally; we just surface the message.
+          console.warn('Resume failed:', result.error ?? 'unknown');
+        }
+      } catch (err) {
+        // Network failure / non-recoverable error already cleaned up
+        // inside resumeMediaMultipart's catch. Log and move on.
+        console.warn('Resume threw:', err);
+      } finally {
+        setResumingEchoId(null);
+        setResumeProgress(0);
+        // Drop the row from the local pending list and refresh the
+        // vault so the newly-complete echo shows up.
+        setPending(p => p.filter(r => r.echoId !== row.echoId));
+        await refresh();
+      }
+    },
+    [refresh],
+  );
+
+  const handleResumeDismiss = useCallback(
+    async (row: PendingUpload) => {
+      // Best-effort cleanup: abort the S3 session so the bucket
+      // lifecycle rule doesn't have to (it would, after 7d, but we
+      // can free the storage now). Then drop the pending row + the
+      // cached source file.
+      try {
+        await echoApiService.abortMultipart(row.echoId, row.uploadId, row.key);
+      } catch (err) {
+        console.warn('Dismiss abort failed (harmless):', err);
+      }
+      await removePending(row.echoId);
+      await ReactNativeBlobUtil.fs
+        .unlink(
+          row.cachedFileUri.startsWith('file://')
+            ? row.cachedFileUri.slice(7)
+            : row.cachedFileUri,
+        )
+        .catch(() => undefined);
+      setPending(p => p.filter(r => r.echoId !== row.echoId));
+    },
+    [],
+  );
+
   const handleOpenItem = (item: EchoResponse) => {
     if (item.echo_type === 'AUDIO') {
       navigation.navigate('EchoAudioPlaybackScreen', { echoId: item.echo_id, title: item.title });
@@ -303,6 +410,19 @@ export function EchoLibraryContent() {
               Preserve memories that matter most
             </Text>
           </View>
+
+          {/* Resume banner — surfaces in-flight multipart uploads that
+              survived a force-quit. Rendered above the rest of the
+              vault content so the user can act on it first. Empty
+              `pending` returns null, so this costs nothing when there's
+              no recovery work. */}
+          <ResumeUploadBanner
+            pending={pending}
+            resumingEchoId={resumingEchoId}
+            resumingProgress={resumeProgress}
+            onContinue={handleResumeContinue}
+            onDismiss={handleResumeDismiss}
+          />
 
           {/* ── Echo Inbox link — temporarily hidden ───────────────────
               Feature is on hold pending design/product discussion. Keep
