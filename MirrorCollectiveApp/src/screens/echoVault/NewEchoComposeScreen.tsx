@@ -21,6 +21,7 @@ import {
   PermissionsAndroid,
   Linking,
   Image,
+  ActivityIndicator,
 } from 'react-native';
 import AudioRecorderPlayer from 'react-native-audio-recorder-player';
 import DocumentPicker from 'react-native-document-picker';
@@ -34,9 +35,30 @@ import { Camera, useCameraDevice, useCameraPermission, useMicrophonePermission }
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import Button from '@components/Button';
 import LogoHeader from '@components/LogoHeader';
+import UploadProgressOverlay from '@components/UploadProgressOverlay';
 import { echoApiService } from '@services/api';
+import type { UploadStage } from '@services/api/echo';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'NewEchoComposeScreen'>;
+
+// Compression takes ~25% of perceived time for typical 1m clips; upload
+// dominates the middle 70%; finalize lands the remainder. Matches the
+// mapping already in use in NewEchoVideoScreen so the bar advances at
+// the same pace across both entry points.
+const stageToProgress = (stage: UploadStage): number => {
+  switch (stage.type) {
+    case 'compressing':
+      return stage.fraction * 0.25;
+    case 'requesting_url':
+      return 0.25;
+    case 'uploading':
+      return stage.total > 0
+        ? 0.25 + 0.7 * (stage.sent / stage.total)
+        : 0.25;
+    case 'finalizing':
+      return 0.97;
+  }
+};
 
 const { width: W } = Dimensions.get('window');
 
@@ -55,7 +77,14 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
   const [mediaFile, setMediaFile] = useState<{ name: string; type: string } | null>(null);
   const [recordingDuration, setRecordingDuration] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadStage, setUploadStage] = useState<UploadStage | null>(null);
   const [isPicking, setIsPicking] = useState(false);
+  // True from the moment the user starts picking through the first frame
+  // of the picked video / first audio-ready event. Bridges the gap
+  // between picker dismiss → file copied into sandbox → Video.onLoad,
+  // which on physical devices can easily be 2–4s for a large clip.
+  const [isPreparingMedia, setIsPreparingMedia] = useState(false);
   const [pendingPicker, setPendingPicker] = useState<'audio' | 'video' | 'text' | null>(null);
 
   // Audio Playback
@@ -291,6 +320,8 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
     }
 
     setIsSaving(true);
+    setUploadProgress(0);
+    setUploadStage(null);
     try {
       // ── Edit mode: PATCH existing echo ───────────────────────────────────
       if (editEchoId) {
@@ -306,6 +337,10 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
             editEchoId,
             mediaUri,
             contentType,
+            stage => {
+              setUploadStage(stage);
+              setUploadProgress(stageToProgress(stage));
+            },
           );
           if (!mediaResult.success) {
             throw new Error(mediaResult.error ?? 'Media upload failed');
@@ -378,6 +413,10 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
           newEchoId,
           mediaUri,
           contentType,
+          stage => {
+            setUploadStage(stage);
+            setUploadProgress(stageToProgress(stage));
+          },
         );
         if (!mediaResult.success) {
           throw new Error(mediaResult.error ?? 'Media upload failed');
@@ -391,6 +430,8 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
     } catch (error: any) {
       console.error('Save failed:', error);
       Alert.alert('Error', error?.message || 'Failed to save echo. Please try again.');
+      setUploadProgress(0);
+      setUploadStage(null);
     } finally {
       setIsSaving(false);
     }
@@ -443,9 +484,13 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
         ],
       });
       if (res) {
+        setIsPreparingMedia(true);
         setMediaUri(res.uri);
         setMediaFile({ name: res.name || 'audio.m4a', type: res.type || 'audio/m4a' });
         setRecordingDuration(0); // Reset duration if file picked
+        // For audio there's no Video.onLoad to wait on — clear the spinner
+        // once React has committed the new mediaUri to the preview card.
+        setTimeout(() => setIsPreparingMedia(false), 300);
       }
     } catch (err) {
       if (!DocumentPicker.isCancel(err)) {
@@ -475,10 +520,23 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
       setIsPicking(true);
       const result = await launchImageLibrary({
         mediaType: 'video',
-        quality: 1,
+        selectionLimit: 1,
+        // iOS-only but harmless on Android. Default ('auto') transcodes
+        // HEVC clips from the Photos library to H.264 MP4 before the
+        // picker returns — a 5–15s blocking export for a 1-minute 4K
+        // clip. 'current' returns the original asset as-is; the upload
+        // pipeline's compression step (compressVideoIfNeeded) normalizes
+        // to 720p H.264 MP4 anyway, so we lose nothing.
+        assetRepresentationMode: 'current',
+        // Skip EXIF / extra metadata fetch — saves a few hundred ms.
+        includeExtra: false,
       });
       if (result.assets && result.assets.length > 0) {
         const asset = result.assets[0];
+        // Show the prepare-media spinner immediately — Video.onLoad won't
+        // fire for another 1–4s while AVFoundation reads the file off disk
+        // (longer for HEVC clips that need transcoding for preview).
+        setIsPreparingMedia(true);
         setMediaUri(asset.uri || null);
         setMediaFile({ name: asset.fileName || 'video.mp4', type: asset.type || 'video/mp4' });
       }
@@ -670,6 +728,14 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
                       />
                     </TouchableOpacity>
                   </View>
+                  {(isPicking || isPreparingMedia) && (
+                    <View style={styles.mediaLoadingOverlay} pointerEvents="auto">
+                      <ActivityIndicator size="large" color={palette.gold.DEFAULT} />
+                      <Text style={styles.mediaLoadingText}>
+                        {isPicking ? 'Selecting audio…' : 'Preparing preview…'}
+                      </Text>
+                    </View>
+                  )}
                 </View>
               )}
 
@@ -692,6 +758,8 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
                         paused={videoPaused}
                         controls={false}
                         repeat={false}
+                        onLoad={() => setIsPreparingMedia(false)}
+                        onError={() => setIsPreparingMedia(false)}
                         onEnd={() => setVideoPaused(true)}
                       />
                       {/* Top scrim: filename + remove */}
@@ -773,6 +841,15 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
                       />
                     </TouchableOpacity>
                   )}
+
+                  {(isPicking || isPreparingMedia) && (
+                    <View style={styles.mediaLoadingOverlay} pointerEvents="auto">
+                      <ActivityIndicator size="large" color={palette.gold.DEFAULT} />
+                      <Text style={styles.mediaLoadingText}>
+                        {isPicking ? 'Selecting video…' : 'Preparing preview…'}
+                      </Text>
+                    </View>
+                  )}
                 </View>
               </View>
 
@@ -830,6 +907,15 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
             </Pressable>
           </Pressable>
         </Modal>
+
+        {/* Upload progress overlay — covers the recorded video / audio
+            preview so the user isn't left staring at their clip wondering
+            whether the save is doing anything. */}
+        <UploadProgressOverlay
+          visible={isSaving && (mode === 'audio' || mode === 'video') && !!mediaUri}
+          progress={uploadProgress}
+          stage={uploadStage}
+        />
       </SafeAreaView>
     </BackgroundWrapper>
   );
@@ -1142,6 +1228,20 @@ const styles = StyleSheet.create({
   },
   grantPermissionBtn: {
     marginTop: 12,
+  },
+
+  mediaLoadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+    backgroundColor: 'rgba(7,9,14,0.72)',
+    zIndex: 10,
+  },
+  mediaLoadingText: {
+    color: palette.gold.subtlest,
+    fontFamily: fontFamily.body,
+    fontSize: moderateScale(fontSize.s),
   },
 
   // ── Video picked preview ──

@@ -20,6 +20,7 @@ import LogoHeader from '@components/LogoHeader';
 import { MessageBubble, ChatInput, LoadingIndicator } from '@components/ui';
 import { useChat } from '@hooks/useChat';
 import {
+  TTS_FEATURE_ENABLED,
   useAutoReadOnNewMessage,
   useAutoReadPreference,
 } from '@services/speech';
@@ -37,13 +38,17 @@ export function MirrorChatContent() {
     sendMessage,
     setDraft,
   } = useChat();
+  // Read the preference unconditionally so the hook call shape is
+  // stable across renders; only wire it into the auto-read effect
+  // when the TTS feature is flagged on.
   const { enabled: autoReadEnabled } = useAutoReadPreference();
 
   // When auto-read is on, this hook speaks each new assistant reply on
-  // arrival. It guards against speaking the initial greeting and stops
-  // any in-flight speech on screen unmount. Tap-to-read via the bubble
-  // speaker button continues to work independently.
-  useAutoReadOnNewMessage(messages, autoReadEnabled);
+  // arrival. Gated by TTS_FEATURE_ENABLED so the feature stays dormant
+  // until the OpenAI-voice migration lands (see featureFlag.ts comment
+  // and docs/FUTURE_TTS_OPENAI_VOICE.md). Passing `false` makes the
+  // hook a no-op without changing the React call order.
+  useAutoReadOnNewMessage(messages, TTS_FEATURE_ENABLED && autoReadEnabled);
 
   // Initialize session when component mounts
   useEffect(() => {

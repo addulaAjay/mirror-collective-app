@@ -6,3 +6,4 @@ export {
 } from './useAutoReadPreference';
 export { useTtsActiveId } from './useTtsActiveId';
 export { useAutoReadOnNewMessage } from './useAutoReadOnNewMessage';
+export { TTS_FEATURE_ENABLED } from './featureFlag';

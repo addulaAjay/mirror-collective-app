@@ -86,7 +86,7 @@ const AboutScreen: React.FC = () => {
           {/* Description */}
           <View style={styles.descriptionContainer}>
             <Text style={styles.description}>
-              We look at the world differently.{'\n'}Where others build machines to make us{'\n'}faster, we built one to help us remember.
+              We look at AI differently.Where others build systems to answer questions, we built one to reveal what’s driving them.
             </Text>
           </View>
         </View>

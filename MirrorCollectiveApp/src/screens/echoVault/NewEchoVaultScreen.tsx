@@ -525,8 +525,8 @@ const styles = StyleSheet.create<{
     width:             '100%',
     height:            verticalScale(48),
     borderRadius:      radius.s,                        // 12px
-    borderWidth:       borderWidth.hairline,            // 0.25px
-    borderColor:       palette.navy.medium,             // #60739f (Border/Inverse-1)
+    borderWidth:       borderWidth.thin,                // 0.5px — matches TextInputField
+    borderColor:       palette.navy.light,              // #a3b3cc — matches TextInputField
     backgroundColor:   'transparent',
     flexDirection:     'row',
     alignItems:        'center',
@@ -557,8 +557,8 @@ const styles = StyleSheet.create<{
   // bg: rgba(253,253,249,0.05) (Bg/Surface-Raised), border 0.25px #60739f
   dropdownOption: {
     backgroundColor:  'rgba(253,253,249,0.05)',
-    borderWidth:      borderWidth.hairline,
-    borderColor:      palette.navy.medium,
+    borderWidth:      borderWidth.thin,
+    borderColor:      palette.navy.light,
     paddingVertical:  verticalScale(spacing.s),
     paddingHorizontal: scale(spacing.m),
     alignItems:       'center',

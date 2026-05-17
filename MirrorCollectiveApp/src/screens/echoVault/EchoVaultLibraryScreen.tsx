@@ -45,7 +45,6 @@ import {
   ActivityIndicator,
   FlatList,
   Image,
-  ScrollView,
   StatusBar,
   StyleSheet,
   Text,
@@ -56,8 +55,7 @@ import {
   type TextStyle,
   type ViewStyle,
 } from 'react-native';
-
-import { useInfiniteList } from '@hooks/useInfiniteList';
+import ReactNativeBlobUtil from 'react-native-blob-util';
 import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
@@ -68,6 +66,7 @@ import BackgroundWrapper from '@components/BackgroundWrapper';
 import Button from '@components/Button/Button';
 import { CachedImage } from '@components/CachedImage';
 import LogoHeader from '@components/LogoHeader';
+import { useInfiniteList } from '@hooks/useInfiniteList';
 import { echoApiService, type EchoResponse } from '@services/api/echo';
 import { resumeMediaMultipart } from '@services/api/multipart';
 import {
@@ -75,7 +74,7 @@ import {
   listResumableUploads,
   removePending,
 } from '@services/api/pendingUploads';
-import ReactNativeBlobUtil from 'react-native-blob-util';
+
 
 import { ResumeUploadBanner } from './ResumeUploadBanner';
 
@@ -213,7 +212,7 @@ function renderEchoRow(
           : `Saved ${formatDate(item.created_at)}`;
     const rightLabel =
       activeTab === 'RECIPIENT'
-        ? item.recipient?.name?.toUpperCase() || 'UNASSIGNED'
+        ? item.recipient?.name?.toUpperCase() || 'MY VAULT'
         : item.category?.toUpperCase() || 'UNCATEGORIZED';
     return (
       <View style={[styles.rowGroup, !isLast && styles.rowBorder]}>
@@ -485,7 +484,7 @@ export function EchoLibraryContent() {
                 colors={['rgba(253,253,249,0.01)', 'rgba(253,253,249,0)']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 0, y: 1 }}
-                style={StyleSheet.absoluteFill}
+                style={[StyleSheet.absoluteFill, { borderRadius: radius.m }]}
                 pointerEvents="none"
               />
               {/* Tabs — fixed inside card */}
@@ -519,7 +518,11 @@ export function EchoLibraryContent() {
                 contentContainerStyle={styles.listScrollContent}
                 onEndReached={loadMore}
                 onEndReachedThreshold={0.5}
-                removeClippedSubviews
+                // removeClippedSubviews wraps each row in an overflow:hidden
+                // cell, which trims the avatar's gold glow at the row's left
+                // edge. windowSize=5 + initialNumToRender=12 already cap the
+                // mounted-row count, so we don't need the extra clipping.
+                removeClippedSubviews={false}
                 initialNumToRender={12}
                 maxToRenderPerBatch={10}
                 windowSize={5}
@@ -632,9 +635,18 @@ const styles = StyleSheet.create<{
     paddingBottom:     verticalScale(spacing.xl),
     gap:               verticalScale(spacing.xl), // 24px between sections
   },
-  // Inner ScrollView — only the echo rows scroll
+  // Inner ScrollView — only the echo rows scroll.
+  // The avatar's gold glow extends ~13px outward (10 blur + 3 spread). The
+  // FlatList wraps a UIScrollView whose default clipsToBounds=true clips
+  // child shadows at the scroll-view boundary. The row's left edge sits
+  // at the FlatList's content-area left edge, so the LEFT side of the
+  // glow was getting cleanly cut. paddingHorizontal here pads the rows
+  // away from the scroll-view edges so the halo renders inside the clip.
   listScroll: { flex: 1 },
-  listScrollContent: { flexGrow: 1 },
+  listScrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: scale(14),
+  },
   footerLoader: {
     paddingVertical: verticalScale(12),
     alignItems: 'center',
@@ -720,16 +732,22 @@ const styles = StyleSheet.create<{
 
   // ── Library card ──────────────────────────────────────────────────────────
   // Figma 211:1468 — gradient bg, border 0.25px #a3b3cc, radius 16, padding 16
-  // overflow:hidden clips the LinearGradient; glow is on this same view
-  // (shadow doesn't clip because we're not hiding shadow separately)
+  // No overflow:hidden here — the LinearGradient applies its own borderRadius
+  // so it still clips to the rounded corners, while leaving room for child
+  // glows (avatar gold halo) to extend past the card edge without being
+  // trimmed.
   // Base card — no flex; wraps content in empty state
   cardGlow: {
-    width:        '100%',
-    borderRadius: radius.m,
-    borderWidth:  borderWidth.hairline,
-    borderColor:  palette.navy.light,
-    padding:      scale(spacing.m),
-    overflow:     'hidden',
+    width:           '100%',
+    borderRadius:    radius.m,
+    borderWidth:     borderWidth.hairline,
+    borderColor:     palette.navy.light,
+    paddingVertical: scale(spacing.m),
+    // Horizontal padding lives on listScrollContent instead so the
+    // avatar's gold glow has room inside the FlatList's scroll-view
+    // clip. Net distance from card edge to row content stays at 16px
+    // (this 2 + listScrollContent 14).
+    paddingHorizontal: scale(2),
   },
   // Applied on top of cardGlow when echoes exist — lets the list fill space
   cardGlowFlex: {
@@ -784,7 +802,7 @@ const styles = StyleSheet.create<{
     flexDirection:  'row',
     alignItems:     'center',
     justifyContent: 'space-between',
-    paddingVertical: verticalScale(spacing.m),          // 16px (Spacing/M)
+    paddingVertical: verticalScale(spacing.s),          // 16px (Spacing/M)
     gap:             scale(spacing.s),                  // 12px between rowLeft and rowRight
   },
 
@@ -806,16 +824,18 @@ const styles = StyleSheet.create<{
 
   // ── Avatar ─────────────────────────────────────────────────────────────────
   // Figma 4190:3633 — 40×40, border 1px #f2e1b0, glow 0 0 10 3px rgba(240,212,168,0.3)
+  // Use `boxShadow` only (no legacy shadow* props). The legacy iOS shadow
+  // system computes shadowPath from the layer's opaque content — and since
+  // this View has no backgroundColor, it falls back to inspecting child
+  // layers, which on RN 0.80 produces a directional halo trimmed on the
+  // left. boxShadow renders the shadow as part of the view's own draw pass
+  // and supports the Figma `spread` value (3px) natively, which the legacy
+  // shadow* API can't express.
   avatarGlow: {
     width:         scale(40),
     height:        scale(40),
     borderRadius:  scale(20),
-    // Figma glow: 0 0 10px 3px rgba(240,212,168,0.3)
-    boxShadow:     '0px 0px 10px 3px rgba(240, 212, 168, 0.3)',
-    shadowColor:   palette.gold.glow,
-    shadowOffset:  { width: 0, height: 0 },
-    shadowOpacity: 0.3,
-    shadowRadius:  10,
+    boxShadow:     '0px 0px 10px 3px rgba(240, 212, 168, 0.45)',
     elevation:     6,
   },
 

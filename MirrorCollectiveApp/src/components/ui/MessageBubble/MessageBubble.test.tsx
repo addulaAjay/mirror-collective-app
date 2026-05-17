@@ -130,7 +130,23 @@ describe('MessageBubble', () => {
     expect(getByText(longMessage.text)).toBeTruthy();
   });
 
-  describe('speaker button — read-aloud', () => {
+  it('does not render the speaker button while the feature is flagged off', () => {
+    // Active pin — verifies the TTS_FEATURE_ENABLED gate keeps the
+    // hidden state hidden. The speaker-button behavior tests below are
+    // skipped pending the OpenAI-voice migration; this one stays live
+    // so an accidental ungate fails CI.
+    const { queryByTestId } = render(
+      <MessageBubble message={mockSystemMessage} />,
+    );
+    expect(queryByTestId(`speaker-button-${mockSystemMessage.id}`)).toBeNull();
+  });
+
+  // The speaker-button tests below describe the behavior the bubble has
+  // when TTS_FEATURE_ENABLED is true. The feature is currently flagged
+  // OFF (see src/services/speech/featureFlag.ts), so the assertions
+  // below are skipped — pending the OpenAI-voice migration. Re-enable
+  // by removing the `.skip` once the flag flips.
+  describe.skip('speaker button — read-aloud (re-enable with feature flag)', () => {
     it('renders on assistant bubbles only', () => {
       const { queryByTestId: assistant } = render(
         <MessageBubble message={mockSystemMessage} />,

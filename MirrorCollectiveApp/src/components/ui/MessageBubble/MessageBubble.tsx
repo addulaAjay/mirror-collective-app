@@ -5,7 +5,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Svg, { Path, Rect } from 'react-native-svg';
 
-import { ttsService, useTtsActiveId } from '@services/speech';
+import { TTS_FEATURE_ENABLED, ttsService, useTtsActiveId } from '@services/speech';
 
 
 interface MessageBubbleProps {
@@ -71,19 +71,21 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
       ) : (
         <View style={[styles.bubble, styles.systemBubble]}>
           <Text style={[styles.text, styles.systemText]}>{message.text}</Text>
-          <TouchableOpacity
-            onPress={handleSpeakerPress}
-            style={styles.speakerBtn}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            accessibilityRole="button"
-            accessibilityLabel={
-              isSpeaking ? 'Stop reading reply aloud' : 'Read reply aloud'
-            }
-            accessibilityState={{ selected: isSpeaking }}
-            testID={`speaker-button-${message.id}`}
-          >
-            {isSpeaking ? <SpeakerStopIcon /> : <SpeakerPlayIcon />}
-          </TouchableOpacity>
+          {TTS_FEATURE_ENABLED && (
+            <TouchableOpacity
+              onPress={handleSpeakerPress}
+              style={styles.speakerBtn}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              accessibilityRole="button"
+              accessibilityLabel={
+                isSpeaking ? 'Stop reading reply aloud' : 'Read reply aloud'
+              }
+              accessibilityState={{ selected: isSpeaking }}
+              testID={`speaker-button-${message.id}`}
+            >
+              {isSpeaking ? <SpeakerStopIcon /> : <SpeakerPlayIcon />}
+            </TouchableOpacity>
+          )}
         </View>
       )}
     </View>
@@ -124,7 +126,10 @@ const styles = StyleSheet.create({
   systemBubble: {
     paddingVertical: spacing.xs,
     paddingHorizontal: spacing.s,
-    paddingRight: spacing.s + 28, // room for the speaker button
+    // When TTS_FEATURE_ENABLED is true, the speaker button is absolutely
+    // positioned bottom-right and needs ~28px of right padding to avoid
+    // overlap with the text. Re-add `paddingRight: spacing.s + 28` here
+    // when re-enabling the feature.
     marginTop: 14,
     borderWidth: 1,
     borderColor: 'rgba(155, 170, 194, 0.5)',

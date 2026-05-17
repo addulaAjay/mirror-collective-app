@@ -1,4 +1,14 @@
 require_relative '../node_modules/react-native/scripts/react_native_pods'
+# Expo modules autolinking. Registers expo-modules-core + every
+# expo-* package that ships a native iOS module (currently:
+# expo-image, expo-font, expo-asset, expo-constants,
+# expo-file-system, expo-keep-awake — all pulled in by the `expo`
+# SDK install). Without this, `requireNativeModule('ExpoImage')`
+# throws at runtime and CachedImage renders nothing.
+require File.join(
+  File.dirname(`node --print "require.resolve('expo/package.json')"`),
+  'scripts/autolinking',
+)
 
 # Enable modular headers to allow Swift pods (FirebaseCoreInternal) to be imported when using static libraries
 
@@ -13,6 +23,7 @@ use_frameworks! :linkage => :static
 
 target 'MirrorCollectiveApp' do
   config = use_native_modules!
+  use_expo_modules!
 
   use_react_native!(
     :path => config[:reactNativePath],
@@ -47,6 +58,19 @@ target 'MirrorCollectiveApp' do
         config.build_settings['GCC_WARN_PEDANTIC'] = 'NO'
         config.build_settings['VALIDATE_PRODUCT'] = 'NO'
         config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = min_ios_version_supported
+
+        # Workaround for RN 0.80 + use_frameworks: React-jsinspector's
+        # RuntimeAgentDelegate.h does `#import <jsinspector-modern/cdp/CdpJson.h>`,
+        # but under `use_frameworks!` the `cdp/` subdir lives in a SEPARATE
+        # framework (jsinspector_moderncdp) at `Headers/CdpJson.h` flat —
+        # the old `<jsinspector-modern/cdp/…>` path doesn't resolve.
+        # Adding the RN ReactCommon source root to every pod's header
+        # search path lets the compiler fall back to the source-tree copy.
+        # Fixed properly in RN 0.81; this is the bridging workaround.
+        config.build_settings['HEADER_SEARCH_PATHS'] = [
+          config.build_settings['HEADER_SEARCH_PATHS'] || '$(inherited)',
+          '"$(PODS_ROOT)/../../node_modules/react-native/ReactCommon"',
+        ].join(' ')
       end
     end
   end

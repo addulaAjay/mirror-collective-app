@@ -31,7 +31,9 @@ import {
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import Button from '@components/Button/Button';
 import LogoHeader from '@components/LogoHeader';
+import UploadProgressOverlay from '@components/UploadProgressOverlay';
 import { echoApiService } from '@services/api';
+import type { UploadStage } from '@services/api/echo';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'NewEchoVideoScreen'>;
 
@@ -59,6 +61,7 @@ const NewEchoVideoScreen: React.FC<Props> = ({ navigation, route }) => {
   // SAVE button label shows the percentage so the user has feedback
   // beyond the indeterminate spinner.
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadStage, setUploadStage] = useState<UploadStage | null>(null);
   const [isPicking, setIsPicking] = useState(false);
   // True between "user tapped stop" and "onRecordingFinished/Error fires" —
   // gives the user immediate visual feedback during the async file finalize step.
@@ -223,6 +226,7 @@ const NewEchoVideoScreen: React.FC<Props> = ({ navigation, route }) => {
         uri,
         contentType,
         stage => {
+          setUploadStage(stage);
           if (stage.type === 'compressing') {
             // Compression takes ~25% of perceived progress for 1m clips.
             setUploadProgress(stage.fraction * 0.25);
@@ -255,6 +259,7 @@ const NewEchoVideoScreen: React.FC<Props> = ({ navigation, route }) => {
     } catch {
       Alert.alert('Error', 'Failed to save echo');
       setUploadProgress(0);
+      setUploadStage(null);
     } finally {
       setSaving(false);
     }
@@ -385,6 +390,12 @@ const NewEchoVideoScreen: React.FC<Props> = ({ navigation, route }) => {
 
         </View>
       </SafeAreaView>
+
+      <UploadProgressOverlay
+        visible={saving}
+        progress={uploadProgress}
+        stage={uploadStage}
+      />
     </BackgroundWrapper>
   );
 };
