@@ -461,6 +461,54 @@ describe('EchoApiService', () => {
       expect(k2).toBeTruthy();
       expect(k1).not.toBe(k2);
     });
+
+    it('attaches Idempotency-Key on releaseEcho', async () => {
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ success: true, data: { echo_id: 'e-1' } }),
+      });
+
+      await echoApiService.releaseEcho('e-1');
+
+      const call = (global.fetch as jest.Mock).mock.calls[0];
+      const headers = headersFromCall(call);
+      expect(headers['Idempotency-Key']).toBeTruthy();
+      expect(headers['Idempotency-Key']).toMatch(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
+      );
+    });
+
+    it('attaches Idempotency-Key on addRecipient', async () => {
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ success: true, data: { recipient_id: 'r-1' } }),
+      });
+
+      await echoApiService.addRecipient({ name: 'A', email: 'a@b.co' });
+
+      const call = (global.fetch as jest.Mock).mock.calls[0];
+      const headers = headersFromCall(call);
+      expect(headers['Idempotency-Key']).toBeTruthy();
+      expect(headers['Idempotency-Key']).toMatch(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
+      );
+    });
+
+    it('attaches Idempotency-Key on addGuardian', async () => {
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ success: true, data: { guardian_id: 'g-1' } }),
+      });
+
+      await echoApiService.addGuardian({ name: 'G', email: 'g@b.co' });
+
+      const call = (global.fetch as jest.Mock).mock.calls[0];
+      const headers = headersFromCall(call);
+      expect(headers['Idempotency-Key']).toBeTruthy();
+      expect(headers['Idempotency-Key']).toMatch(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
+      );
+    });
   });
 
   describe('finalizeMedia', () => {
