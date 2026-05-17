@@ -6,6 +6,51 @@ import { tokenManager } from '@services/tokenManager';
 
 import { ApiErrorHandler } from './errorHandler';
 
+// ---------------------------------------------------------------------------
+// 429 retry-with-backoff
+// ---------------------------------------------------------------------------
+// API Gateway now throttles at 1000 RPS sustained / 5000 burst (see backend
+// `infra/replace-in-memory-rate-limiter-with-apigw-throttling`). Without
+// client-side retry, transient throttling surfaces as opaque red toasts.
+// We retry 429s up to MAX_429_RETRIES times with exponential-backoff +
+// jitter. If the server sends a `Retry-After` header (seconds or HTTP date),
+// we honor it as the base delay instead of computing one.
+const MAX_429_RETRIES = 3;
+const RETRY_BASE_DELAY_MS = 500;
+const RETRY_MAX_DELAY_MS = 8000;
+
+/** Sleep with cancellation support. */
+function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/** Compute the wait time before retry N (0-indexed). Honors a `Retry-After`
+ *  header if the server set one; otherwise uses exponential backoff with
+ *  full jitter. Capped at RETRY_MAX_DELAY_MS to bound user-visible latency. */
+function computeRetryDelayMs(
+  attempt: number,
+  retryAfterHeader: string | null,
+): number {
+  if (retryAfterHeader) {
+    // Two valid formats per RFC 7231: integer seconds, or an HTTP date.
+    const asSeconds = Number(retryAfterHeader);
+    if (Number.isFinite(asSeconds) && asSeconds >= 0) {
+      return Math.min(asSeconds * 1000, RETRY_MAX_DELAY_MS);
+    }
+    const asDateMs = Date.parse(retryAfterHeader);
+    if (!Number.isNaN(asDateMs)) {
+      const deltaMs = asDateMs - Date.now();
+      if (deltaMs > 0) {
+        return Math.min(deltaMs, RETRY_MAX_DELAY_MS);
+      }
+    }
+  }
+  // Exponential backoff with full jitter: random in [0, base * 2^attempt].
+  const exponential = RETRY_BASE_DELAY_MS * Math.pow(2, attempt);
+  const jittered = Math.random() * exponential;
+  return Math.min(jittered, RETRY_MAX_DELAY_MS);
+}
+
 export class BaseApiService {
   public readonly baseUrl: string;
   private readonly timeout: number;
@@ -16,6 +61,50 @@ export class BaseApiService {
   }
 
   protected async makeRequest<T = any>(
+    endpoint: string,
+    method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' = 'GET',
+    data?: any,
+    requiresAuth: boolean = false,
+    extraHeaders?: Record<string, string>,
+  ): Promise<ApiResponse<T>> {
+    let lastError: any;
+    for (let attempt = 0; attempt <= MAX_429_RETRIES; attempt++) {
+      try {
+        return await this._attemptRequest<T>(
+          endpoint,
+          method,
+          data,
+          requiresAuth,
+          extraHeaders,
+        );
+      } catch (error: any) {
+        lastError = error;
+        // Retry only on 429. Any other error (network, 4xx, 5xx) is
+        // surfaced immediately — the caller's existing error handling
+        // applies. We don't retry POST/PUT/DELETE for non-429 because
+        // the server may have already processed the request.
+        if (
+          error?.status === 429 &&
+          attempt < MAX_429_RETRIES
+        ) {
+          const retryAfter = error?.retryAfter ?? null;
+          const delayMs = computeRetryDelayMs(attempt, retryAfter);
+          console.warn(
+            `[API] 429 on ${method} ${endpoint}; ` +
+              `retry ${attempt + 1}/${MAX_429_RETRIES} in ${Math.round(delayMs)}ms`,
+          );
+          await sleep(delayMs);
+          continue;
+        }
+        throw error;
+      }
+    }
+    // Exhausted retries — rethrow the last 429 so callers can present a
+    // "still being rate-limited" message.
+    throw lastError;
+  }
+
+  private async _attemptRequest<T = any>(
     endpoint: string,
     method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' = 'GET',
     data?: any,
@@ -80,7 +169,15 @@ export class BaseApiService {
         }
         // Extract error message from response data
         const errorMessage = responseData?.error || responseData?.message || `Server error: ${response.status}`;
-        throw this.createApiError(errorMessage, response.status);
+        const err = this.createApiError(errorMessage, response.status);
+        // Attach Retry-After (if present) so the outer retry loop can
+        // honor it. Only meaningful for 429, but always attaching is
+        // cheap and avoids a branch.
+        const retryAfter = response.headers.get('retry-after');
+        if (retryAfter) {
+          (err as any).retryAfter = retryAfter;
+        }
+        throw err;
       }
 
       return { ...responseData, statusCode: response.status };
