@@ -263,6 +263,13 @@ jest.mock('react-native-compressor', () => ({
   __esModule: true,
   Video: { compress: jest.fn((uri) => Promise.resolve(uri)) },
   Image: { compress: jest.fn((uri) => Promise.resolve(uri)) },
+  // Poster-frame extractor. Default: rejects so the poster pipeline
+  // silently no-ops in tests that don't opt in. Override per-test:
+  //   jest.requireMock('react-native-compressor').createVideoThumbnail
+  //     .mockResolvedValue({ path: '/cache/thumb.jpg', size: 1, mime: 'image/jpeg', width: 1, height: 1 })
+  createVideoThumbnail: jest.fn(() =>
+    Promise.reject(new Error('not mocked')),
+  ),
 }));
 
 // Mock expo-image — its native module touches a TurboModule registry

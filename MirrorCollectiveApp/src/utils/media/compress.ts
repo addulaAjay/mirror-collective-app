@@ -18,7 +18,11 @@
  */
 
 import ReactNativeBlobUtil from 'react-native-blob-util';
-import { Image, Video } from 'react-native-compressor';
+import {
+  Image,
+  Video,
+  createVideoThumbnail,
+} from 'react-native-compressor';
 
 export interface CompressResult {
   /** The URI the caller should upload — original or compressed. */
@@ -133,5 +137,30 @@ export async function unlinkQuietly(uri: string): Promise<void> {
     await ReactNativeBlobUtil.fs.unlink(path);
   } catch (err) {
     console.warn('Failed to unlink compressed temp file:', uri, err);
+  }
+}
+
+/**
+ * Extract a single JPEG frame from a video for use as a poster thumbnail.
+ *
+ * Uses ``react-native-compressor.createVideoThumbnail`` which native-side
+ * runs AVAssetImageGenerator (iOS) / MediaMetadataRetriever (Android)
+ * and writes a JPEG to the app cache directory. The default frame is
+ * t=1s; we let the library decide so we don't fight its codec defaults.
+ *
+ * Returns the local file path (caller is responsible for uploading +
+ * cleanup) or null if extraction fails. Never throws — poster
+ * generation is opportunistic and a failure shouldn't cascade into
+ * the user-facing save flow.
+ */
+export async function createPosterThumbnail(
+  videoUri: string,
+): Promise<string | null> {
+  try {
+    const result = await createVideoThumbnail(videoUri);
+    return result?.path ?? null;
+  } catch (err) {
+    console.warn('createVideoThumbnail failed:', err);
+    return null;
   }
 }

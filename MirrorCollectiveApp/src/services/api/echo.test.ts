@@ -500,6 +500,51 @@ describe('EchoApiService', () => {
     });
   });
 
+  describe('attachPoster', () => {
+    beforeEach(() => {
+      (global.fetch as jest.Mock).mockReset();
+    });
+
+    it('POSTs to /api/echoes/{id}/attach-poster with the key', async () => {
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          success: true,
+          data: { echo_id: 'e-1', poster_url: 'https://signed/poster' },
+        }),
+      });
+
+      await echoApiService.attachPoster('e-1', 'echoes/u-1/e-1_poster.jpg');
+
+      const [url, init] = (global.fetch as jest.Mock).mock.calls[0];
+      expect(url).toContain('/api/echoes/e-1/attach-poster');
+      expect((init as { method: string }).method).toBe('POST');
+      const body = JSON.parse((init as { body: string }).body);
+      expect(body).toEqual({ key: 'echoes/u-1/e-1_poster.jpg' });
+    });
+
+    it('URL-encodes the echoId in the path', async () => {
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ success: true, data: {} }),
+      });
+      await echoApiService.attachPoster('a/b c', 'echoes/u-1/a-b-c_poster.jpg');
+      const [url] = (global.fetch as jest.Mock).mock.calls[0];
+      expect(url as string).toContain('/api/echoes/a%2Fb%20c/attach-poster');
+    });
+
+    it('does NOT send an Idempotency-Key (overwrite is naturally idempotent)', async () => {
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ success: true, data: {} }),
+      });
+      await echoApiService.attachPoster('e-1', 'echoes/u-1/e-1_p.jpg');
+      const [, init] = (global.fetch as jest.Mock).mock.calls[0];
+      const headers = (init as { headers: Record<string, string> }).headers;
+      expect(headers['Idempotency-Key']).toBeUndefined();
+    });
+  });
+
   describe('completeMultipart', () => {
     it('uses a deterministic Idempotency-Key derived from upload_id', async () => {
       // Two calls with the SAME upload_id must produce the SAME key —
