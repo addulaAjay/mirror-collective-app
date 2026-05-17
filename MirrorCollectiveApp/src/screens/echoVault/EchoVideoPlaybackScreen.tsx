@@ -367,9 +367,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  backBtn: { width: 44, height: 44, justifyContent: 'center' },
+  backBtn: { width: scale(44), height: scale(44), justifyContent: 'center' },
   backIcon: { color: GOLD, fontSize: 30 },
-  backArrowImg: { width: 20, height: 20, tintColor: GOLD },
+  backArrowImg: { width: scale(20), height: scale(20), tintColor: GOLD },
   screenTitle: {
     color: GOLD,
     fontSize: 28,
