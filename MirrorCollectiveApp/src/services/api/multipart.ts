@@ -26,6 +26,14 @@ import ReactNativeBlobUtil from 'react-native-blob-util';
 import type { EchoApiService, EchoResponse, UploadStage } from './echo';
 import type { ApiResponse } from '@types';
 
+import {
+  type CompletedPart,
+  type PendingUpload,
+  markPartComplete,
+  removePending,
+  savePending,
+} from './pendingUploads';
+
 // Anything under this size uses the single-PUT path. 50 MB is roughly
 // where iPhone 4K video at default bitrate crosses the line where a
 // single TCP upload starts being lossy on cellular.
@@ -165,6 +173,67 @@ interface UploadMultipartArgs {
   contentType: string;
   fileSize: number;
   onStage?: (stage: UploadStage) => void;
+  /**
+   * Human-readable echo title persisted alongside the pending row so
+   * a resume banner can show "Continue uploading <title>?" without
+   * having to fetch the echo. Defaults to ``echoId`` when omitted —
+   * callers (the three new-echo screens) should plumb the real title
+   * through; the fallback exists so older call sites don't break.
+   */
+  title?: string;
+}
+
+/** Maps a content_type to the file extension we use for the cached
+ *  source copy. Mirrors the backend's audio_map / image_map; falls
+ *  back to mp4 for unknown video types and bin for everything else. */
+function extensionFor(contentType: string): string {
+  if (contentType === 'audio/mpeg') return 'mp3';
+  if (contentType === 'audio/aac') return 'aac';
+  if (contentType.startsWith('audio/')) return 'm4a';
+  if (contentType === 'image/jpeg') return 'jpg';
+  if (contentType === 'image/png') return 'png';
+  if (contentType === 'image/webp') return 'webp';
+  if (contentType === 'image/heic') return 'heic';
+  if (contentType.startsWith('video/')) return 'mp4';
+  return 'bin';
+}
+
+/** Cache subdir we own for pending-upload source copies. */
+const PENDING_CACHE_DIR_NAME = 'mc-pending';
+
+/**
+ * Copy the (already post-compression) source into a stable path the
+ * resume flow can rely on. The picker's original URI may be
+ * a PHAsset:// reference that goes invalid after the picker session,
+ * and the compressed temp file (when compression ran) is unlinked
+ * by ``uploadEchoMedia``'s finally after the upload settles. Neither
+ * is suitable for a resume that may happen days later.
+ */
+async function prepareSourceForResume(
+  workingUri: string,
+  echoId: string,
+  contentType: string,
+): Promise<string> {
+  const dir = `${ReactNativeBlobUtil.fs.dirs.CacheDir}/${PENDING_CACHE_DIR_NAME}`;
+  await ReactNativeBlobUtil.fs.mkdir(dir).catch(() => undefined);
+  const ext = extensionFor(contentType);
+  const dest = `${dir}/${echoId}.${ext}`;
+  const sourcePath = stripFileScheme(workingUri);
+  // Skip the copy when source is already at dest (would happen on a
+  // retry that found a stale dest; unlink it first to be safe).
+  if (sourcePath !== dest) {
+    await ReactNativeBlobUtil.fs.unlink(dest).catch(() => undefined);
+    await ReactNativeBlobUtil.fs.cp(sourcePath, dest);
+  }
+  return dest;
+}
+
+/** Best-effort cleanup of the cached source copy. Failure to unlink
+ *  is non-fatal — the OS will reclaim CacheDir eventually. */
+async function cleanupPendingSource(cachedFileUri: string): Promise<void> {
+  await ReactNativeBlobUtil.fs
+    .unlink(stripFileScheme(cachedFileUri))
+    .catch(() => undefined);
 }
 
 /**
@@ -179,10 +248,10 @@ export async function uploadMediaMultipart({
   contentType,
   fileSize,
   onStage,
+  title,
 }: UploadMultipartArgs): Promise<ApiResponse<EchoResponse>> {
   const partCount = Math.ceil(fileSize / PART_SIZE);
   const partNumbers = Array.from({ length: partCount }, (_, i) => i + 1);
-  const sourcePath = stripFileScheme(fileUri);
 
   // 1. Initiate. The backend handles the existing-media-attached
   // first-write check; if it 4xx's, no S3 multipart was created and we
@@ -193,22 +262,132 @@ export async function uploadMediaMultipart({
   }
   const { upload_id, key } = init.data;
 
-  // Carve out a temp directory specific to this upload so concurrent
-  // multipart uploads (rare but possible) can't stomp on each other's
-  // part files.
+  // Copy the (post-compression) source into a stable resume cache so
+  // a force-quit between here and `complete` leaves something the
+  // resume flow can pick back up.
+  const cachedFileUri = await prepareSourceForResume(
+    fileUri,
+    echoId,
+    contentType,
+  );
+
+  // Persist the initial pending row. From this point on, every part
+  // PUT extends the row's completedParts; complete/abort delete it.
+  const pending: PendingUpload = {
+    echoId,
+    uploadId: upload_id,
+    key,
+    cachedFileUri,
+    contentType,
+    fileSize,
+    completedParts: [],
+    createdAt: new Date().toISOString(),
+    lastUpdatedAt: new Date().toISOString(),
+    title: title ?? echoId,
+  };
+  await savePending(pending);
+
+  // Delegate to the shared inner runner — same code path the resume
+  // entry point uses, with the full set of part numbers to upload.
+  return runMultipartUpload({
+    api,
+    pending,
+    onStage,
+    missingPartNumbers: partNumbers,
+    initiallyUploadedBytes: 0,
+  });
+}
+
+/**
+ * Resume an in-flight multipart upload from a persisted PendingUpload
+ * row. Skips ``initiate`` (we already have ``upload_id`` + ``key``);
+ * re-requests presigned URLs for ONLY the parts that haven't completed
+ * yet, then continues the standard pipeline.
+ *
+ * The caller is the resume hook (typically run at app start after
+ * listing recoverable pending uploads). The cached source file at
+ * ``pending.cachedFileUri`` must still exist — the hook is expected
+ * to have filtered out rows whose source is gone.
+ */
+export async function resumeMediaMultipart(
+  api: EchoApiService,
+  pending: PendingUpload,
+  onStage?: (stage: UploadStage) => void,
+): Promise<ApiResponse<EchoResponse>> {
+  const partCount = Math.ceil(pending.fileSize / PART_SIZE);
+  const completedSet = new Set(
+    pending.completedParts.map(p => p.part_number),
+  );
+  const missing: number[] = [];
+  for (let n = 1; n <= partCount; n++) {
+    if (!completedSet.has(n)) missing.push(n);
+  }
+
+  // Bytes already uploaded — seeds the progress callback so the bar
+  // starts where it left off rather than at zero.
+  const initiallyUploadedBytes = pending.completedParts.reduce((acc, p) => {
+    const start = (p.part_number - 1) * PART_SIZE;
+    const end = Math.min(start + PART_SIZE, pending.fileSize);
+    return acc + (end - start);
+  }, 0);
+
+  return runMultipartUpload({
+    api,
+    pending,
+    onStage,
+    missingPartNumbers: missing,
+    initiallyUploadedBytes,
+  });
+}
+
+interface RunArgs {
+  api: EchoApiService;
+  pending: PendingUpload;
+  onStage?: (stage: UploadStage) => void;
+  missingPartNumbers: number[];
+  initiallyUploadedBytes: number;
+}
+
+/**
+ * Shared inner runner for both fresh-start and resume multipart paths.
+ *
+ * Both paths converge here after they've ensured:
+ *   - the pending row exists in AsyncStorage (with at least an empty
+ *     completedParts list)
+ *   - the cached source file exists at pending.cachedFileUri
+ *   - the missing-parts set is computed
+ *
+ * The runner handles:
+ *   - presign for just the missing parts
+ *   - slice + parallel upload + per-part persistence
+ *   - density check, complete, cleanup
+ *   - error path: abort, cleanup, re-throw
+ */
+async function runMultipartUpload(
+  args: RunArgs,
+): Promise<ApiResponse<EchoResponse>> {
+  const { api, pending, onStage, missingPartNumbers, initiallyUploadedBytes } = args;
+  const { echoId, uploadId: upload_id, key, fileSize, contentType, cachedFileUri } = pending;
+  const sourcePath = stripFileScheme(cachedFileUri);
+
+  // No work left? Just complete.
+  if (missingPartNumbers.length === 0) {
+    onStage?.({ type: 'finalizing' });
+    return await completeAndCleanup(api, pending, pending.completedParts);
+  }
+
   const sliceDir = `${ReactNativeBlobUtil.fs.dirs.CacheDir}/mc-mp-${echoId}-${Date.now()}`;
 
   try {
     await ReactNativeBlobUtil.fs.mkdir(sliceDir);
 
-    // 2. Presign all parts in one batch. Backend caps batch at 1000;
-    // a 5 GB file = 1000 parts at 5 MB, which is the maximum we'll
-    // hand to the user anyway.
+    // 2. Presign ONLY the parts that haven't completed. On a fresh
+    // upload that's everything; on a resume it's just the gap.
     const urlsResp = await api.getMultipartPartUrls(
       echoId,
       upload_id,
       key,
-      partNumbers,
+      missingPartNumbers,
     );
     if (!urlsResp.success || !urlsResp.data) {
       throw new Error(urlsResp.error ?? 'Failed to get part URLs');
@@ -218,16 +397,20 @@ export async function uploadMediaMultipart({
       urlByPart.set(p.part_number, p.url);
     }
 
-    // 3. Slice + upload with bounded concurrency. We aggregate
-    // uploadedBytes for the progress callback; this is a shared
-    // counter touched from multiple in-flight tasks but JS is
-    // single-threaded, so no locking needed.
+    // 3. Slice + upload with bounded concurrency. Each successful
+    // part is persisted to the pending row immediately, so a force
+    // quit at any point during this loop leaves a recoverable row.
     const sem = createSemaphore(PART_CONCURRENCY);
-    const partResults: PartResult[] = new Array(partCount);
-    let uploadedBytes = 0;
+    const freshParts: PartResult[] = [];
+    let uploadedBytes = initiallyUploadedBytes;
+    onStage?.({
+      type: 'uploading',
+      sent: uploadedBytes,
+      total: fileSize,
+    });
 
     await Promise.all(
-      partNumbers.map(async n => {
+      missingPartNumbers.map(async n => {
         await sem.acquire();
         const start = (n - 1) * PART_SIZE;
         const end = Math.min(start + PART_SIZE, fileSize);
@@ -238,7 +421,13 @@ export async function uploadMediaMultipart({
           if (!url) throw new Error(`No presigned URL for part ${n}`);
           const etag = await uploadPartWithRetry(url, partPath, contentType);
 
-          partResults[n - 1] = { part_number: n, etag };
+          freshParts.push({ part_number: n, etag });
+          // Persist progress AFTER the part lands. A force-quit
+          // before this fires loses just this one part on resume;
+          // it'll re-presign + re-PUT, which is safe (S3 dedups by
+          // PartNumber).
+          await markPartComplete(echoId, { part_number: n, etag });
+
           uploadedBytes += end - start;
           onStage?.({
             type: 'uploading',
@@ -246,50 +435,67 @@ export async function uploadMediaMultipart({
             total: fileSize,
           });
         } finally {
-          // Best-effort cleanup of each part file as soon as it's
-          // done uploading — keeps peak disk usage bounded to
-          // (concurrency × PART_SIZE) regardless of file size.
+          // Bounded peak disk usage = PART_CONCURRENCY × PART_SIZE.
           await ReactNativeBlobUtil.fs.unlink(partPath).catch(() => undefined);
           sem.release();
         }
       }),
     );
 
-    // Defensive density check before complete. partResults is allocated
-    // sparse (new Array(partCount)) and filled by Promise.all — which
-    // either resolves all positions or rejects. A future refactor that
-    // switched to allSettled would silently leave holes, and we'd ship
-    // `undefined` parts to the backend. The contract here pins it.
-    if (partResults.some(p => !p)) {
+    // Merge what we just uploaded with what was already done on a
+    // prior attempt. Sort defensively even though the server sorts
+    // again — keeps test/inspection output stable.
+    const allParts: CompletedPart[] = [...pending.completedParts, ...freshParts];
+    allParts.sort((a, b) => a.part_number - b.part_number);
+
+    if (allParts.length !== Math.ceil(fileSize / PART_SIZE)) {
       throw new Error('Internal error: multipart upload missing parts');
     }
 
-    // 4. Complete. The server runs HEAD + DDB write atomically, same
-    // as the single-PUT finalize path.
     onStage?.({ type: 'finalizing' });
-    const completed = await api.completeMultipart(
-      echoId,
-      upload_id,
-      key,
-      partResults,
-    );
-    return completed;
+    return await completeAndCleanup(api, pending, allParts);
   } catch (err) {
-    // 5. Abort. Best effort — if it fails the lifecycle rule will
-    // reap the upload after 7 days. Always re-throw the original.
+    // Non-recoverable failure: abort + clean up. The user will have
+    // to re-create the echo. (Recoverable failures we'd leave the
+    // pending row in place; today's pipeline doesn't distinguish.)
     try {
       await api.abortMultipart(echoId, upload_id, key);
     } catch (abortErr) {
       console.warn('Failed to abort multipart upload:', abortErr);
     }
+    await removePending(echoId);
+    await cleanupPendingSource(cachedFileUri);
     throw err;
   } finally {
-    // Clean up the slice directory itself. unlink on a directory
-    // works recursively in react-native-blob-util.
-    await ReactNativeBlobUtil.fs
-      .unlink(sliceDir)
-      .catch(() => undefined);
+    // Slice dir is per-attempt; always clean up.
+    await ReactNativeBlobUtil.fs.unlink(sliceDir).catch(() => undefined);
   }
+}
+
+/**
+ * Final step shared between fresh + resume paths: assemble the parts
+ * on S3, then remove the pending row + delete the cached source. On
+ * server-side failure we leave the pending row in place so the user
+ * can try again — the server's CompleteMultipartUpload is idempotent
+ * by upload_id, and our client uses a deterministic Idempotency-Key
+ * derived from upload_id so the retry hits the server cache.
+ */
+async function completeAndCleanup(
+  api: EchoApiService,
+  pending: PendingUpload,
+  parts: CompletedPart[],
+): Promise<ApiResponse<EchoResponse>> {
+  const completed = await api.completeMultipart(
+    pending.echoId,
+    pending.uploadId,
+    pending.key,
+    parts,
+  );
+  if (completed.success) {
+    await removePending(pending.echoId);
+    await cleanupPendingSource(pending.cachedFileUri);
+  }
+  return completed;
 }
 
 /**
