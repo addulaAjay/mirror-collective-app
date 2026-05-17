@@ -21,6 +21,27 @@ jest.mock('./errorHandler', () => ({
   },
 }));
 
+// Mock react-native-blob-util — uploadMedia streams via the native module.
+type UploadTask = Promise<{ respInfo: { status: number }; text: () => string }> & {
+  uploadProgress: jest.Mock;
+};
+const mockUploadProgress = jest.fn();
+const mockFetch = jest.fn();
+const mockWrap = jest.fn((p: string) => `WRAPPED:${p}`);
+const mockStat = jest.fn();
+const mockUnlink = jest.fn();
+jest.mock('react-native-blob-util', () => ({
+  __esModule: true,
+  default: {
+    fetch: (...args: unknown[]) => mockFetch(...args),
+    wrap: (p: string) => mockWrap(p),
+    fs: {
+      stat: (...args: unknown[]) => mockStat(...args),
+      unlink: (...args: unknown[]) => mockUnlink(...args),
+    },
+  },
+}));
+
 // Mock fetch
 global.fetch = jest.fn();
 
@@ -276,6 +297,448 @@ describe('EchoApiService', () => {
       const calls = (global.fetch as jest.Mock).mock.calls;
       expect(calls[0][0]).toContain('/api/recipients');
       expect(calls[1][0]).toContain('/api/guardians');
+    });
+  });
+
+  describe('uploadMedia (native streaming)', () => {
+    const buildTask = (status: number, body = ''): UploadTask => {
+      const task = Promise.resolve({
+        respInfo: { status },
+        text: () => body,
+      }) as UploadTask;
+      task.uploadProgress = mockUploadProgress;
+      return task;
+    };
+
+    beforeEach(() => {
+      mockFetch.mockReset();
+      mockUploadProgress.mockReset();
+      mockWrap.mockClear();
+    });
+
+    it('streams the file via ReactNativeBlobUtil.fetch + wrap()', async () => {
+      mockFetch.mockReturnValue(buildTask(200));
+
+      await echoApiService.uploadMedia(
+        'https://s3.example.com/presigned',
+        'file:///var/mobile/cache/clip.mp4',
+        'video/mp4',
+      );
+
+      expect(mockWrap).toHaveBeenCalledWith('/var/mobile/cache/clip.mp4');
+      expect(mockFetch).toHaveBeenCalledWith(
+        'PUT',
+        'https://s3.example.com/presigned',
+        { 'Content-Type': 'video/mp4' },
+        'WRAPPED:/var/mobile/cache/clip.mp4',
+      );
+    });
+
+    it('leaves Android-style content:// URIs untouched', async () => {
+      mockFetch.mockReturnValue(buildTask(200));
+
+      await echoApiService.uploadMedia(
+        'https://s3.example.com/presigned',
+        'content://media/external/video/clip.mp4',
+        'video/mp4',
+      );
+
+      expect(mockWrap).toHaveBeenCalledWith(
+        'content://media/external/video/clip.mp4',
+      );
+    });
+
+    it('wires the progress callback when provided', async () => {
+      mockFetch.mockReturnValue(buildTask(200));
+      const onProgress = jest.fn();
+
+      await echoApiService.uploadMedia(
+        'https://s3.example.com/presigned',
+        '/local/clip.mp4',
+        'video/mp4',
+        onProgress,
+      );
+
+      expect(mockUploadProgress).toHaveBeenCalledTimes(1);
+      const [opts, cb] = mockUploadProgress.mock.calls[0];
+      expect(opts).toEqual({ interval: 250 });
+
+      // Simulate the native module pushing a progress tick.
+      cb('1024', '2048');
+      expect(onProgress).toHaveBeenCalledWith(1024, 2048);
+    });
+
+    it('throws "Media upload failed" with the HTTP status on a non-2xx response', async () => {
+      mockFetch.mockReturnValue(buildTask(403, 'AccessDenied'));
+
+      await expect(
+        echoApiService.uploadMedia(
+          'https://s3.example.com/presigned',
+          '/local/clip.mp4',
+          'video/mp4',
+        ),
+      ).rejects.toThrow('Media upload failed (403)');
+    });
+
+    it('wraps native-side errors in a "Cannot upload media file" error', async () => {
+      mockFetch.mockImplementation(() => {
+        throw new Error('ECONNRESET');
+      });
+
+      await expect(
+        echoApiService.uploadMedia(
+          'https://s3.example.com/presigned',
+          '/local/clip.mp4',
+          'video/mp4',
+        ),
+      ).rejects.toThrow('Cannot upload media file: ECONNRESET');
+    });
+  });
+
+  describe('finalizeMedia', () => {
+    it('POSTs to /api/echoes/{id}/finalize-media with key + content_type', async () => {
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          success: true,
+          data: { echo_id: 'echo-1', media_url: 'https://b/.../echo-1_x.mp4' },
+        }),
+      });
+
+      const result = await echoApiService.finalizeMedia(
+        'echo-1',
+        'echoes/u-1/echo-1_2026.mp4',
+        'video/mp4',
+      );
+
+      expect(result.success).toBe(true);
+      const [url, init] = (global.fetch as jest.Mock).mock.calls[0];
+      expect(url).toContain('/api/echoes/echo-1/finalize-media');
+      const body = JSON.parse((init as { body: string }).body);
+      expect(body).toEqual({
+        key: 'echoes/u-1/echo-1_2026.mp4',
+        content_type: 'video/mp4',
+      });
+    });
+
+    it('URL-encodes the echo_id in the path', async () => {
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ success: true, data: {} }),
+      });
+      await echoApiService.finalizeMedia('a/b c', 'echoes/u-1/a-b-c_2026.mp4');
+      const [url] = (global.fetch as jest.Mock).mock.calls[0];
+      expect(url as string).toContain('/api/echoes/a%2Fb%20c/finalize-media');
+    });
+  });
+
+  describe('uploadEchoMedia (umbrella)', () => {
+    beforeEach(() => {
+      mockFetch.mockReset();
+      mockFetch.mockReturnValue(
+        Object.assign(
+          Promise.resolve({ respInfo: { status: 200 }, text: () => '' }),
+          { uploadProgress: jest.fn() },
+        ),
+      );
+      (global.fetch as jest.Mock).mockReset();
+    });
+
+    it('compresses → presigns → streams → finalizes, in that order', async () => {
+      const order: string[] = [];
+      const Video = jest.requireMock('react-native-compressor').Video as {
+        compress: jest.Mock;
+      };
+      Video.compress.mockImplementation(async (uri: string) => {
+        order.push('compress');
+        return uri.replace('clip.mp4', 'clip.compressed.mp4');
+      });
+
+      mockFetch.mockImplementation(() => {
+        order.push('upload');
+        return Object.assign(
+          Promise.resolve({ respInfo: { status: 200 }, text: () => '' }),
+          { uploadProgress: jest.fn() },
+        );
+      });
+
+      (global.fetch as jest.Mock).mockImplementation(async (url: string) => {
+        if (url.includes('/api/echoes/echo-1/finalize-media')) {
+          order.push('finalize');
+          return {
+            ok: true,
+            json: async () => ({
+              success: true,
+              data: { echo_id: 'echo-1', media_url: 'https://canonical/x' },
+            }),
+          };
+        }
+        if (url.includes('/api/echoes/upload-url')) {
+          order.push('presign');
+          return {
+            ok: true,
+            json: async () => ({
+              success: true,
+              data: {
+                upload_url: 'https://s3.example.com/signed',
+                media_url: 'https://canonical/x',
+                key: 'echoes/u-1/echo-1_2026.mp4',
+              },
+            }),
+          };
+        }
+        return { ok: true, json: async () => ({ success: true, data: {} }) };
+      });
+
+      const result = await echoApiService.uploadEchoMedia(
+        'echo-1',
+        '/local/clip.mp4',
+        'video/mp4',
+      );
+
+      expect(result.success).toBe(true);
+      expect(order).toEqual(['compress', 'presign', 'upload', 'finalize']);
+    });
+
+    it('emits onStage transitions for each phase', async () => {
+      const Video = jest.requireMock('react-native-compressor').Video as {
+        compress: jest.Mock;
+      };
+      Video.compress.mockImplementation(
+        async (uri: string, _opts: unknown, onProg: (p: number) => void) => {
+          onProg(0.5);
+          return uri;
+        },
+      );
+
+      (global.fetch as jest.Mock).mockImplementation(async (url: string) => {
+        if (url.includes('/finalize-media')) {
+          return {
+            ok: true,
+            json: async () => ({ success: true, data: { echo_id: 'echo-1' } }),
+          };
+        }
+        return {
+          ok: true,
+          json: async () => ({
+            success: true,
+            data: {
+              upload_url: 'https://s3.example.com/signed',
+              key: 'echoes/u-1/echo-1.mp4',
+              media_url: 'x',
+            },
+          }),
+        };
+      });
+
+      mockFetch.mockImplementation(() => {
+        const task = Promise.resolve({
+          respInfo: { status: 200 },
+          text: () => '',
+        }) as Promise<{ respInfo: { status: number }; text: () => string }> & {
+          uploadProgress: jest.Mock;
+        };
+        task.uploadProgress = jest.fn((opts, cb) => {
+          cb('512', '1024');
+        });
+        return task;
+      });
+
+      const stages: string[] = [];
+      await echoApiService.uploadEchoMedia(
+        'echo-1',
+        '/local/clip.mp4',
+        'video/mp4',
+        stage => {
+          stages.push(stage.type);
+        },
+      );
+
+      expect(stages).toContain('compressing');
+      expect(stages).toContain('requesting_url');
+      expect(stages).toContain('uploading');
+      expect(stages).toContain('finalizing');
+    });
+
+    it('unlinks the compressed temp file after a successful upload', async () => {
+      const Video = jest.requireMock('react-native-compressor').Video as {
+        compress: jest.Mock;
+      };
+      Video.compress.mockClear();
+      mockUnlink.mockClear();
+      mockStat.mockReset();
+      mockUnlink.mockResolvedValue(undefined);
+
+      // Source is large enough to trigger compression; result size is unknown.
+      mockStat.mockResolvedValueOnce({ size: '50000000' });
+      mockStat.mockResolvedValue({ size: '5000000' });
+      Video.compress.mockResolvedValueOnce('/cache/clip.compressed.mp4');
+
+      (global.fetch as jest.Mock).mockImplementation(async (url: string) => {
+        if (url.includes('/finalize-media')) {
+          return {
+            ok: true,
+            json: async () => ({ success: true, data: { echo_id: 'echo-1' } }),
+          };
+        }
+        return {
+          ok: true,
+          json: async () => ({
+            success: true,
+            data: {
+              upload_url: 'https://s3.example.com/signed',
+              key: 'echoes/u-1/echo-1.mp4',
+              media_url: 'x',
+            },
+          }),
+        };
+      });
+      mockFetch.mockReturnValue(
+        Object.assign(
+          Promise.resolve({ respInfo: { status: 200 }, text: () => '' }),
+          { uploadProgress: jest.fn() },
+        ),
+      );
+
+      await echoApiService.uploadEchoMedia(
+        'echo-1',
+        '/picker/clip.mp4',
+        'video/mp4',
+      );
+
+      expect(mockUnlink).toHaveBeenCalledWith('/cache/clip.compressed.mp4');
+    });
+
+    it('also unlinks the compressed temp file on upload failure', async () => {
+      const Video = jest.requireMock('react-native-compressor').Video as {
+        compress: jest.Mock;
+      };
+      Video.compress.mockClear();
+      mockUnlink.mockClear();
+      mockStat.mockReset();
+      mockUnlink.mockResolvedValue(undefined);
+
+      mockStat.mockResolvedValueOnce({ size: '50000000' });
+      mockStat.mockResolvedValue({ size: '5000000' });
+      Video.compress.mockResolvedValueOnce('/cache/clip.compressed.mp4');
+
+      (global.fetch as jest.Mock).mockImplementation(async () => ({
+        ok: true,
+        json: async () => ({
+          success: true,
+          data: {
+            upload_url: 'https://s3.example.com/signed',
+            key: 'echoes/u-1/echo-1.mp4',
+            media_url: 'x',
+          },
+        }),
+      }));
+      // Make the S3 PUT fail so the upload throws AFTER the temp file
+      // was written.
+      mockFetch.mockReturnValue(
+        Object.assign(
+          Promise.resolve({
+            respInfo: { status: 500 },
+            text: () => 'oops',
+          }),
+          { uploadProgress: jest.fn() },
+        ),
+      );
+
+      await expect(
+        echoApiService.uploadEchoMedia(
+          'echo-1',
+          '/picker/clip.mp4',
+          'video/mp4',
+        ),
+      ).rejects.toThrow();
+
+      expect(mockUnlink).toHaveBeenCalledWith('/cache/clip.compressed.mp4');
+    });
+
+    it('returns a clear retry message when finalize fails', async () => {
+      const Video = jest.requireMock('react-native-compressor').Video as {
+        compress: jest.Mock;
+      };
+      mockStat.mockReset();
+      mockStat.mockResolvedValue(null);  // small file — skip compression
+      Video.compress.mockImplementation(async (uri: string) => uri);
+
+      mockFetch.mockReturnValue(
+        Object.assign(
+          Promise.resolve({ respInfo: { status: 200 }, text: () => '' }),
+          { uploadProgress: jest.fn() },
+        ),
+      );
+      (global.fetch as jest.Mock).mockImplementation(async (url: string) => {
+        if (url.includes('/finalize-media')) {
+          return {
+            ok: false,
+            status: 500,
+            json: async () => ({ success: false, error: '' }),
+          };
+        }
+        return {
+          ok: true,
+          json: async () => ({
+            success: true,
+            data: {
+              upload_url: 'https://s3.example.com/signed',
+              key: 'echoes/u-1/echo-1.mp4',
+              media_url: 'x',
+            },
+          }),
+        };
+      });
+
+      const result = await echoApiService.uploadEchoMedia(
+        'echo-1',
+        '/picker/clip.mp4',
+        'video/mp4',
+      );
+
+      expect(result.success).toBe(false);
+      expect(result.error).toMatch(/could not be confirmed/i);
+    });
+
+    it('skips compression entirely for audio files', async () => {
+      const Video = jest.requireMock('react-native-compressor').Video as {
+        compress: jest.Mock;
+      };
+      const Image = jest.requireMock('react-native-compressor').Image as {
+        compress: jest.Mock;
+      };
+      Video.compress.mockClear();
+      Image.compress.mockClear();
+
+      (global.fetch as jest.Mock).mockImplementation(async (url: string) => {
+        if (url.includes('/finalize-media')) {
+          return {
+            ok: true,
+            json: async () => ({ success: true, data: { echo_id: 'echo-1' } }),
+          };
+        }
+        return {
+          ok: true,
+          json: async () => ({
+            success: true,
+            data: {
+              upload_url: 'https://s3.example.com/signed',
+              key: 'echoes/u-1/echo-1.m4a',
+              media_url: 'x',
+            },
+          }),
+        };
+      });
+
+      await echoApiService.uploadEchoMedia(
+        'echo-1',
+        '/local/voice.m4a',
+        'audio/m4a',
+      );
+
+      expect(Video.compress).not.toHaveBeenCalled();
+      expect(Image.compress).not.toHaveBeenCalled();
     });
   });
 });

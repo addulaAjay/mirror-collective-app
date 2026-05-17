@@ -259,18 +259,17 @@ const NewEchoAudioScreen: React.FC<Props> = ({ navigation, route }) => {
       const finalUri = pickedFile?.uri ?? recordedUri;
       if (!finalUri) throw new Error('No audio file to upload');
 
-      const uploadUrlResponse = await echoApiService.getUploadUrl(contentType, echoId);
-      if (!uploadUrlResponse.success || !uploadUrlResponse.data) {
-        throw new Error('Failed to get upload URL');
-      }
-      await echoApiService.uploadMedia(
-        uploadUrlResponse.data.upload_url,
+      // Audio files are typically small (m4a @ 64-128 kbps); compression
+      // is skipped automatically below the 10 MB threshold. The umbrella
+      // helper still gives us atomic finalize semantics.
+      const result = await echoApiService.uploadEchoMedia(
+        echoId,
         finalUri,
         contentType,
       );
-      await echoApiService.updateEcho(echoId, {
-        media_url: uploadUrlResponse.data.media_url,
-      });
+      if (!result.success) {
+        throw new Error(result.error ?? 'Upload failed');
+      }
 
       Alert.alert('Success', 'Echo saved successfully');
       navigation.navigate('MirrorEchoVaultHome');

@@ -218,3 +218,40 @@ jest.mock('react-native-keyboard-controller', () => ({
 jest.mock('react-native-reanimated', () =>
   require('react-native-reanimated/mock'),
 );
+
+// Mock react-native-blob-util — its index module touches a TurboModule
+// registry that doesn't exist in Jest, so importing echoApiService (which
+// uses it for native-streaming uploads) would otherwise crash every test
+// that transitively pulls in src/services/api/echo.ts.
+jest.mock('react-native-blob-util', () => {
+  const uploadProgress = jest.fn();
+  const task = Promise.resolve({
+    respInfo: { status: 200 },
+    text: () => '',
+  });
+  task.uploadProgress = uploadProgress;
+  return {
+    __esModule: true,
+    default: {
+      fetch: jest.fn(() => task),
+      wrap: jest.fn((p) => p),
+      fs: {
+        // Default to "size unknown" so compress.ts gracefully falls
+        // through. Individual tests can override via
+        //   jest.requireMock('react-native-blob-util').default.fs.stat.mockResolvedValue({size: '12345'})
+        stat: jest.fn().mockRejectedValue(new Error('not mocked')),
+        // No-op cleanup so unlinkQuietly() doesn't throw.
+        unlink: jest.fn().mockResolvedValue(undefined),
+      },
+    },
+  };
+});
+
+// Mock react-native-compressor — native iOS/Android module. Default
+// pass-through means tests don't need to know about compression unless
+// they want to assert behavior; in that case override per-test.
+jest.mock('react-native-compressor', () => ({
+  __esModule: true,
+  Video: { compress: jest.fn((uri) => Promise.resolve(uri)) },
+  Image: { compress: jest.fn((uri) => Promise.resolve(uri)) },
+}));
