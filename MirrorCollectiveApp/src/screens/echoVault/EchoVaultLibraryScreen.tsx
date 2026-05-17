@@ -144,11 +144,26 @@ const EchoSentCheckIcon: React.FC = () => (
 interface AvatarProps {
   motif?: string;
   profileImage?: string;
+  /**
+   * When a video echo has a poster frame attached, use that as the
+   * avatar instead of the recipient identity image. The recipient
+   * still surfaces via the rightLabel column; the avatar slot is
+   * better spent showing what the echo CONTAINS than who it's FOR.
+   * Falls back to the recipient profile → motif → placeholder ladder
+   * when no poster is available.
+   */
+  poster?: string;
 }
-const EchoAvatar: React.FC<AvatarProps> = ({ motif, profileImage }) => (
+const EchoAvatar: React.FC<AvatarProps> = ({ motif, profileImage, poster }) => (
   <View style={styles.avatarGlow}>
     <View style={styles.avatarRing}>
-      {profileImage ? (
+      {poster ? (
+        <CachedImage
+          source={{ uri: poster }}
+          style={styles.avatarImg}
+          contentFit="cover"
+        />
+      ) : profileImage ? (
         // CachedImage strips presigned-URL query params for the cache
         // key, so paging back through the vault list doesn't re-download
         // the same avatar bytes on every refresh.
@@ -202,6 +217,7 @@ function renderEchoRow(
             <EchoAvatar
               motif={item.recipient?.motif}
               profileImage={item.recipient?.profile_image_url}
+              poster={item.echo_type === 'VIDEO' ? item.poster_url : undefined}
             />
             <View style={styles.rowText}>
               <Text style={styles.rowTitle} numberOfLines={2}>

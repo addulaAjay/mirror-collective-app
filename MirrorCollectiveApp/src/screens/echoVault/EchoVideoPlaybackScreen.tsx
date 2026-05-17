@@ -250,6 +250,13 @@ const EchoVideoPlaybackScreen: React.FC<Props> = ({ navigation, route }) => {
                   bufferForPlaybackMs: 2000,
                   bufferForPlaybackAfterRebufferMs: 3000,
                 }}
+                // Show the client-extracted poster while the first
+                // video frame is being decoded. Without this the user
+                // sees a black rectangle for ~500-2000ms (depending
+                // on buffer fill); with it they see the thumbnail
+                // immediately and the video fades in over it.
+                poster={echo.poster_url}
+                posterResizeMode="cover"
               />
               
               {/* Overlay controls */}
