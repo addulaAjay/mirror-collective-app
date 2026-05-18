@@ -421,8 +421,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   backBtn: {
-    width: 44,
-    height: 44,
+    width: scale(44),
+    height: scale(44),
     justifyContent: 'center',
     alignItems: 'flex-start',
   },

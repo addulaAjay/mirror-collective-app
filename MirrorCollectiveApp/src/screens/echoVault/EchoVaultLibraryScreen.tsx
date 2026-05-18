@@ -670,7 +670,10 @@ const styles = StyleSheet.create<{
     width:          '100%',
   },
   backBtn: {
-    paddingVertical: verticalScale(8),
+    width:          scale(44),
+    height:         scale(44),
+    justifyContent: 'center',
+    alignItems:     'flex-start',
   },
   backArrowImg: {
     width:     scale(20),
