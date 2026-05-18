@@ -38,12 +38,14 @@ import type { RootStackParamList } from '@types';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  Image,
   ScrollView,
   StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
+  type ImageStyle,
   type TextStyle,
   type ViewStyle,
 } from 'react-native';
@@ -72,13 +74,17 @@ const LockIcon: React.FC = () => (
 );
 
 // ── Back arrow icon ───────────────────────────────────────────────────────────
+// Use the shared `back-arrow.png` asset (same one Compose / Detail / Audio /
+// Video / Recipient screens render) so the glyph is pixel-aligned across the
+// whole echoVault flow. An inline Material arrow_back SVG path only fills
+// ~67% of a 24-unit viewBox, so the visible glyph was visibly smaller here
+// than on the PNG-using screens.
 const BackIcon: React.FC = () => (
-  <Svg width={scale(20)} height={scale(20)} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
-      fill={palette.gold.DEFAULT}
-    />
-  </Svg>
+  <Image
+    source={require('@assets/back-arrow.png')}
+    style={styles.backArrowImg}
+    resizeMode="contain"
+  />
 );
 
 // ── Screen ────────────────────────────────────────────────────────────────────
@@ -318,6 +324,7 @@ const styles = StyleSheet.create<{
   headerSection: ViewStyle;
   titleRow: ViewStyle;
   backBtn: ViewStyle;
+  backArrowImg: ImageStyle;
   title: TextStyle;
   titleSpacer: ViewStyle;
   subtitle: TextStyle;
@@ -378,6 +385,11 @@ const styles = StyleSheet.create<{
     height:         scale(44),
     alignItems:     'flex-start',
     justifyContent: 'center',
+  },
+  backArrowImg: {
+    width:     scale(20),
+    height:    scale(20),
+    tintColor: palette.gold.DEFAULT,
   },
 
   // Heading M: Cormorant Regular 28/32, #f2e1b0, glow shadow

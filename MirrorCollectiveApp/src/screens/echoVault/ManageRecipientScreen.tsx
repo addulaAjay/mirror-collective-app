@@ -1,6 +1,6 @@
 
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { palette, fontFamily, textShadow } from '@theme';
+import { palette, fontFamily, scale, textShadow } from '@theme';
 import { RootStackParamList } from '@types';
 import React, { useState, useEffect, useCallback } from 'react';
 import {
@@ -225,8 +225,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   backArrow: {
-    width: 20,
-    height: 20,
+    width: scale(20),
+    height: scale(20),
     tintColor: GOLD,
   },
   titleSpacer: { width: 20 },

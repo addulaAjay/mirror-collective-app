@@ -95,13 +95,15 @@ const CheckboxIcon: React.FC<{ checked: boolean }> = ({ checked }) => (
 );
 
 // ── Back arrow icon ───────────────────────────────────────────────────────────
+// Use the shared `back-arrow.png` asset so the glyph is pixel-aligned with
+// every other echoVault screen. Inline Material arrow_back SVG only fills
+// ~67% of its 24-unit viewBox, producing a visibly smaller glyph.
 const BackIcon: React.FC = () => (
-  <Svg width={scale(20)} height={scale(20)} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
-      fill={palette.gold.DEFAULT}
-    />
-  </Svg>
+  <Image
+    source={require('@assets/back-arrow.png')}
+    style={styles.backArrowImg}
+    resizeMode="contain"
+  />
 );
 
 // ── Action button ─────────────────────────────────────────────────────────────
@@ -394,6 +396,7 @@ const styles = StyleSheet.create<{
   // Header
   headerRow: ViewStyle;
   backBtn: ViewStyle;
+  backArrowImg: ImageStyle;
   screenTitle: TextStyle;
   headerSpacer: ViewStyle;
   // Title input
@@ -475,6 +478,11 @@ const styles = StyleSheet.create<{
     height:         scale(44),
     justifyContent: 'center',
     alignItems:     'flex-start',
+  },
+  backArrowImg: {
+    width:     scale(20),
+    height:    scale(20),
+    tintColor: palette.gold.DEFAULT,
   },
   // Heading M: Cormorant Regular 28/32, #f2e1b0, glow text-shadow
   screenTitle: {

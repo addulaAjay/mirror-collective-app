@@ -1,7 +1,7 @@
 // NewEchoAudioScreen.tsx
 import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { palette, textShadow } from '@theme';
+import { palette, scale, textShadow } from '@theme';
 import { RootStackParamList } from '@types';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
@@ -525,8 +525,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   backBtn: {
-    width: 44,
-    height: 44,
+    width: scale(44),
+    height: scale(44),
     justifyContent: 'center',
     alignItems: 'flex-start',
   },
@@ -536,9 +536,9 @@ const styles = StyleSheet.create({
     marginLeft: 2,
   },
   backArrowImg: {
-    width: 20,
-    height: 20,
-    tintColor: 'rgba(215,192,138,0.9)',
+    width: scale(20),
+    height: scale(20),
+    tintColor: GOLD,
   },
   screenTitle: {
     color: 'rgba(215,192,138,0.92)',

@@ -427,7 +427,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   backIcon: { color: 'rgba(215,192,138,0.9)', fontSize: 30, marginLeft: 2 },
-  backArrowImg: { width: 20, height: 20, tintColor: 'rgba(215,192,138,0.9)' },
+  backArrowImg: { width: scale(20), height: scale(20), tintColor: palette.gold.mid },
   screenTitle: {
     color: 'rgba(215,192,138,0.92)',
     fontSize: 28,

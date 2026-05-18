@@ -116,14 +116,15 @@ type EchoLibraryNavigationProp = NativeStackNavigationProp<
   'MirrorEchoVaultLibrary'
 >;
 
-// ── Back arrow — matches ForgotPassword/ResetPassword (Figma 4928:7988) ────
+// ── Back arrow — uses the shared `back-arrow.png` asset so the glyph
+// matches Compose / Detail / Audio / Video / Recipient. Inline Material
+// SVG only fills ~67% of its viewBox and renders visibly smaller.
 const BackArrowIcon: React.FC = () => (
-  <Svg width={scale(20)} height={scale(20)} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
-      fill={palette.gold.DEFAULT}
-    />
-  </Svg>
+  <Image
+    source={require('@assets/back-arrow.png')}
+    style={styles.backArrowImg}
+    resizeMode="contain"
+  />
 );
 
 // ── Lock icon — Figma node 1143:1360 (Vector) ───────────────────────────────
@@ -582,6 +583,7 @@ const styles = StyleSheet.create<{
   titleGroup: ViewStyle;
   headerRow: ViewStyle;
   backBtn: ViewStyle;
+  backArrowImg: ImageStyle;
   headerSpacer: ViewStyle;
   title: TextStyle;
   subtitle: TextStyle;
@@ -669,6 +671,11 @@ const styles = StyleSheet.create<{
   },
   backBtn: {
     paddingVertical: verticalScale(8),
+  },
+  backArrowImg: {
+    width:     scale(20),
+    height:    scale(20),
+    tintColor: palette.gold.DEFAULT,
   },
   headerSpacer: {
     width: scale(20),
