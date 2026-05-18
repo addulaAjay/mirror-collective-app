@@ -435,16 +435,16 @@ const styles = StyleSheet.create<{
   emptyText: TextStyle;
   emptySubtext: TextStyle;
 }>({
-  bg:   { flex: 1, backgroundColor: palette.navy.deep },
+  bg: { flex: 1, backgroundColor: palette.navy.deep },
   safe: { flex: 1, backgroundColor: palette.neutral.transparent },
 
   // Fixed outer column — page does not scroll; only the echo list inside scrolls
   outerColumn: {
-    flex:              1,
-    paddingHorizontal: scale(spacing.xl),        // 24px
-    paddingTop:        verticalScale(30),
-    paddingBottom:     verticalScale(spacing.xl),
-    gap:               verticalScale(spacing.xl), // 24px between sections
+    flex: 1,
+    paddingHorizontal: scale(spacing.xl), // 24px
+    paddingTop: verticalScale(30),
+    paddingBottom: verticalScale(spacing.xl),
+    gap: verticalScale(spacing.xl), // 24px between sections
   },
   // Inner ScrollView — only the echo rows scroll
   listScroll: { flex: 1 },
@@ -453,17 +453,17 @@ const styles = StyleSheet.create<{
   // ── Title + Subtitle ───────────────────────────────────────────────────────
   // Figma 211:1223 — flex-col gap:16, items-center
   titleGroup: {
-    gap:        verticalScale(spacing.m),        // 16px
+    gap: verticalScale(spacing.m), // 16px
     alignItems: 'center',
   },
 
   // Header row — back arrow on the left, centered title via flex, invisible
   // spacer on the right (matches ForgotPassword/ResetPassword header pattern).
   headerRow: {
-    flexDirection:  'row',
-    alignItems:     'center',
+    flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    width:          '100%',
+    width: '100%',
   },
   backBtn: {
     paddingVertical: verticalScale(8),
@@ -476,14 +476,14 @@ const styles = StyleSheet.create<{
   // flex:1 inside the header row so the title fills available width and stays
   // optically centered between the back button and the spacer.
   title: {
-    flex:             1,
-    fontFamily:       fontFamily.heading,
-    fontSize:         moderateScale(fontSize['2xl']),  // 28px
-    fontWeight:       fontWeight.regular,
-    lineHeight:       moderateScale(32),
-    color:            palette.gold.DEFAULT,
-    textAlign:        'center',
-    textShadowColor:  'rgba(240,212,168,0.3)',
+    flex: 1,
+    fontFamily: fontFamily.heading,
+    fontSize: moderateScale(fontSize['2xl']), // 28px
+    fontWeight: fontWeight.regular,
+    lineHeight: moderateScale(32),
+    color: palette.gold.DEFAULT,
+    textAlign: 'center',
+    textShadowColor: 'rgba(240,212,168,0.3)',
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 10,
   },
@@ -491,41 +491,41 @@ const styles = StyleSheet.create<{
   // Body S Regular: Inter Regular 16/24, white, center-aligned
   // Figma 211:1225: font-weight/regular (not Light)
   subtitle: {
-    fontFamily: fontFamily.body,                 // FIX: was bodyLight
-    fontSize:   moderateScale(fontSize.s),       // 16px
-    fontWeight: fontWeight.regular,              // FIX: was '300'
+    fontFamily: fontFamily.body, // FIX: was bodyLight
+    fontSize: moderateScale(fontSize.s), // 16px
+    fontWeight: fontWeight.regular, // FIX: was '300'
     lineHeight: moderateScale(24),
-    color:      palette.neutral.white,
-    textAlign:  'center',                        // FIX: was missing
-    width:      '100%',
+    color: palette.neutral.white,
+    textAlign: 'center', // FIX: was missing
+    width: '100%',
   },
 
   // ── Echo Inbox row ─────────────────────────────────────────────────────────
   // Figma 1441:1943 — border-bottom 0.5px Border/Subtle, gap:16, items-center
   inboxRow: {
-    flexDirection:  'row',
-    alignItems:     'center',
+    flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'center',
-    gap:            scale(spacing.m),                   // 16px
-    paddingVertical: verticalScale(spacing.xxs),        // 4px (Spacing/XXS)
-    borderBottomWidth: borderWidth.thin,                // 0.5px
-    borderBottomColor: palette.navy.light,              // Border/Subtle #a3b3cc
-    alignSelf:      'center',
+    gap: scale(spacing.m), // 16px
+    paddingVertical: verticalScale(spacing.xxs), // 4px (Spacing/XXS)
+    borderBottomWidth: borderWidth.thin, // 0.5px
+    borderBottomColor: palette.navy.light, // Border/Subtle #a3b3cc
+    alignSelf: 'center',
   },
 
   mailIcon: {
-    width:     scale(24),
-    height:    scale(24),
+    width: scale(24),
+    height: scale(24),
     tintColor: palette.gold.DEFAULT,
   },
 
   // Heading M: Cormorant Regular 28/32, #f2e1b0
   inboxText: {
     fontFamily: fontFamily.heading,
-    fontSize:   moderateScale(fontSize['2xl']),         // 28px
+    fontSize: moderateScale(fontSize['2xl']), // 28px
     fontWeight: fontWeight.regular,
     lineHeight: moderateScale(32),
-    color:      palette.gold.DEFAULT,
+    color: palette.gold.DEFAULT,
   },
 
   // ── Library card ──────────────────────────────────────────────────────────
@@ -534,27 +534,27 @@ const styles = StyleSheet.create<{
   // (shadow doesn't clip because we're not hiding shadow separately)
   // Base card — no flex; wraps content in empty state
   cardGlow: {
-    width:        '100%',
+    width: '100%',
     borderRadius: radius.m,
-    borderWidth:  borderWidth.hairline,
-    borderColor:  palette.navy.light,
-    padding:      scale(spacing.m),
-    overflow:     'hidden',
+    borderWidth: borderWidth.hairline,
+    borderColor: palette.navy.light,
+    padding: scale(spacing.m),
+    overflow: 'hidden',
   },
   // Applied on top of cardGlow when echoes exist — lets the list fill space
   cardGlowFlex: {
-    flex:      1,
+    flex: 1,
     minHeight: scale(200),
   },
 
   // ── Tabs ────────────────────────────────────────────────────────────────────
   // Figma 1065:1750 — gap:32, items-center, justify-center
   tabs: {
-    flexDirection:  'row',
+    flexDirection: 'row',
     justifyContent: 'center',
-    alignItems:     'center',
-    gap:            scale(32),
-    marginBottom:   verticalScale(spacing.s),           // visual separation from rows
+    alignItems: 'center',
+    gap: scale(32),
+    marginBottom: verticalScale(spacing.s), // visual separation from rows
   },
 
   tab: {
@@ -564,24 +564,24 @@ const styles = StyleSheet.create<{
   // Active tab: bottom border Border/Subtle
   tabActive: {
     borderBottomWidth: 1,
-    borderBottomColor: palette.navy.light,              // #a3b3cc per Figma 1065:1751
+    borderBottomColor: palette.navy.light, // #a3b3cc per Figma 1065:1751
   },
 
   // Heading XS Bold: Cormorant Medium 20/24
   tabText: {
     fontFamily: fontFamily.heading,
-    fontSize:   moderateScale(fontSize.l),              // 20px (font/size/L)
-    fontWeight: '500',                                  // Figma: font-medium
-    lineHeight: moderateScale(24),                      // font/size/XL
-    textAlign:  'center',
+    fontSize: moderateScale(fontSize.l), // 20px (font/size/L)
+    fontWeight: '500', // Figma: font-medium
+    lineHeight: moderateScale(24), // font/size/XL
+    textAlign: 'center',
   },
 
   tabTextActive: {
-    color: palette.gold.subtlest,                       // #fdfdf9 (Text/Paragraph-2)
+    color: palette.gold.subtlest, // #fdfdf9 (Text/Paragraph-2)
   },
 
   tabTextInactive: {
-    color: palette.navy.light,                          // #a3b3cc (Text/Inverse-Paragraph-2)
+    color: palette.navy.light, // #a3b3cc (Text/Inverse-Paragraph-2)
   },
 
   // ── List rows ───────────────────────────────────────────────────────────────
@@ -589,69 +589,70 @@ const styles = StyleSheet.create<{
   // border lives on the group (always full-width) rather than the row.
   rowGroup: {
     width: '100%',
+    padding: 10,
   },
   row: {
-    flexDirection:  'row',
-    alignItems:     'center',
+    flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: verticalScale(spacing.m),          // 16px (Spacing/M)
-    gap:             scale(spacing.s),                  // 12px between rowLeft and rowRight
+    paddingVertical: verticalScale(spacing.m), // 16px (Spacing/M)
+    gap: scale(spacing.s), // 12px between rowLeft and rowRight
   },
 
   // Figma: border-bottom 0.25px Border/Subtle between rows (not on last)
   rowBorder: {
-    borderBottomWidth: borderWidth.hairline,             // 0.25px
-    borderBottomColor: palette.navy.light,               // #a3b3cc
+    borderBottomWidth: borderWidth.hairline, // 0.25px
+    borderBottomColor: palette.navy.light, // #a3b3cc
   },
 
   // rowLeft fills available width and shrinks to make room for rowRight.
   // No hardcoded maxWidth — let flex do the work so it scales to any screen.
   rowLeft: {
     flexDirection: 'row',
-    alignItems:    'center',
-    gap:           scale(12),
-    flex:          1,
-    minWidth:      0,                                    // allow text inside to truncate
+    alignItems: 'center',
+    gap: scale(12),
+    flex: 1,
+    minWidth: 0, // allow text inside to truncate
   },
 
   // ── Avatar ─────────────────────────────────────────────────────────────────
   // Figma 4190:3633 — 40×40, border 1px #f2e1b0, glow 0 0 10 3px rgba(240,212,168,0.3)
   avatarGlow: {
-    width:         scale(40),
-    height:        scale(40),
-    borderRadius:  scale(20),
+    width: scale(40),
+    height: scale(40),
+    borderRadius: scale(20),
     // Figma glow: 0 0 10px 3px rgba(240,212,168,0.3)
-    boxShadow:     '0px 0px 10px 3px rgba(240, 212, 168, 0.3)',
-    shadowColor:   palette.gold.glow,
-    shadowOffset:  { width: 0, height: 0 },
+    boxShadow: '0px 0px 10px 3px rgba(240, 212, 168, 0.3)',
+    shadowColor: palette.gold.glow,
+    shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.3,
-    shadowRadius:  10,
-    elevation:     6,
+    shadowRadius: 10,
+    elevation: 6,
   },
 
   avatarRing: {
-    width:           '100%',
-    height:          '100%',
-    borderRadius:    scale(20),
-    borderWidth:     1,                                  // Figma: 1px border/brand
-    borderColor:     palette.gold.DEFAULT,               // #f2e1b0
+    width: '100%',
+    height: '100%',
+    borderRadius: scale(20),
+    borderWidth: 1, // Figma: 1px border/brand
+    borderColor: palette.gold.DEFAULT, // #f2e1b0
     backgroundColor: 'rgba(197,158,95,0.05)',
-    overflow:        'hidden',
-    alignItems:      'center',
-    justifyContent:  'center',
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
   // Avatar image: 149.82% height, offset top -6.74%
   avatarImg: {
     position: 'absolute',
-    width:    '100%',
-    height:   '150%',
-    top:      '-7%',
-    left:     0,
+    width: '100%',
+    height: '150%',
+    top: '-7%',
+    left: 0,
   },
 
   avatarFallback: {
-    width:  scale(20),
+    width: scale(20),
     height: scale(20),
   },
 
@@ -662,40 +663,40 @@ const styles = StyleSheet.create<{
   // Heading XS: Cormorant Regular 20/24, white
   rowTitle: {
     fontFamily: fontFamily.heading,
-    fontSize:   moderateScale(fontSize.l),               // 20px
+    fontSize: moderateScale(fontSize.l), // 20px
     fontWeight: fontWeight.regular,
     lineHeight: moderateScale(24),
-    color:      palette.neutral.white,
+    color: palette.neutral.white,
   },
 
   // Body XS Light Italic: Inter Light Italic 14/1.5, white
   rowSub: {
     fontFamily: fontFamily.bodyItalic,
-    fontStyle:  'italic',
-    fontSize:   moderateScale(fontSize.xs),              // 14px
+    fontStyle: 'italic',
+    fontSize: moderateScale(fontSize.xs), // 14px
     fontWeight: '300',
     lineHeight: moderateScale(fontSize.xs * 1.5),
-    color:      palette.neutral.white,
-    opacity:    0.85,
+    color: palette.neutral.white,
+    opacity: 0.85,
   },
 
   rowRight: {
     flexDirection: 'row',
-    alignItems:    'center',
-    gap:           scale(8),
-    flexShrink:    0,                                    // never collapse — recipient + lock must stay readable
-    maxWidth:      '40%',                                // cap so a very long recipient name doesn't starve rowLeft
+    alignItems: 'center',
+    gap: scale(8),
+    flexShrink: 0, // never collapse — recipient + lock must stay readable
+    maxWidth: '40%', // cap so a very long recipient name doesn't starve rowLeft
   },
 
   // Inter Light 16/24, Text/Paragraph-1 #f2e1b0
   rowLabel: {
     fontFamily: fontFamily.bodyLight,
-    fontSize:   moderateScale(fontSize.s),               // 16px
+    fontSize: moderateScale(fontSize.s), // 16px
     fontWeight: '300',
     lineHeight: moderateScale(24),
-    color:      palette.gold.DEFAULT,
-    textAlign:  'right',
-    flexShrink: 1,                                       // truncate before pushing out the lock icon
+    color: palette.gold.DEFAULT,
+    textAlign: 'right',
+    flexShrink: 1, // truncate before pushing out the lock icon
   },
 
   // ── Echo Sent pill ──────────────────────────────────────────────────────────
@@ -703,33 +704,33 @@ const styles = StyleSheet.create<{
   // Centered horizontally inside the rowGroup with extra bottom padding so the
   // border between rows sits cleanly underneath it.
   echoSentPillWrap: {
-    alignItems:    'center',
-    paddingBottom: verticalScale(spacing.s),             // 12px gap before next row border
+    alignItems: 'center',
+    paddingBottom: verticalScale(spacing.s), // 12px gap before next row border
   },
   echoSentPill: {
-    flexDirection:     'row',
-    alignItems:        'center',
-    gap:               scale(spacing.xs),                // 8px
-    paddingHorizontal: scale(spacing.m),                 // 16px
-    paddingVertical:   verticalScale(spacing.xxs),       // 4px
-    borderRadius:      999,                              // full-radius pill
-    borderWidth:       borderWidth.hairline,
-    borderColor:       palette.navy.medium,              // #60739f — Border/Inverse-1
-    backgroundColor:   'rgba(96, 115, 159, 0.18)',       // translucent navy.medium
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: scale(spacing.xs), // 8px
+    paddingHorizontal: scale(spacing.m), // 16px
+    paddingVertical: verticalScale(spacing.xxs), // 4px
+    borderRadius: 999, // full-radius pill
+    borderWidth: borderWidth.hairline,
+    borderColor: palette.navy.medium, // #60739f — Border/Inverse-1
+    backgroundColor: 'rgba(96, 115, 159, 0.18)', // translucent navy.medium
   },
   echoSentText: {
     fontFamily: fontFamily.heading,
-    fontSize:   moderateScale(fontSize.s),               // 16px (font/size/S)
+    fontSize: moderateScale(fontSize.s), // 16px (font/size/S)
     fontWeight: fontWeight.regular,
     lineHeight: moderateScale(20),
-    color:      palette.gold.subtlest,                   // #fdfdf9
+    color: palette.gold.subtlest, // #fdfdf9
   },
 
   // ── Buttons ─────────────────────────────────────────────────────────────────
   // Figma 791:3866 — flex-col gap:12, width 271px
   btnGroup: {
     alignItems: 'center',
-    gap:        verticalScale(spacing.s),                // 12px
+    gap: verticalScale(spacing.s), // 12px
   },
 
   btn: {
@@ -741,72 +742,72 @@ const styles = StyleSheet.create<{
   // border 0.5px #60739f (border-inverse-1 = navy.medium), gradient, radius 16
   // padding 20v/16h (Spacing/L and Spacing/M), gap 32, items-center, text-center
   emptyCard: {
-    width:           '100%',
-    borderRadius:    radius.m,
-    borderWidth:     borderWidth.thin,
-    borderColor:     palette.navy.medium,                  // #60739f
+    width: '100%',
+    borderRadius: radius.m,
+    borderWidth: borderWidth.thin,
+    borderColor: palette.navy.medium, // #60739f
     paddingVertical: verticalScale(20),
     paddingHorizontal: scale(spacing.m),
-    gap:             verticalScale(32),
-    alignItems:      'center',
+    gap: verticalScale(32),
+    alignItems: 'center',
   },
 
   // Cormorant Regular 28px, #e5d6b0 (gold.warm), lineHeight 1.3
   emptyCardTitle: {
     fontFamily: fontFamily.heading,
-    fontSize:   moderateScale(28),
+    fontSize: moderateScale(28),
     fontWeight: fontWeight.regular,
     lineHeight: moderateScale(28 * 1.3),
-    color:      palette.gold.warm,
-    textAlign:  'center',
-    width:      '100%',
+    color: palette.gold.warm,
+    textAlign: 'center',
+    width: '100%',
     textTransform: 'uppercase',
   },
 
   // Inter Light 18px, #fdfdf9, lineHeight 1.5
   emptyCardBody: {
-    fontFamily:  fontFamily.bodyLight,
-    fontSize:    moderateScale(18),
-    fontWeight:  '300',
-    lineHeight:  moderateScale(18 * 1.5),
-    color:       palette.gold.subtlest,
-    textAlign:   'center',
-    width:       '100%',
-    alignSelf:   'stretch',   // override parent alignItems:'center' so text fills full width
+    fontFamily: fontFamily.bodyLight,
+    fontSize: moderateScale(18),
+    fontWeight: '300',
+    lineHeight: moderateScale(18 * 1.5),
+    color: palette.gold.subtlest,
+    textAlign: 'center',
+    width: '100%',
+    alignSelf: 'stretch', // override parent alignItems:'center' so text fills full width
   },
 
   stateBox: {
-    alignItems:     'center',
+    alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: verticalScale(40),
   },
   errorText: {
-    color:       palette.status.errorHover,
-    fontSize:    moderateScale(14),
-    textAlign:   'center',
+    color: palette.status.errorHover,
+    fontSize: moderateScale(14),
+    textAlign: 'center',
     marginBottom: 12,
   },
   retryBtn: {
     paddingHorizontal: scale(20),
-    paddingVertical:   verticalScale(8),
-    borderRadius:      radius.s,
-    borderWidth:       1,
-    borderColor:       palette.gold.DEFAULT,
+    paddingVertical: verticalScale(8),
+    borderRadius: radius.s,
+    borderWidth: 1,
+    borderColor: palette.gold.DEFAULT,
   },
   retryText: {
-    color:    palette.gold.DEFAULT,
+    color: palette.gold.DEFAULT,
     fontSize: moderateScale(14),
   },
   emptyText: {
-    color:       palette.gold.subtlest,
-    fontSize:    moderateScale(16),
-    textAlign:   'center',
+    color: palette.gold.subtlest,
+    fontSize: moderateScale(16),
+    textAlign: 'center',
     marginBottom: verticalScale(8),
   },
   emptySubtext: {
-    color:     palette.gold.subtlest,
-    fontSize:  moderateScale(14),
+    color: palette.gold.subtlest,
+    fontSize: moderateScale(14),
     textAlign: 'center',
-    opacity:   0.7,
+    opacity: 0.7,
   },
 });
