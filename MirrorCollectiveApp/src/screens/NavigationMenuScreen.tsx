@@ -13,6 +13,7 @@ import React from 'react';
 import {
   Animated,
   Dimensions,
+  Easing,
   Modal,
   Pressable,
   ScrollView,
@@ -97,27 +98,85 @@ const NavDivider: React.FC = () => (
   />
 );
 
+// Animation timings — tuned to feel like a native iOS drawer.
+// Open: slightly longer with ease-out (decelerates as it settles into place).
+// Close: a touch faster with ease-in (accelerates as it exits) so the user
+//        gets immediate feedback on tap-to-close.
+const OPEN_DURATION_MS  = 280;
+const CLOSE_DURATION_MS = 220;
+const BACKDROP_OPEN_MS  = 240;
+const BACKDROP_CLOSE_MS = 200;
+
 const MirrorSideMenu: React.FC<MirrorSideMenuProps> = ({
   isOpen,
   userName = 'Guest',
   onClose,
   onNavigate,
 }) => {
-  const slideAnim = React.useRef(new Animated.Value(-DRAWER_WIDTH)).current;
+  // Decouple "is the menu logically open" (`isOpen` prop) from "is the
+  // drawer mounted" (`mounted` local). On close we keep the component
+  // mounted, run the slide-out + fade-out, and only then unmount.
+  // Returning null synchronously when isOpen flips false (the previous
+  // implementation) cancelled the closing animation before it could run
+  // — that's the abrupt vanish the user reported.
+  const [mounted, setMounted] = React.useState(isOpen);
+  const slideAnim     = React.useRef(new Animated.Value(isOpen ? 0 : -DRAWER_WIDTH)).current;
+  const backdropAnim  = React.useRef(new Animated.Value(isOpen ? 1 : 0)).current;
 
   React.useEffect(() => {
-    Animated.timing(slideAnim, {
-      toValue: isOpen ? 0 : -DRAWER_WIDTH,
-      duration: 240,
-      useNativeDriver: true,
-    }).start();
-  }, [isOpen, slideAnim]);
+    if (isOpen) {
+      // Mount BEFORE animating so the slide-in starts from the off-screen
+      // position the ref was initialised at.
+      setMounted(true);
+      Animated.parallel([
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: OPEN_DURATION_MS,
+          // Decelerate into rest — the iOS-native drawer feel.
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.timing(backdropAnim, {
+          toValue: 1,
+          duration: BACKDROP_OPEN_MS,
+          easing: Easing.out(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ]).start();
+    } else if (mounted) {
+      // `mounted` guard prevents the closing animation from firing on the
+      // first render when isOpen starts false (initial state).
+      Animated.parallel([
+        Animated.timing(slideAnim, {
+          toValue: -DRAWER_WIDTH,
+          duration: CLOSE_DURATION_MS,
+          // Accelerate away — close should feel responsive, not lingering.
+          easing: Easing.in(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.timing(backdropAnim, {
+          toValue: 0,
+          duration: BACKDROP_CLOSE_MS,
+          easing: Easing.in(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ]).start(({ finished }) => {
+        // Only unmount after the slide-out actually completed. If it was
+        // interrupted (user reopened the menu mid-close), keep mounted so
+        // the reopen animation can blend smoothly.
+        if (finished) setMounted(false);
+      });
+    }
+    // mounted is intentionally not in deps — it's a one-way unmount latch
+    // driven by the close-complete callback above.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, slideAnim, backdropAnim]);
 
-  if (!isOpen) return null;
+  if (!mounted) return null;
 
   return (
     <Modal
-      visible={isOpen}
+      visible={mounted}
       transparent
       animationType="none"
       onRequestClose={onClose}
@@ -125,8 +184,13 @@ const MirrorSideMenu: React.FC<MirrorSideMenuProps> = ({
     >
       <StatusBar barStyle="light-content" backgroundColor="rgba(0,0,0,0.45)" />
 
-      {/* Backdrop — tapping closes the drawer */}
-      <Pressable style={styles.backdrop} onPress={onClose} />
+      {/* Backdrop — fades in/out alongside the slide, tap to close. */}
+      <Animated.View
+        style={[styles.backdrop, { opacity: backdropAnim }]}
+        pointerEvents={isOpen ? 'auto' : 'none'}
+      >
+        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
+      </Animated.View>
 
       {/*
         Figma inset: 5.63% top, 10.18% right, 4.93% bottom, 0 left
@@ -283,6 +347,14 @@ const styles = StyleSheet.create<{
     top: DRAWER_TOP,
     width: DRAWER_WIDTH,
     height: DRAWER_HEIGHT,
+    // Soft right-edge shadow so the drawer reads as elevated above the
+    // content it slides over. Subtle on purpose — the backdrop scrim
+    // does most of the depth-layering work.
+    shadowColor:   '#000',
+    shadowOffset:  { width: 4, height: 0 },
+    shadowOpacity: 0.25,
+    shadowRadius:  12,
+    elevation:     8,
   },
 
   // ── Panel ────────────────────────────────────────────────────────────────
