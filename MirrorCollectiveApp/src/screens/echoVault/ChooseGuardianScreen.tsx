@@ -360,7 +360,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   backArrow: { fontSize: 22, color: GOLD },
-  backArrowImg: { width: scale(20), height: scale(20), tintColor: GOLD },
+  // Tint copied from Figma 3879:806 — Bg/Brand #f2e1b0 (palette.gold.DEFAULT)
+  backArrowImg: { width: scale(20), height: scale(20), tintColor: palette.gold.DEFAULT },
   title: {
     textAlign: 'center',
     color: GOLD,

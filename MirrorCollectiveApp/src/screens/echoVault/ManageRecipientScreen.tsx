@@ -224,10 +224,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
+  // Tint copied from Figma 3879:806 — Bg/Brand #f2e1b0 (palette.gold.DEFAULT)
   backArrow: {
     width: scale(20),
     height: scale(20),
-    tintColor: GOLD,
+    tintColor: palette.gold.DEFAULT,
   },
   titleSpacer: { width: 20 },
   title: {

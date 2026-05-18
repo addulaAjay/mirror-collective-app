@@ -535,10 +535,11 @@ const styles = StyleSheet.create({
     fontSize: 30,
     marginLeft: 2,
   },
+  // Tint copied from Figma 3879:806 — Bg/Brand #f2e1b0 (palette.gold.DEFAULT)
   backArrowImg: {
     width: scale(20),
     height: scale(20),
-    tintColor: GOLD,
+    tintColor: palette.gold.DEFAULT,
   },
   screenTitle: {
     color: 'rgba(215,192,138,0.92)',

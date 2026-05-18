@@ -427,7 +427,8 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   backIcon: { color: 'rgba(215,192,138,0.9)', fontSize: 30, marginLeft: 2 },
-  backArrowImg: { width: scale(20), height: scale(20), tintColor: palette.gold.mid },
+  // Tint copied from Figma 3879:806 (back-arrow component) — Bg/Brand #f2e1b0
+  backArrowImg: { width: scale(20), height: scale(20), tintColor: palette.gold.DEFAULT },
   screenTitle: {
     color: 'rgba(215,192,138,0.92)',
     fontSize: 28,

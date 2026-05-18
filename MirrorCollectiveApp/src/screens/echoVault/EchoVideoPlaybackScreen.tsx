@@ -369,7 +369,8 @@ const styles = StyleSheet.create({
   },
   backBtn: { width: scale(44), height: scale(44), justifyContent: 'center' },
   backIcon: { color: GOLD, fontSize: 30 },
-  backArrowImg: { width: scale(20), height: scale(20), tintColor: GOLD },
+  // Tint copied from Figma 3879:806 — Bg/Brand #f2e1b0 (palette.gold.DEFAULT)
+  backArrowImg: { width: scale(20), height: scale(20), tintColor: palette.gold.DEFAULT },
   screenTitle: {
     color: GOLD,
     fontSize: 28,
