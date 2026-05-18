@@ -19,6 +19,15 @@ interface Props {
  *   rect  47.973×66.658px, centred, border 0.133px #f4cf7d
  *   shadow1: 1.333 -1.333 6.667px 0.667px rgba(229,214,176,0.2)
  *   shadow2: 0 0 23.333px 5.333px rgba(244,207,125,0.2)
+ *
+ * The glow has shadowRadius ~23px which, unconstrained, extends well past
+ * the 100px circle outline (the book rect sits ~9px from the circle edge,
+ * so a 23px shadow leaks outward into transparency).  Figma's source uses
+ * an SVG <filter> with the circle as its clip region; the RN port lost
+ * that. The glow is therefore wrapped in a circular clipping sibling
+ * (overflow:hidden + borderRadius:size/2) so iOS clipsToBounds and
+ * Android's draw-clip both bound the shadow to the circle. The base SVG
+ * renders OUTSIDE this clip wrapper so its outer stroke isn't truncated.
  */
 const CodeLibraryIcon: React.FC<Props> = ({ size = 100 }) => {
   const s = size / 100;
@@ -29,27 +38,42 @@ const CodeLibraryIcon: React.FC<Props> = ({ size = 100 }) => {
     <View style={{ width: size, height: size }}>
       <IconCodeLibrary width={size} height={size} />
 
-      {/* Gold glow overlay — Figma node 4326:2380 */}
+      {/* Circular clip — same diameter as the SVG circle. Contains the
+          glow's native shadow/boxShadow so it can't bleed past the
+          circle outline drawn by the SVG below. */}
       <View
         pointerEvents="none"
         style={{
-          position:    'absolute',
-          width:       glowW,
-          height:      glowH,
-          top:         (size - glowH) / 2,
-          left:        (size - glowW) / 2,
-          borderWidth:  0.133 * s,
-          borderColor:  '#f4cf7d',
-          // iOS — primary radial glow (shadow2)
-          shadowColor:   'rgba(244,207,125,1)',
-          shadowOffset:  { width: 1.333 * s, height: -1.333 * s },
-          shadowOpacity: 0.2,
-          shadowRadius:  23.333 * s,
-          elevation:     6,
-          // Android — both shadows via boxShadow
-          boxShadow: `${1.333 * s}px ${-1.333 * s}px ${6.667 * s}px ${0.667 * s}px rgba(229,214,176,0.2), 0px 0px ${23.333 * s}px ${5.333 * s}px rgba(244,207,125,0.2)`,
+          position:     'absolute',
+          top:          0,
+          left:         0,
+          width:        size,
+          height:       size,
+          borderRadius: size / 2,
+          overflow:     'hidden',
         }}
-      />
+      >
+        {/* Gold glow overlay — Figma node 4326:2380 */}
+        <View
+          style={{
+            position:    'absolute',
+            width:       glowW,
+            height:      glowH,
+            top:         (size - glowH) / 2,
+            left:        (size - glowW) / 2,
+            borderWidth:  0.133 * s,
+            borderColor:  '#f4cf7d',
+            // iOS — primary radial glow (shadow2)
+            shadowColor:   'rgba(244,207,125,1)',
+            shadowOffset:  { width: 1.333 * s, height: -1.333 * s },
+            shadowOpacity: 0.2,
+            shadowRadius:  23.333 * s,
+            elevation:     6,
+            // Android — both shadows via boxShadow
+            boxShadow: `${1.333 * s}px ${-1.333 * s}px ${6.667 * s}px ${0.667 * s}px rgba(229,214,176,0.2), 0px 0px ${23.333 * s}px ${5.333 * s}px rgba(244,207,125,0.2)`,
+          }}
+        />
+      </View>
     </View>
   );
 };

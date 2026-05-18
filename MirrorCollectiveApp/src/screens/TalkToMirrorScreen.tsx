@@ -374,15 +374,23 @@ const styles = StyleSheet.create<{
 
   // ── Category row ─────────────────────────────────────────────────────────
   // Figma 4326:2338 — horizontal scroll, gap:xl (24)
+  //
+  // Cross-axis: `flex-start` (not `center`) is essential. With `center`,
+  // a card whose label wraps to 2 lines is taller than its siblings, and
+  // flex centring pushes the shorter cards' icons DOWN to align their
+  // midpoints — so the longer card's icon visually "rises" relative to
+  // the others. Top-aligning every card pins all icons to the same Y
+  // coordinate regardless of label wrap. Pair with a 2-line minHeight
+  // on the label below so the card bottoms also line up.
   categoryScrollContent: {
     gap:               scale(spacing.xl),
     paddingHorizontal: scale(spacing.xs),
-    alignItems:        'center',
+    alignItems:        'flex-start',
   },
   // Figma 4326:2339 — flex-col gap:s (12) items-center
   categoryCard: {
     alignItems:     'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     gap:            verticalScale(spacing.s),
   },
   // Figma 4326:2340 — 100×100 SVG box. SVG includes ring + content.
@@ -406,5 +414,12 @@ const styles = StyleSheet.create<{
     // (REFLECTIO\nN ROOM). Bump to scale(130) so the longest single word
     // ("REFLECTION") fits on one line on the narrowest supported device.
     maxWidth:      scale(130),
+    // Reserve 2 lines of vertical space so every card is the same total
+    // height — otherwise a 1-line "MIRROR ECHO" next to a wrapped
+    // "REFLECTION ROOM" leaves ragged card bottoms. Combined with
+    // alignItems:'flex-start' on the scroll content, this keeps the row
+    // visually rectangular: icons aligned at top, label baselines
+    // aligned at top of the reserved block.
+    minHeight:     moderateScale(lineHeight.m) * 2,
   },
 });
