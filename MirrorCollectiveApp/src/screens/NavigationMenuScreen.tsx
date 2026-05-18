@@ -133,10 +133,7 @@ const MirrorSideMenu: React.FC<MirrorSideMenuProps> = ({
         Computed: top=DRAWER_TOP, height=DRAWER_HEIGHT, width=DRAWER_WIDTH
       */}
       <Animated.View
-        style={[
-          styles.drawerOuter,
-          { transform: [{ translateX: slideAnim }] },
-        ]}
+        style={[styles.drawerOuter, { transform: [{ translateX: slideAnim }] }]}
       >
         {/*
           Figma 2336:3801 — panel
@@ -146,19 +143,22 @@ const MirrorSideMenu: React.FC<MirrorSideMenuProps> = ({
           gap between header / user-row / nav: spacing.xxl (32px)
         */}
         <View style={styles.panel}>
-
           {/* ── Header row: hamburger (left) + close (right) ─────────── */}
           {/* Figma node 2403:1781 */}
           <View style={styles.headerRow}>
             <TouchableOpacity
-              style={styles.iconHit}
+              style={(styles.iconHit, styles.hamburgerButton)}
               onPress={() => {}}
               activeOpacity={0.7}
               hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
               accessibilityRole="button"
               accessibilityLabel="Menu"
             >
-              <HamburgerIcon />
+              <View style={styles.hamburger}>
+                <View style={styles.hamLine} />
+                <View style={styles.hamLine} />
+                <View style={styles.hamLine} />
+              </View>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -181,7 +181,9 @@ const MirrorSideMenu: React.FC<MirrorSideMenuProps> = ({
               Figma: Cormorant Garamond Italic, font/size/2xl (28px),
               text/paragraph-1 (#f2e2b1 = palette.gold.DEFAULT)
             */}
-            <Text style={styles.userName} numberOfLines={1}>{userName}</Text>
+            <Text style={styles.userName} numberOfLines={1}>
+              {userName}
+            </Text>
           </View>
 
           {/* ── Navigation content ────────────────────────────────────── */}
@@ -203,7 +205,10 @@ const MirrorSideMenu: React.FC<MirrorSideMenuProps> = ({
                 <React.Fragment key={item.label}>
                   <TouchableOpacity
                     activeOpacity={0.75}
-                    onPress={() => { onClose(); onNavigate(item.route); }}
+                    onPress={() => {
+                      onClose();
+                      onNavigate(item.route);
+                    }}
                     style={styles.primaryItem}
                     accessibilityRole="button"
                   >
@@ -221,7 +226,10 @@ const MirrorSideMenu: React.FC<MirrorSideMenuProps> = ({
                 <TouchableOpacity
                   key={item.label}
                   activeOpacity={0.75}
-                  onPress={() => { onClose(); onNavigate(item.route); }}
+                  onPress={() => {
+                    onClose();
+                    onNavigate(item.route);
+                  }}
                   style={styles.secondaryItem}
                   accessibilityRole="button"
                 >
@@ -246,6 +254,9 @@ const styles = StyleSheet.create<{
   panel: ViewStyle;
   headerRow: ViewStyle;
   iconHit: ViewStyle;
+  hamburger: ViewStyle;
+  hamburgerButton: ViewStyle;
+  hamLine: ViewStyle;
   userRow: ViewStyle;
   userName: TextStyle;
   navScroll: ViewStyle;
@@ -278,12 +289,12 @@ const styles = StyleSheet.create<{
   // Figma: bg/inverse-2 (#1a2238), px-24, py-16, gap-32, rounded TR+BR 12px
   panel: {
     flex: 1,
-    backgroundColor: palette.navy.DEFAULT,  // #1a2238 = bg/inverse-2
-    borderTopRightRadius: radius.s,          // 12px
-    borderBottomRightRadius: radius.s,       // 12px
-    paddingHorizontal: scale(spacing.xl),    // 24px
+    backgroundColor: palette.navy.DEFAULT, // #1a2238 = bg/inverse-2
+    borderTopRightRadius: radius.s, // 12px
+    borderBottomRightRadius: radius.s, // 12px
+    paddingHorizontal: scale(spacing.xl), // 24px
     paddingVertical: verticalScale(spacing.m), // 16px
-    gap: verticalScale(spacing.xxl),         // 32px between header/user/nav
+    gap: verticalScale(spacing.xxl), // 32px between header/user/nav
   },
 
   // ── Header row: hamburger + close ────────────────────────────────────────
@@ -299,22 +310,36 @@ const styles = StyleSheet.create<{
     justifyContent: 'center',
     alignItems: 'center',
   },
+  hamburgerButton: {
+    zIndex: 11,
+  },
+  hamburger: {
+    width: scale(26),
+    height: verticalScale(18),
+    justifyContent: 'space-between',
+  },
+  hamLine: {
+    height: verticalScale(2),
+    borderRadius: 2,
+    backgroundColor: palette.gold.warm,
+    opacity: 0.9,
+  },
 
   // ── User row ─────────────────────────────────────────────────────────────
   // Figma node 2336:3826: gap-[10px], items-center, justify-center, w-full
   userRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,                                 // Figma: gap-[10px] (no exact token)
+    gap: 10, // Figma: gap-[10px] (no exact token)
   },
 
   // Cormorant Italic 28px, gold.DEFAULT (#f2e2b1)
   userName: {
     fontFamily: fontFamily.headingItalic,
-    fontSize: scale(fontSize['2xl']),        // 28px
+    fontSize: scale(fontSize['2xl']), // 28px
     fontWeight: fontWeight.regular,
     lineHeight: scale(fontSize['2xl']) * 1.3, // 1.3 line height ratio
-    color: palette.gold.DEFAULT,             // text/paragraph-1 (#f2e2b1)
+    color: palette.gold.DEFAULT, // text/paragraph-1 (#f2e2b1)
     flex: 1,
   },
 
@@ -326,32 +351,32 @@ const styles = StyleSheet.create<{
     flex: 1,
   },
   navContent: {
-    flexGrow: 1,                              // fills scroll height when content < view
-    justifyContent: 'space-between',          // primary top, secondary bottom
+    flexGrow: 1, // fills scroll height when content < view
+    justifyContent: 'space-between', // primary top, secondary bottom
   },
 
   // Primary list: gap-[12px] between items
   // Figma node 2336:3805
   primaryList: {
-    gap: verticalScale(spacing.s),           // 12px between items (incl. dividers)
+    gap: verticalScale(spacing.s), // 12px between items (incl. dividers)
   },
 
   // Each primary item: px-12, py-8, rounded-4, full width
   // Figma node 2336:3806
   primaryItem: {
-    paddingHorizontal: scale(spacing.s),     // 12px
+    paddingHorizontal: scale(spacing.s), // 12px
     paddingVertical: verticalScale(spacing.xs), // 8px
-    borderRadius: radius.xxs,               // 4px
+    borderRadius: radius.xxs, // 4px
     width: '100%',
   },
 
   // Cormorant Regular 24px, leading 28px, text/paragraph-2 (#fdfdf9)
   primaryText: {
-    fontFamily: fontFamily.heading,          // CormorantGaramond-Regular
-    fontSize: scale(fontSize.xl),            // 24px
+    fontFamily: fontFamily.heading, // CormorantGaramond-Regular
+    fontSize: scale(fontSize.xl), // 24px
     fontWeight: fontWeight.regular,
-    lineHeight: lineHeight.l,               // 28px = font/size/2xl
-    color: palette.gold.subtlest,           // #fdfdf9 = text/paragraph-2
+    lineHeight: lineHeight.l, // 28px = font/size/2xl
+    color: palette.gold.subtlest, // #fdfdf9 = text/paragraph-2
   },
 
   // Divider — left-to-right fade matching Figma imgLine3
@@ -368,7 +393,7 @@ const styles = StyleSheet.create<{
   // Each secondary item: p-12 all sides
   // Figma node 2336:3817
   secondaryItem: {
-    padding: scale(spacing.s),              // 12px all sides
+    padding: scale(spacing.s), // 12px all sides
     width: '100%',
   },
 });
