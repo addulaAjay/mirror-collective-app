@@ -39,6 +39,7 @@ import {
   radius,
   scale,
   spacing,
+  theme,
   verticalScale,
 } from '@theme';
 import type { RootStackParamList } from '@types';
@@ -532,7 +533,7 @@ const styles = StyleSheet.create<{
   dropdownShell: {
     width: '100%',
     height: verticalScale(48),
-    borderRadius: radius.s, // 12px
+    borderRadius: radius.m, // 16px — matches TextInputField
     borderWidth: borderWidth.thin, // 0.5px — matches TextInputField
     borderColor: palette.navy.light, // #a3b3cc — matches TextInputField
     backgroundColor: 'transparent',
@@ -542,6 +543,7 @@ const styles = StyleSheet.create<{
     paddingHorizontal: scale(spacing.m), // 16px
     paddingVertical: verticalScale(spacing.s), // 12px
     gap: scale(10),
+    ...theme.shadows.input,
   },
   // Body S Italic: Inter Italic 16/24, #fdfdf9, center (flex:1 makes it fill space)
   dropdownText: {
@@ -573,8 +575,8 @@ const styles = StyleSheet.create<{
   },
   // Last option: rounded bottom corners (Radius/XS = 8px per Figma)
   dropdownOptionLast: {
-    borderBottomLeftRadius: 8,
-    borderBottomRightRadius: 8,
+    borderBottomLeftRadius: radius.m,
+    borderBottomRightRadius: radius.m,
   },
   // Option text: Inter Regular 16/24, #f2e1b0 (gold — NOT white/placeholder)
   dropdownOptionText: {
