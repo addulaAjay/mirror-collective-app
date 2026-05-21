@@ -178,7 +178,11 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
   return (
     <BackgroundWrapper style={styles.bg}>
       <SafeAreaView style={styles.safe}>
-        <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
+        <StatusBar
+          translucent
+          backgroundColor="transparent"
+          barStyle="light-content"
+        />
         <LogoHeader navigation={navigation} />
 
         <KeyboardAwareScrollView
@@ -189,173 +193,192 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
           keyboardDismissMode="on-drag"
           bottomOffset={16}
         >
-            <View style={styles.content}>
+          <View style={styles.content}>
+            {/* ── Header row ──────────────────────────────────────────── */}
+            <View style={styles.headerRow}>
+              <TouchableOpacity
+                onPress={() => navigation.goBack()}
+                style={styles.backBtn}
+                accessibilityRole="button"
+              >
+                <BackIcon />
+              </TouchableOpacity>
+              {/* Heading M: Cormorant Regular 28/32, #f2e1b0, glow */}
+              <Text style={styles.screenTitle}>CHOOSE YOUR{'\n'}RECIPIENT</Text>
+              <View style={styles.headerSpacer} />
+            </View>
 
-              {/* ── Header row ──────────────────────────────────────────── */}
-              <View style={styles.headerRow}>
-                <TouchableOpacity
-                  onPress={() => navigation.goBack()}
-                  style={styles.backBtn}
-                  accessibilityRole="button"
+            {/* ── Recipient dropdown ─────────────────────────────────── */}
+            <View style={styles.fieldGroup}>
+              <Text style={styles.fieldLabel}>Recipient</Text>
+
+              {/* Trigger — Figma 780:1969 */}
+              <TouchableOpacity
+                style={[
+                  styles.dropdownTrigger,
+                  dropdownOpen && styles.dropdownTriggerOpen,
+                ]}
+                activeOpacity={0.9}
+                onPress={() => setDropdownOpen(o => !o)}
+              >
+                <Text
+                  style={[
+                    styles.dropdownTriggerText,
+                    selectedRecipient ? styles.dropdownTriggerSelected : null,
+                  ]}
+                  numberOfLines={1}
                 >
-                  <BackIcon />
-                </TouchableOpacity>
-                {/* Heading M: Cormorant Regular 28/32, #f2e1b0, glow */}
-                <Text style={styles.screenTitle}>CHOOSE YOUR{'\n'}RECIPIENT</Text>
-                <View style={styles.headerSpacer} />
-              </View>
-
-              {/* ── Recipient dropdown ─────────────────────────────────── */}
-              <View style={styles.fieldGroup}>
-                <Text style={styles.fieldLabel}>Recipient</Text>
-
-                {/* Trigger — Figma 780:1969 */}
-                <TouchableOpacity
-                  style={[styles.dropdownTrigger, dropdownOpen && styles.dropdownTriggerOpen]}
-                  activeOpacity={0.9}
-                  onPress={() => setDropdownOpen(o => !o)}
+                  {selectedRecipient?.name ?? 'Choose from list'}
+                </Text>
+                <Svg
+                  width={scale(16)}
+                  height={scale(16)}
+                  viewBox="0 0 24 24"
+                  fill="none"
                 >
-                  <Text
-                    style={[
-                      styles.dropdownTriggerText,
-                      selectedRecipient ? styles.dropdownTriggerSelected : null,
-                    ]}
-                    numberOfLines={1}
-                  >
-                    {selectedRecipient?.name ?? 'Choose from list'}
-                  </Text>
-                  <Svg width={scale(16)} height={scale(16)} viewBox="0 0 24 24" fill="none">
-                    <Path
-                      d={dropdownOpen ? 'M7 14l5-5 5 5' : 'M7 10l5 5 5-5'}
-                      stroke={palette.gold.subtlest}
-                      strokeWidth={1.5}
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </Svg>
-                </TouchableOpacity>
-
-                {dropdownOpen && (
-                  <TouchableOpacity
-                    style={styles.dropdownBackdrop}
-                    activeOpacity={1}
-                    onPress={() => setDropdownOpen(false)}
+                  <Path
+                    d={dropdownOpen ? 'M7 14l5-5 5 5' : 'M7 10l5 5 5-5'}
+                    stroke={palette.gold.subtlest}
+                    strokeWidth={1.5}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                   />
-                )}
+                </Svg>
+              </TouchableOpacity>
 
-                {/* Inline recipient list */}
-                {dropdownOpen && (
-                  <View style={styles.dropdownList}>
-                    <ScrollView
-                      nestedScrollEnabled
-                      showsVerticalScrollIndicator={false}
-                      keyboardShouldPersistTaps="handled"
-                      bounces={false}
+              {dropdownOpen && (
+                <TouchableOpacity
+                  style={styles.dropdownBackdrop}
+                  activeOpacity={1}
+                  onPress={() => setDropdownOpen(false)}
+                />
+              )}
+
+              {/* Inline recipient list */}
+              {dropdownOpen && (
+                <View style={styles.dropdownList}>
+                  <ScrollView
+                    nestedScrollEnabled
+                    showsVerticalScrollIndicator={false}
+                    keyboardShouldPersistTaps="handled"
+                    bounces={false}
+                  >
+                    {loading ? (
+                      <View style={styles.listState}>
+                        <ActivityIndicator
+                          size="small"
+                          color={palette.gold.DEFAULT}
+                        />
+                      </View>
+                    ) : recipients.length === 0 ? (
+                      <View style={styles.listState}>
+                        <Text style={styles.emptyText}>No recipients yet</Text>
+                      </View>
+                    ) : (
+                      recipients.map((r, idx) => {
+                        const isLast = idx === recipients.length - 1;
+                        return (
+                          <TouchableOpacity
+                            key={r.recipient_id}
+                            style={[
+                              styles.dropdownOption,
+                              isLast && styles.dropdownOptionLast,
+                            ]}
+                            activeOpacity={0.85}
+                            onPress={() => {
+                              setSelectedRecipient(r);
+                              setDropdownOpen(false);
+                            }}
+                          >
+                            <Text style={styles.optionName}>{r.name}</Text>
+                            <Text style={styles.optionEmail}>{r.email}</Text>
+                          </TouchableOpacity>
+                        );
+                      })
+                    )}
+                    <TouchableOpacity
+                      style={styles.addNewRow}
+                      activeOpacity={0.85}
+                      onPress={() => {
+                        setDropdownOpen(false);
+                        navigation.navigate('AddNewProfileScreen');
+                      }}
                     >
-                      {loading ? (
-                        <View style={styles.listState}>
-                          <ActivityIndicator size="small" color={palette.gold.DEFAULT} />
-                        </View>
-                      ) : recipients.length === 0 ? (
-                        <View style={styles.listState}>
-                          <Text style={styles.emptyText}>No recipients yet</Text>
-                        </View>
-                      ) : (
-                        recipients.map((r, idx) => {
-                          const isLast = idx === recipients.length - 1;
-                          return (
-                            <TouchableOpacity
-                              key={r.recipient_id}
-                              style={[styles.dropdownOption, isLast && styles.dropdownOptionLast]}
-                              activeOpacity={0.85}
-                              onPress={() => { setSelectedRecipient(r); setDropdownOpen(false); }}
-                            >
-                              <Text style={styles.optionName}>{r.name}</Text>
-                              <Text style={styles.optionEmail}>{r.email}</Text>
-                            </TouchableOpacity>
-                          );
-                        })
-                      )}
-                      <TouchableOpacity
-                        style={styles.addNewRow}
-                        activeOpacity={0.85}
-                        onPress={() => { setDropdownOpen(false); navigation.navigate('AddNewProfileScreen'); }}
-                      >
-                        <Text style={styles.addNewText}>+ Add New Recipient</Text>
-                      </TouchableOpacity>
-                    </ScrollView>
-                  </View>
-                )}
-              </View>
+                      <Text style={styles.addNewText}>+ Add New Recipient</Text>
+                    </TouchableOpacity>
+                  </ScrollView>
+                </View>
+              )}
+            </View>
 
-              {/* ── Lock Date ─────────────────────────────────────────── */}
-              {/*
+            {/* ── Lock Date ─────────────────────────────────────────── */}
+            {/*
                 TextInputField (editable=false) as the trigger surface.
                 Calendar icon overlaid absolutely on the right.
               */}
-              <View style={styles.fieldGroup}>
-                <View style={styles.fieldWithIcon}>
-                  <TouchableOpacity
-                    style={styles.fieldTouchable}
-                    activeOpacity={0.9}
-                    onPress={() => setShowDatePicker(true)}
-                  >
-                    <View pointerEvents="none">
-                      <TextInputField
-                        label="Lock Date (only if required)"
-                        placeholder="When do you want to open it?"
-                        placeholderAlign="left"
-                        value={lockDate ? formatDate(lockDate) : ''}
-                      />
-                    </View>
-                  </TouchableOpacity>
-                  {/* Calendar — sibling, anchored to input bottom */}
-                  <View style={styles.fieldIcon} pointerEvents="none">
-                    <Image
-                      source={require('@assets/calendar_month.png')}
-                      style={styles.calendarIcon}
-                      resizeMode="contain"
+            <View style={styles.fieldGroup}>
+              <View style={styles.fieldWithIcon}>
+                <TouchableOpacity
+                  style={styles.fieldTouchable}
+                  activeOpacity={0.9}
+                  onPress={() => setShowDatePicker(true)}
+                >
+                  <View pointerEvents="none">
+                    <TextInputField
+                      label="Lock Date (only if required)"
+                      placeholder="When do you want to open it?"
+                      placeholderAlign="left"
+                      value={lockDate ? formatDate(lockDate) : ''}
                     />
                   </View>
-                </View>
-
-                {showDatePicker && (
-                  <DateTimePicker
-                    value={lockDate ?? new Date()}
-                    mode="date"
-                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                    onChange={handleDateChange}
-                    minimumDate={new Date()}
-                    textColor={palette.gold.DEFAULT}
-                    themeVariant="dark"
+                </TouchableOpacity>
+                {/* Calendar — sibling, anchored to input bottom */}
+                <View style={styles.fieldIcon} pointerEvents="none">
+                  <Image
+                    source={require('@assets/calendar_month.png')}
+                    style={styles.calendarIcon}
+                    resizeMode="contain"
                   />
-                )}
+                </View>
               </View>
 
-              {/* ── Letter to Recipient ───────────────────────────────── */}
-              <View style={styles.fieldGroup}>
-                <TextInputField
-                  label="Letter to Recipient"
-                  placeholder="Write notes here"
-                  value={notes}
-                  onChangeText={setNotes}
-                  size="L"
-                  multiline
-                  maxHeight={verticalScale(160)}
+              {showDatePicker && (
+                <DateTimePicker
+                  value={lockDate ?? new Date()}
+                  mode="date"
+                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                  onChange={handleDateChange}
+                  minimumDate={new Date()}
+                  textColor={palette.gold.DEFAULT}
+                  themeVariant="dark"
                 />
-              </View>
-
-              {/* ── NEXT button ───────────────────────────────────────── */}
-              <Button
-                variant="primary"
-                size="L"
-                title="NEXT"
-                onPress={handleNext}
-                disabled={!selectedRecipient}
-                active={!!selectedRecipient}
-              />
-
+              )}
             </View>
+
+            {/* ── Letter to Recipient ───────────────────────────────── */}
+            <View style={styles.fieldGroup}>
+              <TextInputField
+                label="Letter to Recipient"
+                placeholder="Write notes here"
+                value={notes}
+                onChangeText={setNotes}
+                size="L"
+                multiline
+                placeholderAlign="left"
+                maxHeight={verticalScale(160)}
+              />
+            </View>
+
+            {/* ── NEXT button ───────────────────────────────────────── */}
+            <Button
+              variant="primary"
+              size="L"
+              title="NEXT"
+              onPress={handleNext}
+              disabled={!selectedRecipient}
+              active={!!selectedRecipient}
+            />
+          </View>
         </KeyboardAwareScrollView>
       </SafeAreaView>
     </BackgroundWrapper>
