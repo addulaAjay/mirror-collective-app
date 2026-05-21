@@ -142,7 +142,11 @@ const AddNewProfileScreen: React.FC<Props> = ({ navigation, route }) => {
   return (
     <BackgroundWrapper style={styles.bg} scrollable>
       <SafeAreaView style={styles.safe}>
-        <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
+        <StatusBar
+          translucent
+          backgroundColor="transparent"
+          barStyle="light-content"
+        />
         <LogoHeader navigation={navigation} />
 
         <KeyboardAwareScrollView
@@ -152,89 +156,95 @@ const AddNewProfileScreen: React.FC<Props> = ({ navigation, route }) => {
           keyboardShouldPersistTaps="handled"
           bottomOffset={16}
         >
-            <View style={styles.content}>
-
-              {/* ── Header row ──────────────────────────────────────────── */}
-              <View style={styles.headerRow}>
-                <TouchableOpacity
-                  onPress={() => navigation.goBack()}
-                  style={styles.backBtn}
-                  accessibilityRole="button"
-                >
-                  <BackIcon />
-                </TouchableOpacity>
-                {/* Heading M: Cormorant Regular 28/32, gold, glow */}
-                <Text style={styles.screenTitle}>
-                  {isGuardian ? 'ADD GUARDIAN' : 'ADD PROFILE'}
-                </Text>
-                <View style={styles.headerSpacer} />
-              </View>
-
-              {/* ── Subtitle ─────────────────────────────────────────────── */}
-              {/* Body S Regular: Inter 16/24, #fdfdf9, center */}
-              <Text style={styles.subtitle}>
-                Personalize your echo with a photo of the intended recipient/guardian.
+          <View style={styles.content}>
+            {/* ── Header row ──────────────────────────────────────────── */}
+            <View style={styles.headerRow}>
+              <TouchableOpacity
+                onPress={() => navigation.goBack()}
+                style={styles.backBtn}
+                accessibilityRole="button"
+              >
+                <BackIcon />
+              </TouchableOpacity>
+              {/* Heading M: Cormorant Regular 28/32, gold, glow */}
+              <Text style={styles.screenTitle}>
+                {isGuardian ? 'ADD GUARDIAN' : 'ADD PROFILE'}
               </Text>
+              <View style={styles.headerSpacer} />
+            </View>
 
-              {/* ── Photo circle ──────────────────────────────────────────── */}
-              {/*
+            {/* ── Subtitle ─────────────────────────────────────────────── */}
+            {/* Body S Regular: Inter 16/24, #fdfdf9, center */}
+            <Text style={styles.subtitle}>
+              Personalize your echo with a photo of the intended
+              recipient/guardian.
+            </Text>
+
+            {/* ── Photo circle ──────────────────────────────────────────── */}
+            {/*
                 Figma: 186×186 circle, gold border 0.5px, gold glow shadow.
                 "Add Image +" when empty, shows photo when selected.
                 Tap → opens device gallery (react-native-image-picker).
               */}
-              <TouchableOpacity
-                style={styles.photoCircle}
-                activeOpacity={0.85}
-                onPress={handlePickImage}
-                accessibilityRole="button"
-                accessibilityLabel="Add photo from gallery"
-              >
-                {photoUri ? (
-                  <Image
-                    source={{ uri: photoUri }}
-                    style={styles.photoImg}
-                    resizeMode="cover"
-                  />
-                ) : (
-                  <Text style={styles.addImageText}>Add Image +</Text>
-                )}
-              </TouchableOpacity>
-
-              {/* ── Name ─────────────────────────────────────────────────── */}
-              <TextInputField
-                label="Name"
-                placeholder={isGuardian ? 'Enter name of guardian' : 'Enter name of recipient/guardian'}
-                value={name}
-                onChangeText={setName}
-                autoCapitalize="words"
-              />
-
-              {/* ── Email ────────────────────────────────────────────────── */}
-              <TextInputField
-                label="Email Address"
-                placeholder={isGuardian ? 'Enter guardian email address' : 'Enter recipient/guardian email address'}
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoComplete="email"
-                textContentType="emailAddress"
-              />
-
-              {/* ── ADD button ───────────────────────────────────────────── */}
-              {loading ? (
-                <ActivityIndicator color={palette.gold.DEFAULT} style={{ marginTop: verticalScale(8) }} />
-              ) : (
-                <Button
-                  variant="primary"
-                  size="L"
-                  title="ADD"
-                  onPress={handleAdd}
-                  active={!!(name.trim() && email.trim())}
+            <TouchableOpacity
+              style={styles.photoCircle}
+              activeOpacity={0.85}
+              onPress={handlePickImage}
+              accessibilityRole="button"
+              accessibilityLabel="Add photo from gallery"
+            >
+              {photoUri ? (
+                <Image
+                  source={{ uri: photoUri }}
+                  style={styles.photoImg}
+                  resizeMode="cover"
                 />
+              ) : (
+                <Text style={styles.addImageText}>Add Image +</Text>
               )}
+            </TouchableOpacity>
 
-            </View>
+            {/* ── Name ─────────────────────────────────────────────────── */}
+            <TextInputField
+              label="Name"
+              placeholder={isGuardian ? 'Enter name' : 'Enter name'}
+              value={name}
+              onChangeText={setName}
+              autoCapitalize="words"
+              placeholderAlign="left"
+            />
+
+            {/* ── Email ────────────────────────────────────────────────── */}
+            <TextInputField
+              label="Email Address"
+              placeholder={
+                isGuardian ? 'Enter email address' : 'Enter email address'
+              }
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoComplete="email"
+              textContentType="emailAddress"
+              placeholderAlign="left"
+            />
+
+            {/* ── ADD button ───────────────────────────────────────────── */}
+            {loading ? (
+              <ActivityIndicator
+                color={palette.gold.DEFAULT}
+                style={{ marginTop: verticalScale(8) }}
+              />
+            ) : (
+              <Button
+                variant="primary"
+                size="L"
+                title="ADD"
+                onPress={handleAdd}
+                active={!!(name.trim() && email.trim())}
+              />
+            )}
+          </View>
         </KeyboardAwareScrollView>
       </SafeAreaView>
     </BackgroundWrapper>
