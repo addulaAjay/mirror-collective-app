@@ -432,9 +432,9 @@ const styles = StyleSheet.create<{
   modalItem: ViewStyle;
   modalItemText: TextStyle;
 }>({
-  bg:   { flex: 1 },
+  bg: { flex: 1 },
   safe: { flex: 1, backgroundColor: 'transparent' },
-  kav:  { flex: 1, width: '100%' },
+  kav: { flex: 1, width: '100%' },
 
   // KeyboardAwareScrollView contentContainerStyle — flexGrow so the body
   // still fills the screen on tall devices, plus padding so scrolled
@@ -458,40 +458,40 @@ const styles = StyleSheet.create<{
     // a ScrollView the parent doesn't bound height, so flex:1 collapses
     // children. Switch to width:'100%' and let intrinsic sizing + the
     // gap+padding below produce the column layout.
-    width:             '100%',
-    paddingHorizontal: scale(spacing.xl),         // 24px — Figma left:24
-    paddingTop:        verticalScale(spacing.l),  // breathing room below LogoHeader
-    paddingBottom:     verticalScale(spacing.xl),
-    gap:               verticalScale(spacing.xl), // 24px between sections
+    width: '100%',
+    paddingHorizontal: scale(spacing.xl), // 24px — Figma left:24
+    paddingTop: verticalScale(spacing.l), // breathing room below LogoHeader
+    paddingBottom: verticalScale(spacing.xl),
+    gap: verticalScale(spacing.xl), // 24px between sections
   },
 
   // ── Header row ──────────────────────────────────────────────────────────────
   // Figma 222:2091 — justify-between, items-center, w-full
   headerRow: {
-    flexDirection:  'row',
-    alignItems:     'center',
+    flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    width:          '100%',
+    width: '100%',
   },
   backBtn: {
-    width:          scale(44),
-    height:         scale(44),
+    width: scale(44),
+    height: scale(44),
     justifyContent: 'center',
-    alignItems:     'flex-start',
+    alignItems: 'flex-start',
   },
   backArrowImg: {
-    width:     scale(20),
-    height:    scale(20),
+    width: scale(20),
+    height: scale(20),
     tintColor: palette.gold.DEFAULT,
   },
   // Heading M: Cormorant Regular 28/32, #f2e1b0, glow text-shadow
   screenTitle: {
-    fontFamily:       fontFamily.heading,
-    fontSize:         moderateScale(fontSize['2xl']),    // 28px
-    fontWeight:       fontWeight.regular,
-    lineHeight:       moderateScale(32),                 // font/line-height/XL
-    color:            palette.gold.DEFAULT,
-    textShadowColor:  'rgba(240,212,168,0.3)',
+    fontFamily: fontFamily.heading,
+    fontSize: moderateScale(fontSize['2xl']), // 28px
+    fontWeight: fontWeight.regular,
+    lineHeight: moderateScale(32), // font/line-height/XL
+    color: palette.gold.DEFAULT,
+    textShadowColor: 'rgba(240,212,168,0.3)',
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 10,
   },
@@ -501,26 +501,26 @@ const styles = StyleSheet.create<{
   // Tapping it closes the dropdown (outside-tap dismiss).
   // zIndex -1 keeps it behind the dropdown list.
   dropdownBackdrop: {
-    position:   'absolute',
-    top:        -200,
-    left:       -100,
-    right:      -100,
-    bottom:     -200,
-    zIndex:     -1,
+    position: 'absolute',
+    top: -200,
+    left: -100,
+    right: -100,
+    bottom: -200,
+    zIndex: -1,
   },
 
   // ── Illustration (780:1043) ──────────────────────────────────────────────────
   // Figma container: 216×200, image larger than container (overflows)
   illustrationWrap: {
-    width:          scale(216),
-    height:         scale(200),
-    alignItems:     'center',
+    width: scale(216),
+    height: scale(200),
+    alignItems: 'center',
     justifyContent: 'center',
-    overflow:       'visible',
-    alignSelf:      'center',
+    overflow: 'visible',
+    alignSelf: 'center',
   },
   illustrationImg: {
-    width:  scale(216),
+    width: scale(216),
     height: scale(200),
   },
 
@@ -530,32 +530,31 @@ const styles = StyleSheet.create<{
   // Plain View — no LinearGradient to avoid iOS double-border artifact.
   // Gradient was rgba(253,253,249,0.01)→0 = near-invisible anyway.
   dropdownShell: {
-    width:             '100%',
-    height:            verticalScale(48),
-    borderRadius:      radius.s,                        // 12px
-    borderWidth:       borderWidth.thin,                // 0.5px — matches TextInputField
-    borderColor:       palette.navy.light,              // #a3b3cc — matches TextInputField
-    backgroundColor:   'transparent',
-    flexDirection:     'row',
-    alignItems:        'center',
-    justifyContent:    'space-between',
-    paddingHorizontal: scale(spacing.m),                // 16px
-    paddingVertical:   verticalScale(spacing.s),        // 12px
-    gap:               scale(10),
+    width: '100%',
+    height: verticalScale(48),
+    borderRadius: radius.s, // 12px
+    borderWidth: borderWidth.thin, // 0.5px — matches TextInputField
+    borderColor: palette.navy.light, // #a3b3cc — matches TextInputField
+    backgroundColor: 'transparent',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: scale(spacing.m), // 16px
+    paddingVertical: verticalScale(spacing.s), // 12px
+    gap: scale(10),
   },
   // Body S Italic: Inter Italic 16/24, #fdfdf9, center (flex:1 makes it fill space)
   dropdownText: {
-    flex:       1,
+    flex: 1,
     fontFamily: fontFamily.bodyItalic,
-    fontStyle:  'italic',
-    fontSize:   moderateScale(fontSize.s),
+    fontSize: moderateScale(fontSize.s),
     lineHeight: moderateScale(24),
-    color:      palette.gold.subtlest,
-    textAlign:  'center',
+    color: palette.gold.subtlest,
+    textAlign: 'center',
   },
   // When closed, full radius. When open, flatten bottom corners.
   dropdownShellOpen: {
-    borderBottomLeftRadius:  0,
+    borderBottomLeftRadius: 0,
     borderBottomRightRadius: 0,
   },
 
@@ -564,27 +563,27 @@ const styles = StyleSheet.create<{
   // Inline dropdown option row — Figma 734:1306
   // bg: rgba(253,253,249,0.05) (Bg/Surface-Raised), border 0.25px #60739f
   dropdownOption: {
-    backgroundColor:  'rgba(253,253,249,0.05)',
-    borderWidth:      borderWidth.thin,
-    borderColor:      palette.navy.light,
-    paddingVertical:  verticalScale(spacing.s),
+    backgroundColor: 'rgba(253,253,249,0.05)',
+    borderWidth: borderWidth.thin,
+    borderColor: palette.navy.light,
+    paddingVertical: verticalScale(spacing.s),
     paddingHorizontal: scale(spacing.m),
-    alignItems:       'center',
-    justifyContent:   'center',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   // Last option: rounded bottom corners (Radius/XS = 8px per Figma)
   dropdownOptionLast: {
-    borderBottomLeftRadius:  8,
+    borderBottomLeftRadius: 8,
     borderBottomRightRadius: 8,
   },
   // Option text: Inter Regular 16/24, #f2e1b0 (gold — NOT white/placeholder)
   dropdownOptionText: {
     fontFamily: fontFamily.body,
     fontWeight: fontWeight.regular,
-    fontSize:   moderateScale(fontSize.s),
+    fontSize: moderateScale(fontSize.s),
     lineHeight: moderateScale(24),
-    color:      palette.gold.DEFAULT,
-    textAlign:  'center',
+    color: palette.gold.DEFAULT,
+    textAlign: 'center',
   },
 
   // ── Recipient row (1030:1153) ─────────────────────────────────────────────────
@@ -594,77 +593,76 @@ const styles = StyleSheet.create<{
   // flexShrink on label ensures long text yields space to YES/NO buttons
   // rather than pushing them off screen.
   recipientRow: {
-    flexDirection:       'row',
-    alignItems:          'center',
-    justifyContent:      'space-between',
-    padding:             scale(spacing.xs),             // 8px (Spacing/XS)
-    borderTopLeftRadius: radius.s,                      // Figma: rounded-tl-[12px]
-    borderTopRightRadius: radius.s,                     // Figma: rounded-tr-[12px]
-    backgroundColor:     'transparent',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: scale(spacing.xs), // 8px (Spacing/XS)
+    borderTopLeftRadius: radius.s, // Figma: rounded-tl-[12px]
+    borderTopRightRadius: radius.s, // Figma: rounded-tr-[12px]
+    backgroundColor: 'transparent',
   },
   // Body S Italic: Inter Italic 16/24, #fdfdf9
   // flex:1 + flexShrink:1 allow label to shrink if total row overflows
   recipientLabel: {
     fontFamily: fontFamily.bodyItalic,
-    fontStyle:  'italic',
-    fontSize:   moderateScale(fontSize.s),
+    fontSize: moderateScale(fontSize.s),
     lineHeight: moderateScale(24),
-    color:      palette.gold.subtlest,
-    flex:       1,
+    color: palette.gold.subtlest,
+    flex: 1,
     flexShrink: 1,
-    marginRight: scale(spacing.xs),                     // gap from label to YES/NO
+    marginRight: scale(spacing.xs), // gap from label to YES/NO
   },
   // YES/NO choices: flex-row with fixed gap, no shrink so they always show fully
   recipientChoices: {
     flexDirection: 'row',
-    alignItems:    'center',
-    gap:           scale(spacing.m),                    // 16px (Spacing/M)
-    flexShrink:    0,                                   // never compress choices
+    alignItems: 'center',
+    gap: scale(spacing.m), // 16px (Spacing/M)
+    flexShrink: 0, // never compress choices
   },
   choiceBtn: {
     flexDirection: 'row',
-    alignItems:    'center',
-    gap:           scale(spacing.xs),                   // 8px (Spacing/XS)
+    alignItems: 'center',
+    gap: scale(spacing.xs), // 8px (Spacing/XS)
   },
   // Body S Medium: Inter 500 16/24, #f2e1b0
   choiceLabel: {
     fontFamily: fontFamily.body,
     fontWeight: '500',
-    fontSize:   moderateScale(fontSize.s),
+    fontSize: moderateScale(fontSize.s),
     lineHeight: moderateScale(24),
-    color:      palette.gold.DEFAULT,
+    color: palette.gold.DEFAULT,
   },
 
   // ── Action buttons row (220:2035) ─────────────────────────────────────────────
   // flex gap:32 h:64 items-center justify-center w-full
   actionRow: {
-    flexDirection:  'row',
-    alignItems:     'center',
+    flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'center',
-    gap:            scale(32),
-    width:          '100%',
-    height:         verticalScale(64),
+    gap: scale(32),
+    width: '100%',
+    height: verticalScale(64),
   },
   // Each action button: Bg/Surface, border 0.5px Border/Brand, radius 12, shadow, 72×64
   // Figma: bg rgba(163,179,204,0.05) — flat, NOT gradient
   actionBtn: {
-    width:           scale(72),
-    height:          verticalScale(64),
-    borderRadius:    radius.s,                          // 12px
-    borderWidth:     borderWidth.thin,                  // 0.5px
-    borderColor:     palette.gold.DEFAULT,              // Border/Brand #f2e1b0
-    backgroundColor: palette.surface.DEFAULT,          // Bg/Surface rgba(163,179,204,0.05)
-    alignItems:      'center',
-    justifyContent:  'center',
-    paddingVertical:  verticalScale(spacing.m),         // 16px (Spacing/M)
-    paddingHorizontal: scale(spacing.l),                // 20px (Spacing/L)
+    width: scale(72),
+    height: verticalScale(64),
+    borderRadius: radius.s, // 12px
+    borderWidth: borderWidth.thin, // 0.5px
+    borderColor: palette.gold.DEFAULT, // Border/Brand #f2e1b0
+    backgroundColor: palette.surface.DEFAULT, // Bg/Surface rgba(163,179,204,0.05)
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: verticalScale(spacing.m), // 16px (Spacing/M)
+    paddingHorizontal: scale(spacing.l), // 20px (Spacing/L)
     // Figma: shadow 0 0 15px rgba(242,226,177,0.3)
-    boxShadow:       '0px 0px 15px 0px rgba(242, 226, 177, 0.3)',
-    shadowColor:     palette.gold.warm,
-    shadowOffset:    { width: 0, height: 0 },
-    shadowOpacity:   0.3,
-    shadowRadius:    15,
-    elevation:       6,
+    boxShadow: '0px 0px 15px 0px rgba(242, 226, 177, 0.3)',
+    shadowColor: palette.gold.warm,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 15,
+    elevation: 6,
   },
   // Selected: subtle gold bg highlight only — icon colour stays gold always
   actionBtnSelected: {
@@ -673,55 +671,55 @@ const styles = StyleSheet.create<{
   // T icon: Cormorant Garamond serif "T", 28px, gold — matches Figma imgProperty1Text
   actionTextIcon: {
     fontFamily: fontFamily.heading,
-    fontSize:   moderateScale(32),
+    fontSize: moderateScale(32),
     fontWeight: fontWeight.regular,
-    color:      palette.gold.DEFAULT,
+    color: palette.gold.DEFAULT,
     lineHeight: moderateScale(32),
   },
   // Mic/video icons: 29×32 container to match Figma icon dimensions, always gold tint
   actionImgIcon: {
-    width:     scale(29),
-    height:    scale(32),
+    width: scale(29),
+    height: scale(32),
     tintColor: palette.gold.DEFAULT,
   },
 
   // ── Modal ──────────────────────────────────────────────────────────────────────
   modalBackdrop: {
-    flex:            1,
+    flex: 1,
     backgroundColor: 'rgba(0,0,0,0.6)',
-    alignItems:      'center',
-    justifyContent:  'center',
+    alignItems: 'center',
+    justifyContent: 'center',
     paddingHorizontal: scale(spacing.xl),
   },
   modalCard: {
-    width:           '100%',
-    borderRadius:    radius.m,
+    width: '100%',
+    borderRadius: radius.m,
     backgroundColor: 'rgba(10,12,18,0.96)',
-    borderWidth:     borderWidth.regular,
-    borderColor:     'rgba(215,192,138,0.25)',
-    padding:         scale(spacing.m),
+    borderWidth: borderWidth.regular,
+    borderColor: 'rgba(215,192,138,0.25)',
+    padding: scale(spacing.m),
   },
   modalTitle: {
-    fontFamily:   fontFamily.heading,
-    fontSize:     moderateScale(fontSize.xl),
-    fontWeight:   fontWeight.regular,
-    color:        palette.gold.DEFAULT,
-    textAlign:    'center',
+    fontFamily: fontFamily.heading,
+    fontSize: moderateScale(fontSize.xl),
+    fontWeight: fontWeight.regular,
+    color: palette.gold.DEFAULT,
+    textAlign: 'center',
     marginBottom: verticalScale(spacing.s),
   },
   modalItem: {
-    paddingVertical:   verticalScale(spacing.s),
+    paddingVertical: verticalScale(spacing.s),
     paddingHorizontal: scale(spacing.s),
-    borderRadius:      radius.s,
-    borderWidth:       borderWidth.thin,
-    borderColor:       'rgba(253,253,249,0.10)',
-    marginBottom:      verticalScale(spacing.xs),
-    backgroundColor:   'rgba(253,253,249,0.04)',
+    borderRadius: radius.s,
+    borderWidth: borderWidth.thin,
+    borderColor: 'rgba(253,253,249,0.10)',
+    marginBottom: verticalScale(spacing.xs),
+    backgroundColor: 'rgba(253,253,249,0.04)',
   },
   modalItemText: {
     fontFamily: fontFamily.body,
-    fontSize:   moderateScale(fontSize.s),
-    color:      palette.gold.subtlest,
-    textAlign:  'center',
+    fontSize: moderateScale(fontSize.s),
+    color: palette.gold.subtlest,
+    textAlign: 'center',
   },
 });
