@@ -39,6 +39,7 @@ import {
   radius,
   scale,
   spacing,
+  theme,
   verticalScale,
 } from '@theme';
 import type { RootStackParamList } from '@types';
@@ -58,6 +59,7 @@ import {
   type ViewStyle,
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 
@@ -212,7 +214,12 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
             <View style={styles.fieldGroup}>
               <Text style={styles.fieldLabel}>Recipient</Text>
 
-              {/* Trigger — Figma 780:1969 */}
+              {/* Trigger — Figma 780:1969. Mirrors TextInputField one-for-one
+                  so the closed trigger reads as the same surface as the Lock
+                  Date input: same near-white vertical gradient, same drop
+                  shadow, same border. The gradient hides while the dropdown
+                  is open (matching TextInputField's `!isFocused` condition).
+              */}
               <TouchableOpacity
                 style={[
                   styles.dropdownTrigger,
@@ -221,6 +228,15 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
                 activeOpacity={0.9}
                 onPress={() => setDropdownOpen(o => !o)}
               >
+                {!dropdownOpen && (
+                  <LinearGradient
+                    colors={['rgba(253,253,249,0.04)', 'rgba(253,253,249,0.01)']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 0, y: 1 }}
+                    style={StyleSheet.absoluteFill}
+                    pointerEvents="none"
+                  />
+                )}
                 <Text
                   style={[
                     styles.dropdownTriggerText,
@@ -494,6 +510,17 @@ const styles = StyleSheet.create<{
   // ── Dropdown trigger — mirrors TextInputField (Lock Date) one-for-one
   //    so Recipient and Lock Date are visually indistinguishable.
   //    Reference: src/components/TextInputField.tsx `field`, `fieldInactive`.
+  //
+  //    Three pieces beyond the obvious border/padding:
+  //      - overflow:'hidden' so the LinearGradient rendered as the
+  //        first child clips to the rounded corners
+  //      - theme.shadows.input — the soft drop shadow under the field
+  //        (0/4 offset, 12 radius, black @ 25 %) that gives Lock Date
+  //        its visible depth against the page background
+  //      - the near-white 0.04 -> 0.01 vertical gradient lives in the
+  //        JSX above (only when closed) so the surface itself reads as
+  //        a softly-lit panel, not a flat tint
+  //    Without these the border colour matches but the field doesn't.
   dropdownTrigger: {
     minHeight:         48,                       // Figma: Hug (48px)
     flexDirection:     'row',
@@ -503,7 +530,8 @@ const styles = StyleSheet.create<{
     borderRadius:      radius.m,                 // 16 — Figma: Radius/M (was radius.s = 12)
     borderWidth:       0.5,
     borderColor:       palette.navy.light,       // #a3b3cc — Figma: Border/Subtle
-    backgroundColor:   'rgba(253,253,249,0.01)',
+    overflow:          'hidden',                 // clip the inner LinearGradient to borderRadius
+    ...theme.shadows.input,                      // Figma: drop shadow 0 4 12 black 25%
   },
   // When expanded, flatten the bottom corners so the trigger flows
   // seamlessly into the inline option list. Top corners stay at
