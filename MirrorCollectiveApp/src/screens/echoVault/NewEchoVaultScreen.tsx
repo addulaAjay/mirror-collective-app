@@ -226,8 +226,8 @@ const NewEchoScreen: React.FC = () => {
                 value={title}
                 onChangeText={setTitle}
                 placeholder="Enter Title here"
-                placeholderAlign="center"
-                textAlign='center'
+                placeholderAlign="left"
+                textAlign="left"
                 size="S"
               />
 
