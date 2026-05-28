@@ -1,0 +1,76 @@
+{
+  "fileKey": "xn6MdQV0gGGeedaFtHWWCo",
+  "nodeId": "7537:2242",
+  "url": "https://www.figma.com/design/xn6MdQV0gGGeedaFtHWWCo/Dev-Master-File?node-id=7537-2242&m=dev",
+  "fetchedAt": "2026-05-28T22:18:00.541Z",
+  "componentInstances": [],
+  "componentSets": [],
+  "tree": {
+    "name": "mcl the you explained 1",
+    "type": "FRAME",
+    "id": "7537:2242",
+    "bounds": {
+      "width": 46,
+      "height": 64
+    },
+    "fills": [],
+    "strokes": {
+      "color": {
+        "r": 0.772549033164978,
+        "g": 0.615686297416687,
+        "b": 0.37254902720451355,
+        "a": 1
+      },
+      "weight": 0.20000000298023224
+    },
+    "children": [
+      {
+        "name": "Group",
+        "type": "GROUP",
+        "id": "7537:2243",
+        "bounds": {
+          "width": 46,
+          "height": 64
+        },
+        "fills": [],
+        "children": [
+          {
+            "name": "Layer 2",
+            "type": "GROUP",
+            "id": "7537:2244",
+            "bounds": {
+              "width": 46,
+              "height": 64
+            },
+            "fills": [],
+            "children": [
+              {
+                "name": "Layer 2",
+                "type": "GROUP",
+                "id": "7537:2245",
+                "bounds": {
+                  "width": 46,
+                  "height": 64
+                },
+                "fills": [],
+                "children": [
+                  {
+                    "name": "Group",
+                    "type": "GROUP",
+                    "id": "7537:2246",
+                    "bounds": {
+                      "width": 46,
+                      "height": 64
+                    },
+                    "fills": [],
+                    "children": []
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

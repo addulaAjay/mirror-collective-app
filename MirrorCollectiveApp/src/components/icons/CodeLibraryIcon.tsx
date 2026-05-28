@@ -1,81 +1,34 @@
 import React from 'react';
-import { View } from 'react-native';
-
-import IconCodeLibrary from '@assets/talk-to-mirror/icon-code-library.svg';
+import { Image, View } from 'react-native';
 
 interface Props {
   size?: number;
 }
 
 /**
- * Figma 4326:2362 — Code Library icon.
- * The SVG circle + book content is rendered at `size×size`.
- * Node 4326:2380 adds a centred gold-bordered rectangle with two-layer glow
- * (directional + radial) around the book illustration — replicated here as an
- * absolute View overlay since it is a separate Figma layer, not baked into the
- * embedded raster.
+ * Figma 7537:2242 — Code Library icon.
  *
- * Figma specs at 100px circle:
- *   rect  47.973×66.658px, centred, border 0.133px #f4cf7d
- *   shadow1: 1.333 -1.333 6.667px 0.667px rgba(229,214,176,0.2)
- *   shadow2: 0 0 23.333px 5.333px rgba(244,207,125,0.2)
+ * The current source is a portrait book illustration with a gold
+ * stitched border and baked typography. Figma exports it as a
+ * flattened raster (no vector paths in the spec tree) so we render
+ * it as a PNG. Native frame is 46×64; `resizeMode="contain"`
+ * letterboxes it inside the `size`×`size` slot so the home-screen
+ * category row layout — which expects each icon to occupy the same
+ * square cell — stays untouched.
  *
- * The glow has shadowRadius ~23px which, unconstrained, extends well past
- * the 100px circle outline (the book rect sits ~9px from the circle edge,
- * so a 23px shadow leaks outward into transparency).  Figma's source uses
- * an SVG <filter> with the circle as its clip region; the RN port lost
- * that. The glow is therefore wrapped in a circular clipping sibling
- * (overflow:hidden + borderRadius:size/2) so iOS clipsToBounds and
- * Android's draw-clip both bound the shadow to the circle. The base SVG
- * renders OUTSIDE this clip wrapper so its outer stroke isn't truncated.
+ * Replaces the previous circular-badge design (node 4326:2362). The
+ * old gold-glow rectangle overlay + circular clip wrapper used to
+ * contain it are no longer needed — the new asset bakes any glow
+ * into the PNG and the artwork isn't circular anymore.
  */
-const CodeLibraryIcon: React.FC<Props> = ({ size = 100 }) => {
-  const s = size / 100;
-  const glowW  = 47.973 * s;
-  const glowH  = 66.658 * s;
-
-  return (
-    <View style={{ width: size, height: size }}>
-      <IconCodeLibrary width={size} height={size} />
-
-      {/* Circular clip — same diameter as the SVG circle. Contains the
-          glow's native shadow/boxShadow so it can't bleed past the
-          circle outline drawn by the SVG below. */}
-      <View
-        pointerEvents="none"
-        style={{
-          position:     'absolute',
-          top:          0,
-          left:         0,
-          width:        size,
-          height:       size,
-          borderRadius: size / 2,
-          overflow:     'hidden',
-        }}
-      >
-        {/* Gold glow overlay — Figma node 4326:2380 */}
-        <View
-          style={{
-            position:    'absolute',
-            width:       glowW,
-            height:      glowH,
-            top:         (size - glowH) / 2,
-            left:        (size - glowW) / 2,
-            borderWidth:  0.133 * s,
-            borderColor:  '#f4cf7d',
-            // iOS — primary radial glow (shadow2)
-            shadowColor:   'rgba(244,207,125,1)',
-            shadowOffset:  { width: 1.333 * s, height: -1.333 * s },
-            shadowOpacity: 0.2,
-            shadowRadius:  23.333 * s,
-            elevation:     6,
-            // Android — both shadows via boxShadow
-            boxShadow: `${1.333 * s}px ${-1.333 * s}px ${6.667 * s}px ${0.667 * s}px rgba(229,214,176,0.2), 0px 0px ${23.333 * s}px ${5.333 * s}px rgba(244,207,125,0.2)`,
-          }}
-        />
-      </View>
-    </View>
-  );
-};
+const CodeLibraryIcon: React.FC<Props> = ({ size = 100 }) => (
+  <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
+    <Image
+      source={require('@assets/talk-to-mirror/icon-code-library.png')}
+      style={{ width: size, height: size }}
+      resizeMode="contain"
+    />
+  </View>
+);
 
 export default CodeLibraryIcon;
