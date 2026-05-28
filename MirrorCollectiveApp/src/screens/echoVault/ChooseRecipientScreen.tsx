@@ -491,38 +491,48 @@ const styles = StyleSheet.create<{
     zIndex:         2,
   },
 
-  // ── Dropdown trigger — Figma 780:1969 ──────────────────────────────────────
+  // ── Dropdown trigger — mirrors TextInputField (Lock Date) one-for-one
+  //    so Recipient and Lock Date are visually indistinguishable.
+  //    Reference: src/components/TextInputField.tsx `field`, `fieldInactive`.
   dropdownTrigger: {
-    height:            scale(48),
+    minHeight:         48,                       // Figma: Hug (48px)
     flexDirection:     'row',
     alignItems:        'center',
-    paddingHorizontal: scale(spacing.m),
-    paddingVertical:   verticalScale(spacing.xs),
-    borderRadius:      radius.s,
+    paddingHorizontal: spacing.m,                // 16 — Figma: Spacing/M
+    paddingVertical:   spacing.s,                // 12 — Figma: Spacing/S
+    borderRadius:      radius.m,                 // 16 — Figma: Radius/M (was radius.s = 12)
     borderWidth:       0.5,
-    // Match TextInputField (Lock Date) — Figma: Border/Subtle.
-    borderColor:       palette.navy.light,
+    borderColor:       palette.navy.light,       // #a3b3cc — Figma: Border/Subtle
     backgroundColor:   'rgba(253,253,249,0.01)',
   },
+  // When expanded, flatten the bottom corners so the trigger flows
+  // seamlessly into the inline option list. Top corners stay at
+  // radius.m to match the TextInputField corner radius.
   dropdownTriggerOpen: {
-    borderTopLeftRadius:     radius.xs,
-    borderTopRightRadius:    radius.xs,
+    borderTopLeftRadius:     radius.m,
+    borderTopRightRadius:    radius.m,
     borderBottomLeftRadius:  0,
     borderBottomRightRadius: 0,
     borderBottomWidth:       0,
     backgroundColor:         'rgba(163,179,204,0.05)',
   },
+  // Placeholder typography copied from theme.typography.styles.inputPlaceholder
+  // (the same semantic style TextInputField renders for its placeholder),
+  // so "Choose from list" reads identically to "When do you want to open it?".
   dropdownTriggerText: {
     flex:       1,
-    fontFamily: fontFamily.bodyItalic,
-    fontSize:   moderateScale(fontSize.s),
-    lineHeight: lineHeight.m,
-    color:      palette.gold.subtlest,
+    fontFamily: fontFamily.body,                 // Inter Regular — not italic
+    fontSize:   moderateScale(fontSize.s, 0.3),  // 16 base with input scale factor
+    lineHeight: lineHeight.m,                    // 24
+    color:      palette.navy.light,              // #a3b3cc — Text/Inverse Paragraph-2
     textAlign:  'left',
   },
+  // Filled-state override — mirrors TextInputField's `input` text colour
+  // (Text/Paragraph-2 white) so a selected recipient reads like a typed
+  // value would in the Lock Date field.
   dropdownTriggerSelected: {
     fontFamily: fontFamily.body,
-    color:      palette.gold.DEFAULT,
+    color:      palette.gold.subtlest,           // #fdfdf9 — matches TextInputField input
   },
 
   // ── Dropdown list ──────────────────────────────────────────────────────────
@@ -533,11 +543,13 @@ const styles = StyleSheet.create<{
   },
   dropdownList: {
     width:                   '100%',
-    borderWidth:             0.25,
+    borderWidth:             0.5,
     borderTopWidth:          0,
     borderColor:             palette.navy.light,
-    borderBottomLeftRadius:  radius.xs,
-    borderBottomRightRadius: radius.xs,
+    // Match the trigger's radius.m so the open shape has the same
+    // corner radius top and bottom.
+    borderBottomLeftRadius:  radius.m,
+    borderBottomRightRadius: radius.m,
     overflow:                'hidden',
     maxHeight:               verticalScale(260),
   },
