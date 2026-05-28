@@ -1,43 +1,51 @@
-import { palette } from '@theme';
 import React from 'react';
 import { Image, StyleSheet, View } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 
 interface Props {
   size?: number;
 }
 
 /**
- * Figma 7537:2242 — Code Library icon.
+ * Code Library category icon for the TalkToMirror home screen.
  *
- * The new design is a portrait book illustration with a gold stitched
- * border and baked typography. Figma exports it as a flattened raster
- * (no vector paths in the spec tree) so the source ships as PNG.
+ * Figma — full card lives at node 7227:5881 (Frame 654), 100 × 160:
+ *   - Circle (Ellipse 725): 100 × 100, stroke #9BAAC2 weight 0.208,
+ *     fill is a vertical 5 % opacity gradient transparent → black.
+ *   - Book (node 7537:2242 — mcl the you explained 1): exactly 46 × 64
+ *     centred inside the circle. The gold stitched border at the book's
+ *     edges is part of the source asset.
  *
- * The other three home-screen category icons (Mirror Echo, Reflection
- * Room, Mirror Pledge) each bake a thin navy-light (#9BAAC2) circle
- * stroke into their SVGs — the consistent "lens" framing the artwork.
- * The new Code Library PNG doesn't include that frame, so we draw it
- * here as a sibling View: borderRadius = size/2, the same 0.25 px
- * Border/Subtle stroke (palette.navy.light ~ #a3b3cc), and a barely-
- * visible 5 % fill that matches the other icons' inner gradient.
+ * The book ships as PNG because the Figma frame is rasterised on
+ * export (no vector paths in the spec tree). The export is 228 × 282;
+ * the actual book content occupies 60.5 % × 68.1 % of those bounds —
+ * the rest is export padding. Rendering the Image at 94 % of the cell
+ * with resizeMode="contain" lands the visible book at exactly 46 × 64,
+ * matching the Figma spec.
  *
- * Layout note: the Mirror Echo / Reflection Room / Pledge SVGs render
- * their inner art at ~97 % of the cell and clip it to an 83 % rect so
- * the visible content fills ~83 % of the circle's diameter. We match
- * that visual weight by overscanning the book PNG to 120 % of the cell
- * — the Figma export wraps the book in ~20 % padding/glow, so a 1.2×
- * Image bounding box renders the actual book at roughly 57 × 78 px
- * inside a 100 × 100 cell, on a par with the sibling icons. The book's
- * top corner sits ~50 px from the cell centre (essentially on the
- * circle boundary) so the gold stitched border at the corners is
- * preserved — anything beyond is sub-pixel and lost in the rim.
- * resizeMode="contain" preserves the 46 : 64 portrait ratio.
+ * The circle stroke, fill, and weight are recreated in JSX so the
+ * rim matches the SVGs Mirror Echo / Reflection Room / Pledge render
+ * (same #9BAAC2 stroke, same hairline weight, same 5 % surface tint).
+ * overflow:hidden + borderRadius clips the book corners to the circle
+ * if any artwork extends past the rim.
  */
 const CodeLibraryIcon: React.FC<Props> = ({ size = 100 }) => (
-  <View style={[styles.circle, { width: size, height: size, borderRadius: size / 2 }]}>
+  <View
+    style={[
+      styles.circle,
+      { width: size, height: size, borderRadius: size / 2 },
+    ]}
+  >
+    <LinearGradient
+      colors={['rgba(217, 217, 217, 0)', 'rgba(0, 0, 0, 0.05)']}
+      start={{ x: 0.5, y: 0 }}
+      end={{ x: 0.5, y: 1 }}
+      style={StyleSheet.absoluteFill}
+      pointerEvents="none"
+    />
     <Image
       source={require('@assets/talk-to-mirror/icon-code-library.png')}
-      style={{ width: size * 1.2, height: size * 1.2 }}
+      style={{ width: size * 0.94, height: size * 0.94 }}
       resizeMode="contain"
     />
   </View>
@@ -46,15 +54,14 @@ const CodeLibraryIcon: React.FC<Props> = ({ size = 100 }) => (
 export default CodeLibraryIcon;
 
 const styles = StyleSheet.create({
-  // Matches the navy-light stroke + ~5 % surface tint the sibling icons
-  // (Mirror Echo, Reflection Room, Mirror Pledge) bake into their SVGs.
-  // overflow:hidden clips any glow the PNG bleeds past the circle edge.
   circle: {
-    alignItems:      'center',
-    justifyContent:  'center',
-    borderWidth:     0.25,
-    borderColor:     palette.navy.light,
-    backgroundColor: 'rgba(163, 179, 204, 0.05)',
-    overflow:        'hidden',
+    alignItems:     'center',
+    justifyContent: 'center',
+    borderWidth:    StyleSheet.hairlineWidth,
+    // Figma 7227:5883 Ellipse 725 stroke — same #9BAAC2 the sibling
+    // home-screen icons (Mirror Echo / Reflection Room / Pledge) draw
+    // into their SVGs, so all four rims read as one design system.
+    borderColor:    '#9BAAC2',
+    overflow:       'hidden',
   },
 });
