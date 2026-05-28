@@ -226,8 +226,8 @@ const NewEchoScreen: React.FC = () => {
                 value={title}
                 onChangeText={setTitle}
                 placeholder="Enter Title here"
-                placeholderAlign="left"
-                textAlign="left"
+                placeholderAlign="center"
+                textAlign="center"
                 size="S"
               />
 
@@ -566,14 +566,15 @@ const styles = StyleSheet.create<{
   },
   // Placeholder typography copied from theme.typography.styles.inputPlaceholder
   // — same Inter Regular 16/24 in Border/Subtle navy.light that TextInputField
-  // renders for "When do you want to open it?".
+  // renders for "When do you want to open it?". Centred to match the title
+  // input above it on this screen.
   dropdownText: {
     flex: 1,
     fontFamily: fontFamily.body, // Inter Regular — not italic
     fontSize: moderateScale(fontSize.s, 0.3),
     lineHeight: lineHeight.m,
     color: palette.navy.light, // #a3b3cc — Text/Inverse Paragraph-2
-    textAlign: 'left',
+    textAlign: 'center',
   },
   // Picked-state override — mirrors TextInputField's `input` text colour
   // (Text/Paragraph-2 white) so a chosen category reads like a typed value
