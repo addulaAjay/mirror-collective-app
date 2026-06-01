@@ -170,7 +170,11 @@ const NewEchoScreen: React.FC = () => {
   return (
     <BackgroundWrapper style={styles.bg}>
       <SafeAreaView style={styles.safe}>
-        <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
+        <StatusBar
+          translucent
+          backgroundColor="transparent"
+          barStyle="light-content"
+        />
 
         {/* Figma: LogoHeader always at top */}
         <LogoHeader navigation={navigation} />
@@ -190,165 +194,187 @@ const NewEchoScreen: React.FC = () => {
           contentContainerStyle={styles.kavContent}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
-          keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+          keyboardDismissMode={
+            Platform.OS === 'ios' ? 'interactive' : 'on-drag'
+          }
           bottomOffset={16}
           nestedScrollEnabled
         >
-            {/*
+          {/*
               Figma 220:2027 — content column:
               left:24, top:140, w:345, gap:24, items-center
             */}
-            <View style={styles.content}>
+          <View style={styles.content}>
+            {/* ── Header row (222:2091) ─────────────────────────────── */}
+            {/* back | NEW ECHO | spacer — justify-between, items-center */}
+            <View style={styles.headerRow}>
+              <TouchableOpacity
+                onPress={() => navigation.goBack()}
+                style={styles.backBtn}
+                accessibilityRole="button"
+                accessibilityLabel="Go back"
+              >
+                <BackIcon />
+              </TouchableOpacity>
 
-              {/* ── Header row (222:2091) ─────────────────────────────── */}
-              {/* back | NEW ECHO | spacer — justify-between, items-center */}
-              <View style={styles.headerRow}>
-                <TouchableOpacity
-                  onPress={() => navigation.goBack()}
-                  style={styles.backBtn}
-                  accessibilityRole="button"
-                  accessibilityLabel="Go back"
-                >
-                  <BackIcon />
-                </TouchableOpacity>
+              {/* Heading M: Cormorant Regular 28/32, #f2e1b0, glow shadow */}
+              <Text style={styles.screenTitle}>NEW ECHO</Text>
 
-                {/* Heading M: Cormorant Regular 28/32, #f2e1b0, glow shadow */}
-                <Text style={styles.screenTitle}>NEW ECHO</Text>
+              {/* Equal spacer so title stays centred */}
+              <View style={styles.headerSpacer} />
+            </View>
 
-                {/* Equal spacer so title stays centred */}
-                <View style={styles.headerSpacer} />
-              </View>
+            {/* ── Title input (220:2029) — uses MC TextInputField component */}
+            <TextInputField
+              value={title}
+              onChangeText={setTitle}
+              placeholder="Enter Title here"
+              placeholderAlign="center"
+              textAlign="center"
+              size="S"
+            />
 
-              {/* ── Title input (220:2029) — uses MC TextInputField component */}
-              <TextInputField
-                value={title}
-                onChangeText={setTitle}
-                placeholder="Enter Title here"
-                placeholderAlign="center"
-                textAlign='center'
-                size="S"
+            {/* ── Hero illustration (780:1043) ──────────────────────── */}
+            {/* Figma: 216×200 container, image overflows (large brain constellation) */}
+            <View style={styles.illustrationWrap}>
+              <Image
+                source={require('@assets/mirror_echo_illustration.png')}
+                style={styles.illustrationImg}
+                resizeMode="contain"
               />
+            </View>
 
-              {/* ── Hero illustration (780:1043) ──────────────────────── */}
-              {/* Figma: 216×200 container, image overflows (large brain constellation) */}
-              <View style={styles.illustrationWrap}>
-                <Image
-                  source={require('@assets/mirror_echo_illustration.png')}
-                  style={styles.illustrationImg}
-                  resizeMode="contain"
-                />
-              </View>
-
-              {/* ── Category dropdown (734:1307 / 734:1308) ──────────────
+            {/* ── Category dropdown (734:1307 / 734:1308) ──────────────
                 Figma: ONE right-side chevron only (▼ closed, ▲ open).
                 No left arrow — confirmed by Figma screenshot.
                 Outside-tap: transparent absolute overlay dismisses it.
               */}
-              {/* Invisible full-screen backdrop — only active when open */}
-              {categoryOpen && (
-                <TouchableOpacity
-                  style={styles.dropdownBackdrop}
-                  activeOpacity={1}
-                  onPress={() => setCategoryOpen(false)}
-                />
-              )}
+            {/* Invisible full-screen backdrop — only active when open */}
+            {categoryOpen && (
+              <TouchableOpacity
+                style={styles.dropdownBackdrop}
+                activeOpacity={1}
+                onPress={() => setCategoryOpen(false)}
+              />
+            )}
 
-              <View style={styles.dropdownWrap}>
-                <TouchableOpacity
-                  activeOpacity={0.9}
-                  onPress={() => { Keyboard.dismiss(); setCategoryOpen(o => !o); }}
+            <View style={styles.dropdownWrap}>
+              <TouchableOpacity
+                activeOpacity={0.9}
+                onPress={() => {
+                  Keyboard.dismiss();
+                  setCategoryOpen(o => !o);
+                }}
+              >
+                <View
+                  style={[
+                    styles.dropdownShell,
+                    categoryOpen && styles.dropdownShellOpen,
+                  ]}
                 >
-                  <View style={[styles.dropdownShell, categoryOpen && styles.dropdownShellOpen]}>
-                    <Text style={[styles.dropdownText, !category && styles.dropdownPlaceholder]}>
-                      {category ?? 'Choose echo category'}
-                    </Text>
-
-                    {/* Single right chevron — ▼ closed, ▲ open */}
-                    <Svg width={scale(16)} height={scale(16)} viewBox="0 0 24 24" fill="none">
-                      <Path
-                        d={categoryOpen ? 'M7 14l5-5 5 5' : 'M7 10l5 5 5-5'}
-                        stroke={palette.gold.subtlest}
-                        strokeWidth={1.5}
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </Svg>
-                  </View>
-                </TouchableOpacity>
-
-                {/* Inline option list — visible when open */}
-                {/* Inline list — own ScrollView so ONLY the list scrolls */}
-                {categoryOpen && (
-                  <ScrollView
-                    style={styles.dropdownList}
-                    scrollEnabled
-                    showsVerticalScrollIndicator={false}
-                    keyboardShouldPersistTaps="handled"
-                    nestedScrollEnabled
+                  <Text
+                    style={[
+                      styles.dropdownText,
+                      !category && styles.dropdownPlaceholder,
+                    ]}
                   >
-                    {CATEGORIES.map((cat, idx) => {
-                      const isLast = idx === CATEGORIES.length - 1;
-                      return (
-                        <TouchableOpacity
-                          key={cat}
-                          activeOpacity={0.85}
-                          style={[
-                            styles.dropdownOption,
-                            isLast && styles.dropdownOptionLast,
-                          ]}
-                          onPress={() => { setCategory(cat); setCategoryOpen(false); }}
-                        >
-                          <Text style={styles.dropdownOptionText}>{cat}</Text>
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </ScrollView>
-                )}
-              </View>
+                    {category ?? 'Choose echo category'}
+                  </Text>
 
-              {/* ── Recipient row (1030:1153) ─────────────────────────── */}
-              {/*
+                  {/* Single right chevron — ▼ closed, ▲ open */}
+                  <Svg
+                    width={scale(16)}
+                    height={scale(16)}
+                    viewBox="0 0 24 24"
+                    fill="none"
+                  >
+                    <Path
+                      d={categoryOpen ? 'M7 14l5-5 5 5' : 'M7 10l5 5 5-5'}
+                      stroke={palette.gold.subtlest}
+                      strokeWidth={1.5}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </Svg>
+                </View>
+              </TouchableOpacity>
+
+              {/* Inline option list — visible when open */}
+              {/* Inline list — own ScrollView so ONLY the list scrolls */}
+              {categoryOpen && (
+                <ScrollView
+                  style={styles.dropdownList}
+                  scrollEnabled
+                  showsVerticalScrollIndicator={false}
+                  keyboardShouldPersistTaps="handled"
+                  nestedScrollEnabled
+                >
+                  {CATEGORIES.map((cat, idx) => {
+                    const isLast = idx === CATEGORIES.length - 1;
+                    return (
+                      <TouchableOpacity
+                        key={cat}
+                        activeOpacity={0.85}
+                        style={[
+                          styles.dropdownOption,
+                          isLast && styles.dropdownOptionLast,
+                        ]}
+                        onPress={() => {
+                          setCategory(cat);
+                          setCategoryOpen(false);
+                        }}
+                      >
+                        <Text style={styles.dropdownOptionText}>{cat}</Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </ScrollView>
+              )}
+            </View>
+
+            {/* ── Recipient row (1030:1153) ─────────────────────────── */}
+            {/*
                 Figma: backdrop-blur:30, gradient 0.01→0, padding 8px (Spacing/XS),
                 TOP-ONLY corners rounded (radius 12) — rounded-tl-[12px] rounded-tr-[12px]
                 justify-between, items-start
               */}
-              {/* Plain View — LinearGradient caused same double-border + width issues */}
-              <View style={styles.recipientRow}>
-                {/* Body S Italic: Inter Italic 16/24, #fdfdf9, flex:1 shrinks first */}
-                <Text style={styles.recipientLabel} numberOfLines={2}>
-                  Do you have a recipient?
-                </Text>
+            {/* Plain View — LinearGradient caused same double-border + width issues */}
+            <View style={styles.recipientRow}>
+              {/* Body S Italic: Inter Italic 16/24, #fdfdf9, flex:1 shrinks first */}
+              <Text style={styles.recipientLabel} numberOfLines={2}>
+                Do you have a recipient?
+              </Text>
 
-                {/* YES/NO checkboxes — gap:16, shrink-proof */}
-                <View style={styles.recipientChoices}>
-                  <TouchableOpacity
-                    onPress={() => setHasRecipient('yes')}
-                    style={styles.choiceBtn}
-                    activeOpacity={0.8}
-                  >
-                    <CheckboxIcon checked={hasRecipient === 'yes'} />
-                    <Text style={styles.choiceLabel}>YES</Text>
-                  </TouchableOpacity>
+              {/* YES/NO checkboxes — gap:16, shrink-proof */}
+              <View style={styles.recipientChoices}>
+                <TouchableOpacity
+                  onPress={() => setHasRecipient('yes')}
+                  style={styles.choiceBtn}
+                  activeOpacity={0.8}
+                >
+                  <CheckboxIcon checked={hasRecipient === 'yes'} />
+                  <Text style={styles.choiceLabel}>YES</Text>
+                </TouchableOpacity>
 
-                  <TouchableOpacity
-                    onPress={() => setHasRecipient('no')}
-                    style={styles.choiceBtn}
-                    activeOpacity={0.8}
-                  >
-                    <CheckboxIcon checked={hasRecipient === 'no'} />
-                    <Text style={styles.choiceLabel}>NO</Text>
-                  </TouchableOpacity>
-                </View>
+                <TouchableOpacity
+                  onPress={() => setHasRecipient('no')}
+                  style={styles.choiceBtn}
+                  activeOpacity={0.8}
+                >
+                  <CheckboxIcon checked={hasRecipient === 'no'} />
+                  <Text style={styles.choiceLabel}>NO</Text>
+                </TouchableOpacity>
               </View>
+            </View>
 
-              {/* ── Action buttons row (220:2035) ─────────────────────── */}
-              {/*
+            {/* ── Action buttons row (220:2035) ─────────────────────── */}
+            {/*
                 Figma: flex gap:32 h:64 items-center justify-center w-full
                 3 buttons: T text, Mic, Videocam — each 72×64
                 Each: bg Bg/Surface, border 0.5px Border/Brand, radius 12, shadow,
                 padding 16v/20h — NOT gradient, flat fill
               */}
-              <View style={styles.actionRow}>
+            {/* <View style={styles.actionRow}>
                 <ActionBtn selected={mode === 'text'}  onPress={() => setMode('text')}>
                   <TextModeIcon />
                 </ActionBtn>
@@ -358,25 +384,18 @@ const NewEchoScreen: React.FC = () => {
                 <ActionBtn selected={mode === 'video'} onPress={() => setMode('video')}>
                   <VideoModeIcon />
                 </ActionBtn>
-              </View>
+              </View> */}
 
-              {/* ── NEXT button (220:2042 — Component 2) ──────────────── */}
-              {/*
+            {/* ── NEXT button (220:2042 — Component 2) ──────────────── */}
+            {/*
                 Figma: backdrop-blur:30, gradient 0.01→0, border 0.5px #a3b3cc (Border/Subtle),
                 radius 16 (Radius/M), padding 12v/16h, gap:8
                 Text: Heading S Cormorant Regular 24/28, #f2e1b0, warm glow shadow
                 Width: content-sized (not full width)
               */}
-              <Button
-                variant="primary"
-                size="L"
-                title="NEXT"
-                onPress={onNext}
-              />
-
-            </View>
+            <Button variant="primary" size="L" title="NEXT" onPress={onNext} />
+          </View>
         </KeyboardAwareScrollView>
-
       </SafeAreaView>
     </BackgroundWrapper>
   );

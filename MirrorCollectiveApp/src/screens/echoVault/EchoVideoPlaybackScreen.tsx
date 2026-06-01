@@ -267,11 +267,11 @@ const EchoVideoPlaybackScreen: React.FC<Props> = ({ navigation, route }) => {
               >
                 {paused && (
                   <View style={styles.playOverlay}>
-                    <View style={styles.playOuter}>
-                      <View style={styles.playInner}>
-                        <Text style={styles.playIcon}>▶</Text>
-                      </View>
-                    </View>
+                    <Image
+                      source={require('@assets/play_circle.png')}
+                      style={styles.playCircleImg}
+                      resizeMode="contain"
+                    />
                   </View>
                 )}
                 {buffering && (
@@ -362,7 +362,7 @@ const styles = StyleSheet.create({
 
   /* Title */
   titleRow: {
-    marginTop: 30,
+    marginTop: verticalScale(spacing.m),
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -372,24 +372,21 @@ const styles = StyleSheet.create({
   // Tint copied from Figma 3879:806 — Bg/Brand #f2e1b0 (palette.gold.DEFAULT)
   backArrowImg: { width: scale(20), height: scale(20), tintColor: palette.gold.DEFAULT },
   screenTitle: {
-    color: GOLD,
-    fontSize: 28,
-    letterSpacing: 2,
-    textAlign: 'center',
+    fontFamily: fontFamily.heading,
+    fontSize: moderateScale(fontSize['2xl']),
+    fontWeight: fontWeight.regular,
+    color: palette.gold.DEFAULT,
     maxWidth: '78%',
-    fontFamily: Platform.select({
-      ios: 'CormorantGaramond-Regular',
-      android: 'serif',
-    }),
+    textAlign: 'center',
     textShadowColor: textShadow.glowSubtle.color,
     textShadowOffset: textShadow.glowSubtle.offset,
-    textShadowRadius: 16,
+    textShadowRadius: textShadow.glowSubtle.radius,
   },
   titleRightSpacer: { width: 44 },
 
   /* Video */
   videoShell: {
-    marginTop: 20,
+    marginTop: verticalScale(spacing.m),
     borderRadius: 18,
     padding: 1,
     borderWidth: 1,
@@ -406,28 +403,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 
-  playOuter: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    backgroundColor: 'rgba(215,192,138,0.12)',
-    borderWidth: 1,
-    borderColor: 'rgba(215,192,138,0.35)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  playInner: {
-    width: 78,
-    height: 78,
-    borderRadius: 39,
-    backgroundColor: GOLD,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  playIcon: {
-    color: 'rgba(7,9,14,0.9)',
-    fontSize: 28,
-    marginLeft: 2,
+  playCircleImg: {
+    width: scale(96),
+    height: scale(96),
+    tintColor: palette.gold.DEFAULT,
   },
 
   /* Actions */

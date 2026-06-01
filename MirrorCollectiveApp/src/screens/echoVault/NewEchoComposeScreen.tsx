@@ -70,6 +70,8 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
 
   const [message, setMessage] = useState(initialContent ?? '');
   const [showUploadSheet, setShowUploadSheet] = useState(false);
+  const [showVoiceSheet, setShowVoiceSheet] = useState(false);
+  const [showVideoSheet, setShowVideoSheet] = useState(false);
   
   // Media State
   const [isRecording, setIsRecording] = useState(false);
@@ -95,6 +97,14 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
   // Video Playback
   const [videoPaused, setVideoPaused] = useState(true);
 
+  // Auto-close voice/video sheets once a recording lands
+  React.useEffect(() => {
+    if (mediaUri && mediaFile) {
+      setShowVoiceSheet(false);
+      setShowVideoSheet(false);
+    }
+  }, [mediaUri, mediaFile]);
+
   // Audio Recorder
   const audioRecorderPlayer = React.useRef(AudioRecorderPlayer).current;
 
@@ -108,7 +118,7 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
 
   const titleText = useMemo(() => {
     if (recipientName?.trim()) return `For ${recipientName.trim()}`;
-    return 'NEW ECHO';
+    return 'CREATE AN ECHO';
   }, [recipientName]);
 
   // Request camera + mic permissions when in video mode
@@ -259,6 +269,8 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
       const result = await audioRecorderPlayer.stopRecorder();
       audioRecorderPlayer.removeRecordBackListener();
       setMediaUri(result);
+      const fileName = result.split('/').pop() || 'recording.m4a';
+      setMediaFile({ name: fileName, type: 'audio/m4a' });
       setIsRecording(false);
     } catch (error) {
       console.error('Failed to stop audio recording:', error);
@@ -290,8 +302,9 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
     if (camera.current) {
         camera.current.startRecording({
             onRecordingFinished: (video) => {
-                console.log('Video recorded:', video);
+                const fileName = video.path.split('/').pop() || 'recording.mp4';
                 setMediaUri(video.path);
+                setMediaFile({ name: fileName, type: 'video/mp4' });
                 setIsRecording(false);
             },
             onRecordingError: (error) => {
@@ -327,7 +340,7 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
       if (editEchoId) {
         const updateData: Record<string, any> = {};
         if (mode === 'text') updateData.content = message;
-        if (mediaUri && mode !== 'text') {
+        if (mediaUri) {
           const contentType = mediaFile?.type || (mode === 'audio' ? 'audio/mp4' : 'video/mp4');
           // Compress + presign + stream + finalize in one call. The
           // backend HEADs S3 server-side and writes media_url to the row
@@ -407,7 +420,7 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
       }
       const newEchoId = createResponse.data.echo_id;
 
-      if (mode !== 'text' && mediaUri && newEchoId) {
+      if (mediaUri && newEchoId) {
         const contentType = mediaFile?.type || (mode === 'audio' ? 'audio/mp4' : 'video/mp4');
         const mediaResult = await echoApiService.uploadEchoMedia(
           newEchoId,
@@ -585,6 +598,33 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
     }
   };
 
+  const handlePickPhotoVideo = async () => {
+    if (isPicking) return;
+    try {
+      setIsPicking(true);
+      const result = await launchImageLibrary({
+        mediaType: 'mixed',
+        selectionLimit: 1,
+        assetRepresentationMode: 'current',
+        includeExtra: false,
+      });
+      if (result.assets && result.assets.length > 0) {
+        const asset = result.assets[0];
+        // Normalize image/jpg → image/jpeg (backend allowlist uses image/jpeg)
+        const rawType = asset.type || 'image/jpeg';
+        const normalizedType = rawType === 'image/jpg' ? 'image/jpeg' : rawType;
+        setIsPreparingMedia(true);
+        setMediaUri(asset.uri || null);
+        setMediaFile({ name: asset.fileName || 'media', type: normalizedType });
+        setTimeout(() => setIsPreparingMedia(false), 300);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsPicking(false);
+    }
+  };
+
   return (
     <BackgroundWrapper style={styles.root}>
       <SafeAreaView style={styles.safe}>
@@ -628,6 +668,13 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
           <View style={styles.titleRightSpacer} />
         </View>
 
+        {/* Ornamental divider — line · diamond · line */}
+        <View style={[styles.ornamentRow, { width: contentWidth }]}>
+          <View style={styles.ornamentLine} />
+          <View style={styles.ornamentDiamond} />
+          <View style={styles.ornamentLine} />
+        </View>
+
         {/* Body */}
         <View style={[styles.content, { width: contentWidth }, mode === 'audio' && styles.audioContent]}>
           {mode === 'text' && (
@@ -643,7 +690,7 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
                   <TextInput
                     value={message}
                     onChangeText={setMessage}
-                    placeholder="Write message here"
+                    placeholder="Write what you want to remember."
                     placeholderTextColor={palette.navy.light}
                     style={styles.bigTextInput}
                     multiline
@@ -652,8 +699,53 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
                 </LinearGradient>
               </View>
 
-              <View style={styles.bottomButtonsRow}>
-                <Button variant="primary" size="L" title="UPLOAD" onPress={onUpload} />
+              {/* Attachment chip — shown below text box after picking a photo/video */}
+              {mediaUri && mediaFile && (
+                <View style={styles.attachmentChip}>
+                  {/* Thumbnail for images, file icon for videos */}
+                  {mediaFile.type?.startsWith('image/') ? (
+                    <Image
+                      source={{ uri: mediaUri }}
+                      style={styles.attachmentThumb}
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <View style={styles.attachmentIconBox}>
+                      <Image
+                        source={require('@assets/videocam_2.png')}
+                        style={styles.attachmentIcon}
+                        resizeMode="contain"
+                      />
+                    </View>
+                  )}
+                  <Text style={styles.attachmentName} numberOfLines={1}>
+                    {mediaFile.name}
+                  </Text>
+                  {isPreparingMedia && (
+                    <ActivityIndicator size="small" color={palette.gold.DEFAULT} style={{ marginRight: scale(4) }} />
+                  )}
+                  <TouchableOpacity
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    onPress={() => {
+                      setVideoPaused(true);
+                      setMediaUri(null);
+                      setMediaFile(null);
+                    }}
+                  >
+                    <Text style={styles.attachmentRemove}>✕</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+
+              <AddToEchoRow
+                mode={mode}
+                onPickMedia={() => setShowUploadSheet(true)}
+                onPickPhotoVideo={handlePickPhotoVideo}
+                onRecord={() => setShowVoiceSheet(true)}
+                onRecordVideo={() => setShowVideoSheet(true)}
+                isRecording={isRecording}
+              />
+              <View style={styles.saveRow}>
                 <Button variant="secondary" size="L" title={isSaving ? 'SAVING...' : 'SAVE'} onPress={onSave} disabled={isSaving} />
               </View>
             </>
@@ -739,8 +831,13 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
                 </View>
               )}
 
-              <View style={styles.bottomButtonsRow}>
-                <Button variant="primary" size="L" title="UPLOAD" onPress={onUpload} />
+              <AddToEchoRow
+                mode={mode}
+                onPickMedia={onUpload}
+                onRecord={toggleAudioRecording}
+                isRecording={isRecording}
+              />
+              <View style={styles.saveRow}>
                 <Button variant="secondary" size="L" title={isSaving ? 'SAVING...' : 'SAVE'} onPress={onSave} disabled={isSaving} />
               </View>
             </>
@@ -853,8 +950,13 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
                 </View>
               </View>
 
-              <View style={styles.bottomButtonsRow}>
-                <Button variant="primary" size="L" title="UPLOAD" onPress={onUpload} />
+              <AddToEchoRow
+                mode={mode}
+                onPickMedia={onUpload}
+                onRecord={toggleVideoRecording}
+                isRecording={isRecording}
+              />
+              <View style={styles.saveRow}>
                 <Button variant="secondary" size="L" title={isSaving ? 'SAVING...' : 'SAVE'} onPress={onSave} disabled={isSaving} />
               </View>
             </>
@@ -862,49 +964,191 @@ const NewEchoComposeScreen: React.FC<Props> = ({ navigation, route }) => {
         </View>
         </KeyboardAvoidingView>
 
-        {/* Simple "upload" modal */}
+        {/* ── "Choose type of file" sheet ── */}
         <Modal
           visible={showUploadSheet}
           transparent
-          animationType="fade"
+          animationType="slide"
           onRequestClose={() => setShowUploadSheet(false)}
           onDismiss={handleModalDismissed}
         >
-          <Pressable
-            style={styles.modalBackdrop}
-            onPress={() => setShowUploadSheet(false)}
-          >
-            <Pressable style={[styles.modalCard, { width: contentWidth }]}>
-              <Text style={styles.modalTitle}>Choose an Option</Text>
+          <Pressable style={styles.sheetBackdrop} onPress={() => setShowUploadSheet(false)}>
+            <Pressable style={[styles.bottomSheet, { width: contentWidth }]}>
+              <View style={styles.sheetTopRow}>
+                <Text style={styles.sheetTitle}>Choose type of file you wish to upload</Text>
+                <TouchableOpacity onPress={() => setShowUploadSheet(false)} style={styles.sheetCloseBtn}>
+                  <Text style={styles.sheetCloseText}>✕</Text>
+                </TouchableOpacity>
+              </View>
 
-              <TouchableOpacity
-                activeOpacity={0.85}
-                style={styles.modalItem}
-                onPress={
-                  mode === 'text'
-                    ? handlePickText
-                    : mode === 'audio'
-                    ? handlePickAudio
-                    : handlePickVideo
-                }
-              >
-                <Text style={styles.modalItemText}>
-                  {mode === 'text'
-                    ? 'Import Text File'
-                    : mode === 'audio'
-                    ? 'Import Audio File'
-                    : 'Choose from Gallery'}
-                </Text>
-              </TouchableOpacity>
+              <View style={styles.sheetBtnRow}>
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  style={styles.sheetTypeBtn}
+                  onPress={() => {
+                    setShowUploadSheet(false);
+                    if (Platform.OS === 'android') setTimeout(() => executePickText(), 300);
+                    else setPendingPicker('text');
+                  }}
+                >
+                  <Image source={require('@assets/download.png')} style={styles.sheetTypeBtnIcon} resizeMode="contain" />
+                  <Text style={styles.sheetTypeBtnLabel}>File</Text>
+                </TouchableOpacity>
 
-              <TouchableOpacity
-                activeOpacity={0.85}
-                style={styles.modalItem}
-                onPress={() => setShowUploadSheet(false)}
-              >
-                <Text style={styles.modalItemCancel}>Cancel</Text>
-              </TouchableOpacity>
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  style={styles.sheetTypeBtn}
+                  onPress={() => {
+                    setShowUploadSheet(false);
+                    if (Platform.OS === 'android') setTimeout(() => executePickVideo(), 300);
+                    else setPendingPicker('video');
+                  }}
+                >
+                  <Image source={require('@assets/videocam.png')} style={styles.sheetTypeBtnIcon} resizeMode="contain" />
+                  <Text style={styles.sheetTypeBtnLabel}>Gallery</Text>
+                </TouchableOpacity>
+              </View>
+
+              <Text style={styles.sheetHint}>
+                You can attach a .pdf, .png, .jpg or .mp4 format.
+              </Text>
             </Pressable>
+          </Pressable>
+        </Modal>
+
+        {/* ── "Record your Voice" sheet ── */}
+        <Modal
+          visible={showVoiceSheet}
+          transparent
+          animationType="slide"
+          onRequestClose={() => {
+            if (isRecording) stopAudioRecording();
+            setShowVoiceSheet(false);
+          }}
+        >
+          <Pressable style={styles.sheetBackdrop} onPress={() => {}}>
+            <View style={[styles.bottomSheet, { width: contentWidth }]}>
+              <View style={styles.sheetTopRow}>
+                <Text style={styles.sheetTitle}>Record your Voice</Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    if (isRecording) stopAudioRecording();
+                    setShowVoiceSheet(false);
+                  }}
+                  style={styles.sheetCloseBtn}
+                >
+                  <Text style={styles.sheetCloseText}>✕</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Waveform */}
+              <View style={styles.sheetWaveWrap}>
+                <Waveform />
+              </View>
+
+              {/* Mic button */}
+              <TouchableOpacity
+                style={styles.sheetMicBtn}
+                onPress={isRecording ? stopAudioRecording : startAudioRecording}
+                activeOpacity={0.8}
+              >
+                <Image
+                  source={isRecording ? require('@assets/pause_circle.png') : require('@assets/mic2.png')}
+                  style={styles.sheetMicIcon}
+                  resizeMode="contain"
+                />
+              </TouchableOpacity>
+              {isRecording && (
+                <Text style={styles.sheetRecordingTimer}>{formatDuration(recordingDuration)}</Text>
+              )}
+
+              <View style={styles.sheetSaveRow}>
+                <Button
+                  variant="secondary"
+                  size="L"
+                  title="SAVE"
+                  onPress={async () => {
+                    if (isRecording) await stopAudioRecording();
+                    setShowVoiceSheet(false);
+                  }}
+                  disabled={!mediaUri && !isRecording}
+                />
+              </View>
+            </View>
+          </Pressable>
+        </Modal>
+
+        {/* ── "Record Video" sheet ── */}
+        <Modal
+          visible={showVideoSheet}
+          transparent
+          animationType="slide"
+          onRequestClose={() => {
+            if (isRecording) stopVideoRecording();
+            setShowVideoSheet(false);
+          }}
+        >
+          <Pressable style={styles.sheetBackdrop} onPress={() => {}}>
+            <View style={[styles.bottomSheet, { width: contentWidth }]}>
+              <View style={styles.sheetTopRow}>
+                <Text style={styles.sheetTitle}>Record Video</Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    if (isRecording) stopVideoRecording();
+                    setShowVideoSheet(false);
+                  }}
+                  style={styles.sheetCloseBtn}
+                >
+                  <Text style={styles.sheetCloseText}>✕</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Camera viewfinder */}
+              <View style={styles.sheetCameraBox}>
+                {device && hasCamPermission ? (
+                  <Camera
+                    ref={camera}
+                    style={StyleSheet.absoluteFill}
+                    device={device}
+                    isActive={showVideoSheet}
+                    video
+                    audio={hasMicPermission}
+                  />
+                ) : (
+                  <View style={styles.sheetCameraPlaceholder}>
+                    <Text style={styles.sheetCameraHint}>
+                      {!hasCamPermission ? 'Camera permission required' : 'No camera available'}
+                    </Text>
+                  </View>
+                )}
+              </View>
+
+              {/* Record button */}
+              <TouchableOpacity
+                style={styles.sheetMicBtn}
+                onPress={isRecording ? stopVideoRecording : startVideoRecording}
+                activeOpacity={0.8}
+              >
+                <Image
+                  source={isRecording ? require('@assets/pause_circle.png') : require('@assets/videocam_2.png')}
+                  style={styles.sheetMicIcon}
+                  resizeMode="contain"
+                />
+              </TouchableOpacity>
+
+              <View style={styles.sheetSaveRow}>
+                <Button
+                  variant="secondary"
+                  size="L"
+                  title="SAVE"
+                  onPress={() => {
+                    if (isRecording) stopVideoRecording();
+                    setShowVideoSheet(false);
+                  }}
+                  disabled={!mediaUri && !isRecording}
+                />
+              </View>
+            </View>
           </Pressable>
         </Modal>
 
@@ -973,6 +1217,112 @@ const Waveform = () => {
     </View>
   );
 };
+
+/** ---------- Add to Echo Row ---------- */
+
+interface AddToEchoRowProps {
+  mode: 'text' | 'audio' | 'video';
+  onPickMedia: () => void;
+  onPickPhotoVideo?: () => void;
+  onRecord: () => void;
+  onRecordVideo?: () => void;
+  isRecording: boolean;
+}
+
+const AddToEchoRow: React.FC<AddToEchoRowProps> = ({ mode, onPickMedia, onPickPhotoVideo, onRecord, onRecordVideo, isRecording }) => {
+  const buttons: { icon: any; label: string; onPress: () => void }[] =
+    mode === 'text'
+      ? [
+          { icon: require('@assets/videocam.png'), label: 'Add photo\nor video', onPress: onPickPhotoVideo ?? onPickMedia },
+          { icon: require('@assets/mic.png'), label: 'Add voice\nrecording', onPress: onRecord },
+          { icon: require('@assets/videocam_2.png'), label: 'Record a\nvideo', onPress: onRecordVideo ?? onPickMedia },
+        ]
+      : mode === 'audio'
+      ? [
+          {
+            icon: isRecording ? require('@assets/pause_circle.png') : require('@assets/mic2.png'),
+            label: isRecording ? 'Stop\nrecording' : 'Record\nvoice',
+            onPress: onRecord,
+          },
+          { icon: require('@assets/download.png'), label: 'Import\naudio', onPress: onPickMedia },
+        ]
+      : [
+          {
+            icon: isRecording ? require('@assets/pause_circle.png') : require('@assets/videocam_2.png'),
+            label: isRecording ? 'Stop\nrecording' : 'Record\nvideo',
+            onPress: onRecord,
+          },
+          { icon: require('@assets/videocam.png'), label: 'Choose\nfrom gallery', onPress: onPickMedia },
+        ];
+
+  return (
+    <View style={addRowStyles.wrap}>
+      <Text style={addRowStyles.label}>Add to your Echo</Text>
+      <View style={addRowStyles.row}>
+        {buttons.map((btn, i) => (
+          <TouchableOpacity key={i} style={addRowStyles.btn} activeOpacity={0.8} onPress={btn.onPress}>
+            <View style={addRowStyles.iconCircle}>
+              <Image source={btn.icon} style={addRowStyles.icon} resizeMode="contain" />
+            </View>
+            <Text style={addRowStyles.btnLabel}>{btn.label}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    </View>
+  );
+};
+
+const addRowStyles = StyleSheet.create({
+  wrap: {
+    width: '100%',
+    marginTop: verticalScale(spacing.m),
+    gap: verticalScale(spacing.xs),
+  },
+  label: {
+    fontFamily: fontFamily.bodyItalic,
+    fontSize: moderateScale(fontSize.xs),
+    color: palette.gold.subtlest,
+    textAlign: 'center',
+    letterSpacing: 0.5,
+    marginBottom: verticalScale(spacing.xs),
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: scale(spacing.s),
+  },
+  btn: {
+    alignItems: 'center',
+    gap: verticalScale(spacing.xxs),
+    flex: 1,
+  },
+  iconCircle: {
+    width: '100%',
+    aspectRatio: 1,
+    borderRadius: radius.s,
+    borderWidth: 0.5,
+    borderColor: 'rgba(215,192,138,0.5)',
+    backgroundColor: 'rgba(215,192,138,0.06)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: palette.gold.DEFAULT,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+  },
+  icon: {
+    width: scale(28),
+    height: scale(28),
+    tintColor: palette.gold.DEFAULT,
+  },
+  btnLabel: {
+    fontFamily: fontFamily.body,
+    fontSize: moderateScale(fontSize.xxs),
+    color: palette.gold.subtlest,
+    textAlign: 'center',
+    lineHeight: moderateScale(14),
+  },
+});
 
 /** ---------- Styles ---------- */
 
@@ -1059,6 +1409,27 @@ const styles = StyleSheet.create({
   },
   titleRightSpacer: { width: scale(44), height: scale(44) },
 
+  ornamentRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: verticalScale(spacing.xxs),
+    marginBottom: verticalScale(spacing.xs),
+    gap: scale(spacing.xs),
+  },
+  ornamentLine: {
+    flex: 1,
+    height: 0.5,
+    backgroundColor: 'rgba(215,192,138,0.35)',
+  },
+  ornamentDiamond: {
+    width: scale(6),
+    height: scale(6),
+    borderWidth: 0.8,
+    borderColor: palette.gold.DEFAULT,
+    transform: [{ rotate: '45deg' }],
+    backgroundColor: palette.gold.DEFAULT,
+  },
+
   kav: {
     flex: 1,
     width: '100%',
@@ -1141,13 +1512,53 @@ const styles = StyleSheet.create({
     color: palette.neutral.white,
   },
 
-  bottomButtonsRow: {
-    flexDirection: 'row',
-    marginTop: verticalScale(spacing.m),
+  saveRow: {
+    marginTop: verticalScale(spacing.s),
     marginBottom: verticalScale(spacing.m),
     alignItems: 'center',
     justifyContent: 'center',
-    gap: scale(spacing.m),
+  },
+  // Attachment chip — inline below the text box
+  attachmentChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: verticalScale(spacing.xs),
+    paddingHorizontal: scale(spacing.xs),
+    paddingVertical: verticalScale(spacing.xxs),
+    borderRadius: radius.xs,
+    borderWidth: borderWidth.thin,
+    borderColor: 'rgba(215,192,138,0.3)',
+    backgroundColor: 'rgba(215,192,138,0.07)',
+    gap: scale(spacing.xs),
+  },
+  attachmentThumb: {
+    width: scale(36),
+    height: scale(36),
+    borderRadius: 4,
+  },
+  attachmentIconBox: {
+    width: scale(36),
+    height: scale(36),
+    borderRadius: 4,
+    backgroundColor: 'rgba(215,192,138,0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  attachmentIcon: {
+    width: scale(20),
+    height: scale(20),
+    tintColor: palette.gold.DEFAULT,
+  },
+  attachmentName: {
+    flex: 1,
+    fontFamily: fontFamily.body,
+    fontSize: moderateScale(fontSize.xxs),
+    color: palette.gold.subtlest,
+  },
+  attachmentRemove: {
+    color: 'rgba(253,253,249,0.5)',
+    fontSize: moderateScale(fontSize.xs),
+    paddingLeft: scale(4),
   },
   // Figma 211:1339 — audio mode: mic area and buttons spaced proportionally to screen height
   audioContent: {
@@ -1475,6 +1886,141 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textDecorationLine: 'underline',
     marginTop: 8,
+  },
+
+  /* ── Bottom sheet modals ── */
+  sheetBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    paddingBottom: verticalScale(spacing.xl),
+  },
+  bottomSheet: {
+    borderRadius: radius.s,
+    borderWidth: borderWidth.thin,
+    borderColor: 'rgba(215,192,138,0.22)',
+    backgroundColor: 'rgba(10,12,20,0.97)',
+    paddingHorizontal: scale(spacing.m),
+    paddingTop: verticalScale(spacing.m),
+    paddingBottom: verticalScale(spacing.l),
+    gap: verticalScale(spacing.m),
+  },
+  sheetTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  sheetTitle: {
+    flex: 1,
+    fontFamily: fontFamily.headingMedium,
+    fontSize: moderateScale(fontSize.s),
+    color: palette.gold.subtlest,
+    letterSpacing: 0.4,
+  },
+  sheetCloseBtn: {
+    width: scale(28),
+    height: scale(28),
+    borderRadius: scale(14),
+    borderWidth: borderWidth.thin,
+    borderColor: 'rgba(253,253,249,0.15)',
+    backgroundColor: 'rgba(253,253,249,0.04)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sheetCloseText: {
+    color: 'rgba(253,253,249,0.6)',
+    fontSize: moderateScale(fontSize.xs),
+  },
+
+  /* File-type chooser */
+  sheetBtnRow: {
+    flexDirection: 'row',
+    gap: scale(spacing.m),
+    justifyContent: 'center',
+  },
+  sheetTypeBtn: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: verticalScale(spacing.xs),
+    paddingVertical: verticalScale(spacing.m),
+    borderRadius: radius.xs,
+    borderWidth: borderWidth.thin,
+    borderColor: 'rgba(215,192,138,0.25)',
+    backgroundColor: 'rgba(215,192,138,0.06)',
+  },
+  sheetTypeBtnIcon: {
+    width: scale(32),
+    height: scale(32),
+    tintColor: palette.gold.DEFAULT,
+  },
+  sheetTypeBtnLabel: {
+    fontFamily: fontFamily.body,
+    fontSize: moderateScale(fontSize.xs),
+    color: palette.gold.subtlest,
+  },
+  sheetHint: {
+    fontFamily: fontFamily.body,
+    fontSize: moderateScale(fontSize.xxs),
+    color: 'rgba(253,253,249,0.4)',
+    textAlign: 'center',
+    lineHeight: moderateScale(16),
+  },
+
+  /* Voice / video recording sheet */
+  sheetWaveWrap: {
+    height: verticalScale(60),
+    width: '100%',
+  },
+  sheetMicBtn: {
+    alignSelf: 'center',
+    width: scale(64),
+    height: scale(64),
+    borderRadius: scale(32),
+    borderWidth: borderWidth.thin,
+    borderColor: 'rgba(215,192,138,0.35)',
+    backgroundColor: 'rgba(215,192,138,0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: palette.gold.DEFAULT,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+  },
+  sheetMicIcon: {
+    width: scale(32),
+    height: scale(32),
+    tintColor: palette.gold.DEFAULT,
+  },
+  sheetRecordingTimer: {
+    alignSelf: 'center',
+    fontFamily: fontFamily.body,
+    fontSize: moderateScale(fontSize.xs),
+    color: palette.gold.subtlest,
+    marginTop: verticalScale(-spacing.xs),
+  },
+  sheetSaveRow: {
+    alignItems: 'center',
+  },
+  sheetCameraBox: {
+    width: '100%',
+    height: verticalScale(220),
+    borderRadius: radius.xs,
+    overflow: 'hidden',
+    backgroundColor: 'rgba(7,9,14,0.8)',
+    borderWidth: borderWidth.thin,
+    borderColor: 'rgba(215,192,138,0.15)',
+  },
+  sheetCameraPlaceholder: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sheetCameraHint: {
+    color: 'rgba(253,253,249,0.4)',
+    fontSize: moderateScale(fontSize.xxs),
+    textAlign: 'center',
   },
 });
 

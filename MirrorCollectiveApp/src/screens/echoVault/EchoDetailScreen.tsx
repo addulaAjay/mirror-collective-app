@@ -23,6 +23,7 @@ import {
   Alert,
   Share,
 } from 'react-native';
+import Video from 'react-native-video';
 import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -50,6 +51,7 @@ const EchoDetailScreen: React.FC<Props> = ({ navigation, route }) => {
 
   const [folderModalOpen, setFolderModalOpen] = useState(false);
   const [vaulting, setVaulting] = useState(false);
+  const [videoPaused, setVideoPaused] = useState(true);
 
   // Recipient if the echo has a sender field (they sent it to us)
   const isRecipient = !!echo?.sender;
@@ -170,8 +172,46 @@ const EchoDetailScreen: React.FC<Props> = ({ navigation, route }) => {
           </View>
         </View>
 
+        {/* Media attachment (image or video attached to a TEXT echo) */}
+        {echo.media_url && (
+          echo.media_url.match(/\.(jpg|jpeg|png|webp|heic)(\?|$)/i)
+            ? (
+              <Image
+                source={{ uri: echo.media_url }}
+                style={[styles.mediaPreview, { width: contentWidth }]}
+                resizeMode="cover"
+              />
+            ) : (
+              <View style={[styles.mediaPreview, { width: contentWidth }]}>
+                <Video
+                  source={{ uri: echo.media_url }}
+                  style={StyleSheet.absoluteFill}
+                  resizeMode="cover"
+                  paused={videoPaused}
+                  repeat={false}
+                  onEnd={() => setVideoPaused(true)}
+                />
+                <TouchableOpacity
+                  style={StyleSheet.absoluteFill}
+                  activeOpacity={0.8}
+                  onPress={() => setVideoPaused(p => !p)}
+                >
+                  {videoPaused && (
+                    <View style={styles.mediaPlayOverlay}>
+                      <Image
+                        source={require('@assets/play_circle.png')}
+                        style={styles.mediaPlayIcon}
+                        resizeMode="contain"
+                      />
+                    </View>
+                  )}
+                </TouchableOpacity>
+              </View>
+            )
+        )}
+
         {/* Text box — View as container so ScrollView touches aren't blocked */}
-        <View style={[styles.textBoxShell, { width: contentWidth, height: textBoxHeight }]}>
+        <View style={[styles.textBoxShell, { width: contentWidth, height: echo.media_url ? verticalScale(200) : textBoxHeight }]}>
           <LinearGradient
             colors={['rgba(253,253,249,0.04)', 'rgba(253,253,249,0.01)']}
             start={{ x: 0.5, y: 0 }}
@@ -391,6 +431,27 @@ const styles = StyleSheet.create({
   },
   vaultBtn: {
     minWidth: scale(110),
+  },
+
+  mediaPreview: {
+    height: verticalScale(200),
+    marginTop: verticalScale(spacing.m),
+    borderRadius: radius.s,
+    overflow: 'hidden',
+    borderWidth: borderWidth.thin,
+    borderColor: 'rgba(215,192,138,0.25)',
+    backgroundColor: 'rgba(7,9,14,0.55)',
+  },
+  mediaPlayOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  mediaPlayIcon: {
+    width: scale(64),
+    height: scale(64),
+    tintColor: palette.gold.DEFAULT,
   },
 
   /* Modal sheet */

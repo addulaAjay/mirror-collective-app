@@ -284,6 +284,9 @@ const EchoAudioPlaybackScreen: React.FC<Props> = ({ navigation, route }) => {
           </TouchableOpacity>
         </View>
 
+        {/* Transcript label */}
+        <Text style={[styles.transcriptLabel, { width: contentWidth }]}>Transcript</Text>
+
         {/* Transcript preview */}
         <View style={[styles.transcriptShell, { width: contentWidth, height: transcriptBoxH }]}>
           <LinearGradient
@@ -415,7 +418,7 @@ const styles = StyleSheet.create({
   headerRightSpacer: { width: 44, height: 44 },
 
   titleRow: {
-    marginTop: 30,
+    marginTop: verticalScale(spacing.m),
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -430,37 +433,34 @@ const styles = StyleSheet.create({
   // Tint copied from Figma 3879:806 (back-arrow component) — Bg/Brand #f2e1b0
   backArrowImg: { width: scale(20), height: scale(20), tintColor: palette.gold.DEFAULT },
   screenTitle: {
-    color: 'rgba(215,192,138,0.92)',
-    fontSize: 28,
-    letterSpacing: 2,
-    fontFamily: Platform.select({
-      ios: 'CormorantGaramond-Regular',
-      android: 'serif',
-    }),
+    fontFamily: fontFamily.heading,
+    fontSize: moderateScale(fontSize['2xl']),
+    fontWeight: fontWeight.regular,
+    color: palette.gold.DEFAULT,
     maxWidth: '78%',
     textAlign: 'center',
     textShadowColor: textShadow.glowSubtle.color,
     textShadowOffset: textShadow.glowSubtle.offset,
-    textShadowRadius: 16,
+    textShadowRadius: textShadow.glowSubtle.radius,
   },
   titleRightSpacer: { width: 44, height: 44 },
 
   waveWrap: {
-    marginTop: 52,
+    marginTop: verticalScale(spacing.xxl),
     alignItems: 'center',
     justifyContent: 'center',
-    height: 80,
+    height: scale(80),
   },
   waveRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   waveBar: {
     width: 3,
     borderRadius: 2,
-    backgroundColor: 'rgba(253,253,249,0.94)',
+    backgroundColor: 'rgba(215,192,138,0.75)',
   },
 
   playWrap: {
-    marginTop: 30,
-    marginBottom: 26,
+    marginTop: verticalScale(spacing.xl),
+    marginBottom: verticalScale(spacing.xl),
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -470,6 +470,13 @@ const styles = StyleSheet.create({
     tintColor: GOLD,
   },
 
+  transcriptLabel: {
+    fontFamily: fontFamily.headingMedium,
+    fontSize: moderateScale(fontSize.xs),
+    color: palette.gold.subtlest,
+    marginBottom: verticalScale(spacing.xxs),
+    marginLeft: scale(spacing.xxs),
+  },
   transcriptShell: {
     borderRadius: radius.xs,
     borderWidth: 0.2,

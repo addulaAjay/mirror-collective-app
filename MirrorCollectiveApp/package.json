@@ -97,7 +97,7 @@
     "react-native-asset": "^2.1.1",
     "react-native-svg-transformer": "^1.5.3",
     "react-test-renderer": "19.1.0",
-    "style-dictionary": "^4.4.0",
+    "style-dictionary": "^5.0.0",
     "typescript": "5.0.4"
   },
   "lint-staged": {
