@@ -733,6 +733,25 @@ export class EchoApiService extends BaseApiService {
   }
 
   /**
+   * Remove an attachment from a DRAFT echo (edit flow). Owner-only, and the
+   * backend rejects it once the echo is RELEASED. Returns the updated echo.
+   */
+  async removeAttachment(
+    echoId: string,
+    attachmentId: string,
+  ): Promise<ApiResponse<EchoResponse>> {
+    const response = await this.makeRequest<EchoResponse>(
+      `/api/echoes/${encodeURIComponent(echoId)}/attachments/${encodeURIComponent(
+        attachmentId,
+      )}`,
+      'DELETE',
+      undefined,
+      true,
+    );
+    return ApiErrorHandler.handleApiResponse(response, 'Attachment removed');
+  }
+
+  /**
    * Upload a single attachment and append it to the echo.
    *
    * Mirrors the media pipeline (compress → presigned PUT → S3) but finalizes

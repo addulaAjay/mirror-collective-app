@@ -64,7 +64,7 @@ import BackgroundWrapper from '@components/BackgroundWrapper';
 import Button from '@components/Button/Button';
 import LogoHeader from '@components/LogoHeader';
 import { echoApiService } from '@services/api/echo';
-import type { UploadStage } from '@services/api/echo';
+import type { Attachment, UploadStage } from '@services/api/echo';
 import { createPosterThumbnail } from '@utils/media/compress';
 import { uuidV4 } from '@utils/uuid';
 
@@ -85,6 +85,23 @@ interface DraftAttachment {
   duration?: string;
   /** Local poster JPEG for video previews (generated on add). */
   thumbUri?: string;
+  /** Set when this is an EXISTING server attachment (edit mode). Removing it
+   *  calls DELETE; it is never re-uploaded on save. */
+  serverAttachmentId?: string;
+}
+
+/** Map a server attachment (edit mode) to a preview-ready draft. */
+function mapServerAttachment(a: Attachment): DraftAttachment {
+  return {
+    id: a.attachment_id,
+    serverAttachmentId: a.attachment_id,
+    uri: a.media_url,
+    thumbUri: a.thumb_url ?? undefined,
+    contentType: a.mime_type ?? '',
+    name: a.filename ?? `${a.type.toLowerCase()} attachment`,
+    kind: a.type,
+    duration: a.duration ?? undefined,
+  };
 }
 
 // The library's default export is a singleton instance (not a class).
@@ -334,6 +351,7 @@ const CreateEchoScreen: React.FC = () => {
     lockDate,
     unlockOnDeath,
     letterToRecipient,
+    editEchoId,
   } = params;
 
   const [message, setMessage] = useState('');
@@ -365,8 +383,35 @@ const CreateEchoScreen: React.FC = () => {
 
   const addAttachment = (att: DraftAttachment) =>
     setAttachments(prev => [...prev, att]);
-  const removeAttachment = (id: string) =>
-    setAttachments(prev => prev.filter(a => a.id !== id));
+  const removeAttachment = async (att: DraftAttachment) => {
+    // Existing (server) attachment → DELETE on the backend before dropping it.
+    if (att.serverAttachmentId && editEchoId) {
+      const res = await echoApiService.removeAttachment(
+        editEchoId,
+        att.serverAttachmentId,
+      );
+      if (!res.success) {
+        setErrors([res.error ?? 'Could not remove the attachment. Try again.']);
+        return;
+      }
+    }
+    setAttachments(prev => prev.filter(a => a.id !== att.id));
+  };
+
+  // Edit mode: load the draft echo (message + existing attachments) on mount.
+  useEffect(() => {
+    if (!editEchoId) return;
+    let cancelled = false;
+    (async () => {
+      const res = await echoApiService.getEcho(editEchoId);
+      if (cancelled || !res.success || !res.data) return;
+      setMessage(res.data.content ?? '');
+      setAttachments((res.data.attachments ?? []).map(mapServerAttachment));
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [editEchoId]);
 
   // Generate a local poster for a video so its preview card shows a frame.
   const attachVideoThumb = async (id: string, videoUri: string) => {
@@ -614,30 +659,50 @@ const CreateEchoScreen: React.FC = () => {
     setIsSaving(true);
     setUploadStage(null);
     try {
-      // Create the echo exactly once (reused on retry).
-      if (!createdEchoId.current) {
-        const createResponse = await echoApiService.createEcho({
-          title: title || 'Untitled Echo',
-          category: category || 'General',
-          echo_type: 'TEXT',
-          recipient_id: recipientId,
-          ...(guardianId && { guardian_id: guardianId }),
-          ...(lockDate && { release_date: lockDate }),
-          ...(unlockOnDeath !== undefined && { unlock_on_death: unlockOnDeath }),
-          ...(letterToRecipient && { letter_to_recipient: letterToRecipient }),
+      let echoId: string;
+      if (editEchoId) {
+        // Edit mode: PATCH message + metadata on the existing draft. Removals
+        // already happened via DELETE; only NEW attachments upload below.
+        const upd = await echoApiService.updateEcho(editEchoId, {
           content: message.trim() || undefined,
+          ...(recipientId ? { recipient_id: recipientId } : {}),
+          release_date: lockDate ?? null,
+          letter_to_recipient: letterToRecipient ?? null,
         });
-        if (!createResponse.success || !createResponse.data) {
-          setErrors(['Could not create your echo. Please try again.']);
+        if (!upd.success) {
+          setErrors(['Could not update your echo. Please try again.']);
           return;
         }
-        createdEchoId.current = createResponse.data.echo_id;
+        echoId = editEchoId;
+      } else {
+        // Create the echo exactly once (reused on retry).
+        if (!createdEchoId.current) {
+          const createResponse = await echoApiService.createEcho({
+            title: title || 'Untitled Echo',
+            category: category || 'General',
+            echo_type: 'TEXT',
+            recipient_id: recipientId,
+            ...(guardianId && { guardian_id: guardianId }),
+            ...(lockDate && { release_date: lockDate }),
+            ...(unlockOnDeath !== undefined && {
+              unlock_on_death: unlockOnDeath,
+            }),
+            ...(letterToRecipient && { letter_to_recipient: letterToRecipient }),
+            content: message.trim() || undefined,
+          });
+          if (!createResponse.success || !createResponse.data) {
+            setErrors(['Could not create your echo. Please try again.']);
+            return;
+          }
+          createdEchoId.current = createResponse.data.echo_id;
+        }
+        echoId = createdEchoId.current;
       }
-      const echoId = createdEchoId.current;
 
-      // Upload each not-yet-uploaded attachment; collect per-file failures.
+      // Upload each new (non-server), not-yet-uploaded attachment.
       const failures: string[] = [];
       for (const att of attachments) {
+        if (att.serverAttachmentId) continue; // already on the server
         if (uploadedIds.current.has(att.id)) continue;
         const result = await echoApiService.uploadEchoAttachment(
           echoId,
@@ -727,7 +792,9 @@ const CreateEchoScreen: React.FC = () => {
               >
                 <BackIcon />
               </TouchableOpacity>
-              <Text style={styles.screenTitle}>CREATE AN ECHO</Text>
+              <Text style={styles.screenTitle}>
+                {editEchoId ? 'EDIT ECHO' : 'CREATE AN ECHO'}
+              </Text>
               <View style={styles.headerSpacer} />
             </View>
 
@@ -768,7 +835,7 @@ const CreateEchoScreen: React.FC = () => {
                   <AttachmentPreview
                     key={att.id}
                     attachment={att}
-                    onRemove={() => removeAttachment(att.id)}
+                    onRemove={() => removeAttachment(att)}
                     onAddMore={() => setShowUploadSheet(true)}
                     onPlayVideo={() => setPreviewVideo(att)}
                     onToggleAudio={() => toggleAudioPlayback(att)}

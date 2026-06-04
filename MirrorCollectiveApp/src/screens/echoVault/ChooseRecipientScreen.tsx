@@ -89,14 +89,12 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
   const {
     title,
     category,
-    mode,
     editEchoId,
     prefillRecipient,
     prefillLockDate,
     prefillContent,
     prefillLetter,
   } = route.params;
-  const isEditing = !!editEchoId;
 
   const [recipients, setRecipients] = useState<Recipient[]>([]);
   const [loading, setLoading] = useState(true);
@@ -163,24 +161,8 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
    */
   const handleNext = () => {
     if (!selectedRecipient) return;
-    // Edit flow keeps the legacy compose (media replacement, mode tabs);
-    // the create flow uses the new unified CreateEchoScreen.
-    if (editEchoId) {
-      navigation.navigate('NewEchoComposeScreen', {
-        mode: mode ?? 'text',
-        title,
-        category,
-        hasRecipient: true,
-        recipient: selectedRecipient,
-        recipientId: selectedRecipient.recipient_id,
-        recipientName: selectedRecipient.name,
-        lockDate: lockDate?.toISOString(),
-        letterToRecipient: notes.trim() ? notes : undefined,
-        editEchoId,
-        initialContent: prefillContent,
-      });
-      return;
-    }
+    // Both create and edit now use the unified CreateEchoScreen; editEchoId
+    // makes it load the existing draft (message + attachments) and PATCH.
     navigation.navigate('CreateEchoScreen', {
       title,
       category,
@@ -188,6 +170,7 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
       recipientName: selectedRecipient.name,
       lockDate: lockDate?.toISOString(),
       letterToRecipient: notes.trim() ? notes : undefined,
+      ...(editEchoId ? { editEchoId, initialContent: prefillContent } : {}),
     });
   };
 

@@ -121,6 +121,9 @@ export type RootStackParamList = {
     lockDate?: string;
     unlockOnDeath?: boolean;
     letterToRecipient?: string;
+    /** Edit mode: load this draft's message + attachments and PATCH on save. */
+    editEchoId?: string;
+    initialContent?: string;
   };
   NewEchoAudioScreen: {
     recipientId?: string;
