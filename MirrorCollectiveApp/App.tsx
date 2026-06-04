@@ -33,6 +33,7 @@ import ManageGuardianScreen from '@screens/echoVault/ManageGuardianScreen';
 import ManageRecipientScreen from '@screens/echoVault/ManageRecipientScreen';
 import NewEchoAudioScreen from '@screens/echoVault/NewEchoAudioScreen';
 import NewEchoComposeScreen from '@screens/echoVault/NewEchoComposeScreen';
+import CreateEchoScreen from '@screens/echoVault/CreateEchoScreen';
 import NewEchoScreen from '@screens/echoVault/NewEchoVaultScreen';
 import NewEchoVideoScreen from '@screens/echoVault/NewEchoVideoScreen';
 import EchoVaultStorageScreen from '@screens/EchoVaultStorageScreen';
@@ -129,6 +130,7 @@ const AuthNavigator = () => (
       name="NewEchoComposeScreen"
       component={NewEchoComposeScreen}
     />
+    <Stack.Screen name="CreateEchoScreen" component={CreateEchoScreen} />
     <Stack.Screen name="NewEchoScreen" component={NewEchoScreen} />
     <Stack.Screen
       name="MirrorEchoVaultLibrary"
@@ -243,6 +245,7 @@ const AuthenticatedNavigator = ({ initialRouteName = 'EnterMirror' }: Authentica
     <Stack.Screen name="EchoInboxScreen" component={EchoInboxScreen} />
     <Stack.Screen name="NewEchoScreen" component={NewEchoScreen} />
     <Stack.Screen name="NewEchoComposeScreen" component={NewEchoComposeScreen} />
+    <Stack.Screen name="CreateEchoScreen" component={CreateEchoScreen} />
     <Stack.Screen name="NewEchoAudioScreen" component={NewEchoAudioScreen} />
     <Stack.Screen name="NewEchoVideoScreen" component={NewEchoVideoScreen} />
     <Stack.Screen name="ManageGuardianScreen" component={ManageGuardianScreen} />

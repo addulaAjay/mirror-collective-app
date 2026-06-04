@@ -160,12 +160,10 @@ const NewEchoScreen: React.FC = () => {
     if (hasRecipient === 'yes') {
       navigation.navigate('ChooseRecipientScreen', { title, category: cat, mode });
     } else {
-      navigation.navigate('NewEchoComposeScreen', {
-        mode,
-        title,
-        category: cat,
-        hasRecipient: false,
-      });
+      // No-recipient create path uses the new unified CreateEchoScreen
+      // (message + attachments). The recipient path routes here too, via
+      // ChooseRecipientScreen.
+      navigation.navigate('CreateEchoScreen', { title, category: cat });
     }
   };
 

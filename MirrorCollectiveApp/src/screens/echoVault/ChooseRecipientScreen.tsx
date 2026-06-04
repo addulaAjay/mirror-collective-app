@@ -163,17 +163,31 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
    */
   const handleNext = () => {
     if (!selectedRecipient) return;
-    navigation.navigate('NewEchoComposeScreen', {
-      mode: mode ?? 'text',
+    // Edit flow keeps the legacy compose (media replacement, mode tabs);
+    // the create flow uses the new unified CreateEchoScreen.
+    if (editEchoId) {
+      navigation.navigate('NewEchoComposeScreen', {
+        mode: mode ?? 'text',
+        title,
+        category,
+        hasRecipient: true,
+        recipient: selectedRecipient,
+        recipientId: selectedRecipient.recipient_id,
+        recipientName: selectedRecipient.name,
+        lockDate: lockDate?.toISOString(),
+        letterToRecipient: notes.trim() ? notes : undefined,
+        editEchoId,
+        initialContent: prefillContent,
+      });
+      return;
+    }
+    navigation.navigate('CreateEchoScreen', {
       title,
       category,
-      hasRecipient: true,
-      recipient:    selectedRecipient,
-      recipientId:  selectedRecipient.recipient_id,
+      recipientId: selectedRecipient.recipient_id,
       recipientName: selectedRecipient.name,
-      lockDate:     lockDate?.toISOString(),
+      lockDate: lockDate?.toISOString(),
       letterToRecipient: notes.trim() ? notes : undefined,
-      ...(editEchoId ? { editEchoId, initialContent: prefillContent } : {}),
     });
   };
 

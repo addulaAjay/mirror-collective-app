@@ -107,6 +107,21 @@ export type RootStackParamList = {
      */
     letterToRecipient?: string;
   };
+  /**
+   * Unified "Create an Echo" compose screen (new design, Figma 7544:1873).
+   * Message + multiple attachments (photo/video/voice/file). Params mirror
+   * NewEchoComposeScreen's create-flow fields (no mode — attachments drive type).
+   */
+  CreateEchoScreen: {
+    title?: string;
+    category?: string;
+    recipientId?: string;
+    recipientName?: string;
+    guardianId?: string;
+    lockDate?: string;
+    unlockOnDeath?: boolean;
+    letterToRecipient?: string;
+  };
   NewEchoAudioScreen: {
     recipientId?: string;
     recipientName?: string;
