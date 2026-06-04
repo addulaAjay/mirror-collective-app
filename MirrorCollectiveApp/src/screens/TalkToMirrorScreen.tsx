@@ -71,7 +71,7 @@ const ICON_RING   = moderateScale(100);
 
 // Figma 4326:2337 — horizontal scroll category list
 const CATEGORIES = [
-  { key: 'mirror-echo',     label: 'MIRROR ECHO',     route: 'MirrorEchoVaultHome' as const },
+  { key: 'mirror-echo',     label: 'ECHO VAULT',     route: 'MirrorEchoVaultHome' as const },
   { key: 'reflection-room', label: 'REFLECTION ROOM', route: 'ReflectionRoomCommingsoon' as const },
   { key: 'code-library',    label: 'CODE LIBRARY',    route: 'MirrorCodeLibrary' as const },
   { key: 'mirror-pledge',   label: 'MIRROR PLEDGE',   route: 'TheMirrorPledge' as const },

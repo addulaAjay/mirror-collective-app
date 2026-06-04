@@ -8,7 +8,9 @@ jest.mock('@components/BackgroundWrapper', () => 'BackgroundWrapper');
 // SVG transformer pipeline isn't active in jest — mock each .svg as a string component.
 jest.mock('@assets/talk-to-mirror/icon-mirror-echo.svg', () => 'IconMirrorEcho');
 jest.mock('@assets/talk-to-mirror/icon-reflection-room.svg', () => 'IconReflectionRoom');
-jest.mock('@assets/talk-to-mirror/icon-code-library.svg', () => 'IconCodeLibrary');
+// icon-code-library is now a raster PNG (see Figma 7537:2242) — RN's
+// default jest preset handles require()'d raster assets via the asset
+// transformer, no per-file mock needed.
 jest.mock('@assets/talk-to-mirror/oval-mirror.svg', () => 'OvalMirrorSvg');
 jest.mock('@context/UserContext', () => ({
   useUser: jest.fn(),

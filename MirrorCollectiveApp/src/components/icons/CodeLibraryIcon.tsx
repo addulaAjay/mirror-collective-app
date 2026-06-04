@@ -1,81 +1,67 @@
 import React from 'react';
-import { View } from 'react-native';
-
-import IconCodeLibrary from '@assets/talk-to-mirror/icon-code-library.svg';
+import { Image, StyleSheet, View } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 
 interface Props {
   size?: number;
 }
 
 /**
- * Figma 4326:2362 — Code Library icon.
- * The SVG circle + book content is rendered at `size×size`.
- * Node 4326:2380 adds a centred gold-bordered rectangle with two-layer glow
- * (directional + radial) around the book illustration — replicated here as an
- * absolute View overlay since it is a separate Figma layer, not baked into the
- * embedded raster.
+ * Code Library category icon for the TalkToMirror home screen.
  *
- * Figma specs at 100px circle:
- *   rect  47.973×66.658px, centred, border 0.133px #f4cf7d
- *   shadow1: 1.333 -1.333 6.667px 0.667px rgba(229,214,176,0.2)
- *   shadow2: 0 0 23.333px 5.333px rgba(244,207,125,0.2)
+ * Figma — full card lives at node 7227:5881 (Frame 654), 100 × 160:
+ *   - Circle (Ellipse 725): 100 × 100, stroke #9BAAC2 weight 0.208,
+ *     fill is a vertical 5 % opacity gradient transparent → black.
+ *   - Book (node 7537:2242 — mcl the you explained 1): exactly 46 × 64
+ *     centred inside the circle. The gold stitched border at the book's
+ *     edges is part of the source asset.
  *
- * The glow has shadowRadius ~23px which, unconstrained, extends well past
- * the 100px circle outline (the book rect sits ~9px from the circle edge,
- * so a 23px shadow leaks outward into transparency).  Figma's source uses
- * an SVG <filter> with the circle as its clip region; the RN port lost
- * that. The glow is therefore wrapped in a circular clipping sibling
- * (overflow:hidden + borderRadius:size/2) so iOS clipsToBounds and
- * Android's draw-clip both bound the shadow to the circle. The base SVG
- * renders OUTSIDE this clip wrapper so its outer stroke isn't truncated.
+ * The book ships as PNG because the Figma frame is rasterised on
+ * export (no vector paths in the spec tree). The export is 228 × 282;
+ * the actual book content occupies 60.5 % × 68.1 % of those bounds —
+ * the rest is export padding. Rendering the Image at 94 % of the cell
+ * with resizeMode="contain" lands the visible book at exactly 46 × 64,
+ * matching the Figma spec.
+ *
+ * The circle stroke, fill, and weight are recreated in JSX so the
+ * rim matches the SVGs Mirror Echo / Reflection Room / Pledge render
+ * (same #9BAAC2 stroke, same hairline weight, same 5 % surface tint).
+ * overflow:hidden + borderRadius clips the book corners to the circle
+ * if any artwork extends past the rim.
  */
-const CodeLibraryIcon: React.FC<Props> = ({ size = 100 }) => {
-  const s = size / 100;
-  const glowW  = 47.973 * s;
-  const glowH  = 66.658 * s;
-
-  return (
-    <View style={{ width: size, height: size }}>
-      <IconCodeLibrary width={size} height={size} />
-
-      {/* Circular clip — same diameter as the SVG circle. Contains the
-          glow's native shadow/boxShadow so it can't bleed past the
-          circle outline drawn by the SVG below. */}
-      <View
-        pointerEvents="none"
-        style={{
-          position:     'absolute',
-          top:          0,
-          left:         0,
-          width:        size,
-          height:       size,
-          borderRadius: size / 2,
-          overflow:     'hidden',
-        }}
-      >
-        {/* Gold glow overlay — Figma node 4326:2380 */}
-        <View
-          style={{
-            position:    'absolute',
-            width:       glowW,
-            height:      glowH,
-            top:         (size - glowH) / 2,
-            left:        (size - glowW) / 2,
-            borderWidth:  0.133 * s,
-            borderColor:  '#f4cf7d',
-            // iOS — primary radial glow (shadow2)
-            shadowColor:   'rgba(244,207,125,1)',
-            shadowOffset:  { width: 1.333 * s, height: -1.333 * s },
-            shadowOpacity: 0.2,
-            shadowRadius:  23.333 * s,
-            elevation:     6,
-            // Android — both shadows via boxShadow
-            boxShadow: `${1.333 * s}px ${-1.333 * s}px ${6.667 * s}px ${0.667 * s}px rgba(229,214,176,0.2), 0px 0px ${23.333 * s}px ${5.333 * s}px rgba(244,207,125,0.2)`,
-          }}
-        />
-      </View>
-    </View>
-  );
-};
+const CodeLibraryIcon: React.FC<Props> = ({ size = 100 }) => (
+  <View
+    style={[
+      styles.circle,
+      { width: size, height: size, borderRadius: size / 2 },
+    ]}
+  >
+    <LinearGradient
+      colors={['rgba(217, 217, 217, 0)', 'rgba(0, 0, 0, 0.05)']}
+      start={{ x: 0.5, y: 0 }}
+      end={{ x: 0.5, y: 1 }}
+      style={StyleSheet.absoluteFill}
+      pointerEvents="none"
+    />
+    <Image
+      source={require('@assets/talk-to-mirror/icon-code-library.png')}
+      style={{ width: size * 0.94, height: size * 0.94 }}
+      resizeMode="contain"
+    />
+  </View>
+);
 
 export default CodeLibraryIcon;
+
+const styles = StyleSheet.create({
+  circle: {
+    alignItems:     'center',
+    justifyContent: 'center',
+    borderWidth:    StyleSheet.hairlineWidth,
+    // Figma 7227:5883 Ellipse 725 stroke — same #9BAAC2 the sibling
+    // home-screen icons (Mirror Echo / Reflection Room / Pledge) draw
+    // into their SVGs, so all four rims read as one design system.
+    borderColor:    '#9BAAC2',
+    overflow:       'hidden',
+  },
+});

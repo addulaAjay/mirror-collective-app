@@ -21,6 +21,19 @@
  */
 
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import {
+  borderWidth,
+  fontFamily,
+  fontSize,
+  fontWeight,
+  moderateScale,
+  palette,
+  scale,
+  spacing,
+  textShadow,
+  verticalScale,
+} from '@theme';
+import type { RootStackParamList } from '@types';
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
@@ -44,19 +57,6 @@ import Button from '@components/Button/Button';
 import LogoHeader from '@components/LogoHeader';
 import TextInputField from '@components/TextInputField';
 import { echoApiService } from '@services/api/echo';
-import {
-  borderWidth,
-  fontFamily,
-  fontSize,
-  fontWeight,
-  moderateScale,
-  palette,
-  scale,
-  spacing,
-  textShadow,
-  verticalScale,
-} from '@theme';
-import type { RootStackParamList } from '@types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AddNewProfileScreen'>;
 
@@ -216,9 +216,9 @@ const AddNewProfileScreen: React.FC<Props> = ({ navigation, route }) => {
 
             {/* ── Email ────────────────────────────────────────────────── */}
             <TextInputField
-              label="Email Address"
+              label="Email"
               placeholder={
-                isGuardian ? 'Enter email address' : 'Enter email address'
+                isGuardian ? 'Enter email' : 'Enter email'
               }
               value={email}
               onChangeText={setEmail}

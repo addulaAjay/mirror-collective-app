@@ -34,6 +34,7 @@ import {
   fontFamily,
   fontSize,
   fontWeight,
+  lineHeight,
   moderateScale,
   palette,
   radius,
@@ -59,6 +60,7 @@ import {
   type ViewStyle,
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path, Rect } from 'react-native-svg';
 
@@ -272,10 +274,22 @@ const NewEchoScreen: React.FC = () => {
                     categoryOpen && styles.dropdownShellOpen,
                   ]}
                 >
+                  {/* Closed-state surface gradient — mirrors TextInputField's
+                      inactive 0.04 → 0.01 vertical fill so the trigger reads
+                      as the same softly-lit panel as the title input above. */}
+                  {!categoryOpen && (
+                    <LinearGradient
+                      colors={['rgba(253,253,249,0.04)', 'rgba(253,253,249,0.01)']}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 0, y: 1 }}
+                      style={StyleSheet.absoluteFill}
+                      pointerEvents="none"
+                    />
+                  )}
                   <Text
                     style={[
                       styles.dropdownText,
-                      !category && styles.dropdownPlaceholder,
+                      category && styles.dropdownTextSelected,
                     ]}
                   >
                     {category ?? 'Choose echo category'}
@@ -429,7 +443,7 @@ const styles = StyleSheet.create<{
   dropdownShell: ViewStyle;
   dropdownShellOpen: ViewStyle;
   dropdownText: TextStyle;
-  dropdownPlaceholder: TextStyle;
+  dropdownTextSelected: TextStyle;
   dropdownOption: ViewStyle;
   dropdownOptionLast: ViewStyle;
   dropdownOptionText: TextStyle;
@@ -545,41 +559,53 @@ const styles = StyleSheet.create<{
   },
 
   // ── Category dropdown (Component2 / 734:1307) ────────────────────────────────
-  // gradient 0.01→0, border 0.25px Border/Inverse-1 (#60739f), h:48, radius 12
+  // Mirrors TextInputField (the title input above) one-for-one so the two
+  // surfaces read as the same component:
+  //   - overflow:'hidden' clips the inactive LinearGradient (rendered as the
+  //     first child of the shell when closed) to the rounded corners
+  //   - theme.shadows.input gives the field measurable depth above the
+  //     starfield background
+  //   - placeholder + selected text styles match TextInputField's
+  //     theme.typography.styles.inputPlaceholder + `input` style respectively.
   dropdownWrap: { width: '100%' },
-  // Plain View — no LinearGradient to avoid iOS double-border artifact.
-  // Gradient was rgba(253,253,249,0.01)→0 = near-invisible anyway.
   dropdownShell: {
     width: '100%',
-    height: verticalScale(48),
-    borderRadius: radius.m, // 16px — matches TextInputField
-    borderWidth: borderWidth.thin, // 0.5px — matches TextInputField
-    borderColor: palette.navy.light, // #a3b3cc — matches TextInputField
-    backgroundColor: 'transparent',
+    minHeight: 48,
+    borderRadius: radius.m, // 16 — Figma: Radius/M, matches TextInputField
+    borderWidth: borderWidth.thin, // 0.5 — matches TextInputField
+    borderColor: palette.navy.light, // #a3b3cc — Border/Subtle
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: scale(spacing.m), // 16px
-    paddingVertical: verticalScale(spacing.s), // 12px
+    paddingHorizontal: spacing.m, // 16 — Figma: Spacing/M
+    paddingVertical: spacing.s, // 12 — Figma: Spacing/S
     gap: scale(10),
-    ...theme.shadows.input,
+    overflow: 'hidden', // clips the inner LinearGradient to borderRadius
+    ...theme.shadows.input, // Figma: drop shadow 0 4 12 black 25%
   },
-  // Body S Italic: Inter Italic 16/24, #fdfdf9, center (flex:1 makes it fill space)
+  // Placeholder typography copied from theme.typography.styles.inputPlaceholder
+  // — same Inter Regular 16/24 in Border/Subtle navy.light that TextInputField
+  // renders for "When do you want to open it?". Centred to match the title
+  // input above it on this screen.
   dropdownText: {
     flex: 1,
-    fontFamily: fontFamily.bodyItalic,
-    fontSize: moderateScale(fontSize.s),
-    lineHeight: moderateScale(24),
-    color: palette.gold.subtlest,
+    fontFamily: fontFamily.body, // Inter Regular — not italic
+    fontSize: moderateScale(fontSize.s, 0.3),
+    lineHeight: lineHeight.m,
+    color: palette.navy.light, // #a3b3cc — Text/Inverse Paragraph-2
     textAlign: 'center',
+  },
+  // Picked-state override — mirrors TextInputField's `input` text colour
+  // (Text/Paragraph-2 white) so a chosen category reads like a typed value
+  // would in the title field.
+  dropdownTextSelected: {
+    color: palette.gold.subtlest, // #fdfdf9
   },
   // When closed, full radius. When open, flatten bottom corners.
   dropdownShellOpen: {
     borderBottomLeftRadius: 0,
     borderBottomRightRadius: 0,
   },
-
-  dropdownPlaceholder: { opacity: 0.7 },
 
   // Inline dropdown option row — Figma 734:1306
   // bg: rgba(253,253,249,0.05) (Bg/Surface-Raised), border 0.25px #60739f

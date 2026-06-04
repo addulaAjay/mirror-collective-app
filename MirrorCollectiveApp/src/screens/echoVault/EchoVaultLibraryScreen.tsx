@@ -545,7 +545,7 @@ export function EchoLibraryContent() {
             <Button
               variant="primary"
               size="L"
-              title='CREATE AN ECHO'
+              title='CREATE ECHO'
               onPress={() => navigation.navigate('NewEchoScreen')}
               style={styles.btn}
             />

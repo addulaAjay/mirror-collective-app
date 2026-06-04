@@ -1,0 +1,152 @@
+{
+  "fileKey": "xn6MdQV0gGGeedaFtHWWCo",
+  "nodeId": "7227:5881",
+  "url": "https://www.figma.com/design/xn6MdQV0gGGeedaFtHWWCo/Dev-Master-File?node-id=7227-5881&m=dev",
+  "fetchedAt": "2026-05-28T22:29:53.690Z",
+  "componentInstances": [],
+  "componentSets": [],
+  "tree": {
+    "name": "Frame 654",
+    "type": "FRAME",
+    "id": "7227:5881",
+    "bounds": {
+      "width": 100,
+      "height": 160
+    },
+    "layout": {
+      "mode": "VERTICAL",
+      "gap": 12
+    },
+    "fills": [],
+    "children": [
+      {
+        "name": "Component 15",
+        "type": "FRAME",
+        "id": "7227:5882",
+        "bounds": {
+          "width": 100,
+          "height": 100
+        },
+        "fills": [],
+        "children": [
+          {
+            "name": "Ellipse 725",
+            "type": "ELLIPSE",
+            "id": "7227:5883",
+            "bounds": {
+              "width": 100,
+              "height": 100
+            },
+            "fills": [
+              {
+                "type": "GRADIENT_LINEAR",
+                "gradient": [
+                  {
+                    "color": {
+                      "r": 0.8509804010391235,
+                      "g": 0.8509804010391235,
+                      "b": 0.8509804010391235,
+                      "a": 0
+                    },
+                    "position": 0
+                  },
+                  {
+                    "color": {
+                      "r": 0,
+                      "g": 0,
+                      "b": 0,
+                      "a": 1
+                    },
+                    "position": 1
+                  }
+                ],
+                "opacity": 0.05000000074505806
+              }
+            ],
+            "strokes": {
+              "color": {
+                "r": 0.6078431606292725,
+                "g": 0.6666666865348816,
+                "b": 0.7607843279838562,
+                "a": 1
+              },
+              "weight": 0.2083333283662796
+            }
+          },
+          {
+            "name": "mcl the you explained 1",
+            "type": "FRAME",
+            "id": "7537:2242",
+            "bounds": {
+              "width": 46,
+              "height": 64
+            },
+            "fills": [],
+            "strokes": {
+              "color": {
+                "r": 0.772549033164978,
+                "g": 0.615686297416687,
+                "b": 0.37254902720451355,
+                "a": 1
+              },
+              "weight": 0.20000000298023224
+            },
+            "children": [
+              {
+                "name": "Group",
+                "type": "GROUP",
+                "id": "7537:2243",
+                "bounds": {
+                  "width": 46,
+                  "height": 64
+                },
+                "fills": [],
+                "children": [
+                  {
+                    "name": "Layer 2",
+                    "type": "GROUP",
+                    "id": "7537:2244",
+                    "bounds": {
+                      "width": 46,
+                      "height": 64
+                    },
+                    "fills": [],
+                    "children": []
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "CODE LIBRARY",
+        "type": "TEXT",
+        "id": "7227:5902",
+        "bounds": {
+          "width": 100,
+          "height": 48
+        },
+        "fills": [
+          {
+            "type": "SOLID",
+            "color": {
+              "r": 0.9490196108818054,
+              "g": 0.8823529481887817,
+              "b": 0.6901960968971252,
+              "a": 1
+            }
+          }
+        ],
+        "typography": {
+          "family": "Cormorant Garamond",
+          "weight": 400,
+          "size": 20,
+          "lineHeight": 24,
+          "letterSpacing": 0
+        },
+        "text": "CODE LIBRARY"
+      }
+    ]
+  }
+}
