@@ -29,6 +29,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import Button from '@components/Button';
+import EchoAttachments from '@components/echo/EchoAttachments';
 import LogoHeader from '@components/LogoHeader';
 import { echoApiService, EchoResponse } from '@services/api/echo';
 
@@ -226,6 +227,16 @@ const EchoDetailScreen: React.FC<Props> = ({ navigation, route }) => {
             <Text style={styles.bodyText}>{body}</Text>
           </ScrollView>
         </View>
+
+        {/* Attachments (multi-attachment echoes) */}
+        {echo.attachments && echo.attachments.length > 0 && (
+          <View style={{ width: contentWidth, marginTop: verticalScale(spacing.s) }}>
+            <EchoAttachments
+              attachments={echo.attachments}
+              maxHeight={verticalScale(220)}
+            />
+          </View>
+        )}
 
         {/* Bottom actions */}
         <View style={[styles.actionsRow, { width: contentWidth }]}>
