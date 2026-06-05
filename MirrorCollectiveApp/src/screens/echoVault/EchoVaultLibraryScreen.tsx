@@ -40,9 +40,10 @@ import {
   verticalScale,
 } from '@theme';
 import type { RootStackParamList } from '@types';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   Image,
   StatusBar,
@@ -56,6 +57,10 @@ import {
   type ViewStyle,
 } from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
+import {
+  GestureHandlerRootView,
+  Swipeable,
+} from 'react-native-gesture-handler';
 import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
@@ -191,13 +196,49 @@ const EchoAvatar: React.FC<AvatarProps> = ({ motif, profileImage, poster }) => (
 );
 
 // ── Row renderer ─────────────────────────────────────────────────────────────
+// Swipe-left-to-delete wrapper. Only used for DRAFT echoes (the only rows the
+// library lets you delete inline). Holds its own Swipeable ref so the panel
+// closes when the action fires.
+const DraftSwipeRow: React.FC<{
+  onDelete: () => void;
+  children: React.ReactNode;
+}> = ({ onDelete, children }) => {
+  const ref = useRef<React.ElementRef<typeof Swipeable>>(null);
+  return (
+    <Swipeable
+      ref={ref}
+      overshootRight={false}
+      friction={2}
+      rightThreshold={40}
+      renderRightActions={() => (
+        <TouchableOpacity
+          style={styles.swipeDelete}
+          activeOpacity={0.85}
+          onPress={() => {
+            ref.current?.close();
+            onDelete();
+          }}
+          accessibilityRole="button"
+          accessibilityLabel="Delete echo"
+        >
+          <Text style={styles.swipeDeleteText}>Delete</Text>
+        </TouchableOpacity>
+      )}
+    >
+      {children}
+    </Swipeable>
+  );
+};
+
 // Factored out so FlatList's renderItem reference is stable across renders.
 // Returns a ListRenderItem<EchoResponse> closed over the active tab + the
 // row tap handler; `total` is used to suppress the trailing border on the
-// last row (matches the pre-FlatList visual).
+// last row (matches the pre-FlatList visual). DRAFT rows are wrapped in a
+// swipe-to-delete panel.
 function renderEchoRow(
   activeTab: 'RECIPIENT' | 'CATEGORY',
   onOpen: (item: EchoResponse) => void,
+  onDelete: (item: EchoResponse) => void,
   total: number,
 ): ListRenderItem<EchoResponse> {
   return ({ item, index }) => {
@@ -215,7 +256,7 @@ function renderEchoRow(
       activeTab === 'RECIPIENT'
         ? item.recipient?.name?.toUpperCase() || 'MY VAULT'
         : item.category?.toUpperCase() || 'UNCATEGORIZED';
-    return (
+    const rowGroup = (
       <View style={[styles.rowGroup, !isLast && styles.rowBorder]}>
         <TouchableOpacity
           activeOpacity={0.9}
@@ -257,6 +298,13 @@ function renderEchoRow(
         )}
       </View>
     );
+
+    // Only DRAFT echoes can be deleted inline (swipe left → Delete).
+    return item.status === 'DRAFT' ? (
+      <DraftSwipeRow onDelete={() => onDelete(item)}>{rowGroup}</DraftSwipeRow>
+    ) : (
+      rowGroup
+    );
   };
 }
 
@@ -281,7 +329,6 @@ export function EchoLibraryContent() {
     loadingMore,
     refreshing,
     error,
-    hasMore,
     loadMore,
     refresh,
   } = useInfiniteList<EchoResponse>(fetchEchoPage);
@@ -394,7 +441,44 @@ export function EchoLibraryContent() {
     }
   };
 
+  // Swipe-to-delete for DRAFT echoes. Optimistically hides the row, soft-deletes
+  // on the backend, then refreshes to reconcile (restores the row on failure).
+  const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
+  const handleDeleteItem = useCallback(
+    (item: EchoResponse) => {
+      Alert.alert(
+        'Delete echo?',
+        `Delete "${item.title || 'this echo'}"? You can't undo this here.`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Delete',
+            style: 'destructive',
+            onPress: async () => {
+              setHiddenIds(prev => new Set(prev).add(item.echo_id));
+              const res = await echoApiService.deleteEcho(item.echo_id);
+              if (!res.success) {
+                setHiddenIds(prev => {
+                  const next = new Set(prev);
+                  next.delete(item.echo_id);
+                  return next;
+                });
+                Alert.alert('Could not delete', res.error ?? 'Please try again.');
+                return;
+              }
+              refresh();
+            },
+          },
+        ],
+      );
+    },
+    [refresh],
+  );
+
+  const visibleEchoes = echoes.filter(e => !hiddenIds.has(e.echo_id));
+
   return (
+    <GestureHandlerRootView style={styles.ghRoot}>
     <BackgroundWrapper style={styles.bg}>
       <SafeAreaView style={styles.safe}>
         <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
@@ -511,9 +595,14 @@ export function EchoLibraryContent() {
                   doesn't render them all upfront. onEndReached drives
                   the cursor-paginated /api/echoes/page fetcher. */}
               <FlatList<EchoResponse>
-                data={echoes}
+                data={visibleEchoes}
                 keyExtractor={item => item.echo_id}
-                renderItem={renderEchoRow(activeTab, handleOpenItem, echoes.length)}
+                renderItem={renderEchoRow(
+                  activeTab,
+                  handleOpenItem,
+                  handleDeleteItem,
+                  visibleEchoes.length,
+                )}
                 showsVerticalScrollIndicator={false}
                 style={styles.listScroll}
                 contentContainerStyle={styles.listScrollContent}
@@ -563,6 +652,7 @@ export function EchoLibraryContent() {
         </View>
       </SafeAreaView>
     </BackgroundWrapper>
+    </GestureHandlerRootView>
   );
 }
 
@@ -598,7 +688,10 @@ const styles = StyleSheet.create<{
   tabText: TextStyle;
   tabTextActive: TextStyle;
   tabTextInactive: TextStyle;
+  ghRoot: ViewStyle;
   rowGroup: ViewStyle;
+  swipeDelete: ViewStyle;
+  swipeDeleteText: TextStyle;
   row: ViewStyle;
   rowBorder: ViewStyle;
   rowLeft: ViewStyle;
@@ -805,8 +898,26 @@ const styles = StyleSheet.create<{
   // ── List rows ───────────────────────────────────────────────────────────────
   // rowGroup wraps the touchable row + optional Echo Sent pill so the bottom
   // border lives on the group (always full-width) rather than the row.
+  ghRoot: {
+    flex: 1,
+  },
   rowGroup: {
     width: '100%',
+  },
+  // Swipe-left delete action (DRAFT rows only).
+  swipeDelete: {
+    backgroundColor: palette.status.errorHover,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: scale(spacing.l),
+    marginVertical: verticalScale(spacing.xs),
+    borderRadius: radius.s,
+  },
+  swipeDeleteText: {
+    color: palette.gold.subtlest,
+    fontFamily: fontFamily.body,
+    fontSize: moderateScale(fontSize.s),
+    fontWeight: '600',
   },
   row: {
     flexDirection:  'row',
