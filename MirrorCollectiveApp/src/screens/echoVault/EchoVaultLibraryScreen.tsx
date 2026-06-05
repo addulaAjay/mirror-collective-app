@@ -142,6 +142,36 @@ const LockIcon: React.FC = () => (
   </Svg>
 );
 
+// ── Swipe-action icons (Figma 7545:2374): gold outline pencil + trash ─────────
+const EditIcon: React.FC = () => (
+  <Svg width={scale(20)} height={scale(20)} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M4 20h4L18.5 9.5l-4-4L4 16v4z"
+      stroke={palette.gold.DEFAULT}
+      strokeWidth={1.5}
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M13.5 6.5l4 4"
+      stroke={palette.gold.DEFAULT}
+      strokeWidth={1.5}
+      strokeLinecap="round"
+    />
+  </Svg>
+);
+
+const TrashIcon: React.FC = () => (
+  <Svg width={scale(20)} height={scale(20)} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M5 7h14M10 4h4M6 7l1 13h10l1-13M10 11v6M14 11v6"
+      stroke={palette.gold.DEFAULT}
+      strokeWidth={1.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
 // ── Echo Sent check icon — circle + check, used inside the "Echo Sent" pill
 const EchoSentCheckIcon: React.FC = () => (
   <Svg width={scale(16)} height={scale(16)} viewBox="0 0 24 24" fill="none">
@@ -200,10 +230,12 @@ const EchoAvatar: React.FC<AvatarProps> = ({ motif, profileImage, poster }) => (
 // library lets you delete inline). Holds its own Swipeable ref so the panel
 // closes when the action fires.
 const DraftSwipeRow: React.FC<{
+  onEdit: () => void;
   onDelete: () => void;
   children: React.ReactNode;
-}> = ({ onDelete, children }) => {
+}> = ({ onEdit, onDelete, children }) => {
   const ref = useRef<React.ElementRef<typeof Swipeable>>(null);
+  const close = () => ref.current?.close();
   return (
     <Swipeable
       ref={ref}
@@ -211,18 +243,32 @@ const DraftSwipeRow: React.FC<{
       friction={2}
       rightThreshold={40}
       renderRightActions={() => (
-        <TouchableOpacity
-          style={styles.swipeDelete}
-          activeOpacity={0.85}
-          onPress={() => {
-            ref.current?.close();
-            onDelete();
-          }}
-          accessibilityRole="button"
-          accessibilityLabel="Delete echo"
-        >
-          <Text style={styles.swipeDeleteText}>Delete</Text>
-        </TouchableOpacity>
+        <View style={styles.swipeActions}>
+          <TouchableOpacity
+            style={styles.swipeIconBtn}
+            activeOpacity={0.85}
+            onPress={() => {
+              close();
+              onEdit();
+            }}
+            accessibilityRole="button"
+            accessibilityLabel="Edit echo"
+          >
+            <EditIcon />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.swipeIconBtn}
+            activeOpacity={0.85}
+            onPress={() => {
+              close();
+              onDelete();
+            }}
+            accessibilityRole="button"
+            accessibilityLabel="Delete echo"
+          >
+            <TrashIcon />
+          </TouchableOpacity>
+        </View>
       )}
     >
       {children}
@@ -238,6 +284,7 @@ const DraftSwipeRow: React.FC<{
 function renderEchoRow(
   activeTab: 'RECIPIENT' | 'CATEGORY',
   onOpen: (item: EchoResponse) => void,
+  onEdit: (item: EchoResponse) => void,
   onDelete: (item: EchoResponse) => void,
   total: number,
 ): ListRenderItem<EchoResponse> {
@@ -299,9 +346,14 @@ function renderEchoRow(
       </View>
     );
 
-    // Only DRAFT echoes can be deleted inline (swipe left → Delete).
+    // Only DRAFT echoes can be edited/deleted inline (swipe left → Edit/Delete).
     return item.status === 'DRAFT' ? (
-      <DraftSwipeRow onDelete={() => onDelete(item)}>{rowGroup}</DraftSwipeRow>
+      <DraftSwipeRow
+        onEdit={() => onEdit(item)}
+        onDelete={() => onDelete(item)}
+      >
+        {rowGroup}
+      </DraftSwipeRow>
     ) : (
       rowGroup
     );
@@ -441,8 +493,25 @@ export function EchoLibraryContent() {
     }
   };
 
-  // Swipe-to-delete for DRAFT echoes. Optimistically hides the row, soft-deletes
-  // on the backend, then refreshes to reconcile (restores the row on failure).
+  // Swipe-left → Edit: open the draft in the edit flow (prefilled), mirroring
+  // EchoDetailScreen's edit entry.
+  const handleEditItem = useCallback(
+    (item: EchoResponse) => {
+      navigation.navigate('ChooseRecipientScreen', {
+        title: item.title,
+        category: item.category,
+        editEchoId: item.echo_id,
+        prefillRecipient: item.recipient,
+        prefillLockDate: item.release_date,
+        prefillContent: item.content,
+        prefillLetter: item.letter_to_recipient,
+      });
+    },
+    [navigation],
+  );
+
+  // Swipe-left → Delete for DRAFT echoes. Optimistically hides the row,
+  // soft-deletes on the backend, then refreshes to reconcile (restores on fail).
   const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
   const handleDeleteItem = useCallback(
     (item: EchoResponse) => {
@@ -600,6 +669,7 @@ export function EchoLibraryContent() {
                 renderItem={renderEchoRow(
                   activeTab,
                   handleOpenItem,
+                  handleEditItem,
                   handleDeleteItem,
                   visibleEchoes.length,
                 )}
@@ -690,8 +760,8 @@ const styles = StyleSheet.create<{
   tabTextInactive: TextStyle;
   ghRoot: ViewStyle;
   rowGroup: ViewStyle;
-  swipeDelete: ViewStyle;
-  swipeDeleteText: TextStyle;
+  swipeActions: ViewStyle;
+  swipeIconBtn: ViewStyle;
   row: ViewStyle;
   rowBorder: ViewStyle;
   rowLeft: ViewStyle;
@@ -905,19 +975,21 @@ const styles = StyleSheet.create<{
     width: '100%',
   },
   // Swipe-left delete action (DRAFT rows only).
-  swipeDelete: {
-    backgroundColor: palette.status.errorHover,
-    justifyContent: 'center',
+  // Swipe-reveal action panel: gold outline Edit + Delete icon buttons.
+  swipeActions: {
+    flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: scale(spacing.l),
-    marginVertical: verticalScale(spacing.xs),
-    borderRadius: radius.s,
+    gap: scale(spacing.s),
+    paddingHorizontal: scale(spacing.s),
   },
-  swipeDeleteText: {
-    color: palette.gold.subtlest,
-    fontFamily: fontFamily.body,
-    fontSize: moderateScale(fontSize.s),
-    fontWeight: '600',
+  swipeIconBtn: {
+    width: scale(40),
+    height: scale(40),
+    borderRadius: scale(20),
+    borderWidth: borderWidth.thin,
+    borderColor: palette.gold.DEFAULT,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   row: {
     flexDirection:  'row',
