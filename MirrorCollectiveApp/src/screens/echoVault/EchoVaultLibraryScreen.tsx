@@ -201,13 +201,10 @@ interface AvatarProps {
 const EchoAvatar: React.FC<AvatarProps> = ({ motif, profileImage, poster }) => (
   <View style={styles.avatarGlow}>
     <View style={styles.avatarRing}>
-      {poster ? (
-        <CachedImage
-          source={{ uri: poster }}
-          style={styles.avatarImg}
-          contentFit="cover"
-        />
-      ) : profileImage ? (
+      {/* Recipient identity wins: profile image → motif. The video poster is
+          only a last resort (e.g. My Vault video echoes with no recipient) so
+          a video thumbnail never masquerades as the recipient's avatar. */}
+      {profileImage ? (
         // CachedImage strips presigned-URL query params for the cache
         // key, so paging back through the vault list doesn't re-download
         // the same avatar bytes on every refresh.
@@ -218,6 +215,12 @@ const EchoAvatar: React.FC<AvatarProps> = ({ motif, profileImage, poster }) => (
         />
       ) : motif && getMotifIcon(motif) ? (
         <SvgXml xml={getMotifIcon(motif)?.xml || ''} width="60%" height="60%" />
+      ) : poster ? (
+        <CachedImage
+          source={{ uri: poster }}
+          style={styles.avatarImg}
+          contentFit="cover"
+        />
       ) : (
         <Image source={require('@assets/Group.png')} style={styles.avatarFallback} />
       )}
