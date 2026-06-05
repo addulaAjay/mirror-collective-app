@@ -115,6 +115,19 @@ function formatDuration(ms: number): string {
   return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
+// Non-canonical MIME types pickers report, mapped to what the backend accepts.
+const MIME_ALIASES: Record<string, string> = {
+  'image/jpg': 'image/jpeg',
+  'image/pjpeg': 'image/jpeg',
+  'video/mov': 'video/quicktime',
+};
+
+/** Lowercase + map known aliases (e.g. image/jpg → image/jpeg). */
+function normalizeMime(contentType: string): string {
+  const c = contentType.trim().toLowerCase();
+  return MIME_ALIASES[c] ?? c;
+}
+
 const EXT_CONTENT_TYPE: Record<string, string> = {
   pdf: 'application/pdf',
   png: 'image/png',
@@ -134,7 +147,7 @@ const EXT_CONTENT_TYPE: Record<string, string> = {
  */
 function resolveFileContentType(name: string, providedType?: string | null): string {
   if (providedType && providedType !== 'application/octet-stream') {
-    return providedType;
+    return normalizeMime(providedType);
   }
   const ext = name.split('.').pop()?.toLowerCase() ?? '';
   return EXT_CONTENT_TYPE[ext] ?? providedType ?? 'application/octet-stream';
@@ -462,8 +475,9 @@ const CreateEchoScreen: React.FC = () => {
       });
       const asset = result.assets?.[0];
       if (!asset?.uri) return;
-      const contentType =
-        asset.type ?? (asset.uri.endsWith('.mp4') ? 'video/mp4' : 'image/jpeg');
+      const contentType = normalizeMime(
+        asset.type ?? (asset.uri.endsWith('.mp4') ? 'video/mp4' : 'image/jpeg'),
+      );
       const isVideo = contentType.startsWith('video/');
       const id = uuidV4();
       addAttachment({
@@ -534,7 +548,7 @@ const CreateEchoScreen: React.FC = () => {
       addAttachment({
         id,
         uri: asset.uri,
-        contentType: asset.type ?? 'video/mp4',
+        contentType: normalizeMime(asset.type ?? 'video/mp4'),
         name: asset.fileName ?? `video-${Date.now()}.mp4`,
         kind: 'VIDEO',
         duration:
