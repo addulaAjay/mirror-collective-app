@@ -41,8 +41,11 @@ const audioPlayer = AudioRecorderPlayer;
 
 interface EchoAttachmentsProps {
   attachments: Attachment[];
-  /** Max height of the (internally scrollable) list. */
+  /** Max height of the (internally scrollable) list. Ignored when scrollable=false. */
   maxHeight?: number;
+  /** When false, render a plain View (no internal scroll) so the list can sit
+   *  inside a parent ScrollView without nested-scroll conflicts. */
+  scrollable?: boolean;
 }
 
 function AttachmentCard({ att }: { att: Attachment }) {
@@ -146,8 +149,12 @@ function AttachmentCard({ att }: { att: Attachment }) {
 const EchoAttachments: React.FC<EchoAttachmentsProps> = ({
   attachments,
   maxHeight = verticalScale(360),
+  scrollable = true,
 }) => {
   if (!attachments || attachments.length === 0) return null;
+  const cards = attachments.map(att => (
+    <AttachmentCard key={att.attachment_id} att={att} />
+  ));
   return (
     <View style={styles.wrap}>
       <Text style={styles.heading}>
@@ -155,15 +162,17 @@ const EchoAttachments: React.FC<EchoAttachmentsProps> = ({
           ? 'Attachment'
           : `Attachments (${attachments.length})`}
       </Text>
-      <ScrollView
-        style={{ maxHeight }}
-        showsVerticalScrollIndicator={false}
-        nestedScrollEnabled
-      >
-        {attachments.map(att => (
-          <AttachmentCard key={att.attachment_id} att={att} />
-        ))}
-      </ScrollView>
+      {scrollable ? (
+        <ScrollView
+          style={{ maxHeight }}
+          showsVerticalScrollIndicator={false}
+          nestedScrollEnabled
+        >
+          {cards}
+        </ScrollView>
+      ) : (
+        <View>{cards}</View>
+      )}
     </View>
   );
 };

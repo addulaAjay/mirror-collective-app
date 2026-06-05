@@ -124,6 +124,8 @@ export type RootStackParamList = {
     /** Edit mode: load this draft's message + attachments and PATCH on save. */
     editEchoId?: string;
     initialContent?: string;
+    /** View (read-only) mode: load + display message + all attachments. */
+    viewEchoId?: string;
   };
   NewEchoAudioScreen: {
     recipientId?: string;
@@ -188,9 +190,6 @@ export type RootStackParamList = {
     prefillLetter?: string;
   };
   AddNewProfileScreen: { mode?: 'recipient' | 'guardian' } | undefined;
-  EchoDetailScreen: { echoId: string; title?: string; body?: string };
-  EchoAudioPlaybackScreen: { echoId: string; title?: string; transcript?: string };
-  EchoVideoPlaybackScreen: { echoId: string; title?: string };
   Checkout: undefined;
 };
 

@@ -131,14 +131,9 @@ export function EchoInboxContent() {
     refresh();
   }, [refresh]);
 
+  // Unified read-only view (message + all attachments) for received echoes.
   const handleOpenItem = (item: EchoResponse) => {
-    if (item.echo_type === 'AUDIO') {
-      navigation.navigate('EchoAudioPlaybackScreen', { echoId: item.echo_id, title: item.title });
-    } else if (item.echo_type === 'VIDEO') {
-      navigation.navigate('EchoVideoPlaybackScreen', { echoId: item.echo_id, title: item.title });
-    } else {
-      navigation.navigate('EchoDetailScreen', { echoId: item.echo_id, title: item.title });
-    }
+    navigation.navigate('CreateEchoScreen', { viewEchoId: item.echo_id });
   };
 
   const formatDate = (dateString: string) =>

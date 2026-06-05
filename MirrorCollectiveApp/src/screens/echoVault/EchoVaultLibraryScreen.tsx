@@ -486,18 +486,14 @@ export function EchoLibraryContent() {
     [],
   );
 
+  // Unified read-only view: all echo types open in CreateEchoScreen's view mode
+  // (message + every attachment with playback), replacing the per-type screens.
   const handleOpenItem = (item: EchoResponse) => {
-    if (item.echo_type === 'AUDIO') {
-      navigation.navigate('EchoAudioPlaybackScreen', { echoId: item.echo_id, title: item.title });
-    } else if (item.echo_type === 'VIDEO') {
-      navigation.navigate('EchoVideoPlaybackScreen', { echoId: item.echo_id, title: item.title });
-    } else {
-      navigation.navigate('EchoDetailScreen', { echoId: item.echo_id, title: item.title });
-    }
+    navigation.navigate('CreateEchoScreen', { viewEchoId: item.echo_id });
   };
 
-  // Swipe-left → Edit: open the draft in the edit flow (prefilled), mirroring
-  // EchoDetailScreen's edit entry.
+  // Swipe-left → Edit: open the draft in the edit flow (prefilled) via
+  // ChooseRecipientScreen → CreateEchoScreen edit mode.
   const handleEditItem = useCallback(
     (item: EchoResponse) => {
       navigation.navigate('ChooseRecipientScreen', {

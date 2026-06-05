@@ -42,6 +42,7 @@ import {
   Image,
   Modal,
   Platform,
+  Share,
   StatusBar,
   StyleSheet,
   Text,
@@ -62,9 +63,10 @@ import Video from 'react-native-video';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import Button from '@components/Button/Button';
+import EchoAttachments from '@components/echo/EchoAttachments';
 import LogoHeader from '@components/LogoHeader';
 import { echoApiService } from '@services/api/echo';
-import type { Attachment, UploadStage } from '@services/api/echo';
+import type { Attachment, EchoResponse, UploadStage } from '@services/api/echo';
 import { createPosterThumbnail } from '@utils/media/compress';
 import { uuidV4 } from '@utils/uuid';
 
@@ -365,9 +367,13 @@ const CreateEchoScreen: React.FC = () => {
     unlockOnDeath,
     letterToRecipient,
     editEchoId,
+    viewEchoId,
   } = params;
+  // Read-only view mode (tap an echo to open). editEchoId takes precedence.
+  const readOnly = !editEchoId && !!viewEchoId;
 
   const [message, setMessage] = useState('');
+  const [viewEcho, setViewEcho] = useState<EchoResponse | null>(null);
   // Dynamic message-box height — grows with content (min ~120) so the box isn't
   // a fixed slab; the page scrolls when the whole form overflows.
   const [messageHeight, setMessageHeight] = useState(verticalScale(120));
@@ -414,20 +420,25 @@ const CreateEchoScreen: React.FC = () => {
     setAttachments(prev => prev.filter(a => a.id !== att.id));
   };
 
-  // Edit mode: load the draft echo (message + existing attachments) on mount.
+  // Load the echo on mount for edit (into the editable form) or view (read-only).
   useEffect(() => {
-    if (!editEchoId) return;
+    const loadId = editEchoId ?? viewEchoId;
+    if (!loadId) return;
     let cancelled = false;
     (async () => {
-      const res = await echoApiService.getEcho(editEchoId);
+      const res = await echoApiService.getEcho(loadId);
       if (cancelled || !res.success || !res.data) return;
-      setMessage(res.data.content ?? '');
-      setAttachments((res.data.attachments ?? []).map(mapServerAttachment));
+      if (readOnly) {
+        setViewEcho(res.data);
+      } else {
+        setMessage(res.data.content ?? '');
+        setAttachments((res.data.attachments ?? []).map(mapServerAttachment));
+      }
     })();
     return () => {
       cancelled = true;
     };
-  }, [editEchoId]);
+  }, [editEchoId, viewEchoId, readOnly]);
 
   // Generate a local poster for a video so its preview card shows a frame.
   const attachVideoThumb = async (id: string, videoUri: string) => {
@@ -780,6 +791,109 @@ const CreateEchoScreen: React.FC = () => {
           : 'Saving…'
     : 'Saving…';
 
+  // ── Read-only view mode ─────────────────────────────────────────────────────
+  const handleViewShare = async () => {
+    if (!viewEcho) return;
+    try {
+      await Share.share({ message: viewEcho.content || viewEcho.title });
+    } catch {
+      /* user dismissed */
+    }
+  };
+  const handleViewEdit = () => {
+    if (!viewEcho) return;
+    navigation.navigate('ChooseRecipientScreen', {
+      title: viewEcho.title,
+      category: viewEcho.category,
+      editEchoId: viewEcho.echo_id,
+      prefillRecipient: viewEcho.recipient,
+      prefillLockDate: viewEcho.release_date,
+      prefillContent: viewEcho.content,
+      prefillLetter: viewEcho.letter_to_recipient,
+    });
+  };
+
+  if (readOnly) {
+    const atts = viewEcho?.attachments ?? [];
+    const canEdit = viewEcho?.status === 'DRAFT';
+    return (
+      <BackgroundWrapper style={styles.bg}>
+        <SafeAreaView style={styles.safe}>
+          <StatusBar
+            translucent
+            backgroundColor="transparent"
+            barStyle="light-content"
+          />
+          <LogoHeader navigation={navigation} />
+          <KeyboardAwareScrollView
+            style={styles.kav}
+            contentContainerStyle={styles.kavContent}
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={styles.content}>
+              <View style={styles.headerRow}>
+                <TouchableOpacity
+                  onPress={() => navigation.goBack()}
+                  style={styles.backBtn}
+                  accessibilityRole="button"
+                  accessibilityLabel="Go back"
+                >
+                  <BackIcon />
+                </TouchableOpacity>
+                <Text style={styles.screenTitle} numberOfLines={1}>
+                  {viewEcho?.title || 'ECHO'}
+                </Text>
+                <View style={styles.headerSpacer} />
+              </View>
+
+              <View style={styles.starDivider}>
+                <View style={styles.starLine} />
+                <Text style={styles.starGlyph}>✦</Text>
+                <View style={styles.starLine} />
+              </View>
+
+              {viewEcho?.content ? (
+                <View style={styles.field}>
+                  <Text style={styles.fieldLabel}>Message</Text>
+                  <View style={styles.viewMessageBox}>
+                    <Text style={styles.viewMessageText}>{viewEcho.content}</Text>
+                  </View>
+                </View>
+              ) : null}
+
+              {atts.length > 0 && (
+                <EchoAttachments attachments={atts} scrollable={false} />
+              )}
+
+              {!viewEcho?.content && atts.length === 0 && (
+                <Text style={styles.viewEmpty}>This echo has no content.</Text>
+              )}
+
+              <View style={styles.viewActions}>
+                <TouchableOpacity
+                  style={styles.viewActionBtn}
+                  onPress={handleViewShare}
+                  activeOpacity={0.85}
+                >
+                  <Text style={styles.viewActionText}>Share</Text>
+                </TouchableOpacity>
+                {canEdit && (
+                  <TouchableOpacity
+                    style={styles.viewActionBtn}
+                    onPress={handleViewEdit}
+                    activeOpacity={0.85}
+                  >
+                    <Text style={styles.viewActionText}>Edit</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            </View>
+          </KeyboardAwareScrollView>
+        </SafeAreaView>
+      </BackgroundWrapper>
+    );
+  }
+
   return (
     <BackgroundWrapper style={styles.bg}>
       <SafeAreaView style={styles.safe}>
@@ -1059,6 +1173,12 @@ const styles = StyleSheet.create<{
   field: ViewStyle;
   fieldLabel: TextStyle;
   messageInput: TextStyle;
+  viewMessageBox: ViewStyle;
+  viewMessageText: TextStyle;
+  viewEmpty: TextStyle;
+  viewActions: ViewStyle;
+  viewActionBtn: ViewStyle;
+  viewActionText: TextStyle;
   addSection: ViewStyle;
   sectionDivider: ViewStyle;
   sectionLine: ViewStyle;
@@ -1195,6 +1315,46 @@ const styles = StyleSheet.create<{
     lineHeight: lineHeight.m,
     color: palette.gold.subtlest,
     backgroundColor: 'rgba(253,253,249,0.02)',
+  },
+
+  // Read-only view mode
+  viewMessageBox: {
+    borderRadius: radius.s,
+    borderWidth: borderWidth.thin,
+    borderColor: palette.navy.light,
+    paddingHorizontal: scale(spacing.m),
+    paddingVertical: verticalScale(spacing.s),
+    backgroundColor: 'rgba(253,253,249,0.02)',
+  },
+  viewMessageText: {
+    fontFamily: fontFamily.body,
+    fontSize: moderateScale(fontSize.s, 0.3),
+    lineHeight: lineHeight.m,
+    color: palette.gold.subtlest,
+  },
+  viewEmpty: {
+    fontFamily: fontFamily.bodyItalic,
+    fontSize: moderateScale(fontSize.s),
+    color: palette.navy.light,
+    textAlign: 'center',
+  },
+  viewActions: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: scale(spacing.l),
+    width: '100%',
+  },
+  viewActionBtn: {
+    paddingHorizontal: scale(spacing.l),
+    paddingVertical: verticalScale(spacing.s),
+    borderRadius: radius.m,
+    borderWidth: borderWidth.thin,
+    borderColor: palette.navy.light,
+  },
+  viewActionText: {
+    fontFamily: fontFamily.heading,
+    fontSize: moderateScale(fontSize.l),
+    color: palette.gold.DEFAULT,
   },
 
   addSection: { width: '100%', gap: verticalScale(spacing.m) },

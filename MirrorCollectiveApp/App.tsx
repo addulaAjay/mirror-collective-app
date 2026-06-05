@@ -23,12 +23,9 @@ import CheckoutScreen from '@screens/CheckoutScreen';
 import AddNewProfileScreen from '@screens/echoVault/AddNewProfileScreen';
 import ChooseGuardianScreen from '@screens/echoVault/ChooseGuardianScreen';
 import ChooseRecipientScreen from '@screens/echoVault/ChooseRecipientScreen';
-import EchoAudioPlaybackScreen from '@screens/echoVault/EchoAudioPlaybackScreen';
-import EchoDetailScreen from '@screens/echoVault/EchoDetailScreen';
 import MirrorEchoVaultHomeScreen from '@screens/echoVault/EchoVaultHomeScreen';
 import EchoInboxScreen from '@screens/echoVault/EchoInboxScreen';
 import MirrorEchoVaultLibraryScreen from '@screens/echoVault/EchoVaultLibraryScreen';
-import EchoVideoPlaybackScreen from '@screens/echoVault/EchoVideoPlaybackScreen';
 import ManageGuardianScreen from '@screens/echoVault/ManageGuardianScreen';
 import ManageRecipientScreen from '@screens/echoVault/ManageRecipientScreen';
 import NewEchoAudioScreen from '@screens/echoVault/NewEchoAudioScreen';
@@ -106,15 +103,6 @@ const AuthNavigator = () => (
       name="ManageGuardianScreen"
       component={ManageGuardianScreen}
     />
-    <Stack.Screen
-      name="EchoVideoPlaybackScreen"
-      component={EchoVideoPlaybackScreen}
-    />
-    <Stack.Screen
-      name="EchoAudioPlaybackScreen"
-      component={EchoAudioPlaybackScreen}
-    />
-    <Stack.Screen name="EchoDetailScreen" component={EchoDetailScreen} />
     <Stack.Screen
       name="ChooseGuardianScreen"
       component={ChooseGuardianScreen}
@@ -253,9 +241,6 @@ const AuthenticatedNavigator = ({ initialRouteName = 'EnterMirror' }: Authentica
     <Stack.Screen name="ChooseGuardianScreen" component={ChooseGuardianScreen} />
     <Stack.Screen name="ChooseRecipientScreen" component={ChooseRecipientScreen} />
     <Stack.Screen name="AddNewProfileScreen" component={AddNewProfileScreen} />
-    <Stack.Screen name="EchoDetailScreen" component={EchoDetailScreen} />
-    <Stack.Screen name="EchoAudioPlaybackScreen" component={EchoAudioPlaybackScreen} />
-    <Stack.Screen name="EchoVideoPlaybackScreen" component={EchoVideoPlaybackScreen} />
     <Stack.Screen name="Checkout" component={CheckoutScreen} />
     <Stack.Screen name="StartFreeTrial" component={StartFreeTrialScreen} />
     <Stack.Screen name="EchoVaultStorage" component={EchoVaultStorageScreen} />
