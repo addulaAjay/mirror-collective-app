@@ -368,6 +368,9 @@ const CreateEchoScreen: React.FC = () => {
   } = params;
 
   const [message, setMessage] = useState('');
+  // Dynamic message-box height — grows with content (min ~120) so the box isn't
+  // a fixed slab; the page scrolls when the whole form overflows.
+  const [messageHeight, setMessageHeight] = useState(verticalScale(120));
   const [attachments, setAttachments] = useState<DraftAttachment[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [uploadStage, setUploadStage] = useState<UploadStage | null>(null);
@@ -827,9 +830,16 @@ const CreateEchoScreen: React.FC = () => {
                 onChangeText={setMessage}
                 placeholder="Write what you want to remember."
                 placeholderTextColor={palette.navy.light}
-                style={styles.messageInput}
+                style={[
+                  styles.messageInput,
+                  { height: Math.max(verticalScale(120), messageHeight) },
+                ]}
                 multiline
                 textAlignVertical="top"
+                onContentSizeChange={e =>
+                  setMessageHeight(e.nativeEvent.contentSize.height)
+                }
+                scrollEnabled={false}
               />
             </View>
 
@@ -1110,7 +1120,7 @@ const styles = StyleSheet.create<{
   bg: { flex: 1 },
   safe: { flex: 1, backgroundColor: 'transparent' },
   kav: { flex: 1, width: '100%' },
-  kavContent: { flexGrow: 1, paddingBottom: verticalScale(spacing.l) },
+  kavContent: { flexGrow: 1, paddingBottom: verticalScale(spacing.xl * 2) },
   content: {
     width: '100%',
     paddingHorizontal: scale(spacing.xl),
@@ -1175,7 +1185,6 @@ const styles = StyleSheet.create<{
     paddingHorizontal: scale(2),
   },
   messageInput: {
-    minHeight: verticalScale(160),
     borderRadius: radius.s,
     borderWidth: borderWidth.thin,
     borderColor: palette.navy.light,
