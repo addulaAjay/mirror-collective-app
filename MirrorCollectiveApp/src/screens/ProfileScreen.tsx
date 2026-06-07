@@ -32,7 +32,6 @@ import {
   type TextStyle,
   type ImageStyle,
 } from 'react-native';
-import { launchImageLibrary } from 'react-native-image-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 
@@ -44,6 +43,7 @@ import TextInputField from '@components/TextInputField';
 import { useUser } from '@context/UserContext';
 import { authApiService } from '@services/api';
 import { echoApiService } from '@services/api/echo';
+import { pickProfilePhoto } from '@utils/media/pickProfilePhoto';
 import { TTS_FEATURE_ENABLED } from '@services/speech';
 import { SpeechSettingsRow } from './settings/SpeechSettingsRow';
 
@@ -95,15 +95,9 @@ const ProfileScreen: React.FC = () => {
   };
 
   const handlePickImage = useCallback(async () => {
-    const result = await launchImageLibrary({
-      mediaType: 'photo',
-      quality: 0.8,
-      maxWidth: 400,
-      maxHeight: 400,
-    });
-    if (!result.didCancel && result.assets?.[0]?.uri) {
-      setLocalImageUri(result.assets[0].uri);
-    }
+    // Native crop / zoom / adjust → returns a cropped JPEG ready to upload.
+    const photo = await pickProfilePhoto();
+    if (photo) setLocalImageUri(photo.uri);
   }, []);
 
   const handleSave = useCallback(async () => {

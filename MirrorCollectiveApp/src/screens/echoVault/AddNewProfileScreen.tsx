@@ -48,7 +48,6 @@ import {
   type TextStyle,
   type ViewStyle,
 } from 'react-native';
-import { launchImageLibrary } from 'react-native-image-picker';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -57,6 +56,7 @@ import Button from '@components/Button/Button';
 import LogoHeader from '@components/LogoHeader';
 import TextInputField from '@components/TextInputField';
 import { echoApiService } from '@services/api/echo';
+import { pickProfilePhoto } from '@utils/media/pickProfilePhoto';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AddNewProfileScreen'>;
 
@@ -84,16 +84,9 @@ const AddNewProfileScreen: React.FC<Props> = ({ navigation, route }) => {
   const [loading, setLoading] = useState(false);
 
   const handlePickImage = async () => {
-    const result = await launchImageLibrary({
-      mediaType: 'photo',
-      quality: 0.8,
-      maxWidth: 400,
-      maxHeight: 400,
-    });
-
-    if (!result.didCancel && result.assets?.[0]?.uri) {
-      setPhotoUri(result.assets[0].uri);
-    }
+    // Native crop / zoom / adjust → returns a cropped JPEG ready to upload.
+    const photo = await pickProfilePhoto();
+    if (photo) setPhotoUri(photo.uri);
   };
 
   const handleAdd = async () => {
@@ -108,17 +101,21 @@ const AddNewProfileScreen: React.FC<Props> = ({ navigation, route }) => {
       // Reuses getUploadUrl (upload_type:'profile', no echoId) + uploadMedia —
       // the same pipeline as echo audio/video, no separate endpoint needed.
       let profileImageUrl: string | undefined;
-      if (photoUri && !isGuardian) {
+      if (photoUri) {
         const urlRes = await echoApiService.getUploadUrl('image/jpeg', undefined, 'profile');
         if (!urlRes.success || !urlRes.data) {
           throw new Error(urlRes.error ?? 'Could not get image upload URL');
         }
         await echoApiService.uploadMedia(urlRes.data.upload_url, photoUri, 'image/jpeg');
-        profileImageUrl = urlRes.data.media_url;   // public S3 URL stored on recipient
+        profileImageUrl = urlRes.data.media_url;   // public S3 URL stored on the profile
       }
 
       const response = isGuardian
-        ? await echoApiService.addGuardian({ name, email })
+        ? await echoApiService.addGuardian({
+            name,
+            email,
+            ...(profileImageUrl ? { profile_image_url: profileImageUrl } : {}),
+          })
         : await echoApiService.addRecipient({
             name,
             email,
