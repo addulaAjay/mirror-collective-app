@@ -66,7 +66,7 @@ import {
 } from 'react-native-gesture-handler';
 import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Svg, { Path } from 'react-native-svg';
+import Svg, { Circle, G, Path } from 'react-native-svg';
 import { SvgXml } from 'react-native-svg';
 
 import { getMotifIcon } from '@assets/motifs/MotifAssets';
@@ -135,13 +135,16 @@ const BackArrowIcon: React.FC = () => (
   />
 );
 
-// ── Lock icon — Figma node 1143:1360 (Vector) ───────────────────────────────
+// ── Lock icon — Figma 7545:2403: gold padlock inside a thin gold circle ───────
 const LockIcon: React.FC = () => (
-  <Svg width={scale(22)} height={scale(22)} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"
-      fill={palette.navy.light}
-    />
+  <Svg width={scale(24)} height={scale(24)} viewBox="0 0 24 24" fill="none">
+    <Circle cx={12} cy={12} r={11} stroke={palette.gold.DEFAULT} strokeWidth={1} />
+    <G transform="translate(6 6.25) scale(0.5)">
+      <Path
+        d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"
+        fill={palette.gold.DEFAULT}
+      />
+    </G>
   </Svg>
 );
 
@@ -812,7 +815,11 @@ const styles = StyleSheet.create<{
   listScroll: { flex: 1 },
   listScrollContent: {
     flexGrow: 1,
-    paddingHorizontal: scale(14),
+    // The avatar's gold halo (boxShadow blur 10 + spread 3) extends ~16–18px
+    // past its box. The FlatList's scroll-view clips children to its content
+    // edge, so the rows need at least that much side padding or the avatar's
+    // left glow is cut. scale(20) keeps the whole halo inside the clip.
+    paddingHorizontal: scale(20),
   },
   footerLoader: {
     paddingVertical: verticalScale(12),
