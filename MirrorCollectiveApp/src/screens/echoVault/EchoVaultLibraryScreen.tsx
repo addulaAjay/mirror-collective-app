@@ -268,10 +268,7 @@ const DraftSwipeRow: React.FC<{
           <GHTouchableOpacity
             style={styles.swipeIconBtn}
             activeOpacity={0.85}
-            onPress={() => {
-              close();
-              onDelete();
-            }}
+            onPress={onDelete}
             accessibilityRole="button"
             accessibilityLabel="Delete echo"
           >
@@ -815,11 +812,9 @@ const styles = StyleSheet.create<{
   listScroll: { flex: 1 },
   listScrollContent: {
     flexGrow: 1,
-    // The avatar's gold halo (boxShadow blur 10 + spread 3) extends ~16–18px
-    // past its box. The FlatList's scroll-view clips children to its content
-    // edge, so the rows need at least that much side padding or the avatar's
-    // left glow is cut. scale(20) keeps the whole halo inside the clip.
-    paddingHorizontal: scale(20),
+    // Small — the avatar inset that keeps its halo unclipped now lives on
+    // rowGroup (see note there), since the Swipeable clips at the row edge.
+    paddingHorizontal: scale(2),
   },
   footerLoader: {
     paddingVertical: verticalScale(12),
@@ -982,6 +977,12 @@ const styles = StyleSheet.create<{
   },
   rowGroup: {
     width: '100%',
+    // Inset the row content so the avatar's gold halo fits INSIDE the row's
+    // own bounds. DRAFT rows are wrapped in a Swipeable whose container is
+    // overflow:hidden, which clips anything past the row edge — so FlatList
+    // padding alone can't save the halo; the avatar must sit ≥ its glow
+    // radius (~13px) in from the edge.
+    paddingHorizontal: scale(16),
   },
   // Swipe-left delete action (DRAFT rows only).
   // Swipe-reveal action panel: gold outline Edit + Delete icon buttons.
