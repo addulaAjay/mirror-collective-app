@@ -162,41 +162,53 @@ function resolveFileContentType(name: string, providedType?: string | null): str
 }
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
+// Add-to-Echo card icons — Material Symbols matching Figma 7544:1890 (gold fill).
+// add_photo_alternate (image frame + "+"), mic (filled), camera (aperture).
 const PhotoIcon: React.FC = () => (
   <Svg width={scale(32)} height={scale(32)} viewBox="0 0 24 24" fill="none">
     <Path
-      d="M3 5.5A2.5 2.5 0 0 1 5.5 3h13A2.5 2.5 0 0 1 21 5.5v13A2.5 2.5 0 0 1 18.5 21h-13A2.5 2.5 0 0 1 3 18.5v-13Z"
-      stroke={palette.gold.DEFAULT}
-      strokeWidth={1.4}
+      d="M18 20H4V6h9V4H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-9h-2v9z"
+      fill={palette.gold.DEFAULT}
     />
     <Path
-      d="M3.5 16.5 8 12l3.5 3 3-2.5L20.5 18"
-      stroke={palette.gold.DEFAULT}
-      strokeWidth={1.4}
-      strokeLinecap="round"
-      strokeLinejoin="round"
+      d="M10.21 16.83l-1.96-2.36L5.5 18h11l-3.54-4.71z"
+      fill={palette.gold.DEFAULT}
+    />
+    <Path d="M20 4V1h-2v3h-3v2h3v3h2V6h3V4h-3z" fill={palette.gold.DEFAULT} />
+  </Svg>
+);
+
+const MicIcon: React.FC = () => (
+  <Svg width={scale(32)} height={scale(32)} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"
+      fill={palette.gold.DEFAULT}
     />
     <Path
-      d="M9 8.5a1.4 1.4 0 1 1-2.8 0 1.4 1.4 0 0 1 2.8 0Z"
+      d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"
       fill={palette.gold.DEFAULT}
     />
   </Svg>
 );
 
-const MicIcon: React.FC = () => (
-  <Image
-    source={require('@assets/mic.png')}
-    style={styles.cardIconImg}
-    resizeMode="contain"
-  />
+const VideoIcon: React.FC = () => (
+  <Svg width={scale(32)} height={scale(32)} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M9.4 10.5l4.77-8.26C13.47 2.09 12.75 2 12 2c-2.4 0-4.6.85-6.32 2.25l3.66 6.35.06-.1zM21.54 9c-.92-2.92-3.15-5.26-6-6.34L11.88 9h9.66zm.26 1h-7.49l.29.5 4.76 8.25C21 16.97 22 14.61 22 12c0-.69-.07-1.35-.2-2zM8.54 12l-3.9-6.75C3.01 7.03 2 9.39 2 12c0 .69.07 1.35.2 2h7.49l-1.15-2zm-6.08 3c.92 2.92 3.15 5.26 6 6.34L12.12 15H2.46zm11.27 0l-3.9 6.76c.7.15 1.42.24 2.17.24 2.4 0 4.6-.85 6.32-2.25l-3.66-6.35-.93 1.6z"
+      fill={palette.gold.DEFAULT}
+    />
+  </Svg>
 );
 
-const VideoIcon: React.FC = () => (
-  <Image
-    source={require('@assets/videocam.png')}
-    style={styles.cardIconImg}
-    resizeMode="contain"
-  />
+// Material "image" icon (Figma 7556:2784) — shown beside the filename on an
+// image preview caption.
+const ImageGlyphIcon: React.FC = () => (
+  <Svg width={scale(16)} height={scale(16)} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"
+      fill={palette.gold.subtlest}
+    />
+  </Svg>
 );
 
 const BackIcon: React.FC = () => (
@@ -326,7 +338,7 @@ const AttachmentPreview: React.FC<AttachmentPreviewProps> = ({
           activeOpacity={0.85}
           onPress={onAddMore}
         >
-          <Text style={styles.previewCaptionIcon}>🖼</Text>
+          <ImageGlyphIcon />
           <View style={styles.previewCaptionTextWrap}>
             <Text style={styles.previewCaptionName} numberOfLines={1}>
               {attachment.name}
@@ -1270,7 +1282,6 @@ const styles = StyleSheet.create<{
   addCard: ViewStyle;
   addCardDisabled: ViewStyle;
   addCardLabel: TextStyle;
-  cardIconImg: ImageStyle;
   errorsWrap: ViewStyle;
   errorBanner: ViewStyle;
   errorIconCircle: ViewStyle;
@@ -1283,7 +1294,6 @@ const styles = StyleSheet.create<{
   removeCircleFloating: ViewStyle;
   removeCircleText: TextStyle;
   previewCaption: ViewStyle;
-  previewCaptionIcon: TextStyle;
   previewCaptionTextWrap: ViewStyle;
   previewCaptionName: TextStyle;
   previewCaptionHint: TextStyle;
@@ -1504,11 +1514,6 @@ const styles = StyleSheet.create<{
     color: palette.gold.subtlest,
     textAlign: 'center',
   },
-  cardIconImg: {
-    width: scale(32),
-    height: scale(32),
-    tintColor: palette.gold.DEFAULT,
-  },
 
   // Inline error banners (Figma 7544:2106)
   errorsWrap: { width: '100%', gap: verticalScale(spacing.xs) },
@@ -1585,7 +1590,6 @@ const styles = StyleSheet.create<{
     backgroundColor: 'rgba(10,12,18,0.7)',
     maxWidth: '80%',
   },
-  previewCaptionIcon: { fontSize: moderateScale(16) },
   previewCaptionTextWrap: { flexShrink: 1 },
   previewCaptionName: {
     fontFamily: fontFamily.body,
