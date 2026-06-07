@@ -233,23 +233,28 @@ const SparkleIcon: React.FC = () => (
   </Svg>
 );
 
+// A 73px gold line that fades to transparent at its outer end. `side` picks
+// which end fades, so a pair brackets a centred label/sparkle symmetrically.
+const GoldLine: React.FC<{ side: 'left' | 'right' }> = ({ side }) => (
+  <LinearGradient
+    colors={
+      side === 'left'
+        ? ['rgba(242,225,176,0)', 'rgba(242,225,176,0.55)']
+        : ['rgba(242,225,176,0.55)', 'rgba(242,225,176,0)']
+    }
+    start={{ x: 0, y: 0 }}
+    end={{ x: 1, y: 0 }}
+    style={styles.starLine}
+  />
+);
+
 const StarDivider: React.FC = () => (
   <View style={styles.starDivider}>
-    <LinearGradient
-      colors={['rgba(242,225,176,0)', 'rgba(242,225,176,0.55)']}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 0 }}
-      style={styles.starLine}
-    />
+    <GoldLine side="left" />
     <View style={styles.starGlowWrap}>
       <SparkleIcon />
     </View>
-    <LinearGradient
-      colors={['rgba(242,225,176,0.55)', 'rgba(242,225,176,0)']}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 0 }}
-      style={styles.starLine}
-    />
+    <GoldLine side="right" />
   </View>
 );
 
@@ -1097,9 +1102,9 @@ const CreateEchoScreen: React.FC = () => {
             {/* Add to your Echo */}
             <View style={styles.addSection}>
               <View style={styles.sectionDivider}>
-                <View style={styles.sectionLine} />
+                <GoldLine side="left" />
                 <Text style={styles.sectionLabel}>Add to your Echo</Text>
-                <View style={styles.sectionLine} />
+                <GoldLine side="right" />
               </View>
 
               <View style={styles.addRow}>
@@ -1311,7 +1316,6 @@ const styles = StyleSheet.create<{
   viewActionText: TextStyle;
   addSection: ViewStyle;
   sectionDivider: ViewStyle;
-  sectionLine: ViewStyle;
   sectionLabel: TextStyle;
   addRow: ViewStyle;
   addCard: ViewStyle;
@@ -1508,11 +1512,6 @@ const styles = StyleSheet.create<{
     justifyContent: 'center',
     gap: scale(6),
     width: '100%',
-  },
-  sectionLine: {
-    height: 1,
-    width: scale(73),
-    backgroundColor: 'rgba(163,179,204,0.4)',
   },
   sectionLabel: {
     fontFamily: fontFamily.heading,
