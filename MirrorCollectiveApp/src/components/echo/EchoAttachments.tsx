@@ -107,45 +107,47 @@ function AttachmentCard({ att }: { att: Attachment }) {
       </View>
     );
   } else if (att.type === 'VIDEO') {
-    // Tap-to-play poster (NOT an inline <Video controls>) — native video
-    // controls swallow the touch and block the parent ScrollView from scrolling.
+    // Only the small centered play button is interactive; the poster passes
+    // touches through (pointerEvents none) so a vertical drag scrolls the page
+    // instead of being eaten by a full-size touchable.
     media = (
-      <TouchableOpacity
-        style={styles.video}
-        activeOpacity={0.85}
-        onPress={() => setShowVideo(true)}
-        accessibilityRole="button"
-        accessibilityLabel="Play video"
-      >
+      <View style={styles.video}>
         {att.thumb_url ? (
-          <Image
-            source={{ uri: att.thumb_url }}
-            style={StyleSheet.absoluteFill}
-            resizeMode="cover"
-          />
+          <View style={StyleSheet.absoluteFill} pointerEvents="none">
+            <Image
+              source={{ uri: att.thumb_url }}
+              style={StyleSheet.absoluteFill}
+              resizeMode="cover"
+            />
+          </View>
         ) : null}
-        <View style={styles.playOverlay}>
+        <TouchableOpacity
+          style={styles.playOverlay}
+          onPress={() => setShowVideo(true)}
+          accessibilityRole="button"
+          accessibilityLabel="Play video"
+        >
           <Text style={styles.playGlyph}>▶</Text>
-        </View>
-      </TouchableOpacity>
+        </TouchableOpacity>
+      </View>
     );
   } else if (att.type === 'AUDIO') {
+    // Row is a plain View (passes drags through); only the play button is touchable.
     media = (
-      <TouchableOpacity
-        style={styles.audioRow}
-        onPress={toggleAudio}
-        activeOpacity={0.85}
-        accessibilityRole="button"
-        accessibilityLabel={playingAudio ? 'Pause audio' : 'Play audio'}
-      >
-        <View style={styles.audioBtn}>
+      <View style={styles.audioRow}>
+        <TouchableOpacity
+          style={styles.audioBtn}
+          onPress={toggleAudio}
+          accessibilityRole="button"
+          accessibilityLabel={playingAudio ? 'Pause audio' : 'Play audio'}
+        >
           <Text style={styles.audioGlyph}>{playingAudio ? '⏸' : '▶'}</Text>
-        </View>
+        </TouchableOpacity>
         <Text style={styles.audioLabel} numberOfLines={1}>
           {name}
           {dur}
         </Text>
-      </TouchableOpacity>
+      </View>
     );
   }
 
