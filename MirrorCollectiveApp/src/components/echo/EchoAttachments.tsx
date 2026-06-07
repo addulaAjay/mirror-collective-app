@@ -58,7 +58,7 @@ function AttachmentCard({ att }: { att: Attachment }) {
     () => () => {
       if (att.type === 'AUDIO') {
         audioPlayer.stopPlayer().catch(() => {});
-        audioPlayer.removePlayBackListener();
+        audioPlayer.removePlaybackEndListener();
       }
     },
     [att.type],
@@ -72,18 +72,17 @@ function AttachmentCard({ att }: { att: Attachment }) {
     try {
       if (playingAudio) {
         await audioPlayer.stopPlayer();
-        audioPlayer.removePlayBackListener();
+        audioPlayer.removePlaybackEndListener();
         setPlayingAudio(false);
         return;
       }
       await audioPlayer.startPlayer(att.media_url);
       setPlayingAudio(true);
-      audioPlayer.addPlayBackListener(e => {
-        if (e.duration > 0 && e.currentPosition >= e.duration) {
-          audioPlayer.stopPlayer().catch(() => {});
-          audioPlayer.removePlayBackListener();
-          setPlayingAudio(false);
-        }
+      // v4 fires a dedicated end event — reliable for auto-reset (the
+      // currentPosition>=duration poll in addPlayBackListener is flaky).
+      audioPlayer.addPlaybackEndListener(() => {
+        audioPlayer.removePlaybackEndListener();
+        setPlayingAudio(false);
       });
     } catch {
       setPlayingAudio(false);

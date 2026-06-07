@@ -42,6 +42,7 @@ import {
   Image,
   Modal,
   Platform,
+  ScrollView,
   Share,
   StatusBar,
   StyleSheet,
@@ -648,22 +649,20 @@ const CreateEchoScreen: React.FC = () => {
     try {
       if (playingAudioId === att.id) {
         await audioRecorder.stopPlayer();
-        audioRecorder.removePlayBackListener();
+        audioRecorder.removePlaybackEndListener();
         setPlayingAudioId(null);
         return;
       }
       if (playingAudioId) {
         await audioRecorder.stopPlayer().catch(() => {});
-        audioRecorder.removePlayBackListener();
+        audioRecorder.removePlaybackEndListener();
       }
       await audioRecorder.startPlayer(att.uri);
       setPlayingAudioId(att.id);
-      audioRecorder.addPlayBackListener(e => {
-        if (e.duration > 0 && e.currentPosition >= e.duration) {
-          audioRecorder.stopPlayer().catch(() => {});
-          audioRecorder.removePlayBackListener();
-          setPlayingAudioId(null);
-        }
+      // v4 dedicated end event → reliable auto-reset when playback finishes.
+      audioRecorder.addPlaybackEndListener(() => {
+        audioRecorder.removePlaybackEndListener();
+        setPlayingAudioId(null);
       });
     } catch (err) {
       console.warn('Audio playback failed:', err);
@@ -675,7 +674,7 @@ const CreateEchoScreen: React.FC = () => {
   useEffect(
     () => () => {
       audioRecorder.stopPlayer().catch(() => {});
-      audioRecorder.removePlayBackListener();
+      audioRecorder.removePlaybackEndListener();
       audioRecorder.stopRecorder().catch(() => {});
       audioRecorder.removeRecordBackListener();
     },
@@ -830,10 +829,11 @@ const CreateEchoScreen: React.FC = () => {
             barStyle="light-content"
           />
           <LogoHeader navigation={navigation} />
-          <KeyboardAwareScrollView
+          <ScrollView
             style={styles.kav}
             contentContainerStyle={styles.kavContent}
             showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
           >
             <View style={styles.content}>
               <View style={styles.headerRow}>
@@ -893,7 +893,7 @@ const CreateEchoScreen: React.FC = () => {
                 )}
               </View>
             </View>
-          </KeyboardAwareScrollView>
+          </ScrollView>
         </SafeAreaView>
       </BackgroundWrapper>
     );
@@ -1436,7 +1436,7 @@ const styles = StyleSheet.create<{
     width: scale(18),
     height: scale(18),
     borderRadius: scale(9),
-    backgroundColor: '#e5484d',
+    backgroundColor: palette.status.errorHover,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1521,7 +1521,7 @@ const styles = StyleSheet.create<{
     justifyContent: 'center',
   },
   previewPlayGlyph: {
-    color: '#0b1020',
+    color: palette.navy.deep,
     fontSize: moderateScale(20),
     marginLeft: scale(3),
   },
