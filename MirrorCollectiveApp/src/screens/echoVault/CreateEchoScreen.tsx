@@ -40,6 +40,7 @@ import {
   ActivityIndicator,
   Alert,
   Image,
+  Keyboard,
   Modal,
   Platform,
   ScrollView,
@@ -61,7 +62,7 @@ import {
   KeyboardAwareScrollView,
   KeyboardStickyView,
 } from 'react-native-keyboard-controller';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import Video from 'react-native-video';
 
@@ -418,6 +419,27 @@ const ErrorBanner: React.FC<{ message: string }> = ({ message }) => (
 // ── Screen ────────────────────────────────────────────────────────────────────
 const CreateEchoScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
+  const insets = useSafeAreaInsets();
+  // Footer is transparent (starfield shows, matches the app background) and only
+  // gets an opaque navy backing while the keyboard is up — because then the
+  // sticky footer is lifted over the media and must hide it.
+  const [keyboardOpen, setKeyboardOpen] = useState(false);
+  useEffect(() => {
+    const showEvt = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvt = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+    const show = Keyboard.addListener(showEvt, () => setKeyboardOpen(true));
+    const hide = Keyboard.addListener(hideEvt, () => setKeyboardOpen(false));
+    return () => {
+      show.remove();
+      hide.remove();
+    };
+  }, []);
+  // Footer owns the bottom inset (instead of SafeAreaView) so the sticky footer
+  // can sit flush on the keyboard with no inset-sized gap showing media through.
+  const footerStyle = [
+    styles.footer,
+    { paddingBottom: insets.bottom + verticalScale(spacing.m) },
+  ];
   const route = useRoute<CreateEchoRoute>();
   const params = route.params ?? {};
   const {
@@ -878,7 +900,7 @@ const CreateEchoScreen: React.FC = () => {
     const canEdit = viewEcho?.status === 'DRAFT';
     return (
       <BackgroundWrapper style={styles.bg} scrollable>
-        <SafeAreaView style={styles.safe}>
+        <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
           <StatusBar
             translucent
             backgroundColor="transparent"
@@ -934,7 +956,7 @@ const CreateEchoScreen: React.FC = () => {
 
           {/* Actions pinned to the bottom so they're always reachable while the
               message + attachments scroll above. */}
-          <View style={styles.footer}>
+          <View style={footerStyle}>
             <View style={styles.viewActions}>
               <TouchableOpacity
                 style={styles.viewActionBtn}
@@ -1088,7 +1110,9 @@ const CreateEchoScreen: React.FC = () => {
 
         {/* SAVE pinned to the bottom; rises above the keyboard while typing the
             message so it's always reachable (content scrolls above it). */}
-        <KeyboardStickyView style={styles.footer}>
+        <KeyboardStickyView
+          style={[footerStyle, keyboardOpen && styles.footerOpaque]}
+        >
           <Button
             variant="primary"
             size="L"
@@ -1249,6 +1273,7 @@ const styles = StyleSheet.create<{
   kav: ViewStyle;
   kavContent: ViewStyle;
   footer: ViewStyle;
+  footerOpaque: ViewStyle;
   content: ViewStyle;
   headerRow: ViewStyle;
   backBtn: ViewStyle;
@@ -1332,15 +1357,17 @@ const styles = StyleSheet.create<{
   kav: { flex: 1, width: '100%' },
   // Bottom padding clears the pinned footer so the last item isn't hidden.
   kavContent: { flexGrow: 1, paddingBottom: verticalScale(spacing.m) },
-  // Solid navy.deep (the starfield's own base colour) so the footer blends
-  // invisibly at the bottom when the keyboard is closed, yet fully backs the
-  // button when KeyboardStickyView lifts it over the media while typing —
-  // otherwise the button appears to float on top of an image/video.
+  // Transparent by default so the starfield shows through and matches the app
+  // background (footer is in-flow, content never sits behind it when idle).
   footer: {
     width: '100%',
     paddingHorizontal: scale(spacing.xl),
     paddingTop: verticalScale(spacing.m),
     paddingBottom: verticalScale(spacing.m),
+  },
+  // Applied only while the keyboard is up: navy.deep backing hides the media the
+  // lifted sticky footer would otherwise float over.
+  footerOpaque: {
     backgroundColor: palette.navy.deep,
   },
   content: {
