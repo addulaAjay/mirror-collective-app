@@ -23,11 +23,11 @@ import {
   spacing,
   verticalScale,
 } from '@theme';
-import type { Attachment } from '@services/api/echo';
 import React, { useEffect, useState } from 'react';
 import {
   Image,
   Linking,
+  Modal,
   ScrollView,
   StyleSheet,
   Text,
@@ -36,6 +36,8 @@ import {
 } from 'react-native';
 import AudioRecorderPlayer from 'react-native-audio-recorder-player';
 import Video from 'react-native-video';
+
+import type { Attachment } from '@services/api/echo';
 
 const audioPlayer = AudioRecorderPlayer;
 
@@ -50,6 +52,7 @@ interface EchoAttachmentsProps {
 
 function AttachmentCard({ att }: { att: Attachment }) {
   const [playingAudio, setPlayingAudio] = useState(false);
+  const [showVideo, setShowVideo] = useState(false);
 
   useEffect(
     () => () => {
@@ -100,15 +103,27 @@ function AttachmentCard({ att }: { att: Attachment }) {
       />
     );
   } else if (att.type === 'VIDEO') {
+    // Tap-to-play poster (NOT an inline <Video controls>) — native video
+    // controls swallow the touch and block the parent ScrollView from scrolling.
     media = (
-      <Video
-        source={{ uri: att.media_url }}
+      <TouchableOpacity
         style={styles.video}
-        controls
-        paused
-        resizeMode="contain"
-        poster={att.thumb_url ?? undefined}
-      />
+        activeOpacity={0.85}
+        onPress={() => setShowVideo(true)}
+        accessibilityRole="button"
+        accessibilityLabel="Play video"
+      >
+        {att.thumb_url ? (
+          <Image
+            source={{ uri: att.thumb_url }}
+            style={StyleSheet.absoluteFill}
+            resizeMode="cover"
+          />
+        ) : null}
+        <View style={styles.playOverlay}>
+          <Text style={styles.playGlyph}>▶</Text>
+        </View>
+      </TouchableOpacity>
     );
   } else if (att.type === 'AUDIO') {
     media = (
@@ -142,6 +157,33 @@ function AttachmentCard({ att }: { att: Attachment }) {
           <Text style={styles.open}>Open</Text>
         </TouchableOpacity>
       </View>
+
+      {att.type === 'VIDEO' && (
+        <Modal
+          visible={showVideo}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowVideo(false)}
+        >
+          <View style={styles.videoModalBackdrop}>
+            <TouchableOpacity
+              style={styles.videoModalClose}
+              onPress={() => setShowVideo(false)}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              accessibilityRole="button"
+              accessibilityLabel="Close video"
+            >
+              <Text style={styles.videoModalCloseText}>✕</Text>
+            </TouchableOpacity>
+            <Video
+              source={{ uri: att.media_url }}
+              style={styles.videoModalPlayer}
+              controls
+              resizeMode="contain"
+            />
+          </View>
+        </Modal>
+      )}
     </View>
   );
 }
@@ -196,8 +238,45 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     marginBottom: verticalScale(spacing.s),
   },
-  image: { width: '100%', height: verticalScale(180), backgroundColor: '#0b1020' },
-  video: { width: '100%', height: verticalScale(180), backgroundColor: '#0b1020' },
+  image: { width: '100%', height: verticalScale(180), backgroundColor: palette.navy.deep },
+  video: {
+    width: '100%',
+    height: verticalScale(180),
+    backgroundColor: palette.navy.deep,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  playOverlay: {
+    width: scale(56),
+    height: scale(56),
+    borderRadius: scale(28),
+    backgroundColor: palette.gold.DEFAULT,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  playGlyph: {
+    color: palette.navy.deep,
+    fontSize: moderateScale(22),
+    marginLeft: scale(3),
+  },
+  videoModalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.92)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  videoModalClose: {
+    position: 'absolute',
+    top: verticalScale(48),
+    right: scale(spacing.l),
+    zIndex: 2,
+  },
+  videoModalCloseText: {
+    color: palette.gold.subtlest,
+    fontSize: moderateScale(fontSize.l),
+    fontWeight: '600',
+  },
+  videoModalPlayer: { width: '100%', height: '70%' },
   audioRow: {
     flexDirection: 'row',
     alignItems: 'center',
