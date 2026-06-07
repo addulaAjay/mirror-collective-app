@@ -207,6 +207,54 @@ const BackIcon: React.FC = () => (
   />
 );
 
+// File-upload sheet icons (Figma 7544:2839) — white document + gallery glyphs.
+const FileGlyphIcon: React.FC = () => (
+  <Svg width={scale(28)} height={scale(28)} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9l-7-7z"
+      stroke={palette.gold.subtlest}
+      strokeWidth={1.5}
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M13 2v7h7"
+      stroke={palette.gold.subtlest}
+      strokeWidth={1.5}
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M8 13.5h8M8 17h8"
+      stroke={palette.gold.subtlest}
+      strokeWidth={1.5}
+      strokeLinecap="round"
+    />
+  </Svg>
+);
+
+const GalleryGlyphIcon: React.FC = () => (
+  <Svg width={scale(28)} height={scale(28)} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M21 11v7.5A2.5 2.5 0 0 1 18.5 21h-13A2.5 2.5 0 0 1 3 18.5v-13A2.5 2.5 0 0 1 5.5 3H13"
+      stroke={palette.gold.subtlest}
+      strokeWidth={1.4}
+      strokeLinecap="round"
+    />
+    <Path
+      d="M3.5 17.5 8.5 12l3 3 3-2.5L20.5 18"
+      stroke={palette.gold.subtlest}
+      strokeWidth={1.4}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M19 3v5M16.5 5.5h5"
+      stroke={palette.gold.subtlest}
+      strokeWidth={1.4}
+      strokeLinecap="round"
+    />
+  </Svg>
+);
+
 // ── Add-to-Echo card ────────────────────────────────────────────────────────────
 interface AddCardProps {
   icon: React.ReactNode;
@@ -1060,6 +1108,15 @@ const CreateEchoScreen: React.FC = () => {
             onPress={() => setShowUploadSheet(false)}
           >
             <View style={styles.sheetCard}>
+              <TouchableOpacity
+                style={styles.sheetClose}
+                onPress={() => setShowUploadSheet(false)}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                accessibilityRole="button"
+                accessibilityLabel="Close"
+              >
+                <Text style={styles.sheetCloseText}>✕</Text>
+              </TouchableOpacity>
               <Text style={styles.sheetTitle}>
                 Choose type of file you wish to upload
               </Text>
@@ -1069,7 +1126,9 @@ const CreateEchoScreen: React.FC = () => {
                   onPress={requestFile}
                   activeOpacity={0.85}
                 >
-                  <Text style={styles.sheetOptionIcon}>📄</Text>
+                  <View style={styles.sheetOptionTile}>
+                    <FileGlyphIcon />
+                  </View>
                   <Text style={styles.sheetOptionLabel}>File</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -1077,7 +1136,9 @@ const CreateEchoScreen: React.FC = () => {
                   onPress={requestGallery}
                   activeOpacity={0.85}
                 >
-                  <Text style={styles.sheetOptionIcon}>🖼</Text>
+                  <View style={styles.sheetOptionTile}>
+                    <GalleryGlyphIcon />
+                  </View>
                   <Text style={styles.sheetOptionLabel}>Gallery</Text>
                 </TouchableOpacity>
               </View>
@@ -1237,10 +1298,12 @@ const styles = StyleSheet.create<{
   savingSpinner: ViewStyle;
   sheetBackdrop: ViewStyle;
   sheetCard: ViewStyle;
+  sheetClose: ViewStyle;
+  sheetCloseText: TextStyle;
   sheetTitle: TextStyle;
   sheetOptions: ViewStyle;
   sheetOption: ViewStyle;
-  sheetOptionIcon: TextStyle;
+  sheetOptionTile: ViewStyle;
   sheetOptionLabel: TextStyle;
   sheetHint: TextStyle;
   recordCloseBtn: ViewStyle;
@@ -1626,49 +1689,75 @@ const styles = StyleSheet.create<{
     justifyContent: 'center',
     paddingHorizontal: scale(spacing.xl),
   },
+  // File-upload sheet (Figma 7544:2839)
   sheetCard: {
     width: '100%',
-    borderRadius: radius.m,
-    backgroundColor: 'rgba(10,12,18,0.97)',
-    borderWidth: borderWidth.regular,
-    borderColor: 'rgba(215,192,138,0.25)',
-    padding: scale(spacing.l),
+    maxWidth: scale(340),
+    borderRadius: radius.s + 1, // 13
+    backgroundColor: 'rgba(11,15,28,0.96)',
+    borderWidth: borderWidth.hairline, // 0.25
+    borderColor: palette.navy.light, // Border/Subtle #a3b3cc
+    padding: scale(spacing.xl), // 24
     alignItems: 'center',
-    gap: verticalScale(spacing.m),
+    gap: verticalScale(spacing.m), // 16
+    // Glow: 0 0 15 3 rgba(229,214,176,0.3)
+    shadowColor: palette.gold.warm,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 15,
+    elevation: 8,
+  },
+  sheetClose: {
+    alignSelf: 'flex-end',
+  },
+  sheetCloseText: {
+    color: palette.gold.subtlest,
+    fontSize: moderateScale(fontSize.l),
+    fontWeight: '600',
   },
   sheetTitle: {
     fontFamily: fontFamily.heading,
-    fontSize: moderateScale(fontSize.xl),
+    fontSize: moderateScale(fontSize.xl), // 24
     fontWeight: fontWeight.regular,
+    lineHeight: moderateScale(28),
     color: palette.gold.DEFAULT,
     textAlign: 'center',
+    textShadowColor: 'rgba(240,212,168,0.3)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 10,
   },
   sheetOptions: {
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: scale(spacing.l),
+    gap: scale(spacing.m), // 16
   },
   sheetOption: {
-    width: scale(72),
-    height: scale(84),
+    alignItems: 'center',
+    gap: verticalScale(4),
+  },
+  // Bordered icon tile: 2px translucent-white border, rounded 12, padding 8.
+  sheetOptionTile: {
+    width: scale(56),
+    height: scale(56),
+    borderRadius: radius.s,
+    borderWidth: 2,
+    borderColor: 'rgba(253,253,249,0.1)',
+    backgroundColor: 'rgba(253,253,249,0.02)',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: verticalScale(spacing.xs),
-    borderRadius: radius.s,
-    borderWidth: borderWidth.thin,
-    borderColor: palette.navy.light,
-    backgroundColor: 'rgba(253,253,249,0.03)',
   },
-  sheetOptionIcon: { fontSize: moderateScale(28) },
   sheetOptionLabel: {
     fontFamily: fontFamily.body,
-    fontSize: moderateScale(fontSize.s),
-    color: palette.gold.subtlest,
+    fontSize: moderateScale(fontSize.s), // 16
+    lineHeight: moderateScale(24),
+    color: palette.gold.subtlest, // white-ish
+    textAlign: 'center',
   },
   sheetHint: {
     fontFamily: fontFamily.bodyItalic,
-    fontSize: moderateScale(fontSize.xs),
-    color: palette.navy.light,
+    fontSize: moderateScale(fontSize.xs), // 14
+    lineHeight: moderateScale(20),
+    color: palette.gold.DEFAULT, // gold per design
     textAlign: 'center',
   },
 
