@@ -58,6 +58,7 @@ import AudioRecorderPlayer from 'react-native-audio-recorder-player';
 import DocumentPicker from 'react-native-document-picker';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
+import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import Video from 'react-native-video';
@@ -200,15 +201,56 @@ const VideoIcon: React.FC = () => (
   </Svg>
 );
 
-// Material "image" icon (Figma 7556:2784) — shown beside the filename on an
-// image preview caption.
+// Material "image" icon (Figma 7556:2784 / 2811) — beside the filename on an
+// image preview caption. Gold to match the design.
 const ImageGlyphIcon: React.FC = () => (
   <Svg width={scale(16)} height={scale(16)} viewBox="0 0 24 24" fill="none">
     <Path
       d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"
-      fill={palette.gold.subtlest}
+      fill={palette.gold.DEFAULT}
     />
   </Svg>
+);
+
+// Material "videocam" icon (Figma 7544:2214) — gold, in the video duration badge.
+const VideocamGlyphIcon: React.FC = () => (
+  <Svg width={scale(16)} height={scale(16)} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"
+      fill={palette.gold.DEFAULT}
+    />
+  </Svg>
+);
+
+// Star divider (Figma 7544:1880): two gold lines fading toward the ends with a
+// glowing 4-point sparkle in the centre (replaces the flat ✦ glyph).
+const SparkleIcon: React.FC = () => (
+  <Svg width={scale(18)} height={scale(18)} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M12 1C12.5 6.5 17.5 11.5 23 12C17.5 12.5 12.5 17.5 12 23C11.5 17.5 6.5 12.5 1 12C6.5 11.5 11.5 6.5 12 1Z"
+      fill={palette.gold.DEFAULT}
+    />
+  </Svg>
+);
+
+const StarDivider: React.FC = () => (
+  <View style={styles.starDivider}>
+    <LinearGradient
+      colors={['rgba(242,225,176,0)', 'rgba(242,225,176,0.55)']}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 0 }}
+      style={styles.starLine}
+    />
+    <View style={styles.starGlowWrap}>
+      <SparkleIcon />
+    </View>
+    <LinearGradient
+      colors={['rgba(242,225,176,0.55)', 'rgba(242,225,176,0)']}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 0 }}
+      style={styles.starLine}
+    />
+  </View>
 );
 
 const BackIcon: React.FC = () => (
@@ -375,7 +417,8 @@ const AttachmentPreview: React.FC<AttachmentPreviewProps> = ({
         </TouchableOpacity>
         {attachment.duration ? (
           <View style={styles.previewBadge}>
-            <Text style={styles.previewBadgeText}>🎬 {attachment.duration}</Text>
+            <VideocamGlyphIcon />
+            <Text style={styles.previewBadgeText}>{attachment.duration}</Text>
           </View>
         ) : null}
       </View>
@@ -913,11 +956,7 @@ const CreateEchoScreen: React.FC = () => {
                 <View style={styles.headerSpacer} />
               </View>
 
-              <View style={styles.starDivider}>
-                <View style={styles.starLine} />
-                <Text style={styles.starGlyph}>✦</Text>
-                <View style={styles.starLine} />
-              </View>
+              <StarDivider />
 
               {viewEcho?.content ? (
                 <View style={styles.field}>
@@ -1003,11 +1042,7 @@ const CreateEchoScreen: React.FC = () => {
             </View>
 
             {/* Star divider */}
-            <View style={styles.starDivider}>
-              <View style={styles.starLine} />
-              <Text style={styles.starGlyph}>✦</Text>
-              <View style={styles.starLine} />
-            </View>
+            <StarDivider />
 
             {/* Message field */}
             <View style={styles.field}>
@@ -1264,7 +1299,7 @@ const styles = StyleSheet.create<{
   headerSpacer: ViewStyle;
   starDivider: ViewStyle;
   starLine: ViewStyle;
-  starGlyph: TextStyle;
+  starGlowWrap: ViewStyle;
   field: ViewStyle;
   fieldLabel: TextStyle;
   messageInput: TextStyle;
@@ -1394,11 +1429,14 @@ const styles = StyleSheet.create<{
   starLine: {
     height: 1,
     width: scale(73),
-    backgroundColor: 'rgba(163,179,204,0.4)',
   },
-  starGlyph: {
-    color: palette.gold.DEFAULT,
-    fontSize: moderateScale(14),
+  // Soft gold halo behind the centre sparkle.
+  starGlowWrap: {
+    shadowColor: palette.gold.warm,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.7,
+    shadowRadius: 8,
+    elevation: 6,
   },
 
   field: { width: '100%', gap: verticalScale(spacing.xs) },
@@ -1594,7 +1632,7 @@ const styles = StyleSheet.create<{
   previewCaptionName: {
     fontFamily: fontFamily.body,
     fontSize: moderateScale(fontSize.xs),
-    color: palette.gold.subtlest,
+    color: palette.gold.DEFAULT,
   },
   previewCaptionHint: {
     fontFamily: fontFamily.bodyItalic,
@@ -1624,6 +1662,9 @@ const styles = StyleSheet.create<{
     position: 'absolute',
     left: scale(spacing.s),
     bottom: scale(spacing.s),
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: scale(4),
     paddingHorizontal: scale(spacing.s),
     paddingVertical: verticalScale(4),
     borderRadius: radius.s,
@@ -1634,7 +1675,7 @@ const styles = StyleSheet.create<{
   previewBadgeText: {
     fontFamily: fontFamily.body,
     fontSize: moderateScale(fontSize.xs),
-    color: palette.gold.subtlest,
+    color: palette.gold.DEFAULT,
   },
   previewSeeMore: {
     position: 'absolute',
