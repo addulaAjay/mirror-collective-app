@@ -922,7 +922,13 @@ const styles = StyleSheet.create<{
     width:           '100%',
     borderRadius:    radius.m,
     borderWidth:     borderWidth.hairline,
-    borderColor:     palette.navy.light,
+    // Figma 1065:1847: Border/Inverse-1 #60739f @ 0.25px.
+    borderColor:     palette.navy.medium,
+    // Solid dark-navy panel — the design's card uses a backdrop-blur over the
+    // starfield (a soft, star-free dark panel) which RN can't reproduce; a solid
+    // navy.card is the faithful approximation AND lets the swipe-row backing
+    // blend in seamlessly (no more dark-blue patch on draft rows).
+    backgroundColor: palette.navy.card,
     paddingVertical: scale(spacing.m),
     // Horizontal padding lives on listScrollContent instead so the
     // avatar's gold glow has room inside the FlatList's scroll-view
@@ -959,9 +965,9 @@ const styles = StyleSheet.create<{
   // Heading XS Bold: Cormorant Medium 20/24
   tabText: {
     fontFamily: fontFamily.heading,
-    fontSize:   moderateScale(fontSize.l),              // 20px (font/size/L)
-    fontWeight: '500',                                  // Figma: font-medium
-    lineHeight: moderateScale(24),                      // font/size/XL
+    fontSize:   moderateScale(fontSize.xl),             // 24px (font/size/XL, Figma 1065:1850)
+    fontWeight: fontWeight.regular,                     // Cormorant Regular
+    lineHeight: moderateScale(28),                      // font/size/2XL
     textAlign:  'center',
   },
 
@@ -980,10 +986,11 @@ const styles = StyleSheet.create<{
     flex: 1,
   },
   // Opaque backing for swipeable (DRAFT) rows so the revealed Edit/Delete panel
-  // never shows through the row content. navy.deep matches the card base.
+  // never shows through the row content. navy.card matches the (now solid) card
+  // panel exactly, so a draft row is indistinguishable from the rest at rest.
   swipeRowBg: {
     width: '100%',
-    backgroundColor: palette.navy.deep,
+    backgroundColor: palette.navy.card,
   },
   rowGroup: {
     width: '100%',
