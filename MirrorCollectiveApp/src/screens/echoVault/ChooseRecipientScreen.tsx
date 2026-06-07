@@ -414,6 +414,9 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
                         minimumDate={new Date()}
                         textColor={palette.gold.DEFAULT}
                         themeVariant="dark"
+                        // Full width so the spinner columns spread evenly and
+                        // sit centered (default intrinsic width left-shifts them).
+                        style={styles.iosPicker}
                       />
                     </View>
                   </TouchableOpacity>
@@ -477,6 +480,7 @@ const styles = StyleSheet.create<{
   addNewText: TextStyle;
   pickerBackdrop: ViewStyle;
   pickerCard: ViewStyle;
+  iosPicker: ViewStyle;
   pickerHeader: ViewStyle;
   pickerCancel: TextStyle;
   pickerDone: TextStyle;
@@ -684,6 +688,10 @@ const styles = StyleSheet.create<{
     borderTopWidth:    0.5,
     borderColor:       palette.navy.light,
     paddingBottom:     verticalScale(spacing.xl),
+  },
+  iosPicker: {
+    width:      '100%',
+    alignSelf:  'center',
   },
   pickerHeader: {
     flexDirection:     'row',
