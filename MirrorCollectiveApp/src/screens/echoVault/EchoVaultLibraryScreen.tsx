@@ -583,6 +583,9 @@ export function EchoLibraryContent() {
             <Text style={styles.subtitle}>
               Preserve memories that matter most
             </Text>
+            <Text style={styles.subtitleHint}>
+              Slide to edit or delete your echo.
+            </Text>
           </View>
 
           {/* Resume banner — surfaces in-flight multipart uploads that
@@ -752,6 +755,7 @@ const styles = StyleSheet.create<{
   headerSpacer: ViewStyle;
   title: TextStyle;
   subtitle: TextStyle;
+  subtitleHint: TextStyle;
   inboxRow: ViewStyle;
   mailIcon: ImageStyle;
   inboxText: TextStyle;
@@ -880,6 +884,16 @@ const styles = StyleSheet.create<{
     lineHeight: moderateScale(24),
     color:      palette.neutral.white,
     textAlign:  'center',                        // FIX: was missing
+    width:      '100%',
+  },
+  // Swipe-gesture hint — smaller muted italic so it reads as guidance, not brand.
+  subtitleHint: {
+    fontFamily: fontFamily.bodyItalic,
+    fontStyle:  'italic',
+    fontSize:   moderateScale(fontSize.xs),      // 14px
+    lineHeight: moderateScale(20),
+    color:      palette.navy.light,
+    textAlign:  'center',
     width:      '100%',
   },
 
