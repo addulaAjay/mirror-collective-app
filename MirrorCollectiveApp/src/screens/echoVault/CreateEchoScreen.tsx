@@ -58,7 +58,7 @@ import AudioRecorderPlayer from 'react-native-audio-recorder-player';
 import DocumentPicker from 'react-native-document-picker';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import Video from 'react-native-video';
 
@@ -415,15 +415,6 @@ const ErrorBanner: React.FC<{ message: string }> = ({ message }) => (
 // ── Screen ────────────────────────────────────────────────────────────────────
 const CreateEchoScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
-  const insets = useSafeAreaInsets();
-  // Footer owns the bottom inset (instead of SafeAreaView) so KeyboardAvoidingView
-  // can push it flush onto the keyboard with no inset-sized gap, and it still
-  // clears the home indicator when idle. It stays fully transparent — content
-  // lives in the scroll above it, never behind it, so no media shows through.
-  const footerStyle = [
-    styles.footer,
-    { paddingBottom: insets.bottom + verticalScale(spacing.m) },
-  ];
   const route = useRoute<CreateEchoRoute>();
   const params = route.params ?? {};
   const {
@@ -442,9 +433,6 @@ const CreateEchoScreen: React.FC = () => {
 
   const [message, setMessage] = useState('');
   const [viewEcho, setViewEcho] = useState<EchoResponse | null>(null);
-  // Dynamic message-box height — grows with content (min ~120) so the box isn't
-  // a fixed slab; the page scrolls when the whole form overflows.
-  const [messageHeight, setMessageHeight] = useState(MIN_MESSAGE_HEIGHT);
   const [attachments, setAttachments] = useState<DraftAttachment[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [uploadStage, setUploadStage] = useState<UploadStage | null>(null);
@@ -884,7 +872,7 @@ const CreateEchoScreen: React.FC = () => {
     const canEdit = viewEcho?.status === 'DRAFT';
     return (
       <BackgroundWrapper style={styles.bg} scrollable>
-        <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
+        <SafeAreaView style={styles.safe}>
           <StatusBar
             translucent
             backgroundColor="transparent"
@@ -940,7 +928,7 @@ const CreateEchoScreen: React.FC = () => {
 
           {/* Actions pinned to the bottom so they're always reachable while the
               message + attachments scroll above. */}
-          <View style={footerStyle}>
+          <View style={styles.footer}>
             <View style={styles.viewActions}>
               <TouchableOpacity
                 style={styles.viewActionBtn}
@@ -1012,6 +1000,9 @@ const CreateEchoScreen: React.FC = () => {
             {/* Message field */}
             <View style={styles.field}>
               <Text style={styles.fieldLabel}>Message</Text>
+              {/* Auto-grows from min to max, then scrolls internally — the
+                  TextInput keeps the cursor (latest text) in view natively.
+                  Explicit-height + toggled-scroll hid text once capped. */}
               <TextInput
                 value={message}
                 onChangeText={setMessage}
@@ -1020,19 +1011,13 @@ const CreateEchoScreen: React.FC = () => {
                 style={[
                   styles.messageInput,
                   {
-                    height: Math.min(
-                      Math.max(messageHeight, MIN_MESSAGE_HEIGHT),
-                      MAX_MESSAGE_HEIGHT,
-                    ),
+                    minHeight: MIN_MESSAGE_HEIGHT,
+                    maxHeight: MAX_MESSAGE_HEIGHT,
                   },
                 ]}
                 multiline
+                scrollEnabled
                 textAlignVertical="top"
-                onContentSizeChange={e =>
-                  setMessageHeight(e.nativeEvent.contentSize.height)
-                }
-                // Scroll inside the box only once content exceeds the cap.
-                scrollEnabled={messageHeight > MAX_MESSAGE_HEIGHT}
               />
             </View>
 
@@ -1097,7 +1082,7 @@ const CreateEchoScreen: React.FC = () => {
           {/* SAVE in-flow below the scroll; KeyboardAvoidingView lifts it to sit
               directly above the keyboard. Transparent — content lives in the
               scroll above it, never behind it, so no media shows through. */}
-          <View style={footerStyle}>
+          <View style={styles.footer}>
             <Button
               variant="primary"
               size="L"
