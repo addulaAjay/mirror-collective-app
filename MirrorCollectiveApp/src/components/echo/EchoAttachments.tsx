@@ -95,12 +95,17 @@ function AttachmentCard({ att }: { att: Attachment }) {
 
   let media: React.ReactNode = null;
   if (att.type === 'IMAGE') {
+    // pointerEvents="none" on the wrapper lets vertical drags pass through to
+    // the ScrollView so the page scrolls when you swipe over the image (not
+    // just on the side margins).
     media = (
-      <Image
-        source={{ uri: att.media_url }}
-        style={styles.image}
-        resizeMode="cover"
-      />
+      <View style={styles.image} pointerEvents="none">
+        <Image
+          source={{ uri: att.media_url }}
+          style={StyleSheet.absoluteFill}
+          resizeMode="cover"
+        />
+      </View>
     );
   } else if (att.type === 'VIDEO') {
     // Tap-to-play poster (NOT an inline <Video controls>) — native video

@@ -53,12 +53,12 @@ import {
   type TextStyle,
   type ViewStyle,
 } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import Svg, { Path } from 'react-native-svg';
 import AudioRecorderPlayer from 'react-native-audio-recorder-player';
 import DocumentPicker from 'react-native-document-picker';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Svg, { Path } from 'react-native-svg';
 import Video from 'react-native-video';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
@@ -258,11 +258,14 @@ const AttachmentPreview: React.FC<AttachmentPreviewProps> = ({
   if (attachment.kind === 'IMAGE') {
     return (
       <View style={styles.previewCard}>
-        <Image
-          source={{ uri: attachment.uri }}
-          style={styles.previewImage}
-          resizeMode="cover"
-        />
+        {/* pointerEvents none → vertical drags scroll the page, not get eaten. */}
+        <View style={StyleSheet.absoluteFill} pointerEvents="none">
+          <Image
+            source={{ uri: attachment.uri }}
+            style={styles.previewImage}
+            resizeMode="cover"
+          />
+        </View>
         <RemoveCircle onPress={onRemove} floating />
         <TouchableOpacity
           style={styles.previewCaption}
@@ -286,11 +289,13 @@ const AttachmentPreview: React.FC<AttachmentPreviewProps> = ({
     return (
       <View style={[styles.previewCard, styles.previewVideoBg]}>
         {attachment.thumbUri ? (
-          <Image
-            source={{ uri: attachment.thumbUri }}
-            style={styles.previewImage}
-            resizeMode="cover"
-          />
+          <View style={StyleSheet.absoluteFill} pointerEvents="none">
+            <Image
+              source={{ uri: attachment.thumbUri }}
+              style={styles.previewImage}
+              resizeMode="cover"
+            />
+          </View>
         ) : null}
         <RemoveCircle onPress={onRemove} floating />
         <TouchableOpacity
