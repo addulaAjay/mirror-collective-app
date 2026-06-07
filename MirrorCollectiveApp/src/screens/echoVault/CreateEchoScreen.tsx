@@ -118,6 +118,11 @@ function formatDuration(ms: number): string {
   return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
+// Message box grows with content between these bounds; past the max it scrolls
+// internally so it never dominates the screen (keeps the page scrollable).
+const MIN_MESSAGE_HEIGHT = verticalScale(120);
+const MAX_MESSAGE_HEIGHT = verticalScale(220);
+
 // Non-canonical MIME types pickers report, mapped to what the backend accepts.
 const MIME_ALIASES: Record<string, string> = {
   'image/jpg': 'image/jpeg',
@@ -382,7 +387,7 @@ const CreateEchoScreen: React.FC = () => {
   const [viewEcho, setViewEcho] = useState<EchoResponse | null>(null);
   // Dynamic message-box height — grows with content (min ~120) so the box isn't
   // a fixed slab; the page scrolls when the whole form overflows.
-  const [messageHeight, setMessageHeight] = useState(verticalScale(120));
+  const [messageHeight, setMessageHeight] = useState(MIN_MESSAGE_HEIGHT);
   const [attachments, setAttachments] = useState<DraftAttachment[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [uploadStage, setUploadStage] = useState<UploadStage | null>(null);
@@ -951,14 +956,20 @@ const CreateEchoScreen: React.FC = () => {
                 placeholderTextColor={palette.navy.light}
                 style={[
                   styles.messageInput,
-                  { height: Math.max(verticalScale(120), messageHeight) },
+                  {
+                    height: Math.min(
+                      Math.max(messageHeight, MIN_MESSAGE_HEIGHT),
+                      MAX_MESSAGE_HEIGHT,
+                    ),
+                  },
                 ]}
                 multiline
                 textAlignVertical="top"
                 onContentSizeChange={e =>
                   setMessageHeight(e.nativeEvent.contentSize.height)
                 }
-                scrollEnabled={false}
+                // Scroll inside the box only once content exceeds the cap.
+                scrollEnabled={messageHeight > MAX_MESSAGE_HEIGHT}
               />
             </View>
 
