@@ -69,7 +69,10 @@ import EchoAttachments from '@components/echo/EchoAttachments';
 import LogoHeader from '@components/LogoHeader';
 import { echoApiService } from '@services/api/echo';
 import type { Attachment, EchoResponse, UploadStage } from '@services/api/echo';
-import { createPosterThumbnail } from '@utils/media/compress';
+import {
+  createPosterThumbnail,
+  ensureWebSafePhoto,
+} from '@utils/media/compress';
 import { uuidV4 } from '@utils/uuid';
 
 type NavigationProp = NativeStackNavigationProp<
@@ -610,10 +613,18 @@ const CreateEchoScreen: React.FC = () => {
       );
       const isVideo = contentType.startsWith('video/');
       const id = uuidV4();
+      // Convert HEIC/HEIF photos to JPEG so they display in the email + viewer.
+      let uri = asset.uri;
+      let mime = contentType;
+      if (!isVideo) {
+        const safe = await ensureWebSafePhoto(asset.uri, contentType);
+        uri = safe.uri;
+        mime = safe.contentType;
+      }
       addAttachment({
         id,
-        uri: asset.uri,
-        contentType,
+        uri,
+        contentType: mime,
         name: asset.fileName ?? `gallery-${Date.now()}`,
         kind: isVideo ? 'VIDEO' : 'IMAGE',
         duration:
@@ -639,7 +650,7 @@ const CreateEchoScreen: React.FC = () => {
         ],
         copyTo: 'cachesDirectory',
       });
-      const uri = res.fileCopyUri ?? res.uri;
+      const pickedUri = res.fileCopyUri ?? res.uri;
       const name = res.name ?? `file-${Date.now()}`;
       // DocumentPicker's mime can be missing/generic on some platforms; fall
       // back to the extension so the backend allowlist accepts it (.pdf/.png/
@@ -647,16 +658,21 @@ const CreateEchoScreen: React.FC = () => {
       const contentType = resolveFileContentType(name, res.type);
       const id = uuidV4();
       const isVideo = contentType.startsWith('video/');
+      const isImage = contentType.startsWith('image/');
+      // Convert HEIC/HEIF photos to JPEG so they display in the email + viewer.
+      let uri = pickedUri;
+      let mime = contentType;
+      if (isImage) {
+        const safe = await ensureWebSafePhoto(pickedUri, contentType);
+        uri = safe.uri;
+        mime = safe.contentType;
+      }
       addAttachment({
         id,
         uri,
-        contentType,
+        contentType: mime,
         name,
-        kind: contentType.startsWith('image/')
-          ? 'IMAGE'
-          : isVideo
-            ? 'VIDEO'
-            : 'FILE',
+        kind: isImage ? 'IMAGE' : isVideo ? 'VIDEO' : 'FILE',
       });
       if (isVideo) void attachVideoThumb(id, uri);
     } catch (err) {
