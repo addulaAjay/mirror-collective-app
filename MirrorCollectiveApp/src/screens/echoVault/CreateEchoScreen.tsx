@@ -57,7 +57,10 @@ import {
 import AudioRecorderPlayer from 'react-native-audio-recorder-player';
 import DocumentPicker from 'react-native-document-picker';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import {
+  KeyboardAwareScrollView,
+  KeyboardStickyView,
+} from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import Video from 'react-native-video';
@@ -926,27 +929,31 @@ const CreateEchoScreen: React.FC = () => {
               {!viewEcho?.content && atts.length === 0 && (
                 <Text style={styles.viewEmpty}>This echo has no content.</Text>
               )}
-
-              <View style={styles.viewActions}>
-                <TouchableOpacity
-                  style={styles.viewActionBtn}
-                  onPress={handleViewShare}
-                  activeOpacity={0.85}
-                >
-                  <Text style={styles.viewActionText}>Share</Text>
-                </TouchableOpacity>
-                {canEdit && (
-                  <TouchableOpacity
-                    style={styles.viewActionBtn}
-                    onPress={handleViewEdit}
-                    activeOpacity={0.85}
-                  >
-                    <Text style={styles.viewActionText}>Edit</Text>
-                  </TouchableOpacity>
-                )}
-              </View>
             </View>
           </ScrollView>
+
+          {/* Actions pinned to the bottom so they're always reachable while the
+              message + attachments scroll above. */}
+          <View style={styles.footer}>
+            <View style={styles.viewActions}>
+              <TouchableOpacity
+                style={styles.viewActionBtn}
+                onPress={handleViewShare}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.viewActionText}>Share</Text>
+              </TouchableOpacity>
+              {canEdit && (
+                <TouchableOpacity
+                  style={styles.viewActionBtn}
+                  onPress={handleViewEdit}
+                  activeOpacity={0.85}
+                >
+                  <Text style={styles.viewActionText}>Edit</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
         </SafeAreaView>
       </BackgroundWrapper>
     );
@@ -1076,23 +1083,26 @@ const CreateEchoScreen: React.FC = () => {
                 />
               </View>
             </View>
-
-            {/* Save */}
-            <Button
-              variant="primary"
-              size="L"
-              title={isSaving ? savingLabel : 'SAVE'}
-              onPress={onSave}
-              disabled={isSaving}
-            />
-            {isSaving && (
-              <ActivityIndicator
-                color={palette.gold.DEFAULT}
-                style={styles.savingSpinner}
-              />
-            )}
           </View>
         </KeyboardAwareScrollView>
+
+        {/* SAVE pinned to the bottom; rises above the keyboard while typing the
+            message so it's always reachable (content scrolls above it). */}
+        <KeyboardStickyView style={styles.footer}>
+          <Button
+            variant="primary"
+            size="L"
+            title={isSaving ? savingLabel : 'SAVE'}
+            onPress={onSave}
+            disabled={isSaving}
+          />
+          {isSaving && (
+            <ActivityIndicator
+              color={palette.gold.DEFAULT}
+              style={styles.savingSpinner}
+            />
+          )}
+        </KeyboardStickyView>
 
         {/* Photo/video upload bottom sheet (Figma 7544:2839) */}
         <Modal
@@ -1238,6 +1248,7 @@ const styles = StyleSheet.create<{
   safe: ViewStyle;
   kav: ViewStyle;
   kavContent: ViewStyle;
+  footer: ViewStyle;
   content: ViewStyle;
   headerRow: ViewStyle;
   backBtn: ViewStyle;
@@ -1319,7 +1330,17 @@ const styles = StyleSheet.create<{
   bg: { flex: 1 },
   safe: { flex: 1, backgroundColor: 'transparent' },
   kav: { flex: 1, width: '100%' },
-  kavContent: { flexGrow: 1, paddingBottom: verticalScale(spacing.xl * 2) },
+  // Bottom padding clears the pinned footer so the last item isn't hidden.
+  kavContent: { flexGrow: 1, paddingBottom: verticalScale(spacing.m) },
+  footer: {
+    width: '100%',
+    paddingHorizontal: scale(spacing.xl),
+    paddingTop: verticalScale(spacing.m),
+    paddingBottom: verticalScale(spacing.m),
+    borderTopWidth: borderWidth.thin,
+    borderTopColor: 'rgba(163,179,204,0.25)',
+    backgroundColor: 'rgba(10,12,18,0.92)',
+  },
   content: {
     width: '100%',
     paddingHorizontal: scale(spacing.xl),
