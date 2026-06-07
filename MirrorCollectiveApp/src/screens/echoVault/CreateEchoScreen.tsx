@@ -823,6 +823,10 @@ const CreateEchoScreen: React.FC = () => {
             title: title || 'Untitled Echo',
             category: category || 'General',
             echo_type: 'TEXT',
+            // Upload attachments, THEN release — so the email is sent once with
+            // every attachment (and the real sender name), not prematurely on
+            // create before the files exist.
+            defer_release: true,
             recipient_id: recipientId,
             ...(guardianId && { guardian_id: guardianId }),
             ...(lockDate && { release_date: lockDate }),

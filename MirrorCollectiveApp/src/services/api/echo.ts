@@ -72,6 +72,12 @@ export interface CreateEchoRequest {
   unlock_on_death?: boolean; // If true, echo is released when creator dies (verified by guardian)
   /** Optional cover note shown alongside the echo in the recipient's inbox. */
   letter_to_recipient?: string;
+  /**
+   * Suppress create-time auto-release. The Create-an-Echo flow uploads
+   * attachments AFTER create, then releases explicitly — so the notification
+   * email goes out once, with every attachment, and the resolved sender name.
+   */
+  defer_release?: boolean;
 }
 
 /**
