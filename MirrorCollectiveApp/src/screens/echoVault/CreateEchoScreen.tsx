@@ -40,7 +40,6 @@ import {
   ActivityIndicator,
   Alert,
   Image,
-  Keyboard,
   Modal,
   Platform,
   ScrollView,
@@ -58,10 +57,7 @@ import {
 import AudioRecorderPlayer from 'react-native-audio-recorder-player';
 import DocumentPicker from 'react-native-document-picker';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
-import {
-  KeyboardAwareScrollView,
-  KeyboardStickyView,
-} from 'react-native-keyboard-controller';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import Video from 'react-native-video';
@@ -420,22 +416,10 @@ const ErrorBanner: React.FC<{ message: string }> = ({ message }) => (
 const CreateEchoScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
   const insets = useSafeAreaInsets();
-  // Footer is transparent (starfield shows, matches the app background) and only
-  // gets an opaque navy backing while the keyboard is up — because then the
-  // sticky footer is lifted over the media and must hide it.
-  const [keyboardOpen, setKeyboardOpen] = useState(false);
-  useEffect(() => {
-    const showEvt = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
-    const hideEvt = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
-    const show = Keyboard.addListener(showEvt, () => setKeyboardOpen(true));
-    const hide = Keyboard.addListener(hideEvt, () => setKeyboardOpen(false));
-    return () => {
-      show.remove();
-      hide.remove();
-    };
-  }, []);
-  // Footer owns the bottom inset (instead of SafeAreaView) so the sticky footer
-  // can sit flush on the keyboard with no inset-sized gap showing media through.
+  // Footer owns the bottom inset (instead of SafeAreaView) so KeyboardAvoidingView
+  // can push it flush onto the keyboard with no inset-sized gap, and it still
+  // clears the home indicator when idle. It stays fully transparent — content
+  // lives in the scroll above it, never behind it, so no media shows through.
   const footerStyle = [
     styles.footer,
     { paddingBottom: insets.bottom + verticalScale(spacing.m) },
@@ -991,15 +975,17 @@ const CreateEchoScreen: React.FC = () => {
         />
         <LogoHeader navigation={navigation} />
 
-        <KeyboardAwareScrollView
-          style={styles.kav}
-          contentContainerStyle={styles.kavContent}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-          keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
-          bottomOffset={16}
-        >
-          <View style={styles.content}>
+        <KeyboardAvoidingView behavior="padding" style={styles.kav}>
+          <ScrollView
+            style={styles.kav}
+            contentContainerStyle={styles.kavContent}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode={
+              Platform.OS === 'ios' ? 'interactive' : 'on-drag'
+            }
+          >
+            <View style={styles.content}>
             {/* Header row */}
             <View style={styles.headerRow}>
               <TouchableOpacity
@@ -1105,28 +1091,28 @@ const CreateEchoScreen: React.FC = () => {
                 />
               </View>
             </View>
-          </View>
-        </KeyboardAwareScrollView>
+            </View>
+          </ScrollView>
 
-        {/* SAVE pinned to the bottom; rises above the keyboard while typing the
-            message so it's always reachable (content scrolls above it). */}
-        <KeyboardStickyView
-          style={[footerStyle, keyboardOpen && styles.footerOpaque]}
-        >
-          <Button
-            variant="primary"
-            size="L"
-            title={isSaving ? savingLabel : 'SAVE'}
-            onPress={onSave}
-            disabled={isSaving}
-          />
-          {isSaving && (
-            <ActivityIndicator
-              color={palette.gold.DEFAULT}
-              style={styles.savingSpinner}
+          {/* SAVE in-flow below the scroll; KeyboardAvoidingView lifts it to sit
+              directly above the keyboard. Transparent — content lives in the
+              scroll above it, never behind it, so no media shows through. */}
+          <View style={footerStyle}>
+            <Button
+              variant="primary"
+              size="L"
+              title={isSaving ? savingLabel : 'SAVE'}
+              onPress={onSave}
+              disabled={isSaving}
             />
-          )}
-        </KeyboardStickyView>
+            {isSaving && (
+              <ActivityIndicator
+                color={palette.gold.DEFAULT}
+                style={styles.savingSpinner}
+              />
+            )}
+          </View>
+        </KeyboardAvoidingView>
 
         {/* Photo/video upload bottom sheet (Figma 7544:2839) */}
         <Modal
@@ -1273,7 +1259,6 @@ const styles = StyleSheet.create<{
   kav: ViewStyle;
   kavContent: ViewStyle;
   footer: ViewStyle;
-  footerOpaque: ViewStyle;
   content: ViewStyle;
   headerRow: ViewStyle;
   backBtn: ViewStyle;
@@ -1357,18 +1342,15 @@ const styles = StyleSheet.create<{
   kav: { flex: 1, width: '100%' },
   // Bottom padding clears the pinned footer so the last item isn't hidden.
   kavContent: { flexGrow: 1, paddingBottom: verticalScale(spacing.m) },
-  // Transparent by default so the starfield shows through and matches the app
-  // background (footer is in-flow, content never sits behind it when idle).
+  // Always transparent: the starfield shows through and matches the app
+  // background. The footer is in-flow (KeyboardAvoidingView pushes it above the
+  // keyboard), so scroll content sits above it, never behind it — no media bleeds
+  // through and no backing colour is ever needed.
   footer: {
     width: '100%',
     paddingHorizontal: scale(spacing.xl),
     paddingTop: verticalScale(spacing.m),
     paddingBottom: verticalScale(spacing.m),
-  },
-  // Applied only while the keyboard is up: navy.deep backing hides the media the
-  // lifted sticky footer would otherwise float over.
-  footerOpaque: {
-    backgroundColor: palette.navy.deep,
   },
   content: {
     width: '100%',
