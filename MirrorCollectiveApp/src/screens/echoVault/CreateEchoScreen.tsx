@@ -1332,14 +1332,16 @@ const styles = StyleSheet.create<{
   kav: { flex: 1, width: '100%' },
   // Bottom padding clears the pinned footer so the last item isn't hidden.
   kavContent: { flexGrow: 1, paddingBottom: verticalScale(spacing.m) },
-  // Transparent + in-flow (sibling below the ScrollView, not an overlay) so the
-  // starfield shows through and matches the design — no hard bar. Content never
-  // passes behind it, so no backing is needed.
+  // Solid navy.deep (the starfield's own base colour) so the footer blends
+  // invisibly at the bottom when the keyboard is closed, yet fully backs the
+  // button when KeyboardStickyView lifts it over the media while typing —
+  // otherwise the button appears to float on top of an image/video.
   footer: {
     width: '100%',
     paddingHorizontal: scale(spacing.xl),
     paddingTop: verticalScale(spacing.m),
     paddingBottom: verticalScale(spacing.m),
+    backgroundColor: palette.navy.deep,
   },
   content: {
     width: '100%',
