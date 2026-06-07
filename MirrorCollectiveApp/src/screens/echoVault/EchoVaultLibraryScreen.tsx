@@ -60,6 +60,9 @@ import ReactNativeBlobUtil from 'react-native-blob-util';
 import {
   GestureHandlerRootView,
   Swipeable,
+  // RN's TouchableOpacity eats the first tap inside a Swipeable; use the
+  // gesture-handler one for the swipe action buttons.
+  TouchableOpacity as GHTouchableOpacity,
 } from 'react-native-gesture-handler';
 import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -247,7 +250,7 @@ const DraftSwipeRow: React.FC<{
       rightThreshold={40}
       renderRightActions={() => (
         <View style={styles.swipeActions}>
-          <TouchableOpacity
+          <GHTouchableOpacity
             style={styles.swipeIconBtn}
             activeOpacity={0.85}
             onPress={() => {
@@ -258,8 +261,8 @@ const DraftSwipeRow: React.FC<{
             accessibilityLabel="Edit echo"
           >
             <EditIcon />
-          </TouchableOpacity>
-          <TouchableOpacity
+          </GHTouchableOpacity>
+          <GHTouchableOpacity
             style={styles.swipeIconBtn}
             activeOpacity={0.85}
             onPress={() => {
@@ -270,7 +273,7 @@ const DraftSwipeRow: React.FC<{
             accessibilityLabel="Delete echo"
           >
             <TrashIcon />
-          </TouchableOpacity>
+          </GHTouchableOpacity>
         </View>
       )}
     >
