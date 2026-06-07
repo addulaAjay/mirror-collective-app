@@ -277,7 +277,10 @@ const DraftSwipeRow: React.FC<{
         </View>
       )}
     >
-      {children}
+      {/* Opaque backing: without it the right-action panel shows THROUGH the
+          transparent row, so Edit/Delete visually overlap the recipient name +
+          lock. An opaque row hides the actions until it's slid aside. */}
+      <View style={styles.swipeRowBg}>{children}</View>
     </Swipeable>
   );
 };
@@ -761,6 +764,7 @@ const styles = StyleSheet.create<{
   tabTextActive: TextStyle;
   tabTextInactive: TextStyle;
   ghRoot: ViewStyle;
+  swipeRowBg: ViewStyle;
   rowGroup: ViewStyle;
   swipeActions: ViewStyle;
   swipeIconBtn: ViewStyle;
@@ -974,6 +978,12 @@ const styles = StyleSheet.create<{
   // border lives on the group (always full-width) rather than the row.
   ghRoot: {
     flex: 1,
+  },
+  // Opaque backing for swipeable (DRAFT) rows so the revealed Edit/Delete panel
+  // never shows through the row content. navy.deep matches the card base.
+  swipeRowBg: {
+    width: '100%',
+    backgroundColor: palette.navy.deep,
   },
   rowGroup: {
     width: '100%',
