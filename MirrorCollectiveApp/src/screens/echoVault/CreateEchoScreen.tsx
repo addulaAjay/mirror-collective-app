@@ -350,7 +350,9 @@ const RemoveCircle: React.FC<{ onPress: () => void; floating?: boolean }> = ({
     accessibilityRole="button"
     accessibilityLabel="Remove attachment"
   >
-    <Text style={styles.removeCircleText}>✕</Text>
+    <Text style={styles.removeCircleText} allowFontScaling={false}>
+      ✕
+    </Text>
   </TouchableOpacity>
 );
 
@@ -421,7 +423,9 @@ const AttachmentPreview: React.FC<AttachmentPreviewProps> = ({
           accessibilityRole="button"
           accessibilityLabel="Play video"
         >
-          <Text style={styles.previewPlayGlyph}>▶</Text>
+          <Text style={styles.previewPlayGlyph} allowFontScaling={false}>
+            ▶
+          </Text>
         </TouchableOpacity>
         {attachment.duration ? (
           <View style={styles.previewBadge}>
@@ -443,7 +447,9 @@ const AttachmentPreview: React.FC<AttachmentPreviewProps> = ({
           accessibilityRole="button"
           accessibilityLabel={isPlayingAudio ? 'Pause audio' : 'Play audio'}
         >
-          <Text style={styles.audioPlayGlyph}>{isPlayingAudio ? '⏸' : '▶'}</Text>
+          <Text style={styles.audioPlayGlyph} allowFontScaling={false}>
+            {isPlayingAudio ? '⏸' : '▶'}
+          </Text>
         </TouchableOpacity>
         <Text style={styles.chipText} numberOfLines={1}>
           {attachment.name}
@@ -1202,7 +1208,9 @@ const CreateEchoScreen: React.FC = () => {
                 accessibilityRole="button"
                 accessibilityLabel="Close"
               >
-                <Text style={styles.sheetCloseText}>✕</Text>
+                <Text style={styles.sheetCloseText} allowFontScaling={false}>
+                  ✕
+                </Text>
               </TouchableOpacity>
               <Text style={styles.sheetTitle}>
                 Choose type of file you wish to upload
@@ -1251,7 +1259,9 @@ const CreateEchoScreen: React.FC = () => {
               accessibilityRole="button"
               accessibilityLabel="Close video"
             >
-              <Text style={styles.recordClose}>✕</Text>
+              <Text style={styles.recordClose} allowFontScaling={false}>
+                ✕
+              </Text>
             </TouchableOpacity>
             {previewVideo ? (
               <Video
@@ -1280,7 +1290,9 @@ const CreateEchoScreen: React.FC = () => {
                 accessibilityRole="button"
                 accessibilityLabel="Close recorder"
               >
-                <Text style={styles.recordClose}>✕</Text>
+                <Text style={styles.recordClose} allowFontScaling={false}>
+                  ✕
+                </Text>
               </TouchableOpacity>
               <Text style={styles.sheetTitle}>Record your Voice</Text>
               <Text style={styles.recordTimer}>{formatDuration(recordMs)}</Text>

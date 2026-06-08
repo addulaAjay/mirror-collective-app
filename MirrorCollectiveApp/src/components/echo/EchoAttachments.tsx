@@ -183,7 +183,9 @@ function AttachmentCard({ att }: { att: Attachment }) {
               accessibilityRole="button"
               accessibilityLabel="Close video"
             >
-              <Text style={styles.videoModalCloseText}>✕</Text>
+              <Text style={styles.videoModalCloseText} allowFontScaling={false}>
+                ✕
+              </Text>
             </TouchableOpacity>
             <Video
               source={{ uri: att.media_url }}

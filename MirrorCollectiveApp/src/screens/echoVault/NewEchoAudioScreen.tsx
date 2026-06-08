@@ -367,7 +367,7 @@ const NewEchoAudioScreen: React.FC<Props> = ({ navigation, route }) => {
                 <View style={styles.micOuter}>
                   <View style={styles.micInner}>
                     {isRecording
-                      ? <Text style={styles.micIcon}>⏹</Text>
+                      ? <Text style={styles.micIcon} allowFontScaling={false}>⏹</Text>
                       : <Image source={require('@assets/mic.png')} style={{ width: 26, height: 26, tintColor: 'rgba(215,192,138,0.92)' }} resizeMode="contain" />
                     }
                   </View>
