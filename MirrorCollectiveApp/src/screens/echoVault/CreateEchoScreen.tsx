@@ -901,7 +901,17 @@ const CreateEchoScreen: React.FC = () => {
       Alert.alert('Success', 'Echo saved to vault!', [
         {
           text: 'OK',
-          onPress: () => navigation.navigate('MirrorEchoVaultLibrary' as never),
+          // Reset the stack so the create flow (ChooseRecipient → CreateEcho)
+          // is cleared: from the Library, Back now returns to the Echo Vault
+          // landing page, not the echo the user just created.
+          onPress: () =>
+            navigation.reset({
+              index: 1,
+              routes: [
+                { name: 'MirrorEchoVaultHome' },
+                { name: 'MirrorEchoVaultLibrary' },
+              ],
+            } as never),
         },
       ]);
     } catch (error: unknown) {
@@ -1545,13 +1555,17 @@ const styles = StyleSheet.create<{
   },
   addRow: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'stretch',
     justifyContent: 'space-between',
+    gap: scale(spacing.s),
     width: '100%',
   },
+  // Cards flex to share the row evenly (no fixed width) and grow with their
+  // copy via minHeight (no fixed height), so larger OS font settings reflow
+  // the label instead of bleeding it outside the card. See theme/fontScaling.
   addCard: {
-    width: scale(98),
-    height: verticalScale(96),
+    flex: 1,
+    minHeight: verticalScale(96),
     borderRadius: radius.s,
     borderWidth: borderWidth.thin,
     borderColor: palette.navy.light,
@@ -1559,8 +1573,8 @@ const styles = StyleSheet.create<{
     alignItems: 'center',
     justifyContent: 'center',
     gap: verticalScale(spacing.xs),
-    paddingHorizontal: scale(spacing.s),
-    paddingVertical: verticalScale(spacing.xs),
+    paddingHorizontal: scale(6),
+    paddingVertical: verticalScale(spacing.s),
   },
   addCardDisabled: { opacity: 0.5 },
   addCardLabel: {
