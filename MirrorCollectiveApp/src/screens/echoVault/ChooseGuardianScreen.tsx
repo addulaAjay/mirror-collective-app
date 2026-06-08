@@ -418,8 +418,9 @@ const styles = StyleSheet.create({
     borderWidth: 0.25,
     borderColor: palette.navy.medium,
     marginBottom: 16,
-    height: 48,
+    minHeight: 48,
     justifyContent: 'center',
+    paddingVertical: 8,
   },
   dropdownContent: {
     flexDirection: 'row',

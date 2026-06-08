@@ -284,7 +284,7 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   wordChip: {
-    height: 64,
+    minHeight: 64,
     borderRadius: radius.s,
     borderWidth: borderWidth.thin,
     borderColor: 'rgba(163, 179, 204, 0.3)',
@@ -292,6 +292,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: spacing.s,
+    paddingVertical: spacing.xs,
   },
   wordChipSelected: {
     borderColor: palette.gold.DEFAULT,

@@ -127,7 +127,9 @@ function AttachmentCard({ att }: { att: Attachment }) {
           accessibilityRole="button"
           accessibilityLabel="Play video"
         >
-          <Text style={styles.playGlyph}>▶</Text>
+          <Text style={styles.playGlyph} allowFontScaling={false}>
+            ▶
+          </Text>
         </TouchableOpacity>
       </View>
     );
@@ -141,7 +143,9 @@ function AttachmentCard({ att }: { att: Attachment }) {
           accessibilityRole="button"
           accessibilityLabel={playingAudio ? 'Pause audio' : 'Play audio'}
         >
-          <Text style={styles.audioGlyph}>{playingAudio ? '⏸' : '▶'}</Text>
+          <Text style={styles.audioGlyph} allowFontScaling={false}>
+            {playingAudio ? '⏸' : '▶'}
+          </Text>
         </TouchableOpacity>
         <Text style={styles.audioLabel} numberOfLines={1}>
           {name}

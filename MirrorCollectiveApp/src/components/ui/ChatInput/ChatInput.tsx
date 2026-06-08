@@ -192,13 +192,6 @@ const styles = StyleSheet.create({
     tintColor: 'rgba(186, 194, 207, 0.5)',
   },
 
-  iconText: {
-    ...theme.typography.styles.body,
-    color: palette.navy.medium,
-    fontSize: moderateScale(20),
-    height: moderateScale(40),
-  },
-
   // Multiline input. Grows up to MAX_INPUT_HEIGHT, then internal scroll
   // engages.
   //

@@ -73,7 +73,9 @@ const InfoOverlay: React.FC<InfoOverlayProps> = ({
               hitSlop={12}
               style={styles.closeButton}
             >
-              <Text style={styles.closeText}>×</Text>
+              <Text style={styles.closeText} allowFontScaling={false}>
+                ×
+              </Text>
             </Pressable>
           </View>
 
