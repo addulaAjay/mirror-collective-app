@@ -329,13 +329,13 @@ function renderEchoRow(
               <Text style={styles.rowTitle} numberOfLines={2}>
                 {item.title}
               </Text>
-              <Text style={styles.rowSub} numberOfLines={1}>
+              <Text style={styles.rowSub} numberOfLines={2}>
                 {subtitle}
               </Text>
             </View>
           </View>
           <View style={styles.rowRight}>
-            <Text style={styles.rowLabel} numberOfLines={1}>
+            <Text style={styles.rowLabel} numberOfLines={2}>
               {rightLabel}
             </Text>
             {showLock && <LockIcon />}
@@ -658,10 +658,15 @@ export function EchoLibraryContent() {
                     activeOpacity={0.7}
                     style={[styles.tab, activeTab === tab && styles.tabActive]}
                   >
-                    <Text style={[
-                      styles.tabText,
-                      activeTab === tab ? styles.tabTextActive : styles.tabTextInactive,
-                    ]}>
+                    <Text
+                      style={[
+                        styles.tabText,
+                        activeTab === tab ? styles.tabTextActive : styles.tabTextInactive,
+                      ]}
+                      numberOfLines={1}
+                      adjustsFontSizeToFit
+                      minimumFontScale={0.8}
+                    >
                       {tab}
                     </Text>
                   </TouchableOpacity>
@@ -962,12 +967,13 @@ const styles = StyleSheet.create<{
     flexDirection:  'row',
     justifyContent: 'center',
     alignItems:     'center',
-    gap:            scale(32),
+    gap:            scale(20),
     marginBottom:   verticalScale(spacing.s),           // visual separation from rows
   },
 
   tab: {
     paddingVertical: 2,
+    flexShrink: 1,                                       // shrink to fit at large fonts
   },
 
   // Active tab: bottom border Border/Subtle
