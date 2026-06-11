@@ -42,6 +42,36 @@ const VIDEO_SKIP_BYTES = 10 * 1024 * 1024; // 10 MB
 const IMAGE_SKIP_BYTES = 1 * 1024 * 1024; // 1 MB
 
 /**
+ * Make a picked photo web-safe. Browsers and most email clients can't render
+ * HEIC/HEIF (the default iOS camera format), so re-encode those to JPEG
+ * (react-native-compressor decodes HEIC natively and outputs JPEG). Always
+ * converts HEIC regardless of size; leaves already-web-safe formats untouched.
+ * Returns the uri to upload + matching content type so the echo email and
+ * share viewer can display the photo.
+ */
+export async function ensureWebSafePhoto(
+  uri: string,
+  mime: string | undefined,
+): Promise<{ uri: string; contentType: string }> {
+  const isHeic = /hei[cf]/i.test(mime ?? '') || /\.hei[cf]$/i.test(uri);
+  if (!isHeic) {
+    return { uri, contentType: mime ?? 'image/jpeg' };
+  }
+  try {
+    const out = await Image.compress(uri, {
+      compressionMethod: 'manual',
+      maxWidth: 2048,
+      maxHeight: 2048,
+      quality: 0.85,
+    });
+    return { uri: out, contentType: 'image/jpeg' };
+  } catch (err) {
+    console.warn('HEIC→JPEG conversion failed; uploading original:', err);
+    return { uri, contentType: mime ?? 'image/jpeg' };
+  }
+}
+
+/**
  * Compress a video to a 720p / ~6 Mbps target if it's larger than the
  * skip threshold. Returns the new URI (or the original if skipped).
  *

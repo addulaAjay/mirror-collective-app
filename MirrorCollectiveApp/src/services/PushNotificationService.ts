@@ -1,11 +1,17 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import messaging from '@react-native-firebase/messaging';
+import messaging, {
+  type FirebaseMessagingTypes,
+} from '@react-native-firebase/messaging';
 import { Alert, Platform } from 'react-native';
 
 import { registerDeviceApiService } from '@services/api/register-device';
+import { navigate } from '@services/navigationRef';
+
+type RemoteMessage = FirebaseMessagingTypes.RemoteMessage;
 
 class PushNotificationService {
   private userId: string | null = null;
+  private tapHandlersBound = false;
 
   /**
    * Initializes the push notification service.
@@ -17,14 +23,71 @@ class PushNotificationService {
     // 1. Handle foreground messages
     this.initializeForegroundHandler();
 
-    // 2. Handle token refreshes automatically
+    // 2. Handle taps that bring the app from background → foreground, and the
+    //    cold-start case (app launched by tapping a notification).
+    this.initializeTapHandlers();
+
+    // 3. Handle token refreshes automatically
     this.listenToTokenRefresh();
 
-    // 3. Register the current token with the backend if we have one
+    // 4. Request OS notification permission so pushes actually DISPLAY. Without
+    //    this, iOS never shows the system prompt and notifications are silently
+    //    suppressed (the FCM token still registers, so delivery "works" but the
+    //    user sees nothing). iOS only shows the dialog once; later calls just
+    //    return the current status, so calling on every init is safe.
+    await this.requestPermission();
+
+    // 5. Register the current token with the backend if we have one
     const token = await this.getFCMToken();
     if (token) {
       this.registerDeviceWithBackend(token);
     }
+  }
+
+  /**
+   * Route a notification to its in-app destination based on the `data` payload
+   * the backend attaches (see SoulPing.push_data on the API side). Soul Pings
+   * carry their copy on the notification block, so we pass it through as params
+   * and the SoulPing screen renders without a fetch. Returns true if handled.
+   */
+  private routeFromMessage(remoteMessage: RemoteMessage | null): boolean {
+    const data = remoteMessage?.data ?? {};
+    if (data.type === 'soul_ping') {
+      navigate('SoulPing', {
+        pingId: typeof data.ping_id === 'string' ? data.ping_id : undefined,
+        category: typeof data.category === 'string' ? data.category : undefined,
+        title: remoteMessage?.notification?.title,
+        body: remoteMessage?.notification?.body,
+      });
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Bind background-tap + cold-start handlers exactly once.
+   * - onNotificationOpenedApp: tapped while app was backgrounded.
+   * - getInitialNotification: tapped while app was killed (cold start). The
+   *   navigate() call queues until NavigationContainer.onReady flushes it.
+   */
+  private initializeTapHandlers(): void {
+    if (this.tapHandlersBound) return;
+    this.tapHandlersBound = true;
+
+    messaging().onNotificationOpenedApp(remoteMessage => {
+      this.routeFromMessage(remoteMessage);
+    });
+
+    messaging()
+      .getInitialNotification()
+      .then(remoteMessage => {
+        if (remoteMessage) {
+          this.routeFromMessage(remoteMessage);
+        }
+      })
+      .catch(err =>
+        console.error('getInitialNotification failed:', err),
+      );
   }
 
   /**
@@ -154,12 +217,20 @@ class PushNotificationService {
    * Handle incoming FCM messages while app is in foreground.
    */
   initializeForegroundHandler(): void {
-    messaging().onMessage(async (remoteMessage: any) => {
+    messaging().onMessage(async (remoteMessage: RemoteMessage) => {
       const title = remoteMessage.notification?.title || 'Mirror Collective';
-      const body = remoteMessage.notification?.body || 
-                   (typeof remoteMessage.data?.message === 'string' ? remoteMessage.data?.message : 'New insight available');
+      const body =
+        remoteMessage.notification?.body ||
+        (typeof remoteMessage.data?.message === 'string'
+          ? remoteMessage.data?.message
+          : 'New insight available');
 
-      Alert.alert(title, body, [{ text: 'View' }]);
+      // Foreground messages don't auto-display; offer to open the in-app
+      // destination. "View" routes via the same deep-link path as a tap.
+      Alert.alert(title, body, [
+        { text: 'Dismiss', style: 'cancel' },
+        { text: 'View', onPress: () => this.routeFromMessage(remoteMessage) },
+      ]);
     });
   }
 

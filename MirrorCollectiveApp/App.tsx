@@ -23,16 +23,14 @@ import CheckoutScreen from '@screens/CheckoutScreen';
 import AddNewProfileScreen from '@screens/echoVault/AddNewProfileScreen';
 import ChooseGuardianScreen from '@screens/echoVault/ChooseGuardianScreen';
 import ChooseRecipientScreen from '@screens/echoVault/ChooseRecipientScreen';
-import EchoAudioPlaybackScreen from '@screens/echoVault/EchoAudioPlaybackScreen';
-import EchoDetailScreen from '@screens/echoVault/EchoDetailScreen';
 import MirrorEchoVaultHomeScreen from '@screens/echoVault/EchoVaultHomeScreen';
 import EchoInboxScreen from '@screens/echoVault/EchoInboxScreen';
 import MirrorEchoVaultLibraryScreen from '@screens/echoVault/EchoVaultLibraryScreen';
-import EchoVideoPlaybackScreen from '@screens/echoVault/EchoVideoPlaybackScreen';
 import ManageGuardianScreen from '@screens/echoVault/ManageGuardianScreen';
 import ManageRecipientScreen from '@screens/echoVault/ManageRecipientScreen';
 import NewEchoAudioScreen from '@screens/echoVault/NewEchoAudioScreen';
 import NewEchoComposeScreen from '@screens/echoVault/NewEchoComposeScreen';
+import CreateEchoScreen from '@screens/echoVault/CreateEchoScreen';
 import NewEchoScreen from '@screens/echoVault/NewEchoVaultScreen';
 import NewEchoVideoScreen from '@screens/echoVault/NewEchoVideoScreen';
 import EchoVaultStorageScreen from '@screens/EchoVaultStorageScreen';
@@ -71,12 +69,14 @@ import { JourneyProvider } from '@features/reflection-room/state/JourneyContext'
 import ResetPasswordScreen from '@screens/ResetPasswordScreen';
 import SignUpScreen from '@screens/SignUpScreen';
 import SplashScreen from '@screens/SplashScreen';
+import SoulPingScreen from '@screens/SoulPingScreen';
 import StartFreeTrialScreen from '@screens/StartFreeTrialScreen';
 import TalkToMirrorScreen from '@screens/TalkToMirrorScreen';
 import TermsAndConditionsScreen from '@screens/TermsAndConditionsScreen';
 import TheMirrorPledgeCommingsoonScreen from '@screens/TheMirrorPledgeCommingsoonScreen';
 import VerifyEmailScreen from '@screens/VerifyEmailScreen';
 import { OnboardingService } from '@services';
+import { navigationRef, flushPendingNavigation } from '@services/navigationRef';
 import PushNotificationService from '@services/PushNotificationService';
 import { ThemeProvider } from '@theme';
 import type { RootStackParamList } from '@types';
@@ -106,15 +106,6 @@ const AuthNavigator = () => (
       component={ManageGuardianScreen}
     />
     <Stack.Screen
-      name="EchoVideoPlaybackScreen"
-      component={EchoVideoPlaybackScreen}
-    />
-    <Stack.Screen
-      name="EchoAudioPlaybackScreen"
-      component={EchoAudioPlaybackScreen}
-    />
-    <Stack.Screen name="EchoDetailScreen" component={EchoDetailScreen} />
-    <Stack.Screen
       name="ChooseGuardianScreen"
       component={ChooseGuardianScreen}
     />
@@ -129,6 +120,7 @@ const AuthNavigator = () => (
       name="NewEchoComposeScreen"
       component={NewEchoComposeScreen}
     />
+    <Stack.Screen name="CreateEchoScreen" component={CreateEchoScreen} />
     <Stack.Screen name="NewEchoScreen" component={NewEchoScreen} />
     <Stack.Screen
       name="MirrorEchoVaultLibrary"
@@ -211,6 +203,7 @@ const AuthenticatedNavigator = ({ initialRouteName = 'EnterMirror' }: Authentica
     <Stack.Screen name="AppVideo" component={AppVideoScreen} />
     <Stack.Screen name="TalkToMirror" component={TalkToMirrorScreen} />
     <Stack.Screen name="MirrorChat" component={MirrorChatWithErrorBoundary} />
+    <Stack.Screen name="SoulPing" component={SoulPingScreen} />
     {/* Profile & Settings */}
     <Stack.Screen name="Profile" component={ProfileScreen} />
     <Stack.Screen name="About" component={AboutScreen} />
@@ -243,6 +236,7 @@ const AuthenticatedNavigator = ({ initialRouteName = 'EnterMirror' }: Authentica
     <Stack.Screen name="EchoInboxScreen" component={EchoInboxScreen} />
     <Stack.Screen name="NewEchoScreen" component={NewEchoScreen} />
     <Stack.Screen name="NewEchoComposeScreen" component={NewEchoComposeScreen} />
+    <Stack.Screen name="CreateEchoScreen" component={CreateEchoScreen} />
     <Stack.Screen name="NewEchoAudioScreen" component={NewEchoAudioScreen} />
     <Stack.Screen name="NewEchoVideoScreen" component={NewEchoVideoScreen} />
     <Stack.Screen name="ManageGuardianScreen" component={ManageGuardianScreen} />
@@ -250,9 +244,6 @@ const AuthenticatedNavigator = ({ initialRouteName = 'EnterMirror' }: Authentica
     <Stack.Screen name="ChooseGuardianScreen" component={ChooseGuardianScreen} />
     <Stack.Screen name="ChooseRecipientScreen" component={ChooseRecipientScreen} />
     <Stack.Screen name="AddNewProfileScreen" component={AddNewProfileScreen} />
-    <Stack.Screen name="EchoDetailScreen" component={EchoDetailScreen} />
-    <Stack.Screen name="EchoAudioPlaybackScreen" component={EchoAudioPlaybackScreen} />
-    <Stack.Screen name="EchoVideoPlaybackScreen" component={EchoVideoPlaybackScreen} />
     <Stack.Screen name="Checkout" component={CheckoutScreen} />
     <Stack.Screen name="StartFreeTrial" component={StartFreeTrialScreen} />
     <Stack.Screen name="EchoVaultStorage" component={EchoVaultStorageScreen} />
@@ -314,7 +305,11 @@ const AppNavigator = () => {
 
   return (
     <NavigationContainer
+      ref={navigationRef}
       key={isAuthenticated ? 'authenticated' : 'unauthenticated'}
+      // Replay any notification-tap navigation queued before the tree mounted
+      // (cold-start taps land here before the container is ready).
+      onReady={flushPendingNavigation}
       onStateChange={navState => {
         if (__DEV__) {
           console.log('Navigation state changed:', navState);

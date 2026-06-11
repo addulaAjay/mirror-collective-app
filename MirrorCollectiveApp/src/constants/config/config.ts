@@ -1,20 +1,19 @@
-import { Platform } from 'react-native';
+// Production API gateway (production stage → production APNs). Release builds —
+// including TestFlight and the App Store — ALWAYS talk to this host so a
+// production push token never gets registered against a sandbox/staging
+// backend (and vice-versa). See docs/SOUL_PINGS_PRD.md / iOS APNs notes.
+const PROD_HOST = 'https://ct3onxgeol.execute-api.us-east-1.amazonaws.com';
 
-const DEFAULT_HOST = Platform.select({
-  android: 'https://ct3onxgeol.execute-api.us-east-1.amazonaws.com',
-  // For physical device testing, use Mac's local IP
-  // For simulator, use 127.0.0.1
-  ios: 'https://ct3onxgeol.execute-api.us-east-1.amazonaws.com',
-  //ios: 'http://127.0.0.1:8001',
-  default: 'https://ct3onxgeol.execute-api.us-east-1.amazonaws.com',
-});
-
+// Debug-only override for local / staging work (e.g. MIRROR_API_BASE_URL set in
+// a .env consumed at build time). Ignored in release builds on purpose.
 const HOST_OVERRIDE =
-  process.env.MIRROR_API_BASE_URL ||
-  process.env.API_BASE_URL;
+  process.env.MIRROR_API_BASE_URL || process.env.API_BASE_URL;
+
+// __DEV__ is false in Release/TestFlight/App Store builds, true under Metro.
+const DEFAULT_HOST = __DEV__ ? HOST_OVERRIDE || PROD_HOST : PROD_HOST;
 
 export const API_CONFIG = {
-  HOST: HOST_OVERRIDE || DEFAULT_HOST!,
+  HOST: DEFAULT_HOST,
   ENDPOINTS: {
     // Updated chat endpoint to match MirrorGPT API
     MIRROR_CHAT: '/api/mirrorgpt/chat',

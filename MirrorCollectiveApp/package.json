@@ -53,6 +53,7 @@
     "react-native-gesture-handler": "^2.27.1",
     "react-native-get-random-values": "^1.11.0",
     "react-native-iap": "^12.16.4",
+    "react-native-image-crop-picker": "^0.41.6",
     "react-native-image-picker": "^8.2.1",
     "react-native-keyboard-controller": "^1.21.7",
     "react-native-linear-gradient": "^2.8.3",
@@ -97,7 +98,7 @@
     "react-native-asset": "^2.1.1",
     "react-native-svg-transformer": "^1.5.3",
     "react-test-renderer": "19.1.0",
-    "style-dictionary": "^4.4.0",
+    "style-dictionary": "^5.0.0",
     "typescript": "5.0.4"
   },
   "lint-staged": {

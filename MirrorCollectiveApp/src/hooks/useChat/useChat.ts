@@ -1,5 +1,5 @@
 import type { Message } from '@types';
-import { useState, useRef } from 'react';
+import { useCallback, useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ScrollView } from 'react-native';
 
@@ -34,12 +34,20 @@ export const useChat = () => {
   const [loading, setLoading] = useState(false);
   const [greetingLoaded, setGreetingLoaded] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
+  // Synchronous in-flight guard. `greetingLoaded` alone can't prevent
+  // duplicate fetches: the mount effect re-runs on re-renders (e.g. the
+  // setLoading(true) below) before the async state flip lands, so two
+  // concurrent getGreeting() calls would race and the slower response
+  // would overwrite the greeting already on screen.
+  const greetingRequestedRef = useRef(false);
 
   /**
-   * Initialize a new session and get greeting message
+   * Initialize a new session and get greeting message.
+   * Idempotent — only the first call does work.
    */
-  const initializeSession = async () => {
-    if (greetingLoaded) return;
+  const initializeSession = useCallback(async () => {
+    if (greetingRequestedRef.current) return;
+    greetingRequestedRef.current = true;
 
     try {
       setLoading(true);
@@ -76,7 +84,7 @@ export const useChat = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.fullName]);
 
   /**
    * Send a message to the chat API using MirrorGPT format

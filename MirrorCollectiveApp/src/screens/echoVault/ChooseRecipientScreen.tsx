@@ -7,7 +7,6 @@
  *   Header row: ← | CHOOSE YOUR RECIPIENT | spacer
  *   "Recipient *" label + inline dropdown (Choose from list ▼ / ▲ + list)
  *   "Lock Date (only if required)" label + date input (calendar icon)
- *   "Letter to Recipient *" label + multiline textarea
  *   NEXT button
  *
  * Hidden (Day 2 / legacy):
@@ -47,6 +46,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
+  Modal,
   Platform,
   ScrollView,
   StatusBar,
@@ -89,14 +89,11 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
   const {
     title,
     category,
-    mode,
     editEchoId,
     prefillRecipient,
     prefillLockDate,
     prefillContent,
-    prefillLetter,
   } = route.params;
-  const isEditing = !!editEchoId;
 
   const [recipients, setRecipients] = useState<Recipient[]>([]);
   const [loading, setLoading] = useState(true);
@@ -121,12 +118,9 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
     prefillLockDate ? new Date(prefillLockDate) : null,
   );
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [notes, setNotes] = useState(prefillLetter ?? '');
-
-  // Note: previous KAV-based implementation manually measured + scrolled
-  // the letter field into view on focus. KeyboardAwareScrollView handles
-  // focused-input scrolling natively, so the workaround was removed
-  // along with letterFieldRef/scrollViewRef/scrollToLetterField.
+  // iOS shows the spinner inside a modal and commits on "Done", so edits are
+  // staged here until confirmed. Android commits immediately on selection.
+  const [draftDate, setDraftDate] = useState<Date>(new Date());
 
   const fetchRecipients = useCallback(async () => {
     try {
@@ -146,10 +140,25 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
     return unsub;
   }, [navigation, fetchRecipients]);
 
+  const openDatePicker = () => {
+    setDraftDate(lockDate ?? new Date());
+    setShowDatePicker(true);
+  };
+
   const handleDateChange = (_: any, date?: Date) => {
-    if (Platform.OS === 'android') setShowDatePicker(false);
-    if (date) setLockDate(date);
-    if (Platform.OS === 'ios') setShowDatePicker(false);
+    if (Platform.OS === 'android') {
+      // Android dialog is self-dismissing; commit immediately.
+      setShowDatePicker(false);
+      if (date) setLockDate(date);
+      return;
+    }
+    // iOS: stage the spinner value; "Done" commits it.
+    if (date) setDraftDate(date);
+  };
+
+  const confirmDate = () => {
+    setLockDate(draftDate);
+    setShowDatePicker(false);
   };
 
   const formatDate = (date: Date) =>
@@ -163,16 +172,14 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
    */
   const handleNext = () => {
     if (!selectedRecipient) return;
-    navigation.navigate('NewEchoComposeScreen', {
-      mode: mode ?? 'text',
+    // Both create and edit now use the unified CreateEchoScreen; editEchoId
+    // makes it load the existing draft (message + attachments) and PATCH.
+    navigation.navigate('CreateEchoScreen', {
       title,
       category,
-      hasRecipient: true,
-      recipient:    selectedRecipient,
-      recipientId:  selectedRecipient.recipient_id,
+      recipientId: selectedRecipient.recipient_id,
       recipientName: selectedRecipient.name,
-      lockDate:     lockDate?.toISOString(),
-      letterToRecipient: notes.trim() ? notes : undefined,
+      lockDate: lockDate?.toISOString(),
       ...(editEchoId ? { editEchoId, initialContent: prefillContent } : {}),
     });
   };
@@ -336,8 +343,10 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
               <View style={styles.fieldWithIcon}>
                 <TouchableOpacity
                   style={styles.fieldTouchable}
-                  activeOpacity={0.9}
-                  onPress={() => setShowDatePicker(true)}
+                  activeOpacity={0.7}
+                  onPress={openDatePicker}
+                  accessibilityRole="button"
+                  accessibilityLabel="Choose lock date"
                 >
                   <View pointerEvents="none">
                     <TextInputField
@@ -358,31 +367,61 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
                 </View>
               </View>
 
-              {showDatePicker && (
+              {/* Android: native self-dismissing dialog. */}
+              {Platform.OS === 'android' && showDatePicker && (
                 <DateTimePicker
                   value={lockDate ?? new Date()}
                   mode="date"
-                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                  display="default"
                   onChange={handleDateChange}
                   minimumDate={new Date()}
-                  textColor={palette.gold.DEFAULT}
-                  themeVariant="dark"
                 />
               )}
-            </View>
 
-            {/* ── Letter to Recipient ───────────────────────────────── */}
-            <View style={styles.fieldGroup}>
-              <TextInputField
-                label="Letter to Recipient"
-                placeholder="Write notes here"
-                value={notes}
-                onChangeText={setNotes}
-                size="L"
-                multiline
-                placeholderAlign="left"
-                maxHeight={verticalScale(160)}
-              />
+              {/* iOS: spinner in a confirm/cancel sheet — responsive + clear. */}
+              {Platform.OS === 'ios' && (
+                <Modal
+                  visible={showDatePicker}
+                  transparent
+                  animationType="fade"
+                  onRequestClose={() => setShowDatePicker(false)}
+                >
+                  <TouchableOpacity
+                    style={styles.pickerBackdrop}
+                    activeOpacity={1}
+                    onPress={() => setShowDatePicker(false)}
+                  >
+                    <View style={styles.pickerCard}>
+                      <View style={styles.pickerHeader}>
+                        <TouchableOpacity
+                          onPress={() => setShowDatePicker(false)}
+                          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                        >
+                          <Text style={styles.pickerCancel}>Cancel</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          onPress={confirmDate}
+                          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                        >
+                          <Text style={styles.pickerDone}>Done</Text>
+                        </TouchableOpacity>
+                      </View>
+                      <DateTimePicker
+                        value={draftDate}
+                        mode="date"
+                        display="spinner"
+                        onChange={handleDateChange}
+                        minimumDate={new Date()}
+                        textColor={palette.gold.DEFAULT}
+                        themeVariant="dark"
+                        // Full width so the spinner columns spread evenly and
+                        // sit centered (default intrinsic width left-shifts them).
+                        style={styles.iosPicker}
+                      />
+                    </View>
+                  </TouchableOpacity>
+                </Modal>
+              )}
             </View>
 
             {/* ── NEXT button ───────────────────────────────────────── */}
@@ -439,6 +478,12 @@ const styles = StyleSheet.create<{
   emptyText: TextStyle;
   addNewRow: ViewStyle;
   addNewText: TextStyle;
+  pickerBackdrop: ViewStyle;
+  pickerCard: ViewStyle;
+  iosPicker: ViewStyle;
+  pickerHeader: ViewStyle;
+  pickerCancel: TextStyle;
+  pickerDone: TextStyle;
   calendarIcon: ImageStyle;
   backArrowImg: ImageStyle;
 }>({
@@ -629,6 +674,43 @@ const styles = StyleSheet.create<{
     textAlign:  'center',
   },
 
+
+  // ── iOS date-picker sheet ────────────────────────────────────────────────
+  pickerBackdrop: {
+    flex:            1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent:  'flex-end',
+  },
+  pickerCard: {
+    backgroundColor:   palette.navy.deep,
+    borderTopLeftRadius:  radius.l,
+    borderTopRightRadius: radius.l,
+    borderTopWidth:    0.5,
+    borderColor:       palette.navy.light,
+    paddingBottom:     verticalScale(spacing.xl),
+  },
+  iosPicker: {
+    width:      '100%',
+    alignSelf:  'center',
+  },
+  pickerHeader: {
+    flexDirection:     'row',
+    justifyContent:    'space-between',
+    paddingHorizontal: scale(spacing.l),
+    paddingVertical:   verticalScale(spacing.s),
+    borderBottomWidth: 0.5,
+    borderBottomColor: 'rgba(163,179,204,0.25)',
+  },
+  pickerCancel: {
+    fontFamily: fontFamily.body,
+    fontSize:   moderateScale(fontSize.s),
+    color:      palette.navy.light,
+  },
+  pickerDone: {
+    fontFamily: fontFamily.heading,
+    fontSize:   moderateScale(fontSize.l),
+    color:      palette.gold.DEFAULT,
+  },
 
   calendarIcon: {
     width:     scale(20),

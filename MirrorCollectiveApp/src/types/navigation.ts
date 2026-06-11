@@ -55,6 +55,12 @@ export type RootStackParamList = {
   EnterMirror: undefined;
   AppVideo: undefined;
   TalkToMirror: undefined;
+  // Soul Ping landing screen — opened by tapping a Soul Ping push. Content is
+  // carried in params from the notification so the screen renders without a
+  // fetch (a GET feed endpoint lands in a later phase).
+  SoulPing:
+    | { pingId?: string; category?: string; title?: string; body?: string }
+    | undefined;
   Login: undefined;
   MirrorChat: undefined;
   SignUp: undefined;
@@ -106,6 +112,26 @@ export type RootStackParamList = {
      * so it persists alongside the echo.
      */
     letterToRecipient?: string;
+  };
+  /**
+   * Unified "Create an Echo" compose screen (new design, Figma 7544:1873).
+   * Message + multiple attachments (photo/video/voice/file). Params mirror
+   * NewEchoComposeScreen's create-flow fields (no mode — attachments drive type).
+   */
+  CreateEchoScreen: {
+    title?: string;
+    category?: string;
+    recipientId?: string;
+    recipientName?: string;
+    guardianId?: string;
+    lockDate?: string;
+    unlockOnDeath?: boolean;
+    letterToRecipient?: string;
+    /** Edit mode: load this draft's message + attachments and PATCH on save. */
+    editEchoId?: string;
+    initialContent?: string;
+    /** View (read-only) mode: load + display message + all attachments. */
+    viewEchoId?: string;
   };
   NewEchoAudioScreen: {
     recipientId?: string;
@@ -170,9 +196,6 @@ export type RootStackParamList = {
     prefillLetter?: string;
   };
   AddNewProfileScreen: { mode?: 'recipient' | 'guardian' } | undefined;
-  EchoDetailScreen: { echoId: string; title?: string; body?: string };
-  EchoAudioPlaybackScreen: { echoId: string; title?: string; transcript?: string };
-  EchoVideoPlaybackScreen: { echoId: string; title?: string };
   Checkout: undefined;
 };
 

@@ -152,7 +152,9 @@ const PracticeOverlay: React.FC<PracticeOverlayProps> = ({
           hitSlop={12}
           style={styles.closeButton}
         >
-          <Text style={styles.closeText}>×</Text>
+          <Text style={styles.closeText} allowFontScaling={false}>
+            ×
+          </Text>
         </Pressable>
       </View>
 

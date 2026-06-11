@@ -72,6 +72,12 @@ export interface CreateEchoRequest {
   unlock_on_death?: boolean; // If true, echo is released when creator dies (verified by guardian)
   /** Optional cover note shown alongside the echo in the recipient's inbox. */
   letter_to_recipient?: string;
+  /**
+   * Suppress create-time auto-release. The Create-an-Echo flow uploads
+   * attachments AFTER create, then releases explicitly — so the notification
+   * email goes out once, with every attachment, and the resolved sender name.
+   */
+  defer_release?: boolean;
 }
 
 /**
@@ -84,11 +90,33 @@ export interface CreateEchoRequest {
  */
 export type EchoStatus = 'DRAFT' | 'LOCKED' | 'RELEASED';
 
+export type AttachmentType = 'IMAGE' | 'VIDEO' | 'AUDIO' | 'FILE';
+
+/**
+ * A single media attachment on an echo. An echo carries a text `content`
+ * plus zero or more attachments (photo / video / voice / file). `media_url`
+ * and `thumb_url` come back presigned for direct playback/preview.
+ */
+export interface Attachment {
+  attachment_id: string;
+  type: AttachmentType;
+  media_url: string;
+  thumb_url?: string | null;
+  mime_type?: string | null;
+  size_bytes?: number | null;
+  duration?: string | null;
+  filename?: string | null;
+  created_at?: string;
+}
+
 export interface EchoResponse {
   echo_id: string;
   title: string;
   category: string;
   echo_type: 'TEXT' | 'AUDIO' | 'VIDEO';
+  /** Media attachments (photo/video/voice/file) — present from the
+   *  multi-attachment backend onward. Absent on older single-media rows. */
+  attachments?: Attachment[];
   /** Backend lifecycle state — use this (not date heuristics) to drive UI. */
   status?: EchoStatus;
   created_at: string;
@@ -675,6 +703,160 @@ export class EchoApiService extends BaseApiService {
       true,
     );
     return ApiErrorHandler.handleApiResponse(response, 'Poster attached');
+  }
+
+  /**
+   * Append a verified attachment to an echo (multi-attachment model).
+   *
+   * Unlike finalizeMedia (single media_url, first-write), this APPENDS — an
+   * echo can carry a text message plus multiple photo/video/voice/file
+   * attachments. Returns the echo with its current attachment list (signed).
+   */
+  async addAttachment(
+    echoId: string,
+    key: string,
+    opts?: {
+      contentType?: string;
+      duration?: string;
+      thumbKey?: string;
+      filename?: string;
+    },
+  ): Promise<ApiResponse<EchoResponse>> {
+    const response = await this.makeRequest<EchoResponse>(
+      `/api/echoes/${encodeURIComponent(echoId)}/attachments`,
+      'POST',
+      {
+        key,
+        ...(opts?.contentType ? { content_type: opts.contentType } : {}),
+        ...(opts?.duration ? { duration: opts.duration } : {}),
+        ...(opts?.thumbKey ? { thumb_key: opts.thumbKey } : {}),
+        ...(opts?.filename ? { filename: opts.filename } : {}),
+      },
+      true,
+      { 'Idempotency-Key': uuidV4() },
+    );
+    return ApiErrorHandler.handleApiResponse(response, 'Attachment added');
+  }
+
+  /**
+   * Remove an attachment from a DRAFT echo (edit flow). Owner-only, and the
+   * backend rejects it once the echo is RELEASED. Returns the updated echo.
+   */
+  async removeAttachment(
+    echoId: string,
+    attachmentId: string,
+  ): Promise<ApiResponse<EchoResponse>> {
+    const response = await this.makeRequest<EchoResponse>(
+      `/api/echoes/${encodeURIComponent(echoId)}/attachments/${encodeURIComponent(
+        attachmentId,
+      )}`,
+      'DELETE',
+      undefined,
+      true,
+    );
+    return ApiErrorHandler.handleApiResponse(response, 'Attachment removed');
+  }
+
+  /**
+   * Upload a single attachment and append it to the echo.
+   *
+   * Mirrors the media pipeline (compress → presigned PUT → S3) but finalizes
+   * via addAttachment so multiple attachments can coexist. For video, extracts
+   * and uploads a poster JPEG and passes its key as `thumbKey` so the
+   * attachment carries a thumbnail.
+   *
+   * Single-PUT only today; very large videos (> MULTIPART_THRESHOLD) should go
+   * through the dedicated video flow until attachment-multipart lands.
+   */
+  async uploadEchoAttachment(
+    echoId: string,
+    fileUri: string,
+    contentType: string,
+    opts?: { duration?: string; filename?: string },
+    onStage?: (stage: UploadStage) => void,
+  ): Promise<ApiResponse<EchoResponse>> {
+    let workingUri = fileUri;
+    try {
+      if (contentType.startsWith('video/')) {
+        const { uri } = await compressVideoIfNeeded(fileUri, fraction => {
+          onStage?.({ type: 'compressing', fraction });
+        });
+        workingUri = uri;
+      } else if (contentType.startsWith('image/')) {
+        onStage?.({ type: 'compressing', fraction: 0 });
+        const { uri } = await compressImageIfNeeded(fileUri);
+        workingUri = uri;
+        onStage?.({ type: 'compressing', fraction: 1 });
+      }
+
+      onStage?.({ type: 'requesting_url' });
+      const presigned = await this.getUploadUrl(contentType, echoId, 'echo');
+      if (!presigned.success || !presigned.data) {
+        return forwardFailure<EchoResponse>(presigned);
+      }
+      const { upload_url, key } = presigned.data;
+
+      await this.uploadMedia(
+        upload_url,
+        workingUri,
+        contentType,
+        (sent, total) => {
+          onStage?.({ type: 'uploading', sent, total });
+        },
+      );
+
+      // Video: best-effort poster so the attachment carries a thumbnail.
+      let thumbKey: string | undefined;
+      if (contentType.startsWith('video/')) {
+        const posterKey = await this._uploadAttachmentPoster(echoId, workingUri);
+        thumbKey = posterKey ?? undefined;
+      }
+
+      onStage?.({ type: 'finalizing' });
+      const added = await this.addAttachment(echoId, key, {
+        contentType,
+        duration: opts?.duration,
+        thumbKey,
+        filename: opts?.filename,
+      });
+      if (!added.success) {
+        return {
+          ...added,
+          error:
+            added.error ||
+            'Upload completed but could not be confirmed. Please try again.',
+        };
+      }
+      return added;
+    } finally {
+      if (workingUri !== fileUri) {
+        await unlinkQuietly(workingUri);
+      }
+    }
+  }
+
+  /** Extract + upload a poster for a video attachment; returns the S3 key. */
+  private async _uploadAttachmentPoster(
+    echoId: string,
+    videoUri: string,
+  ): Promise<string | null> {
+    let posterPath: string | null = null;
+    try {
+      posterPath = await createPosterThumbnail(videoUri);
+      if (!posterPath) return null;
+      const presigned = await this.getUploadUrl('image/jpeg', echoId, 'echo');
+      if (!presigned.success || !presigned.data) return null;
+      const { upload_url, key } = presigned.data;
+      await this.uploadMedia(upload_url, posterPath, 'image/jpeg');
+      return key;
+    } catch (err) {
+      console.warn('Attachment poster failed:', err);
+      return null;
+    } finally {
+      if (posterPath) {
+        await unlinkQuietly(posterPath);
+      }
+    }
   }
 
   // ========== Multipart upload (files > MULTIPART_THRESHOLD) ==========

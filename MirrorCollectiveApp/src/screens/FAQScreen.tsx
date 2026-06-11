@@ -305,7 +305,9 @@ export default function FAQScreen() {
           {/* Title Row */}
           <View style={styles.titleRow}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-              <Text style={styles.backArrow}>←</Text>
+              <Text style={styles.backArrow} allowFontScaling={false}>
+                ←
+              </Text>
             </TouchableOpacity>
             <Text style={styles.title}>FAQ</Text>
             <View style={{ width: 30 }} />
@@ -321,7 +323,7 @@ export default function FAQScreen() {
                   activeOpacity={0.85}
                 >
                   <Text style={styles.sectionTitle}>{section.title}</Text>
-                  <Text style={styles.sectionChevron}>
+                  <Text style={styles.sectionChevron} allowFontScaling={false}>
                     {isSectionOpen ? '▴' : '▾'}
                   </Text>
                 </TouchableOpacity>
@@ -341,7 +343,7 @@ export default function FAQScreen() {
                           >
                             <View style={styles.cardTopRow}>
                               <Text style={styles.cardQuestion}>{item.q}</Text>
-                              <Text style={styles.cardIcon}>
+                              <Text style={styles.cardIcon} allowFontScaling={false}>
                                 {expanded ? '−' : '+'}
                               </Text>
                             </View>

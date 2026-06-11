@@ -217,7 +217,11 @@ const ChooseGuardianScreen: React.FC<Props> = ({ navigation, route }) => {
           {/* Authorization Checkboxes */}
           <TouchableOpacity style={styles.authRow} onPress={() => setAuthRelease(!authRelease)}>
             <View style={[styles.checkbox, authRelease && styles.checkboxActive]}>
-              {authRelease && <Text style={styles.checkMark}>✓</Text>}
+              {authRelease && (
+                <Text style={styles.checkMark} allowFontScaling={false}>
+                  ✓
+                </Text>
+              )}
             </View>
             <Text style={styles.authText}>
               I authorize Mirror to release my selected Echoes to my Guardian(s) upon verification of the chosen trigger.
@@ -226,7 +230,11 @@ const ChooseGuardianScreen: React.FC<Props> = ({ navigation, route }) => {
 
           <TouchableOpacity style={styles.authRow} onPress={() => setAuthCustodian(!authCustodian)}>
             <View style={[styles.checkbox, authCustodian && styles.checkboxActive]}>
-              {authCustodian && <Text style={styles.checkMark}>✓</Text>}
+              {authCustodian && (
+                <Text style={styles.checkMark} allowFontScaling={false}>
+                  ✓
+                </Text>
+              )}
             </View>
             <Text style={styles.authText}>
               I understand Mirror is a custodian only and may decline release if verification is incomplete.
@@ -333,7 +341,11 @@ const CheckRow = ({
 }) => (
   <TouchableOpacity style={styles.checkRow} onPress={onPress}>
     <View style={[styles.checkbox, checked && styles.checkboxActive]}>
-      {checked && <Text style={styles.checkMark}>✓</Text>}
+      {checked && (
+        <Text style={styles.checkMark} allowFontScaling={false}>
+          ✓
+        </Text>
+      )}
     </View>
     <Text style={styles.checkLabel}>{label}</Text>
   </TouchableOpacity>
@@ -418,8 +430,9 @@ const styles = StyleSheet.create({
     borderWidth: 0.25,
     borderColor: palette.navy.medium,
     marginBottom: 16,
-    height: 48,
+    minHeight: 48,
     justifyContent: 'center',
+    paddingVertical: 8,
   },
   dropdownContent: {
     flexDirection: 'row',

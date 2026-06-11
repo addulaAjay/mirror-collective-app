@@ -40,9 +40,10 @@ import {
   verticalScale,
 } from '@theme';
 import type { RootStackParamList } from '@types';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   Image,
   StatusBar,
@@ -56,9 +57,16 @@ import {
   type ViewStyle,
 } from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
+import {
+  GestureHandlerRootView,
+  Swipeable,
+  // RN's TouchableOpacity eats the first tap inside a Swipeable; use the
+  // gesture-handler one for the swipe action buttons.
+  TouchableOpacity as GHTouchableOpacity,
+} from 'react-native-gesture-handler';
 import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Svg, { Path } from 'react-native-svg';
+import Svg, { Circle, G, Path } from 'react-native-svg';
 import { SvgXml } from 'react-native-svg';
 
 import { getMotifIcon } from '@assets/motifs/MotifAssets';
@@ -127,12 +135,45 @@ const BackArrowIcon: React.FC = () => (
   />
 );
 
-// ── Lock icon — Figma node 1143:1360 (Vector) ───────────────────────────────
+// ── Lock icon — Figma 7545:2403: gold padlock inside a thin gold circle ───────
 const LockIcon: React.FC = () => (
-  <Svg width={scale(22)} height={scale(22)} viewBox="0 0 24 24" fill="none">
+  <Svg width={scale(24)} height={scale(24)} viewBox="0 0 24 24" fill="none">
+    <Circle cx={12} cy={12} r={11} stroke={palette.gold.DEFAULT} strokeWidth={1} />
+    <G transform="translate(6 6.25) scale(0.5)">
+      <Path
+        d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"
+        fill={palette.gold.DEFAULT}
+      />
+    </G>
+  </Svg>
+);
+
+// ── Swipe-action icons (Figma 7545:2374): gold outline pencil + trash ─────────
+const EditIcon: React.FC = () => (
+  <Svg width={scale(20)} height={scale(20)} viewBox="0 0 24 24" fill="none">
     <Path
-      d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"
-      fill={palette.navy.light}
+      d="M4 20h4L18.5 9.5l-4-4L4 16v4z"
+      stroke={palette.gold.DEFAULT}
+      strokeWidth={1.5}
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M13.5 6.5l4 4"
+      stroke={palette.gold.DEFAULT}
+      strokeWidth={1.5}
+      strokeLinecap="round"
+    />
+  </Svg>
+);
+
+const TrashIcon: React.FC = () => (
+  <Svg width={scale(20)} height={scale(20)} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M5 7h14M10 4h4M6 7l1 13h10l1-13M10 11v6M14 11v6"
+      stroke={palette.gold.DEFAULT}
+      strokeWidth={1.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
     />
   </Svg>
 );
@@ -166,13 +207,10 @@ interface AvatarProps {
 const EchoAvatar: React.FC<AvatarProps> = ({ motif, profileImage, poster }) => (
   <View style={styles.avatarGlow}>
     <View style={styles.avatarRing}>
-      {poster ? (
-        <CachedImage
-          source={{ uri: poster }}
-          style={styles.avatarImg}
-          contentFit="cover"
-        />
-      ) : profileImage ? (
+      {/* Recipient identity wins: profile image → motif. The video poster is
+          only a last resort (e.g. My Vault video echoes with no recipient) so
+          a video thumbnail never masquerades as the recipient's avatar. */}
+      {profileImage ? (
         // CachedImage strips presigned-URL query params for the cache
         // key, so paging back through the vault list doesn't re-download
         // the same avatar bytes on every refresh.
@@ -183,6 +221,12 @@ const EchoAvatar: React.FC<AvatarProps> = ({ motif, profileImage, poster }) => (
         />
       ) : motif && getMotifIcon(motif) ? (
         <SvgXml xml={getMotifIcon(motif)?.xml || ''} width="60%" height="60%" />
+      ) : poster ? (
+        <CachedImage
+          source={{ uri: poster }}
+          style={styles.avatarImg}
+          contentFit="cover"
+        />
       ) : (
         <Image source={require('@assets/Group.png')} style={styles.avatarFallback} />
       )}
@@ -191,13 +235,66 @@ const EchoAvatar: React.FC<AvatarProps> = ({ motif, profileImage, poster }) => (
 );
 
 // ── Row renderer ─────────────────────────────────────────────────────────────
+// Swipe-left-to-delete wrapper. Only used for DRAFT echoes (the only rows the
+// library lets you delete inline). Holds its own Swipeable ref so the panel
+// closes when the action fires.
+const DraftSwipeRow: React.FC<{
+  onEdit: () => void;
+  onDelete: () => void;
+  children: React.ReactNode;
+}> = ({ onEdit, onDelete, children }) => {
+  const ref = useRef<React.ElementRef<typeof Swipeable>>(null);
+  const close = () => ref.current?.close();
+  return (
+    <Swipeable
+      ref={ref}
+      overshootRight={false}
+      friction={2}
+      rightThreshold={40}
+      renderRightActions={() => (
+        <View style={styles.swipeActions}>
+          <GHTouchableOpacity
+            style={styles.swipeIconBtn}
+            activeOpacity={0.85}
+            onPress={() => {
+              close();
+              onEdit();
+            }}
+            accessibilityRole="button"
+            accessibilityLabel="Edit echo"
+          >
+            <EditIcon />
+          </GHTouchableOpacity>
+          <GHTouchableOpacity
+            style={styles.swipeIconBtn}
+            activeOpacity={0.85}
+            onPress={onDelete}
+            accessibilityRole="button"
+            accessibilityLabel="Delete echo"
+          >
+            <TrashIcon />
+          </GHTouchableOpacity>
+        </View>
+      )}
+    >
+      {/* Opaque backing: without it the right-action panel shows THROUGH the
+          transparent row, so Edit/Delete visually overlap the recipient name +
+          lock. An opaque row hides the actions until it's slid aside. */}
+      <View style={styles.swipeRowBg}>{children}</View>
+    </Swipeable>
+  );
+};
+
 // Factored out so FlatList's renderItem reference is stable across renders.
 // Returns a ListRenderItem<EchoResponse> closed over the active tab + the
 // row tap handler; `total` is used to suppress the trailing border on the
-// last row (matches the pre-FlatList visual).
+// last row (matches the pre-FlatList visual). DRAFT rows are wrapped in a
+// swipe-to-delete panel.
 function renderEchoRow(
   activeTab: 'RECIPIENT' | 'CATEGORY',
   onOpen: (item: EchoResponse) => void,
+  onEdit: (item: EchoResponse) => void,
+  onDelete: (item: EchoResponse) => void,
   total: number,
 ): ListRenderItem<EchoResponse> {
   return ({ item, index }) => {
@@ -215,7 +312,7 @@ function renderEchoRow(
       activeTab === 'RECIPIENT'
         ? item.recipient?.name?.toUpperCase() || 'MY VAULT'
         : item.category?.toUpperCase() || 'UNCATEGORIZED';
-    return (
+    const rowGroup = (
       <View style={[styles.rowGroup, !isLast && styles.rowBorder]}>
         <TouchableOpacity
           activeOpacity={0.9}
@@ -232,13 +329,13 @@ function renderEchoRow(
               <Text style={styles.rowTitle} numberOfLines={2}>
                 {item.title}
               </Text>
-              <Text style={styles.rowSub} numberOfLines={1}>
+              <Text style={styles.rowSub} numberOfLines={2}>
                 {subtitle}
               </Text>
             </View>
           </View>
           <View style={styles.rowRight}>
-            <Text style={styles.rowLabel} numberOfLines={1}>
+            <Text style={styles.rowLabel} numberOfLines={2}>
               {rightLabel}
             </Text>
             {showLock && <LockIcon />}
@@ -256,6 +353,18 @@ function renderEchoRow(
           </View>
         )}
       </View>
+    );
+
+    // Only DRAFT echoes can be edited/deleted inline (swipe left → Edit/Delete).
+    return item.status === 'DRAFT' ? (
+      <DraftSwipeRow
+        onEdit={() => onEdit(item)}
+        onDelete={() => onDelete(item)}
+      >
+        {rowGroup}
+      </DraftSwipeRow>
+    ) : (
+      rowGroup
     );
   };
 }
@@ -281,7 +390,6 @@ export function EchoLibraryContent() {
     loadingMore,
     refreshing,
     error,
-    hasMore,
     loadMore,
     refresh,
   } = useInfiniteList<EchoResponse>(fetchEchoPage);
@@ -384,17 +492,67 @@ export function EchoLibraryContent() {
     [],
   );
 
+  // Unified read-only view: all echo types open in CreateEchoScreen's view mode
+  // (message + every attachment with playback), replacing the per-type screens.
   const handleOpenItem = (item: EchoResponse) => {
-    if (item.echo_type === 'AUDIO') {
-      navigation.navigate('EchoAudioPlaybackScreen', { echoId: item.echo_id, title: item.title });
-    } else if (item.echo_type === 'VIDEO') {
-      navigation.navigate('EchoVideoPlaybackScreen', { echoId: item.echo_id, title: item.title });
-    } else {
-      navigation.navigate('EchoDetailScreen', { echoId: item.echo_id, title: item.title });
-    }
+    navigation.navigate('CreateEchoScreen', { viewEchoId: item.echo_id });
   };
 
+  // Swipe-left → Edit: open the draft in the edit flow (prefilled) via
+  // ChooseRecipientScreen → CreateEchoScreen edit mode.
+  const handleEditItem = useCallback(
+    (item: EchoResponse) => {
+      navigation.navigate('ChooseRecipientScreen', {
+        title: item.title,
+        category: item.category,
+        editEchoId: item.echo_id,
+        prefillRecipient: item.recipient,
+        prefillLockDate: item.release_date,
+        prefillContent: item.content,
+        prefillLetter: item.letter_to_recipient,
+      });
+    },
+    [navigation],
+  );
+
+  // Swipe-left → Delete for DRAFT echoes. Optimistically hides the row,
+  // soft-deletes on the backend, then refreshes to reconcile (restores on fail).
+  const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
+  const handleDeleteItem = useCallback(
+    (item: EchoResponse) => {
+      Alert.alert(
+        'Delete echo?',
+        `Delete "${item.title || 'this echo'}"? You can't undo this here.`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Delete',
+            style: 'destructive',
+            onPress: async () => {
+              setHiddenIds(prev => new Set(prev).add(item.echo_id));
+              const res = await echoApiService.deleteEcho(item.echo_id);
+              if (!res.success) {
+                setHiddenIds(prev => {
+                  const next = new Set(prev);
+                  next.delete(item.echo_id);
+                  return next;
+                });
+                Alert.alert('Could not delete', res.error ?? 'Please try again.');
+                return;
+              }
+              refresh();
+            },
+          },
+        ],
+      );
+    },
+    [refresh],
+  );
+
+  const visibleEchoes = echoes.filter(e => !hiddenIds.has(e.echo_id));
+
   return (
+    <GestureHandlerRootView style={styles.ghRoot}>
     <BackgroundWrapper style={styles.bg}>
       <SafeAreaView style={styles.safe}>
         <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
@@ -424,6 +582,9 @@ export function EchoLibraryContent() {
             </View>
             <Text style={styles.subtitle}>
               Preserve memories that matter most
+            </Text>
+            <Text style={styles.subtitleHint}>
+              Slide to edit or delete your echo.
             </Text>
           </View>
 
@@ -497,10 +658,15 @@ export function EchoLibraryContent() {
                     activeOpacity={0.7}
                     style={[styles.tab, activeTab === tab && styles.tabActive]}
                   >
-                    <Text style={[
-                      styles.tabText,
-                      activeTab === tab ? styles.tabTextActive : styles.tabTextInactive,
-                    ]}>
+                    <Text
+                      style={[
+                        styles.tabText,
+                        activeTab === tab ? styles.tabTextActive : styles.tabTextInactive,
+                      ]}
+                      numberOfLines={1}
+                      adjustsFontSizeToFit
+                      minimumFontScale={0.8}
+                    >
                       {tab}
                     </Text>
                   </TouchableOpacity>
@@ -511,9 +677,15 @@ export function EchoLibraryContent() {
                   doesn't render them all upfront. onEndReached drives
                   the cursor-paginated /api/echoes/page fetcher. */}
               <FlatList<EchoResponse>
-                data={echoes}
+                data={visibleEchoes}
                 keyExtractor={item => item.echo_id}
-                renderItem={renderEchoRow(activeTab, handleOpenItem, echoes.length)}
+                renderItem={renderEchoRow(
+                  activeTab,
+                  handleOpenItem,
+                  handleEditItem,
+                  handleDeleteItem,
+                  visibleEchoes.length,
+                )}
                 showsVerticalScrollIndicator={false}
                 style={styles.listScroll}
                 contentContainerStyle={styles.listScrollContent}
@@ -563,6 +735,7 @@ export function EchoLibraryContent() {
         </View>
       </SafeAreaView>
     </BackgroundWrapper>
+    </GestureHandlerRootView>
   );
 }
 
@@ -587,6 +760,7 @@ const styles = StyleSheet.create<{
   headerSpacer: ViewStyle;
   title: TextStyle;
   subtitle: TextStyle;
+  subtitleHint: TextStyle;
   inboxRow: ViewStyle;
   mailIcon: ImageStyle;
   inboxText: TextStyle;
@@ -598,7 +772,11 @@ const styles = StyleSheet.create<{
   tabText: TextStyle;
   tabTextActive: TextStyle;
   tabTextInactive: TextStyle;
+  ghRoot: ViewStyle;
+  swipeRowBg: ViewStyle;
   rowGroup: ViewStyle;
+  swipeActions: ViewStyle;
+  swipeIconBtn: ViewStyle;
   row: ViewStyle;
   rowBorder: ViewStyle;
   rowLeft: ViewStyle;
@@ -647,7 +825,9 @@ const styles = StyleSheet.create<{
   listScroll: { flex: 1 },
   listScrollContent: {
     flexGrow: 1,
-    paddingHorizontal: scale(14),
+    // Small — the avatar inset that keeps its halo unclipped now lives on
+    // rowGroup (see note there), since the Swipeable clips at the row edge.
+    paddingHorizontal: scale(2),
   },
   footerLoader: {
     paddingVertical: verticalScale(12),
@@ -711,6 +891,16 @@ const styles = StyleSheet.create<{
     textAlign:  'center',                        // FIX: was missing
     width:      '100%',
   },
+  // Swipe-gesture hint — smaller muted italic so it reads as guidance, not brand.
+  subtitleHint: {
+    fontFamily: fontFamily.bodyItalic,
+    fontStyle:  'italic',
+    fontSize:   moderateScale(fontSize.xs),      // 14px
+    lineHeight: moderateScale(20),
+    color:      palette.navy.light,
+    textAlign:  'center',
+    width:      '100%',
+  },
 
   // ── Echo Inbox row ─────────────────────────────────────────────────────────
   // Figma 1441:1943 — border-bottom 0.5px Border/Subtle, gap:16, items-center
@@ -751,7 +941,13 @@ const styles = StyleSheet.create<{
     width:           '100%',
     borderRadius:    radius.m,
     borderWidth:     borderWidth.hairline,
-    borderColor:     palette.navy.light,
+    // Figma 1065:1847: Border/Inverse-1 #60739f @ 0.25px.
+    borderColor:     palette.navy.medium,
+    // Solid dark-navy panel — the design's card uses a backdrop-blur over the
+    // starfield (a soft, star-free dark panel) which RN can't reproduce; a solid
+    // navy.card is the faithful approximation AND lets the swipe-row backing
+    // blend in seamlessly (no more dark-blue patch on draft rows).
+    backgroundColor: palette.navy.card,
     paddingVertical: scale(spacing.m),
     // Horizontal padding lives on listScrollContent instead so the
     // avatar's gold glow has room inside the FlatList's scroll-view
@@ -771,12 +967,13 @@ const styles = StyleSheet.create<{
     flexDirection:  'row',
     justifyContent: 'center',
     alignItems:     'center',
-    gap:            scale(32),
+    gap:            scale(20),
     marginBottom:   verticalScale(spacing.s),           // visual separation from rows
   },
 
   tab: {
     paddingVertical: 2,
+    flexShrink: 1,                                       // shrink to fit at large fonts
   },
 
   // Active tab: bottom border Border/Subtle
@@ -788,9 +985,9 @@ const styles = StyleSheet.create<{
   // Heading XS Bold: Cormorant Medium 20/24
   tabText: {
     fontFamily: fontFamily.heading,
-    fontSize:   moderateScale(fontSize.l),              // 20px (font/size/L)
-    fontWeight: '500',                                  // Figma: font-medium
-    lineHeight: moderateScale(24),                      // font/size/XL
+    fontSize:   moderateScale(fontSize.xl),             // 24px (font/size/XL, Figma 1065:1850)
+    fontWeight: fontWeight.regular,                     // Cormorant Regular
+    lineHeight: moderateScale(28),                      // font/size/2XL
     textAlign:  'center',
   },
 
@@ -805,8 +1002,41 @@ const styles = StyleSheet.create<{
   // ── List rows ───────────────────────────────────────────────────────────────
   // rowGroup wraps the touchable row + optional Echo Sent pill so the bottom
   // border lives on the group (always full-width) rather than the row.
+  ghRoot: {
+    flex: 1,
+  },
+  // Opaque backing for swipeable (DRAFT) rows so the revealed Edit/Delete panel
+  // never shows through the row content. navy.card matches the (now solid) card
+  // panel exactly, so a draft row is indistinguishable from the rest at rest.
+  swipeRowBg: {
+    width: '100%',
+    backgroundColor: palette.navy.card,
+  },
   rowGroup: {
     width: '100%',
+    // Inset the row content so the avatar's gold halo fits INSIDE the row's
+    // own bounds. DRAFT rows are wrapped in a Swipeable whose container is
+    // overflow:hidden, which clips anything past the row edge — so FlatList
+    // padding alone can't save the halo; the avatar must sit ≥ its glow
+    // radius (~13px) in from the edge.
+    paddingHorizontal: scale(16),
+  },
+  // Swipe-left delete action (DRAFT rows only).
+  // Swipe-reveal action panel: gold outline Edit + Delete icon buttons.
+  swipeActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: scale(spacing.s),
+    paddingHorizontal: scale(spacing.s),
+  },
+  swipeIconBtn: {
+    width: scale(40),
+    height: scale(40),
+    borderRadius: scale(20),
+    borderWidth: borderWidth.thin,
+    borderColor: palette.gold.DEFAULT,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   row: {
     flexDirection:  'row',

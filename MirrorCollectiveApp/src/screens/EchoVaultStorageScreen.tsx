@@ -316,7 +316,7 @@ const styles = StyleSheet.create<{
 
     headerRow: {
       width: '100%',
-      height: figmaHeaderHeight,
+      minHeight: figmaHeaderHeight,
       alignItems: 'flex-start',
       justifyContent: 'flex-start',
       flexDirection: 'row',
@@ -345,7 +345,7 @@ const styles = StyleSheet.create<{
       alignItems: 'center',
       justifyContent: 'flex-start',
       width: figmaHeaderTitleWidth,
-      height: figmaHeaderHeight,
+      minHeight: figmaHeaderHeight,
       gap: 19,
     },
     optionalLabel: {
@@ -598,7 +598,7 @@ const styles = StyleSheet.create<{
       paddingVertical: 12,
       paddingHorizontal: 16,
       width: '100%',
-      height: 55,
+      minHeight: 55,
       shadowColor: palette.gold.DEFAULT,
       shadowOffset: { width: 0, height: 0 },
       shadowOpacity: 0.25,

@@ -338,7 +338,9 @@ const NewEchoVideoScreen: React.FC<Props> = ({ navigation, route }) => {
               {mode === 'recording' && !isStopping ? (
                 <View style={styles.timerBadge}>
                   <View style={styles.recDot} />
-                  <Text style={styles.timerText}>{formatTime(recordingSeconds)}</Text>
+                  <Text style={styles.timerText} allowFontScaling={false}>
+                    {formatTime(recordingSeconds)}
+                  </Text>
                 </View>
               ) : null}
 

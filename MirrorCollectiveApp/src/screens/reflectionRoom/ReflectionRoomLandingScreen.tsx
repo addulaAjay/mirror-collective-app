@@ -291,14 +291,16 @@ const styles = StyleSheet.create({
 
   // START: 104x55, r=12, border=palette.navy.light 0.5
   startButton: {
-    width: 104,
-    height: 55,
+    minWidth: 104,
+    minHeight: 55,
     borderRadius: radius.s,
     borderWidth: 0.5,
     borderColor: theme.colors.border.subtle,
     backgroundColor: palette.neutral.transparent,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: spacing.m,
+    paddingVertical: spacing.xs,
   },
   startText: {
     fontFamily: theme.typography.fontFamily.heading,
