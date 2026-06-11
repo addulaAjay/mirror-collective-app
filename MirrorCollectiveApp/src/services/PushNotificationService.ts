@@ -30,7 +30,14 @@ class PushNotificationService {
     // 3. Handle token refreshes automatically
     this.listenToTokenRefresh();
 
-    // 4. Register the current token with the backend if we have one
+    // 4. Request OS notification permission so pushes actually DISPLAY. Without
+    //    this, iOS never shows the system prompt and notifications are silently
+    //    suppressed (the FCM token still registers, so delivery "works" but the
+    //    user sees nothing). iOS only shows the dialog once; later calls just
+    //    return the current status, so calling on every init is safe.
+    await this.requestPermission();
+
+    // 5. Register the current token with the backend if we have one
     const token = await this.getFCMToken();
     if (token) {
       this.registerDeviceWithBackend(token);
