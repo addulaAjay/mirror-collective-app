@@ -55,6 +55,12 @@ export type RootStackParamList = {
   EnterMirror: undefined;
   AppVideo: undefined;
   TalkToMirror: undefined;
+  // Soul Ping landing screen — opened by tapping a Soul Ping push. Content is
+  // carried in params from the notification so the screen renders without a
+  // fetch (a GET feed endpoint lands in a later phase).
+  SoulPing:
+    | { pingId?: string; category?: string; title?: string; body?: string }
+    | undefined;
   Login: undefined;
   MirrorChat: undefined;
   SignUp: undefined;

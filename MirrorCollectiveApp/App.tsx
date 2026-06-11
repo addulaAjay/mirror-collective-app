@@ -69,12 +69,14 @@ import { JourneyProvider } from '@features/reflection-room/state/JourneyContext'
 import ResetPasswordScreen from '@screens/ResetPasswordScreen';
 import SignUpScreen from '@screens/SignUpScreen';
 import SplashScreen from '@screens/SplashScreen';
+import SoulPingScreen from '@screens/SoulPingScreen';
 import StartFreeTrialScreen from '@screens/StartFreeTrialScreen';
 import TalkToMirrorScreen from '@screens/TalkToMirrorScreen';
 import TermsAndConditionsScreen from '@screens/TermsAndConditionsScreen';
 import TheMirrorPledgeCommingsoonScreen from '@screens/TheMirrorPledgeCommingsoonScreen';
 import VerifyEmailScreen from '@screens/VerifyEmailScreen';
 import { OnboardingService } from '@services';
+import { navigationRef, flushPendingNavigation } from '@services/navigationRef';
 import PushNotificationService from '@services/PushNotificationService';
 import { ThemeProvider } from '@theme';
 import type { RootStackParamList } from '@types';
@@ -201,6 +203,7 @@ const AuthenticatedNavigator = ({ initialRouteName = 'EnterMirror' }: Authentica
     <Stack.Screen name="AppVideo" component={AppVideoScreen} />
     <Stack.Screen name="TalkToMirror" component={TalkToMirrorScreen} />
     <Stack.Screen name="MirrorChat" component={MirrorChatWithErrorBoundary} />
+    <Stack.Screen name="SoulPing" component={SoulPingScreen} />
     {/* Profile & Settings */}
     <Stack.Screen name="Profile" component={ProfileScreen} />
     <Stack.Screen name="About" component={AboutScreen} />
@@ -302,7 +305,11 @@ const AppNavigator = () => {
 
   return (
     <NavigationContainer
+      ref={navigationRef}
       key={isAuthenticated ? 'authenticated' : 'unauthenticated'}
+      // Replay any notification-tap navigation queued before the tree mounted
+      // (cold-start taps land here before the container is ready).
+      onReady={flushPendingNavigation}
       onStateChange={navState => {
         if (__DEV__) {
           console.log('Navigation state changed:', navState);
