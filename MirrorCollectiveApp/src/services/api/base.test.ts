@@ -7,6 +7,7 @@
  */
 
 import { BaseApiService } from './base';
+import { ApiErrorHandler } from './errorHandler';
 
 // --- Mocks ---------------------------------------------------------------
 
@@ -28,6 +29,7 @@ jest.mock('./errorHandler', () => ({
     handleApiResponse: jest.fn(r => r),
     handleSystemError: jest.fn(() => ({ success: false, error: 'sys' })),
     shouldHandleGracefully: jest.fn(() => false),
+    formatValidationErrors: jest.fn(() => undefined),
   },
 }));
 
@@ -176,6 +178,41 @@ describe('BaseApiService — 429 retry-with-backoff', () => {
 
     expect(global.fetch).toHaveBeenCalledTimes(2);
     expect(result.success).toBe(true);
+  });
+});
+
+describe('BaseApiService — validation errors (422)', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('throws with the specific validation message and attaches the array', async () => {
+    (ApiErrorHandler.formatValidationErrors as jest.Mock).mockReturnValueOnce(
+      'Password must contain at least one special character',
+    );
+    (global.fetch as jest.Mock).mockResolvedValueOnce(
+      makeResponse({
+        status: 422,
+        body: {
+          success: false,
+          error: 'Validation Error',
+          message: 'One or more fields contain invalid data',
+          validationErrors: [
+            { field: 'password', message: 'Password must contain at least one special character' },
+          ],
+        },
+      }),
+    );
+
+    await expect(svc.call('/api/auth/register', 'POST', {})).rejects.toMatchObject({
+      status: 422,
+      // The user-facing message is the specific field message, not the
+      // generic "Validation Error" envelope title.
+      message: 'Password must contain at least one special character',
+      validationErrors: [
+        { field: 'password', message: 'Password must contain at least one special character' },
+      ],
+    });
   });
 });
 

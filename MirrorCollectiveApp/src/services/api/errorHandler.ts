@@ -35,13 +35,23 @@ export class ApiErrorHandler {
   ): ApiResponse<T> {
     // Handle API failure responses (when server returns success: false)
     if (response && response.success === false) {
+      // Prefer the specific field-level validation message over the generic
+      // envelope title ("Validation Error") so the user sees what to fix.
+      const validationMessage = this.formatValidationErrors(
+        response.validationErrors,
+      );
       return {
         success: false,
         data: undefined,
-        message: response.error || response.message || this.getDefaultErrorMessage(errorType),
+        message:
+          validationMessage ||
+          response.error ||
+          response.message ||
+          this.getDefaultErrorMessage(errorType),
         error: response.error || errorType,
         errorCode: response.errorCode,
         statusCode: response.statusCode,
+        validationErrors: response.validationErrors,
       };
     }
 
@@ -127,6 +137,36 @@ export class ApiErrorHandler {
       'UnknownError',
       context,
     );
+  }
+
+  /**
+   * Turn the API's `validationErrors` array into a single user-facing message.
+   *
+   * The backend returns field-level failures like
+   * `[{ field: 'password', message: 'Password must contain at least one
+   * special character' }]`. We surface those specific, already human-readable
+   * messages instead of the generic "Validation Error" envelope title.
+   * Returns undefined when there's nothing usable to show.
+   */
+  static formatValidationErrors(validationErrors: unknown): string | undefined {
+    if (!Array.isArray(validationErrors) || validationErrors.length === 0) {
+      return undefined;
+    }
+    const messages = validationErrors
+      .map(item =>
+        item && typeof item === 'object'
+          ? (item as { message?: unknown }).message
+          : undefined,
+      )
+      .filter(
+        (message): message is string =>
+          typeof message === 'string' && message.length > 0,
+      );
+    if (messages.length === 0) {
+      return undefined;
+    }
+    // De-duplicate while preserving order, then join for display.
+    return Array.from(new Set(messages)).join('\n');
   }
 
   /**

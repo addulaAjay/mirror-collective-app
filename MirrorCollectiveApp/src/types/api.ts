@@ -1,3 +1,9 @@
+/** A single field-level validation failure returned by the API. */
+export interface ValidationFieldError {
+  field: string;
+  message: string;
+}
+
 export interface ApiResponse<T = any> {
   success: boolean;
   data?: T;
@@ -5,12 +11,14 @@ export interface ApiResponse<T = any> {
   errorCode?: string;
   message?: string;
   statusCode?: number;
+  validationErrors?: ValidationFieldError[];
 }
 
 export interface ApiError {
   message: string;
   status?: number;
   code?: string;
+  validationErrors?: ValidationFieldError[];
 }
 
 export interface AuthCredentials {
