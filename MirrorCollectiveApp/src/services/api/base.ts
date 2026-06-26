@@ -189,9 +189,22 @@ export class BaseApiService {
         if (ApiErrorHandler.shouldHandleGracefully(endpoint, response.status)) {
           return { ...responseData, statusCode: response.status };
         }
-        // Extract error message from response data
-        const errorMessage = responseData?.error || responseData?.message || `Server error: ${response.status}`;
+        // Extract error message from response data. Prefer the specific
+        // field-level validation message (e.g. "Password must contain at least
+        // one special character") over the generic "Validation Error" title so
+        // the user knows what to fix instead of seeing "Registration Failed".
+        const validationMessage = ApiErrorHandler.formatValidationErrors(
+          responseData?.validationErrors,
+        );
+        const errorMessage =
+          validationMessage ||
+          responseData?.error ||
+          responseData?.message ||
+          `Server error: ${response.status}`;
         const err = this.createApiError(errorMessage, response.status);
+        if (Array.isArray(responseData?.validationErrors)) {
+          err.validationErrors = responseData.validationErrors;
+        }
         // Attach Retry-After (if present) so the outer retry loop can
         // honor it. Only meaningful for 429, but always attaching is
         // cheap and avoids a branch.
