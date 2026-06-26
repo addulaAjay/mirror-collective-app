@@ -1,4 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
+import { API_CONFIG } from '@constants/config';
+import { tokenManager } from '@services/tokenManager';
 import type {
   AuthCredentials,
   SignUpData,
@@ -6,9 +9,7 @@ import type {
   ResetPasswordData,
   ApiResponse,
 } from '@types';
-
-import { API_CONFIG } from '@constants/config';
-import { tokenManager } from '@services/tokenManager';
+import { getUsernameFromToken } from '@utils/jwt';
 
 import { BaseApiService } from './base';
 import { ApiErrorHandler } from './errorHandler';
@@ -179,11 +180,19 @@ export class AuthApiService extends BaseApiService {
       );
     }
 
+    // Cognito requires SECRET_HASH on REFRESH_TOKEN_AUTH because the app
+    // client has a secret. The backend computes it from the username, which
+    // we read from the stored access token's claims. Sending it is harmless
+    // when the backend doesn't need it (omitted if unavailable).
+    const accessToken = await AsyncStorage.getItem('accessToken');
+    const username = getUsernameFromToken(accessToken);
+
     const response = await this.makeRequest<any>(
       API_CONFIG.ENDPOINTS.AUTH.REFRESH,
       'POST',
       {
         refreshToken,
+        ...(username ? { username } : {}),
       },
     );
 

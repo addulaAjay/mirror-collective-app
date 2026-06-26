@@ -1,6 +1,19 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 import { tokenManager } from '@services/tokenManager';
 
 import { AuthApiService } from './auth';
+
+/** Build a JWT-shaped token whose payload carries the given claims. */
+function makeJwt(payload: Record<string, unknown>): string {
+  const enc = (obj: object) =>
+    Buffer.from(JSON.stringify(obj))
+      .toString('base64')
+      .replace(/[=]/g, '')
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_');
+  return `${enc({ alg: 'none' })}.${enc(payload)}.sig`;
+}
 
 // Mock dependencies
 jest.mock('@services/tokenManager', () => ({
@@ -95,6 +108,57 @@ describe('AuthApiService', () => {
       // user tapping "Log out" should ALWAYS see the auth stack again,
       // even if the network is down.
       expect(tokenManager.clearTokens).toHaveBeenCalled();
+    });
+  });
+
+  describe('refreshToken', () => {
+    const mockStore = (values: Record<string, string | null>) => {
+      (AsyncStorage.getItem as jest.Mock).mockImplementation((key: string) =>
+        Promise.resolve(key in values ? values[key] : null),
+      );
+    };
+
+    it('sends the username from the stored access token (for SECRET_HASH)', async () => {
+      mockStore({
+        refreshToken: 'r-tok',
+        accessToken: makeJwt({ username: 'user@example.com' }),
+      });
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: { tokens: { accessToken: 'a', refreshToken: 'b' } },
+          }),
+      });
+
+      await authService.refreshToken();
+
+      const [url, init] = (global.fetch as jest.Mock).mock.calls[0];
+      expect(String(url)).toContain('/api/auth/refresh');
+      expect(JSON.parse(init.body)).toEqual({
+        refreshToken: 'r-tok',
+        username: 'user@example.com',
+      });
+    });
+
+    it('omits username when no access token is available', async () => {
+      mockStore({ refreshToken: 'r-tok' });
+
+      await authService.refreshToken();
+
+      const [, init] = (global.fetch as jest.Mock).mock.calls[0];
+      expect(JSON.parse(init.body)).toEqual({ refreshToken: 'r-tok' });
+      expect(JSON.parse(init.body)).not.toHaveProperty('username');
+    });
+
+    it('does not call the API when there is no refresh token', async () => {
+      mockStore({});
+
+      const result = await authService.refreshToken();
+
+      expect(result.success).toBe(false);
+      expect(global.fetch).not.toHaveBeenCalled();
     });
   });
 });
