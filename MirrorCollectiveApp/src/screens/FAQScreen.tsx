@@ -216,28 +216,6 @@ const SECTIONS: Section[] = [
     ],
   },
   {
-    title: 'Code Library',
-    initiallyOpen: false,
-    items: [
-      {
-        q: 'What is the Code Library?',
-        a: 'A living library of ideas, research, and real human insight — blending psychology, consciousness, and pattern science to help you understand yourself, the world, and how meaning actually forms. It includes short, readable entries, micro-practices, and community-shared reflections — so learning isn\'t abstract, it\'s lived.',
-      },
-      {
-        q: 'How do I use it?',
-        a: 'Search by how you feel, or browse by theme. Try one small practice.',
-      },
-      {
-        q: 'Is everything long-form?',
-        a: 'No. Most entries take minutes.',
-      },
-      {
-        q: 'Can I contribute?',
-        a: 'When enabled, yes. Shared reflections help others feel less alone.',
-      },
-    ],
-  },
-  {
     title: 'Mirror Pledge',
     initiallyOpen: false,
     items: [

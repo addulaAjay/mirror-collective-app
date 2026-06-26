@@ -8,7 +8,7 @@
  *   2. Oval mirror    — 183×275 elliptical centerpiece (gold rim + gradient fill)
  *   3. Talk button    — bordered pill flanked by 20px stars, gap 16
  *   4. Category row   — horizontal scroll: Mirror Echo / Reflection Room /
- *                       Code Library / Mirror Pledge (100×100 circles + labels)
+ *                       Mirror Pledge (100×100 circles + labels)
  *
  * Outer column (Figma 4326:2301): h-[654px] flex-col items-center
  * justify-between, w-345 — distributes the 4 sections vertically.
@@ -51,7 +51,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import OvalMirrorSvg from '@assets/talk-to-mirror/oval-mirror.svg';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import { CachedImage } from '@components/CachedImage';
-import CodeLibraryIcon from '@components/icons/CodeLibraryIcon';
 import MirrorEchoIcon from '@components/icons/MirrorEchoIcon';
 import MirrorPledgeIcon from '@components/icons/MirrorPledgeIcon';
 import ReflectionRoomIcon from '@components/icons/ReflectionRoomIcon';
@@ -73,7 +72,6 @@ const ICON_RING   = moderateScale(100);
 const CATEGORIES = [
   { key: 'mirror-echo',     label: 'ECHO VAULT',     route: 'MirrorEchoVaultHome' as const },
   { key: 'reflection-room', label: 'REFLECTION ROOM', route: 'ReflectionRoomCommingsoon' as const },
-  { key: 'code-library',    label: 'CODE LIBRARY',    route: 'MirrorCodeLibrary' as const },
   { key: 'mirror-pledge',   label: 'MIRROR PLEDGE',   route: 'TheMirrorPledge' as const },
 ];
 
@@ -121,8 +119,6 @@ const TalkToMirrorScreen: React.FC<Props> = ({ navigation }) => {
         return <MirrorEchoIcon size={ICON_RING} />;
       case 'reflection-room':
         return <ReflectionRoomIcon size={ICON_RING} />;
-      case 'code-library':
-        return <CodeLibraryIcon size={ICON_RING} />;
       case 'mirror-pledge':
         return <MirrorPledgeIcon size={ICON_RING} />;
       default:

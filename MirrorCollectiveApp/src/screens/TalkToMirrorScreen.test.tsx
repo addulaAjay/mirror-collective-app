@@ -38,7 +38,6 @@ describe('TalkToMirrorScreen', () => {
     expect(getByText('TALK TO MIRROR')).toBeTruthy();
     expect(getByText('MIRROR ECHO')).toBeTruthy();
     expect(getByText('REFLECTION ROOM')).toBeTruthy();
-    expect(getByText('CODE LIBRARY')).toBeTruthy();
     expect(getByText('MIRROR PLEDGE')).toBeTruthy();
   });
 
@@ -53,7 +52,6 @@ describe('TalkToMirrorScreen', () => {
   it.each([
     ['MIRROR ECHO',     'MirrorEchoVaultHome'],
     ['REFLECTION ROOM', 'ReflectionRoom'],
-    ['CODE LIBRARY',    'MirrorCodeLibrary'],
     ['MIRROR PLEDGE',   'MirrorPledgeIntro'],
   ])('navigates to the correct route when %s is pressed', (label, route) => {
     const { getByText } = render(<TalkToMirrorScreen navigation={mockNavigation} />);
