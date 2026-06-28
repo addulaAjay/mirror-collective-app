@@ -117,6 +117,8 @@ export function MirrorChatContent() {
                   keyboardShouldPersistTaps="handled"
                   keyboardDismissMode="on-drag"
                   showsVerticalScrollIndicator={false}
+                  bounces={false}
+                  alwaysBounceVertical={false}
                   onContentSizeChange={() =>
                     scrollViewRef.current?.scrollToEnd({ animated: true })
                   }

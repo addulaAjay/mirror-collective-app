@@ -87,6 +87,8 @@ export function MirrorEchoContent() {
           style={styles.scroll}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
+          bounces={false}
+          alwaysBounceVertical={false}
         >
           {/* Figma 767:2844 — flex-col gap:20 items-center */}
           <View style={styles.content}>
@@ -401,6 +403,10 @@ const styles = StyleSheet.create<{
   infoCard: {
     width:        '100%',
     borderRadius: scale(13),
+    // Solid opaque base so the page behind never bleeds through. The subtle
+    // LinearGradient sheen sits on top of this fill. (#0b0f1c — opaque form of
+    // the modalOverlay scrim rgba(11,15,28,0.92).)
+    backgroundColor: palette.navy.deep,             // #0b0f1c (alpha 1)
     borderWidth:  borderWidth.hairline,             // 0.25px
     borderColor:  palette.navy.light,               // #a3b3cc
     padding:      scale(spacing.xl),                // 24px

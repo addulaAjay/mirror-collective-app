@@ -1,6 +1,8 @@
 import React from 'react';
 import { ImageBackground, StyleSheet, type StyleProp, type ViewStyle, type ImageStyle, TouchableWithoutFeedback, Keyboard, View } from 'react-native';
 
+import { palette } from '@theme';
+
 interface BackgroundWrapperProps {
   children: React.ReactNode;
   style?: StyleProp<ViewStyle>;
@@ -48,6 +50,10 @@ const BackgroundWrapper: React.FC<BackgroundWrapperProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    // Opaque navy behind the background image so nothing lighter (e.g. the
+    // navigation container) can flash at the edges before the image decodes
+    // during a screen transition. Reinforces the dark navTheme in App.tsx.
+    backgroundColor: palette.navy.deep,
   },
   inner: {
     flex: 1,
