@@ -1,5 +1,6 @@
-import React from 'react';
 import { render } from '@testing-library/react-native';
+import React from 'react';
+import { Text } from 'react-native';
 
 import BackgroundWrapper from './BackgroundWrapper';
 
@@ -7,20 +8,19 @@ describe('BackgroundWrapper', () => {
   it('renders children correctly', () => {
     const { getByText } = render(
       <BackgroundWrapper>
-        <></>
+        <Text>Test Content</Text>
       </BackgroundWrapper>,
     );
     expect(getByText('Test Content')).toBeTruthy();
   });
 
-  it('applies custom styles', () => {
+  it('applies custom styles without crashing', () => {
     const customStyle = { backgroundColor: 'red' };
-    const { getByTestId } = render(
+    const { getByText } = render(
       <BackgroundWrapper style={customStyle}>
-        <></>
+        <Text>Styled</Text>
       </BackgroundWrapper>,
     );
-    // Test that custom styles are applied
-    // Note: This is a basic test, expand as needed
+    expect(getByText('Styled')).toBeTruthy();
   });
 });

@@ -1,5 +1,6 @@
-import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import React from 'react';
+
 import AppVideoScreen from './AppVideoScreen';
 
 // Mocks
@@ -18,15 +19,15 @@ describe('AppVideoScreen', () => {
   it('renders correctly', () => {
     const { getByText } = render(<AppVideoScreen navigation={mockNavigation} />);
 
-    expect(getByText(/App explainer/)).toBeTruthy();
+    expect(getByText('NEXT')).toBeTruthy();
   });
 
-  it('navigates to MirrorChat on video press', () => {
+  it('navigates to EnterMirror on next press', () => {
     const { getByText } = render(<AppVideoScreen navigation={mockNavigation} />);
 
-    // Press the video placeholder area
-    fireEvent.press(getByText(/App explainer/));
+    // Press the NEXT button to advance onboarding
+    fireEvent.press(getByText('NEXT'));
 
-    expect(mockNavigation.navigate).toHaveBeenCalledWith('MirrorChat');
+    expect(mockNavigation.navigate).toHaveBeenCalledWith('EnterMirror');
   });
 });

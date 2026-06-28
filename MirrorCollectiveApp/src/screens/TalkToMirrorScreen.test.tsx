@@ -31,12 +31,12 @@ describe('TalkToMirrorScreen', () => {
     (useUser as jest.Mock).mockReturnValue({ user: null });
   });
 
-  it('renders greeting, talk button, and all four categories', () => {
+  it('renders greeting, talk button, and all three categories', () => {
     const { getByText } = render(<TalkToMirrorScreen navigation={mockNavigation} />);
 
     expect(getByText('Welcome back, Friend')).toBeTruthy();
     expect(getByText('TALK TO MIRROR')).toBeTruthy();
-    expect(getByText('MIRROR ECHO')).toBeTruthy();
+    expect(getByText('ECHO VAULT')).toBeTruthy();
     expect(getByText('REFLECTION ROOM')).toBeTruthy();
     expect(getByText('MIRROR PLEDGE')).toBeTruthy();
   });
@@ -50,9 +50,9 @@ describe('TalkToMirrorScreen', () => {
   });
 
   it.each([
-    ['MIRROR ECHO',     'MirrorEchoVaultHome'],
-    ['REFLECTION ROOM', 'ReflectionRoom'],
-    ['MIRROR PLEDGE',   'MirrorPledgeIntro'],
+    ['ECHO VAULT',      'MirrorEchoVaultHome'],
+    ['REFLECTION ROOM', 'ReflectionRoomCommingsoon'],
+    ['MIRROR PLEDGE',   'TheMirrorPledge'],
   ])('navigates to the correct route when %s is pressed', (label, route) => {
     const { getByText } = render(<TalkToMirrorScreen navigation={mockNavigation} />);
 

@@ -32,7 +32,10 @@ const mockQuizData = {
 
 describe('QuizStorageService', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    // resetAllMocks (not clearAllMocks) so any unconsumed mockResolvedValueOnce
+    // queue from a prior test is drained — otherwise a leftover getItem value
+    // leaks forward and makes order-dependent failures.
+    jest.resetAllMocks();
   });
 
   describe('storePendingQuizResults', () => {
@@ -110,14 +113,29 @@ describe('QuizStorageService', () => {
     });
 
     it('submits and clears on success', async () => {
+      // retryPendingSubmissions reads the pending quiz first (getPendingQuizResults),
+      // then the submission tracker — so order the getItem mocks accordingly.
       (AsyncStorage.getItem as jest.Mock)
-        .mockResolvedValueOnce(null) // submission tracker
-        .mockResolvedValueOnce(JSON.stringify(mockQuizData)); // pending quiz
-      (quizApiService.submitQuizResults as jest.Mock).mockResolvedValueOnce({});
+        .mockResolvedValueOnce(JSON.stringify(mockQuizData)) // pending quiz
+        .mockResolvedValueOnce(null); // submission tracker (not yet submitted)
+      // Submission goes through submitAnonymousQuiz, which expects a successful
+      // ApiResponse envelope ({ success, data }) before it sets the submitted flag.
+      (quizApiService.submitQuizResults as jest.Mock).mockResolvedValueOnce({
+        success: true,
+        data: {
+          final_archetype: 'Seeker',
+          assignment_reason: 'highest_score',
+          total_scores: { Seeker: 8, Guardian: 2, Flamebearer: 1, Weaver: 0 },
+        },
+      });
 
       await QuizStorageService.retryPendingSubmissions();
 
-      expect(quizApiService.submitQuizResults).toHaveBeenCalledWith(mockQuizData);
+      // submitAnonymousQuiz augments the payload with an anonymousId, so assert
+      // the original quiz data is forwarded rather than an exact-equality match.
+      expect(quizApiService.submitQuizResults).toHaveBeenCalledWith(
+        expect.objectContaining(mockQuizData),
+      );
       expect(AsyncStorage.setItem).toHaveBeenCalledWith('QUIZ_SUBMITTED_FLAG', 'true');
     });
 

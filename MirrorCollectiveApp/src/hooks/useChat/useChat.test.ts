@@ -24,6 +24,12 @@ jest.mock('../../services/sessionManager', () => ({
   },
 }));
 
+// useChat calls useUser(), which throws outside a UserProvider. Mock the context
+// so the hook can be rendered in isolation without a provider wrapper.
+jest.mock('@context/UserContext', () => ({
+  useUser: () => ({ user: undefined }),
+}));
+
 describe('useChat', () => {
   const mockChatApiService = chatApiService as any;
 

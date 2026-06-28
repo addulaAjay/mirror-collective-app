@@ -1,7 +1,8 @@
-import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import React from 'react';
+
 import ArchetypeScreen from './ArchetypeScreen';
-import { useNavigation } from '@react-navigation/native';
+
 
 // Mock dependencies
 jest.mock('@components/LogoHeader', () => 'LogoHeader');
@@ -46,15 +47,15 @@ describe('ArchetypeScreen', () => {
     expect(getByText('First paragraph.')).toBeTruthy();
     expect(getByText('Second paragraph.')).toBeTruthy();
 
-    expect(getByTestId('archetype-continue-text')).toBeTruthy();
-    // Check for translation key if i18n mock returns key
-    expect(getByText('auth.archetype.continuePrompt')).toBeTruthy();
+    expect(getByTestId('archetype-continue')).toBeTruthy();
+    // The pinned CTA renders a Button with the static title "NEXT".
+    expect(getByText('NEXT')).toBeTruthy();
   });
 
   it('navigates to Login on press', () => {
     const { getByTestId } = render(<ArchetypeScreen route={mockRoute as any} />);
-    
-    fireEvent.press(getByTestId('archetype-container'));
+
+    fireEvent.press(getByTestId('archetype-continue'));
     
     expect(mockNavigate).toHaveBeenCalledWith('Login');
   });

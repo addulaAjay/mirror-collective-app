@@ -1,5 +1,6 @@
-import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import React from 'react';
+
 import EnterMirrorScreen from './EnterMirrorScreen';
 
 // Mocks
@@ -21,8 +22,8 @@ describe('EnterMirrorScreen', () => {
   it('renders correctly', () => {
     const { getByText } = render(<EnterMirrorScreen navigation={mockNavigation} />);
 
-    expect(getByText(/YOU ARE SEEN/)).toBeTruthy();
-    expect(getByText(/YOU ARE HOME/)).toBeTruthy();
+    expect(getByText(/YOU'RE IN\./)).toBeTruthy();
+    expect(getByText(/THIS IS YOUR SPACE TO GROW\./)).toBeTruthy();
     expect(getByText('ENTER')).toBeTruthy();
   });
 
