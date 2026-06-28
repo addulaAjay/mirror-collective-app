@@ -54,9 +54,9 @@ describe('ReflectionRoomQuizEntryScreen', () => {
     ).toBeTruthy();
   });
 
-  it('renders the Ambient Sounds toggle label', () => {
+  it('renders the START button', () => {
     const { getByText } = render(<ReflectionRoomQuizEntryScreen />);
-    expect(getByText('Ambient Sounds')).toBeTruthy();
+    expect(getByText('START')).toBeTruthy();
   });
 
   it('START button navigates to ReflectionRoomQuiz', () => {

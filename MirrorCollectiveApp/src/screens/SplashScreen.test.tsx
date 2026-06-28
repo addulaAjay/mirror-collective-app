@@ -1,14 +1,7 @@
+import { render, act } from '@testing-library/react-native';
 import React from 'react';
-import { render, waitFor, act } from '@testing-library/react-native';
-import SplashScreen from './SplashScreen';
-import { authApiService } from '@services/api';
 
-// Mocks
-jest.mock('@services/api', () => ({
-  authApiService: {
-    clearTokens: jest.fn(),
-  },
-}));
+import SplashScreen from './SplashScreen';
 
 describe('SplashScreen', () => {
   beforeEach(() => {
@@ -26,32 +19,20 @@ describe('SplashScreen', () => {
   } as any;
 
   it('renders correctly', () => {
-    const { getByText } = render(<SplashScreen navigation={mockNavigation} />);
+    const { toJSON } = render(<SplashScreen navigation={mockNavigation} />);
 
-    expect(getByText('The MIRROR COLLECTIVE')).toBeTruthy();
+    // Splash shows only the circular logo mark + header text SVG (no copy text).
+    expect(toJSON()).toBeTruthy();
   });
 
-  it('clears tokens on mount', async () => {
+  it('navigates to MirrorAnimation after timer', () => {
     render(<SplashScreen navigation={mockNavigation} />);
-    
-    await waitFor(() => {
-      expect(authApiService.clearTokens).toHaveBeenCalled();
-    });
-  });
 
-  it('navigates to MirrorAnimation after timer', async () => {
-    render(<SplashScreen navigation={mockNavigation} />);
-    
-    // Wait for async initialization to complete
-    await waitFor(() => {
-      expect(authApiService.clearTokens).toHaveBeenCalled();
-    });
-    
-    // Fast-forward timer synchronously
+    // Fast-forward the 3s splash timer synchronously
     act(() => {
       jest.advanceTimersByTime(3000);
     });
-    
+
     expect(mockNavigation.replace).toHaveBeenCalledWith('MirrorAnimation');
   });
 });

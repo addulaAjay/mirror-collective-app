@@ -1,9 +1,13 @@
-import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import { fireEvent, render } from '@testing-library/react-native';
 import React from 'react';
 
 import { useSession } from '@context/SessionContext';
 
 import SignUpScreen from './SignUpScreen';
+
+// LogoHeader pulls in UserContext/SessionContext via hooks; stub it out so the
+// screen under test renders in isolation (mirrors VerifyEmailScreen.test).
+jest.mock('@components/LogoHeader', () => 'LogoHeader');
 
 // Mock the contexts
 jest.mock('@context/SessionContext', () => ({
@@ -14,6 +18,7 @@ describe('SignUpScreen', () => {
   const mockSignUp = jest.fn();
   const mockNavigation = {
     navigate: jest.fn(),
+    goBack: jest.fn(),
   };
 
   beforeEach(() => {
@@ -24,7 +29,7 @@ describe('SignUpScreen', () => {
   });
 
   it('renders correctly', () => {
-    const { getByTestId, getByText } = render(
+    const { getByTestId } = render(
       <SignUpScreen navigation={mockNavigation as any} />
     );
 
@@ -35,33 +40,29 @@ describe('SignUpScreen', () => {
     expect(getByTestId('signup-button')).toBeTruthy();
   });
 
-  it('navigates to Login when link is pressed', () => {
+  it('navigates back when the back button is pressed', () => {
     const { getByTestId } = render(<SignUpScreen navigation={mockNavigation as any} />);
-    const loginLink = getByTestId('login-link');
 
-    fireEvent.press(loginLink);
-    expect(mockNavigation.navigate).toHaveBeenCalledWith('Login');
+    fireEvent.press(getByTestId('back-button'));
+    expect(mockNavigation.goBack).toHaveBeenCalled();
   });
 
-  it('validates empty fields', async () => {
+  it('validates empty fields', () => {
     const { getByTestId } = render(
       <SignUpScreen navigation={mockNavigation as any} />
     );
 
-    const signUpButton = getByTestId('signup-button');
-    fireEvent.press(signUpButton);
+    fireEvent.press(getByTestId('signup-button'));
 
-    const { Alert } = require('react-native');
-    await waitFor(() => {
-      expect(Alert.alert).toHaveBeenCalledWith(
-        'common.error',
-        'auth.validation.missingFullName'
-      );
-    });
-    expect(mockSignUp).not.toHaveBeenCalled();
+    // The screen surfaces validation inline via per-field error Text nodes,
+    // not an Alert, and does not advance navigation.
+    expect(getByTestId('fullname-error').props.children).toBe(
+      'auth.validation.missingFullName'
+    );
+    expect(mockNavigation.navigate).not.toHaveBeenCalled();
   });
 
-  it('validates password mismatch', async () => {
+  it('validates password mismatch', () => {
     const { getByTestId } = render(
       <SignUpScreen navigation={mockNavigation as any} />
     );
@@ -69,21 +70,18 @@ describe('SignUpScreen', () => {
     fireEvent.changeText(getByTestId('fullname-input'), 'Test User');
     fireEvent.changeText(getByTestId('email-input'), 'test@example.com');
     // Meets complexity: 8+ chars, upper, lower, number, special
-    fireEvent.changeText(getByTestId('password-input'), 'Password123!'); 
+    fireEvent.changeText(getByTestId('password-input'), 'Password123!');
     fireEvent.changeText(getByTestId('confirm-password-input'), 'Mismatch123!');
 
     fireEvent.press(getByTestId('signup-button'));
 
-    const { Alert } = require('react-native');
-    await waitFor(() => {
-      expect(Alert.alert).toHaveBeenCalledWith(
-        'common.error',
-        'auth.validation.passwordMismatch'
-      );
-    });
+    expect(getByTestId('confirm-password-error').props.children).toBe(
+      'auth.validation.passwordMismatch'
+    );
+    expect(mockNavigation.navigate).not.toHaveBeenCalled();
   });
 
-  it('validates password complexity', async () => {
+  it('validates password complexity', () => {
     const { getByTestId } = render(
       <SignUpScreen navigation={mockNavigation as any} />
     );
@@ -94,67 +92,50 @@ describe('SignUpScreen', () => {
 
     fireEvent.press(getByTestId('signup-button'));
 
-    const { Alert } = require('react-native');
-    await waitFor(() => {
-      // It should hit length check first
-      expect(Alert.alert).toHaveBeenCalledWith(
-        'common.error',
-        'auth.validation.passwordTooShort'
-      );
-    });
+    // Length check fires first.
+    expect(getByTestId('password-error').props.children).toBe(
+      'auth.validation.passwordTooShort'
+    );
+    expect(mockNavigation.navigate).not.toHaveBeenCalled();
   });
 
-  it('calls signUp with correct credentials and shows welcome alert', async () => {
+  it('navigates to TermsAndConditions with valid credentials', () => {
     const { getByTestId } = render(
       <SignUpScreen navigation={mockNavigation as any} />
     );
 
     fireEvent.changeText(getByTestId('fullname-input'), 'Test User');
     fireEvent.changeText(getByTestId('email-input'), 'test@example.com');
+    fireEvent.changeText(getByTestId('phone-input'), '5551234567');
     fireEvent.changeText(getByTestId('password-input'), 'Password123!');
     fireEvent.changeText(getByTestId('confirm-password-input'), 'Password123!');
 
     fireEvent.press(getByTestId('signup-button'));
 
-    await waitFor(() => {
-      expect(mockSignUp).toHaveBeenCalledWith('Test User', 'test@example.com', 'Password123!');
+    expect(mockNavigation.navigate).toHaveBeenCalledWith('TermsAndConditions', {
+      fullName: 'Test User',
+      email: 'test@example.com',
+      password: 'Password123!',
+      phoneNumber: '+15551234567',
     });
-
-    const { Alert } = require('react-native');
-    expect(Alert.alert).toHaveBeenCalledWith(
-      'auth.signup.alerts.welcomeTitle',
-      'auth.signup.alerts.welcomeMessage',
-      expect.any(Array) 
-    );
-     // Note: Testing the alert button callback requires more complex mock or trigger
   });
 
-  it('displays error message when signUp fails', async () => {
-    mockSignUp.mockRejectedValueOnce({ error: 'EmailAlreadyExists' });
-
+  it('validates invalid email format', () => {
     const { getByTestId } = render(
       <SignUpScreen navigation={mockNavigation as any} />
     );
 
     fireEvent.changeText(getByTestId('fullname-input'), 'Test User');
-    fireEvent.changeText(getByTestId('email-input'), 'existing@example.com');
+    fireEvent.changeText(getByTestId('email-input'), 'not-an-email');
+    fireEvent.changeText(getByTestId('phone-input'), '5551234567');
     fireEvent.changeText(getByTestId('password-input'), 'Password123!');
     fireEvent.changeText(getByTestId('confirm-password-input'), 'Password123!');
 
     fireEvent.press(getByTestId('signup-button'));
 
-    await waitFor(() => {
-      expect(mockSignUp).toHaveBeenCalled();
-    });
-
-    const { Alert } = require('react-native');
-    await waitFor(() => {
-       // Should translate specific error
-       // If t(k) => k, and apiErrorUtils uses t, we expect key if mocked t returns key
-      expect(Alert.alert).toHaveBeenCalledWith(
-        'auth.signup.alerts.failedTitle',
-        'apiErrors.EmailAlreadyExists'
-      );
-    });
+    expect(getByTestId('email-error').props.children).toBe(
+      'auth.validation.invalidEmail'
+    );
+    expect(mockNavigation.navigate).not.toHaveBeenCalled();
   });
 });

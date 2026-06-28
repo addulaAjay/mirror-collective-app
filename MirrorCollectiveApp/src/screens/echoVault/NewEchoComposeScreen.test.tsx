@@ -30,12 +30,21 @@ jest.mock('@react-navigation/native', () => ({
     current: null,
   }),
 }));
+// The screen uses the default export directly as a singleton player
+// (React.useRef(AudioRecorderPlayer).current), so default must be an object
+// exposing the player methods — not a constructor.
 jest.mock('react-native-audio-recorder-player', () => ({
-  default: jest.fn().mockImplementation(() => ({
-    startRecorder: jest.fn(),
-    stopRecorder: jest.fn(),
+  __esModule: true,
+  default: {
+    startRecorder: jest.fn().mockResolvedValue(undefined),
+    stopRecorder: jest.fn().mockResolvedValue(undefined),
+    addRecordBackListener: jest.fn(),
     removeRecordBackListener: jest.fn(),
-  })),
+    startPlayer: jest.fn().mockResolvedValue(undefined),
+    stopPlayer: jest.fn().mockResolvedValue(undefined),
+    addPlayBackListener: jest.fn(),
+    removePlayBackListener: jest.fn(),
+  },
 }));
 jest.mock('react-native-vision-camera', () => ({
   useCameraDevice: jest.fn(() => null),
@@ -55,9 +64,20 @@ jest.mock('react-native-image-picker', () => ({
   launchImageLibrary: jest.fn(),
 }));
 jest.mock('react-native-linear-gradient', () => 'LinearGradient');
+// LogoHeader reads UserContext via useUser(); stub it so the screen renders
+// without a UserProvider wrapper in the test.
+jest.mock('@components/LogoHeader', () => 'LogoHeader');
 jest.mock('react-native-safe-area-context', () => ({
   SafeAreaView: 'SafeAreaView',
 }));
+
+// The shared react-native mock (src/__tests__/jest.setup.js) omits Modal and
+// Pressable, which this screen renders unconditionally (the upload/voice/video
+// bottom sheets). Patch them in locally so render() doesn't hit an undefined
+// element type.
+const RN = jest.requireMock('react-native') as Record<string, unknown>;
+RN.Modal = 'Modal';
+RN.Pressable = 'Pressable';
 
 // Mock Alert
 jest.spyOn(Alert, 'alert');
@@ -85,7 +105,7 @@ describe('NewEchoComposeScreen - Guardian Support (TDD)', () => {
       );
 
       // Component should render without errors when guardianId is present
-      expect(getByPlaceholderText(/write your message/i)).toBeTruthy();
+      expect(getByPlaceholderText(/write what you want to remember/i)).toBeTruthy();
     });
 
     it('should include guardian_id in createEcho API call when saving echo', async () => {
@@ -106,16 +126,17 @@ describe('NewEchoComposeScreen - Guardian Support (TDD)', () => {
         },
       };
 
-      const { getByPlaceholderText, getByText } = render(
+      const { getByPlaceholderText, getAllByText } = render(
         <NewEchoComposeScreen route={route} navigation={jest.fn() as any} />
       );
 
       // Fill in echo content
-      const textInput = getByPlaceholderText(/write your message/i);
+      const textInput = getByPlaceholderText(/write what you want to remember/i);
       fireEvent.changeText(textInput, 'This is my echo message');
 
-      // Find and press save button (look for "SAVE" text)
-      const saveButton = getByText(/SAVE/i);
+      // The voice/video bottom-sheets each render their own SAVE button, so
+      // /SAVE/i matches several. The first match is the main compose SAVE.
+      const saveButton = getAllByText(/SAVE/i)[0];
       fireEvent.press(saveButton);
 
       // Wait for API call
@@ -151,14 +172,16 @@ describe('NewEchoComposeScreen - Guardian Support (TDD)', () => {
         },
       };
 
-      const { getByPlaceholderText, getByText } = render(
+      const { getByPlaceholderText, getAllByText } = render(
         <NewEchoComposeScreen route={route} navigation={jest.fn() as any} />
       );
 
-      const textInput = getByPlaceholderText(/write your message/i);
+      const textInput = getByPlaceholderText(/write what you want to remember/i);
       fireEvent.changeText(textInput, 'Test message without guardian');
 
-      const saveButton = getByText(/SAVE/i);
+      // The voice/video bottom-sheets each render their own SAVE button, so
+      // /SAVE/i matches several. The first match is the main compose SAVE.
+      const saveButton = getAllByText(/SAVE/i)[0];
       fireEvent.press(saveButton);
 
       await waitFor(() => {

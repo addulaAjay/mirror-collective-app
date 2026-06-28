@@ -1,7 +1,9 @@
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import React from 'react';
+import { TextInput } from 'react-native';
 
 import { useSession } from '@context/SessionContext';
+import { useUser } from '@context/UserContext';
 
 import LoginScreen from './LoginScreen';
 
@@ -13,7 +15,6 @@ jest.mock('@context/SessionContext', () => ({
 jest.mock('@context/UserContext', () => ({
   useUser: jest.fn(),
 }));
-import { useUser } from '@context/UserContext';
 
 
 describe('LoginScreen', () => {
@@ -55,12 +56,15 @@ describe('LoginScreen', () => {
   });
 
   it('renders correctly', () => {
-    const { getByText, getByTestId } = render(
+    const { getByText, UNSAFE_getAllByType } = render(
       <LoginScreen navigation={mockNavigation as any} route={mockRoute as any} />
     );
 
-    expect(getByTestId('email-input')).toBeTruthy();
-    expect(getByTestId('password-input')).toBeTruthy();
+    // LoginScreen renders two TextInputField inputs (email + password) with
+    // no testIDs; the custom placeholder overlay renders the i18n key text.
+    expect(UNSAFE_getAllByType(TextInput)).toHaveLength(2);
+    expect(getByText('auth.login.usernamePlaceholder')).toBeTruthy();
+    expect(getByText('auth.login.passwordPlaceholder')).toBeTruthy();
     expect(getByText('auth.login.enterButton')).toBeTruthy();
   });
 
@@ -73,12 +77,11 @@ describe('LoginScreen', () => {
   });
 
   it('calls signIn with correct credentials when Login is pressed', async () => {
-    const { getByTestId, getByText } = render(
+    const { UNSAFE_getAllByType, getByText } = render(
       <LoginScreen navigation={mockNavigation as any} route={mockRoute as any} />
     );
 
-    const emailInput = getByTestId('email-input');
-    const passwordInput = getByTestId('password-input');
+    const [emailInput, passwordInput] = UNSAFE_getAllByType(TextInput);
     const loginButton = getByText('auth.login.enterButton');
 
     fireEvent.changeText(emailInput, 'test@example.com');
@@ -94,25 +97,19 @@ describe('LoginScreen', () => {
     // Mock signIn to reject
     mockSignIn.mockRejectedValueOnce({ error: 'AuthenticationError' });
 
-    const { getByTestId, getByText, findByText } = render(
+    const { UNSAFE_getAllByType, getByText, findByText } = render(
       <LoginScreen navigation={mockNavigation as any} route={mockRoute as any} />
     );
 
-    const emailInput = getByTestId('email-input');
-    const passwordInput = getByTestId('password-input');
+    const [emailInput, passwordInput] = UNSAFE_getAllByType(TextInput);
     const loginButton = getByText('auth.login.enterButton');
 
     fireEvent.changeText(emailInput, 'wrong@example.com');
     fireEvent.changeText(passwordInput, 'wrongpass');
     fireEvent.press(loginButton);
 
-    // Verify Alert was shown with correct error
-    const { Alert } = require('react-native');
-    await waitFor(() => {
-      expect(Alert.alert).toHaveBeenCalledWith(
-        'auth.login.loginFailed', // Title translated
-        'apiErrors.AuthenticationError' // Message translated
-      );
-    });
+    // The screen renders the resolved API error inline (setErrorMessage),
+    // it does not show an Alert on a failed sign-in.
+    expect(await findByText('apiErrors.AuthenticationError')).toBeTruthy();
   });
 });

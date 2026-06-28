@@ -1,5 +1,6 @@
-import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import React from 'react';
+
 import QuizWelcomeScreen from './QuizWelcomeScreen';
 
 // Mocks
@@ -34,7 +35,7 @@ describe('QuizWelcomeScreen', () => {
     const { getByText, getByTestId } = render(<QuizWelcomeScreen />);
 
     expect(getByText('WELCOME')).toBeTruthy();
-    expect(getByText("This isn't a quiz.")).toBeTruthy();
+    expect(getByText(/A few quick reflections to reveal your/)).toBeTruthy();
     expect(getByTestId('gradient-button')).toBeTruthy();
   });
 

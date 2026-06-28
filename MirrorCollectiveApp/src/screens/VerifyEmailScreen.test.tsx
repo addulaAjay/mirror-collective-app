@@ -1,13 +1,26 @@
-import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
-import VerifyEmailScreen from './VerifyEmailScreen';
-import { useNavigation } from '@react-navigation/native';
+import React from 'react';
+import { Alert } from 'react-native';
+
 import { authApiService } from '@services/api';
 import { QuizStorageService } from '@services/quizStorageService';
-import { Alert } from 'react-native';
+
+import VerifyEmailScreen from './VerifyEmailScreen';
+
+
+
 
 // Mocks
 jest.mock('@components/LogoHeader', () => 'LogoHeader');
+
+// The shared react-native mock (src/__tests__/jest.setup.js) does not expose
+// `Pressable`, which VerifyEmailScreen uses for the "back to sign up" link.
+// Provide a host stub on this file's module instance so the screen renders.
+// (Local-only; the shared setup file is intentionally left untouched.)
+const ReactNative = require('react-native');
+if (!ReactNative.Pressable) {
+  ReactNative.Pressable = 'Pressable';
+}
 
 // Mock Navigation
 const mockNavigate = jest.fn();
@@ -55,35 +68,39 @@ describe('VerifyEmailScreen', () => {
 
     expect(getByText('auth.verifyEmail.title')).toBeTruthy();
     expect(getByTestId('verification-code-input')).toBeTruthy();
-    expect(getByTestId('verify-button')).toBeTruthy();
-    expect(getByTestId('resend-button')).toBeTruthy();
+    // The Verify/Resend buttons have no testID — they are identified by label.
+    expect(getByText('auth.verifyEmail.verifyButton')).toBeTruthy();
+    expect(getByText('auth.verifyEmail.resendButton')).toBeTruthy();
   });
 
   it('disables verify button with incomplete code', () => {
-    const { getByTestId } = render(<VerifyEmailScreen />);
-    
+    const { getByText, getByTestId } = render(<VerifyEmailScreen />);
+
     // Enter less than 6 digits
     fireEvent.changeText(getByTestId('verification-code-input'), '12345');
-    
-    // Button should be disabled
-    const button = getByTestId('verify-button');
-    expect(button.props.disabled).toBe(true);
+
+    // The Button's TouchableOpacity (the label's parent) should be disabled.
+    const button = getByText('auth.verifyEmail.verifyButton').parent;
+    expect(button?.props.disabled).toBe(true);
   });
 
   it('calls verifyEmail on valid code', async () => {
     (authApiService.verifyEmail as jest.Mock).mockResolvedValueOnce({ success: true });
     (QuizStorageService.retryPendingSubmissions as jest.Mock).mockResolvedValueOnce(undefined);
 
-    const { getByTestId } = render(<VerifyEmailScreen />);
-    
+    const { getByText, getByTestId } = render(<VerifyEmailScreen />);
+
     fireEvent.changeText(getByTestId('verification-code-input'), '123456');
-    fireEvent.press(getByTestId('verify-button'));
+    fireEvent.press(getByText('auth.verifyEmail.verifyButton'));
 
     await waitFor(() => {
-      expect(authApiService.verifyEmail).toHaveBeenCalledWith({
-        email: 'test@example.com',
-        verificationCode: '123456',
-      });
+      expect(authApiService.verifyEmail).toHaveBeenCalledWith(
+        expect.objectContaining({
+          email: 'test@example.com',
+          verificationCode: '123456',
+          anonymousId: 'test-anon-id',
+        })
+      );
     });
 
     expect(Alert.alert).toHaveBeenCalledWith(
@@ -96,10 +113,10 @@ describe('VerifyEmailScreen', () => {
   it('handles verification failure', async () => {
     (authApiService.verifyEmail as jest.Mock).mockResolvedValueOnce({ success: false, error: 'Invalid code' });
 
-    const { getByTestId } = render(<VerifyEmailScreen />);
-    
+    const { getByText, getByTestId } = render(<VerifyEmailScreen />);
+
     fireEvent.changeText(getByTestId('verification-code-input'), '123456');
-    fireEvent.press(getByTestId('verify-button'));
+    fireEvent.press(getByText('auth.verifyEmail.verifyButton'));
 
     await waitFor(() => {
       expect(Alert.alert).toHaveBeenCalledWith(
@@ -112,17 +129,17 @@ describe('VerifyEmailScreen', () => {
   it('handles resend code', async () => {
     (authApiService.resendVerificationCode as jest.Mock).mockResolvedValueOnce({ success: true });
 
-    const { getByTestId } = render(<VerifyEmailScreen />);
-    
-    fireEvent.press(getByTestId('resend-button'));
+    const { getByText } = render(<VerifyEmailScreen />);
+
+    fireEvent.press(getByText('auth.verifyEmail.resendButton'));
 
     await waitFor(() => {
       expect(authApiService.resendVerificationCode).toHaveBeenCalledWith('test@example.com');
     });
 
     expect(Alert.alert).toHaveBeenCalledWith(
-      'auth.forgotPassword.successTitle',
-      'auth.verifyEmail.title'
+      'auth.verifyEmail.resendSuccessTitle',
+      'auth.verifyEmail.resendSuccessBody'
     );
   });
 });
