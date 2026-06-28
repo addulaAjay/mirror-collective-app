@@ -23,6 +23,12 @@ jest.mock('@react-navigation/native', () => ({
     navigate: jest.fn(),
     goBack: jest.fn(),
   }),
+  // navigationRef.ts (imported transitively) calls this at module load.
+  createNavigationContainerRef: () => ({
+    isReady: jest.fn(() => false),
+    navigate: jest.fn(),
+    current: null,
+  }),
 }));
 jest.mock('react-native-audio-recorder-player', () => ({
   default: jest.fn().mockImplementation(() => ({

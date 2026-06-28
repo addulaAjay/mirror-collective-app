@@ -9,7 +9,7 @@ import QuizQuestionsScreen from './QuizQuestionsScreen';
 // Mocks
 jest.mock('@components/LogoHeader', () => 'LogoHeader');
 jest.mock('@components/ProgressBar', () => 'ProgressBar');
-jest.mock('@components/GradientButton', () => {
+jest.mock('@components/Button', () => {
   const { TouchableOpacity, Text } = require('react-native');
   return ({ title, onPress, disabled }: any) => (
     <TouchableOpacity testID="gradient-button" onPress={onPress} disabled={disabled}>

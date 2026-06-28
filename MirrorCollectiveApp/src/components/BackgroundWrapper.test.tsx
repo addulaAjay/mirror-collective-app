@@ -1,5 +1,6 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
+import { Text } from 'react-native';
 
 import BackgroundWrapper from './BackgroundWrapper';
 
@@ -7,7 +8,7 @@ describe('BackgroundWrapper', () => {
   it('renders children correctly', () => {
     const { getByText } = render(
       <BackgroundWrapper>
-        <></>
+        <Text>Test Content</Text>
       </BackgroundWrapper>,
     );
     expect(getByText('Test Content')).toBeTruthy();

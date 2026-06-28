@@ -48,7 +48,16 @@ jest.mock('react-native', () => {
       setTranslucent: jest.fn(), 
       setBackgroundColor: jest.fn() 
     }),
-    Keyboard: { dismiss: jest.fn() },
+    Keyboard: {
+      dismiss: jest.fn(),
+      // Real RN returns an EmitterSubscription with .remove(). Components that
+      // subscribe to keyboard events (KeyboardAwareScrollView, custom hooks)
+      // crash without these.
+      addListener: jest.fn(() => ({ remove: jest.fn() })),
+      removeListener: jest.fn(),
+      removeAllListeners: jest.fn(),
+      scheduleLayoutAnimation: jest.fn(),
+    },
     AppState: {
       // currentState is read at import time by some libs; default to
       // 'active'. Tests that care override via spyOn.
@@ -71,6 +80,14 @@ jest.mock('@react-navigation/native', () => ({
   }),
   useRoute: () => ({ params: {} }),
   useFocusEffect: jest.fn(),
+  // navigationRef.ts calls this at module load; return a ref-shaped stub.
+  createNavigationContainerRef: () => ({
+    isReady: jest.fn(() => false),
+    navigate: jest.fn(),
+    goBack: jest.fn(),
+    reset: jest.fn(),
+    current: null,
+  }),
 }));
 
 jest.mock('@react-navigation/native-stack', () => ({
@@ -303,3 +320,33 @@ jest.mock('react-native-tts', () => ({
     removeAllListeners: jest.fn(),
   },
 }));
+
+// react-native-video loads a native spec (requireNativeComponent) at import
+// time, which isn't available in Jest. Stub the default export as a simple
+// component so screens that render <Video> can mount.
+jest.mock('react-native-video', () => 'Video');
+
+// @react-native-firebase/messaging extends a native event emitter at import
+// time (RNFBNativeEventEmitter), which throws "Super expression must either be
+// null or a function" under Jest. Provide a messaging() factory plus the
+// AuthorizationStatus enum the push service reads.
+jest.mock('@react-native-firebase/messaging', () => {
+  const messaging = jest.fn(() => ({
+    requestPermission: jest.fn(() => Promise.resolve(1)),
+    registerDeviceForRemoteMessages: jest.fn(() => Promise.resolve()),
+    getAPNSToken: jest.fn(() => Promise.resolve('apns-token')),
+    getToken: jest.fn(() => Promise.resolve('fcm-token')),
+    onTokenRefresh: jest.fn(() => jest.fn()),
+    onMessage: jest.fn(() => jest.fn()),
+    onNotificationOpenedApp: jest.fn(() => jest.fn()),
+    getInitialNotification: jest.fn(() => Promise.resolve(null)),
+    setBackgroundMessageHandler: jest.fn(),
+  }));
+  messaging.AuthorizationStatus = {
+    NOT_DETERMINED: -1,
+    DENIED: 0,
+    AUTHORIZED: 1,
+    PROVISIONAL: 2,
+  };
+  return { __esModule: true, default: messaging };
+});

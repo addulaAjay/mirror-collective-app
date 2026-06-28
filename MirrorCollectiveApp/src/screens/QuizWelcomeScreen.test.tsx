@@ -3,7 +3,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 import QuizWelcomeScreen from './QuizWelcomeScreen';
 
 // Mocks
-jest.mock('@components/GradientButton', () => {
+jest.mock('@components/Button', () => {
   const { TouchableOpacity, Text } = require('react-native');
   return ({ title, onPress }: any) => (
     <TouchableOpacity testID="gradient-button" onPress={onPress}>
