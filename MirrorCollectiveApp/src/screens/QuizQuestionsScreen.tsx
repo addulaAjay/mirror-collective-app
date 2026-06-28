@@ -415,7 +415,7 @@ const styles = StyleSheet.create({
     alignSelf:         'center',
     textAlign:         'center',
     marginTop:         verticalScale(60),    // Figma 60px gap from progress bar
-    marginBottom:      verticalScale(44),    // 44 + scrollContent paddingTop:16 = 60 (Figma gap to first option)
+    marginBottom:      verticalScale(28),    // 28 + scrollContent paddingTop:32 = 60 (Figma gap to first option)
     textShadowColor:   textShadow.glow.color,
     textShadowOffset:  textShadow.glow.offset,
     textShadowRadius:  textShadow.glow.radius,
@@ -435,7 +435,11 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow:      1,
     alignItems:    'center',
-    paddingTop:    verticalScale(16),
+    // 32 gives the selected image-option halo (~28px beyond the 120px circle)
+    // room above the first row — the ScrollView viewport clips anything above
+    // its top edge, so 16 was cropping the top row's glow on iPhone 17.
+    // The question's marginBottom (28) is reduced to keep the 60px Figma gap.
+    paddingTop:    verticalScale(32),
     paddingBottom: verticalScale(60),
   },
 
