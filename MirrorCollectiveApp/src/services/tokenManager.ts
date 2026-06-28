@@ -1,6 +1,12 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import { authApiService } from './api';
+// NOTE: authApiService is imported lazily inside performTokenRefresh (not at
+// module load) to break a circular import: auth.ts extends BaseApiService
+// (base.ts), base.ts imports tokenManager, and tokenManager would import the
+// api barrel back into auth.ts — evaluating `class AuthApiService extends
+// BaseApiService` before base.ts finished exporting BaseApiService ("Super
+// expression must either be null or a function"). The refresh call only needs
+// authApiService at runtime, so a deferred import is sufficient and safe.
 
 class TokenManager {
   private refreshPromise: Promise<string | null> | null = null;
@@ -138,6 +144,7 @@ class TokenManager {
         return null;
       }
 
+      const { authApiService } = await import('./api');
       const response = await authApiService.refreshToken();
 
       if (response.success && response.data?.tokens) {
