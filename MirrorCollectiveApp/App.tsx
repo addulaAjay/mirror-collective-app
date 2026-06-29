@@ -2,7 +2,7 @@ import '@i18n'; // Initialize i18n configuration
 import 'react-native-get-random-values';
 import 'react-native-url-polyfill/auto';
 
-import { NavigationContainer } from '@react-navigation/native';
+import { DarkTheme, NavigationContainer, type Theme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, StatusBar, StyleSheet, View } from 'react-native';
@@ -78,7 +78,7 @@ import VerifyEmailScreen from '@screens/VerifyEmailScreen';
 import { OnboardingService } from '@services';
 import { navigationRef, flushPendingNavigation } from '@services/navigationRef';
 import PushNotificationService from '@services/PushNotificationService';
-import { ThemeProvider } from '@theme';
+import { ThemeProvider, palette } from '@theme';
 import type { RootStackParamList } from '@types';
 
 // DEV-only: button visual QA + blur tuning screen. Loaded lazily so the
@@ -89,6 +89,28 @@ const ButtonShowcaseScreen = __DEV__
 
 import ErrorBoundary from './src/components/ErrorBoundary';
 const Stack = createNativeStackNavigator<RootStackParamList>();
+
+// Dark navigation theme. Without an explicit theme, React Navigation falls back
+// to the LIGHT DefaultTheme (≈white background). On a dark, full-bleed app whose
+// screens paint their own BackgroundWrapper, that light container can flash at
+// the screen's top edge during a native-stack push/pop — a transient pale/tinted
+// outline before the incoming screen's background paints. Anchoring the container
+// (and the per-screen content) to the app's deep navy removes that reveal.
+const navTheme: Theme = {
+  ...DarkTheme,
+  colors: {
+    ...DarkTheme.colors,
+    background: palette.navy.deep, // #0b0f1c — deepest app background
+    card: palette.navy.deep,
+  },
+};
+
+// Screens own their full-bleed background, so keep the native-stack content
+// container transparent — nothing but the app's own background ever paints.
+const screenOptions = {
+  headerShown: false,
+  contentStyle: { backgroundColor: 'transparent' },
+} as const;
 // Wrapped MirrorChat component with error boundary
 const MirrorChatWithErrorBoundary = () => (
   <ChatErrorBoundary>
@@ -99,7 +121,7 @@ const MirrorChatWithErrorBoundary = () => (
 const AuthNavigator = () => (
   <Stack.Navigator
     initialRouteName="Splash"
-    screenOptions={{ headerShown: false }}
+    screenOptions={screenOptions}
   >
     <Stack.Screen
       name="ManageGuardianScreen"
@@ -197,7 +219,7 @@ interface AuthenticatedNavigatorProps {
 const AuthenticatedNavigator = ({ initialRouteName = 'EnterMirror' }: AuthenticatedNavigatorProps) => (
   <Stack.Navigator
     initialRouteName={initialRouteName}
-    screenOptions={{ headerShown: false }}
+    screenOptions={screenOptions}
   >
     <Stack.Screen name="EnterMirror" component={EnterMirrorScreen} />
     <Stack.Screen name="AppVideo" component={AppVideoScreen} />
@@ -306,6 +328,7 @@ const AppNavigator = () => {
   return (
     <NavigationContainer
       ref={navigationRef}
+      theme={navTheme}
       key={isAuthenticated ? 'authenticated' : 'unauthenticated'}
       // Replay any notification-tap navigation queued before the tree mounted
       // (cold-start taps land here before the container is ready).
