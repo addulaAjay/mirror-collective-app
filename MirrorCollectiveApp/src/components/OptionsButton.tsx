@@ -115,9 +115,12 @@ const styles = StyleSheet.create({
     borderColor:      palette.navy.border,  // #808fb2 (border/bold)
     overflow:         'hidden',
   },
-  // Frame 248 overrides — wider horizontal padding + lighter border.
+  // Frame 248 override — lighter border on select. NOTE: Figma also widens
+  // horizontal padding 8->16 on select, but with width:'100%' that shrinks the
+  // text's content box and re-wraps the label, making the card visibly
+  // shift/resize when tapped (reported on iPhone 17). Keep padding constant
+  // across states so selecting only changes the border + glow, never layout.
   buttonSelected: {
-    paddingHorizontal: scale(16),
     borderColor:       palette.navy.light,  // #a3b3cc (border/subtle)
   },
 
