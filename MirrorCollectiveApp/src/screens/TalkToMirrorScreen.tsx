@@ -148,17 +148,10 @@ const TalkToMirrorScreen: React.FC<Props> = ({ navigation }) => {
                     // native View but expo-image does not forward it to
                     // the underlying native image view. Wrap with a View
                     // that carries the prop so Smart-Invert on iOS leaves
-                    // the avatar untouched.
-                    //
-                    // NOTE: the wrapper uses StyleSheet.absoluteFillObject
-                    // (not styles.avatarImage). Applying avatarImage to
-                    // BOTH the wrapper and the inner CachedImage caused
-                    // the inner image's height: '150%' to resolve against
-                    // the wrapper instead of avatarRing, compounding to
-                    // 225% — a visible regression on every device. The
-                    // wrapper only needs to be a positioned ancestor that
-                    // fills its parent; the inner image carries the real
-                    // sizing.
+                    // the avatar untouched. The wrapper fills avatarRing via
+                    // absoluteFillObject; the inner image fills the wrapper
+                    // 1:1 (styles.avatarImage) and contentFit="cover" handles
+                    // the circular crop.
                     <View
                       accessibilityIgnoresInvertColors
                       style={StyleSheet.absoluteFillObject}
@@ -311,11 +304,11 @@ const styles = StyleSheet.create<{
     backgroundColor: palette.navy.deep,
   },
   avatarImage: {
-    width:    '100%',
-    height:   '150%',                          // Figma h:149.82%, top:-6.74%
-    position: 'absolute',
-    top:      -moderateScale(3),
-    left:     0,
+    // Fill the ring 1:1 (matches ProfileScreen). contentFit="cover" crops a
+    // user photo to the circle without zooming. The old height:'150%' + top
+    // offset over-scaled real uploads, clipping the bottom third on device.
+    width:  '100%',
+    height: '100%',
   },
   // Figma 4326:2305 — Cormorant Garamond Light Italic 28px (2xl), lh 1.3, white, glow
   greeting: {
