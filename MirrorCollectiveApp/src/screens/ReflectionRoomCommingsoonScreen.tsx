@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   fontFamily,
   fontSize,
@@ -11,6 +10,7 @@ import {
   verticalScale,
   spacing,
 } from '@theme';
+import React from 'react';
 import {
   Image,
   StyleSheet,
@@ -67,7 +67,7 @@ const ReflectionRoomCommingsoonScreen: React.FC = () => {
           {/* Description */}
           <View style={styles.descriptionContainer}>
             <Text style={styles.description}>
-              This is where your thoughts are held gently, reflected back with care, and allowed to settle knowing.
+              Where awareness turns into real change. Small moments. Real change. Over time. A quick reflection helps you access the space you need right now.
             </Text>
           </View>
 
