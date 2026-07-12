@@ -49,6 +49,11 @@ export const API_CONFIG = {
       ROOM_OVERRIDE: '/api/me/reflection/room',
       TELEMETRY_EVENT: '/api/telemetry/event',
     },
+    SOUL_PING: {
+      // Report a ping as seen/opened so the backend sends a re-engagement
+      // message next time instead of duplicating the same notification.
+      MARK_READ: '/api/soul-pings/{ping_id}/read',
+    },
   },
   TIMEOUT: 10000,
 };

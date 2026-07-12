@@ -8,6 +8,13 @@
  * docs/SOUL_PINGS_PRD.md (Phase 2/3).
  */
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
+import React, { useEffect, useRef } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+
+import BackgroundWrapper from '@components/BackgroundWrapper';
+import Button from '@components/Button';
+import LogoHeader from '@components/LogoHeader';
+import { soulPingApiService } from '@services/api';
 import {
   palette,
   spacing,
@@ -20,12 +27,6 @@ import {
   moderateScale,
 } from '@theme';
 import type { RootStackParamList } from '@types';
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-
-import BackgroundWrapper from '@components/BackgroundWrapper';
-import Button from '@components/Button';
-import LogoHeader from '@components/LogoHeader';
 
 const CATEGORY_LABEL: Record<string, string> = {
   emotional: 'A gentle check-in',
@@ -36,7 +37,18 @@ const CATEGORY_LABEL: Record<string, string> = {
 const SoulPingScreen: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute<RouteProp<RootStackParamList, 'SoulPing'>>();
-  const { category, title, body } = route.params ?? {};
+  const { pingId, category, title, body } = route.params ?? {};
+
+  // Viewing this screen is the truest "seen" signal — it's reached from every
+  // push entry point (background tap, cold start). Report it once, best-effort:
+  // never block or surface errors, since it's pure telemetry that shapes the
+  // next scheduled ping.
+  const markedRef = useRef(false);
+  useEffect(() => {
+    if (!pingId || markedRef.current) return;
+    markedRef.current = true;
+    soulPingApiService.markRead(pingId).catch(() => {});
+  }, [pingId]);
 
   const eyebrow =
     (category && CATEGORY_LABEL[category]) || 'A message from your Mirror';
