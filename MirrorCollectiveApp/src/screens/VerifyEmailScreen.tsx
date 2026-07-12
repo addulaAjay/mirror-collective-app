@@ -17,13 +17,12 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Alert,
-  KeyboardAvoidingView,
-  Platform,
   Pressable,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
@@ -199,11 +198,13 @@ const VerifyEmailScreen = () => {
       <SafeAreaView style={styles.safe}>
         <LogoHeader />
 
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        <KeyboardAwareScrollView
           style={styles.kav}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          bottomOffset={verticalScale(24)}
         >
-        <View style={styles.contentContainer}>
           {/* Main Content */}
           <View style={styles.messageContainer}>
             {/* Header */}
@@ -296,8 +297,7 @@ const VerifyEmailScreen = () => {
               </Text>
             </Pressable>
           </View>
-        </View>
-        </KeyboardAvoidingView>
+        </KeyboardAwareScrollView>
       </SafeAreaView>
     </BackgroundWrapper>
   );
@@ -316,12 +316,19 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
   },
-  contentContainer: {
-    flex: 1,
+  scrollContent: {
+    // flexGrow:1 lets the content center vertically when there's room, but
+    // scroll instead of overlapping the LogoHeader when it doesn't fit.
+    // paddingTop keeps the title clear of the logo on tall devices
+    // (the previous justifyContent:'center' with no top guard let the
+    // heading ride up onto the logo, e.g. iPhone 16 Pro Max).
+    flexGrow: 1,
     width: '100%',
     alignItems: 'center',
-    paddingHorizontal: scale(24),
     justifyContent: 'center',
+    paddingHorizontal: scale(24),
+    paddingTop: verticalScale(40),
+    paddingBottom: verticalScale(24),
   },
   messageContainer: {
     alignItems: 'center',
