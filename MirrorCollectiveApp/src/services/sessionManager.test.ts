@@ -23,7 +23,12 @@ describe('SessionManager', () => {
 
       expect(sessionId).toMatch(/^session_\d+-[a-z0-9]+$/);
       expect(AsyncStorage.setItem).toHaveBeenCalledWith('mirrorgpt_session_id', sessionId);
-      expect(AsyncStorage.removeItem).toHaveBeenCalledWith('mirrorgpt_conversation_id');
+    });
+
+    it('does NOT clear the stored conversation ID (recall relies on resume)', async () => {
+      await SessionManager.generateNewSession();
+
+      expect(AsyncStorage.removeItem).not.toHaveBeenCalledWith('mirrorgpt_conversation_id');
     });
   });
 

@@ -59,6 +59,16 @@ export const useChat = () => {
       const response = await sessionApiService.getGreeting();
 
       if (response.success && response.data?.greeting_message) {
+        // Resume the prior conversation thread when the server hands one
+        // back, so the first /chat message continues where the user left
+        // off. When there is no prior context, clear any stale stored id so
+        // a fresh conversation is created cleanly.
+        if (response.data.conversation_id) {
+          await SessionManager.setConversationId(response.data.conversation_id);
+        } else {
+          await SessionManager.clearConversation();
+        }
+
         const greetingText = toFirstNameOnly(response.data.greeting_message, user?.fullName);
         const greetingMessage = createMessage(greetingText, 'system');
         setMessages([greetingMessage]);
