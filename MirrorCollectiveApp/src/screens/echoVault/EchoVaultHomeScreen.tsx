@@ -87,7 +87,6 @@ export function MirrorEchoContent() {
           style={styles.scroll}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
-          bounces={false}
           alwaysBounceVertical={false}
         >
           {/* Figma 767:2844 — flex-col gap:20 items-center */}
@@ -278,11 +277,19 @@ const styles = StyleSheet.create<{
   },
 
   scroll: { flex: 1 },
-  // No flexGrow:1 — prevents scroll by always filling viewport on small devices
+  // flexGrow:1 makes the content container fill the viewport exactly when the
+  // content fits — so contentSize == frame and there is NO marginal/dead-space
+  // scroll (the earlier "sticky scrolls-for-no-reason" on tall devices). It
+  // only becomes scrollable when the content genuinely exceeds the frame
+  // (very small devices / large accessibility text), where natural bounce
+  // then applies. justifyContent centers the block so any surplus height is
+  // shared top/bottom rather than dumped below the buttons as dead space.
   scrollContent: {
+    flexGrow:          1,
+    justifyContent:    'center',
     paddingHorizontal: scale(spacing.xl),
     paddingTop:        verticalScale(spacing.xl),
-    paddingBottom:     verticalScale(spacing.xxxl),
+    paddingBottom:     verticalScale(spacing.xl),
   },
 
   // Figma 767:2844 — flex-col gap:20 items-center, w-full
@@ -331,10 +338,14 @@ const styles = StyleSheet.create<{
     width:             '100%',
   },
 
-  // Figma 767:2847 — aspect 1:1 (328×328 in Figma), overflow hidden
+  // Figma 767:2847 — aspect 1:1 (328×328 in Figma), overflow hidden.
+  // maxHeight caps the width-driven square so on very tall screens / tablets
+  // it can't grow past the Figma size and push the column past the viewport.
   imageSquare: {
     width:       '100%',
     aspectRatio: 1,
+    maxHeight:   verticalScale(328),
+    alignSelf:   'center',
     overflow:    'hidden',
   },
 

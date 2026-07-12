@@ -43,6 +43,10 @@ export function MirrorChatContent() {
   // when the TTS feature is flagged on.
   const { enabled: autoReadEnabled } = useAutoReadPreference();
 
+  // Measured height of the messages ScrollView, used to gate auto-scroll so
+  // it only fires when the messages genuinely overflow the viewport.
+  const messagesFrameH = React.useRef(0);
+
   // When auto-read is on, this hook speaks each new assistant reply on
   // arrival. Gated by TTS_FEATURE_ENABLED so the feature stays dormant
   // until the OpenAI-voice migration lands (see featureFlag.ts comment
@@ -117,11 +121,20 @@ export function MirrorChatContent() {
                   keyboardShouldPersistTaps="handled"
                   keyboardDismissMode="on-drag"
                   showsVerticalScrollIndicator={false}
-                  bounces={false}
                   alwaysBounceVertical={false}
-                  onContentSizeChange={() =>
-                    scrollViewRef.current?.scrollToEnd({ animated: true })
-                  }
+                  onLayout={e => {
+                    messagesFrameH.current = e.nativeEvent.layout.height;
+                  }}
+                  onContentSizeChange={(_w, h) => {
+                    // Only auto-scroll when messages actually overflow the
+                    // viewport. Firing scrollToEnd on every content-size
+                    // change (e.g. the input growing, or a short list that
+                    // already fits) caused a spurious animated "scrolls by
+                    // itself" jump. No overflow → nothing to scroll.
+                    if (h > messagesFrameH.current) {
+                      scrollViewRef.current?.scrollToEnd({ animated: true });
+                    }
+                  }}
                 >
                   {messages.map(message => (
                     <MessageBubble key={message.id} message={message} />
