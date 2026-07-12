@@ -5,3 +5,4 @@ export * from './quiz';
 export * from './session';
 export * from './echo';
 export * from './user';
+export * from './soulPing';
