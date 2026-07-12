@@ -128,6 +128,11 @@ export interface SessionGreetingResponse {
   timestamp: string;
   user_archetype: string;
   archetype_confidence: number;
+  // Continuity: the most-recent prior conversation to resume. The client
+  // echoes this back on /chat so the same thread continues across sessions.
+  // Null when the user has no prior conversation to resume.
+  conversation_id?: string | null;
+  has_prior_context?: boolean;
 }
 
 // MirrorGPT Chat Types

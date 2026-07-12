@@ -8,7 +8,13 @@ export class SessionManager {
   private static conversationId: string | null = null;
 
   /**
-   * Generate a new session ID when user enters MirrorGPT screen
+   * Generate a new ephemeral session ID when the user enters MirrorGPT.
+   *
+   * Does NOT clear the durable conversation ID. The conversation thread to
+   * resume is decided from the /session/greeting response (see useChat's
+   * initializeSession), so wiping it here would force a fresh, empty-history
+   * conversation on every screen entry and break cross-session recall.
+   * Use clearConversation() to explicitly start a brand-new thread.
    */
   static async generateNewSession(): Promise<string> {
     const sessionId = `session_${Date.now()}-${Math.random()
@@ -16,10 +22,6 @@ export class SessionManager {
       .substr(2, 9)}`;
     this.sessionId = sessionId;
     await AsyncStorage.setItem(SESSION_STORAGE_KEY, sessionId);
-
-    // Clear conversation ID when starting new session
-    this.conversationId = null;
-    await AsyncStorage.removeItem(CONVERSATION_STORAGE_KEY);
 
     return sessionId;
   }

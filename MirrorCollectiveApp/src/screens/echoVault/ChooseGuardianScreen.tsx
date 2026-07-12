@@ -359,6 +359,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
+    // flexGrow:1 so the form fills the viewport exactly when it fits (no
+    // marginal "sticky" scroll from the paddingBottom dead space) and only
+    // scrolls when the content genuinely exceeds the frame.
+    flexGrow: 1,
     alignItems: 'center',
     paddingHorizontal: 0,
     paddingBottom: 40,

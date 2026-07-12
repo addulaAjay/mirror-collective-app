@@ -1,6 +1,7 @@
 import { renderHook, act } from '@testing-library/react-native';
 
-import { chatApiService } from '@services/api';
+import { chatApiService, sessionApiService } from '@services/api';
+import { SessionManager } from '@services/sessionManager';
 
 import { useChat } from './useChat';
 
@@ -21,6 +22,7 @@ jest.mock('../../services/sessionManager', () => ({
     getCurrentSessionId: jest.fn().mockResolvedValue('test-session-id'),
     getConversationId: jest.fn().mockResolvedValue('test-conversation-id'),
     setConversationId: jest.fn(),
+    clearConversation: jest.fn(),
   },
 }));
 
@@ -50,6 +52,40 @@ describe('useChat', () => {
     expect(result.current.messages[0].sender).toBe('system');
     expect(result.current.draft).toBe('');
     expect(result.current.loading).toBe(false);
+  });
+
+  it('resumes the prior conversation when the greeting returns a conversation_id', async () => {
+    (sessionApiService.getGreeting as jest.Mock).mockResolvedValueOnce({
+      success: true,
+      data: {
+        greeting_message: 'Welcome back',
+        conversation_id: 'prior-conv-id',
+        has_prior_context: true,
+      },
+    });
+
+    const { result } = renderHook(() => useChat());
+    await act(async () => {
+      await result.current.initializeSession();
+    });
+
+    expect(SessionManager.setConversationId).toHaveBeenCalledWith('prior-conv-id');
+    expect(SessionManager.clearConversation).not.toHaveBeenCalled();
+  });
+
+  it('clears any stale conversation when the greeting returns no conversation_id', async () => {
+    (sessionApiService.getGreeting as jest.Mock).mockResolvedValueOnce({
+      success: true,
+      data: { greeting_message: 'The Mirror reflects…' },
+    });
+
+    const { result } = renderHook(() => useChat());
+    await act(async () => {
+      await result.current.initializeSession();
+    });
+
+    expect(SessionManager.clearConversation).toHaveBeenCalled();
+    expect(SessionManager.setConversationId).not.toHaveBeenCalled();
   });
 
   it('updates draft message when setDraft is called', () => {
