@@ -40,6 +40,7 @@ import {
   ActivityIndicator,
   Alert,
   Image,
+  Keyboard,
   Modal,
   Platform,
   ScrollView,
@@ -57,7 +58,10 @@ import {
 import AudioRecorderPlayer from 'react-native-audio-recorder-player';
 import DocumentPicker from 'react-native-document-picker';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
-import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
+import {
+  KeyboardAvoidingView,
+  KeyboardToolbar,
+} from 'react-native-keyboard-controller';
 import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
@@ -126,6 +130,21 @@ function formatDuration(ms: number): string {
 // internally so it never dominates the screen (keeps the page scrollable).
 const MIN_MESSAGE_HEIGHT = verticalScale(120);
 const MAX_MESSAGE_HEIGHT = verticalScale(220);
+
+// Gold-on-navy "Done" bar shown above the keyboard while the multiline Message
+// field is focused, so the user can dismiss the keyboard and reach the
+// attachment cards (a multiline Return key can't act as Done). Same palette for
+// light/dark so it stays on-brand regardless of the OS appearance.
+const KEYBOARD_TOOLBAR_PALETTE = {
+  primary: palette.gold.DEFAULT,
+  disabled: palette.navy.light,
+  background: '#1a2238', // Figma Border/Inverse — reads as an elevated dark bar
+  ripple: 'rgba(242, 226, 177, 0.2)',
+};
+const KEYBOARD_TOOLBAR_THEME = {
+  light: KEYBOARD_TOOLBAR_PALETTE,
+  dark: KEYBOARD_TOOLBAR_PALETTE,
+};
 
 // Non-canonical MIME types pickers report, mapped to what the backend accepts.
 const MIME_ALIASES: Record<string, string> = {
@@ -688,6 +707,7 @@ const CreateEchoScreen: React.FC = () => {
 
   // ── Record a video ────────────────────────────────────────────────────────
   const recordVideo = async () => {
+    Keyboard.dismiss();
     try {
       const result = await launchCamera({
         mediaType: 'video',
@@ -714,8 +734,16 @@ const CreateEchoScreen: React.FC = () => {
     }
   };
 
+  // Open the photo/video sheet, dismissing the keyboard first so the sheet
+  // isn't fighting the keyboard for space.
+  const openUploadSheet = () => {
+    Keyboard.dismiss();
+    setShowUploadSheet(true);
+  };
+
   // ── Voice recording ───────────────────────────────────────────────────────
   const openRecorder = () => {
+    Keyboard.dismiss();
     setRecordMs(0);
     recordUri.current = null;
     setIsRecording(false);
@@ -1126,7 +1154,7 @@ const CreateEchoScreen: React.FC = () => {
                     key={att.id}
                     attachment={att}
                     onRemove={() => removeAttachment(att)}
-                    onAddMore={() => setShowUploadSheet(true)}
+                    onAddMore={openUploadSheet}
                     onPlayVideo={() => setPreviewVideo(att)}
                     onToggleAudio={() => toggleAudioPlayback(att)}
                     isPlayingAudio={playingAudioId === att.id}
@@ -1147,7 +1175,7 @@ const CreateEchoScreen: React.FC = () => {
                 <AddCard
                   icon={<PhotoIcon />}
                   label="Add photo or video"
-                  onPress={() => setShowUploadSheet(true)}
+                  onPress={openUploadSheet}
                   disabled={isSaving}
                 />
                 <AddCard
@@ -1186,6 +1214,12 @@ const CreateEchoScreen: React.FC = () => {
             )}
           </View>
         </KeyboardAvoidingView>
+
+        {/* "Done" bar above the keyboard — the multiline Message field can't use
+            the Return key to dismiss, so this gives an explicit way out to reach
+            the attachment cards. Sits outside the KeyboardAvoidingView; its own
+            keyboard-sticky positioning doesn't compound with the KAV. */}
+        <KeyboardToolbar showArrows={false} theme={KEYBOARD_TOOLBAR_THEME} />
 
         {/* Photo/video upload bottom sheet (Figma 7544:2839) */}
         <Modal
