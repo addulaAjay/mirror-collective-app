@@ -48,7 +48,7 @@ jest.mock('@components/ui', () => {
         </View>
       );
     },
-    LoadingIndicator: () => <View testID="loading-indicator" />,
+    TypingIndicator: () => <View testID="typing-indicator" />,
   };
 });
 
@@ -125,7 +125,7 @@ describe('MirrorChatScreen', () => {
     });
 
     const { getByTestId } = render(<MirrorChatContent />);
-    expect(getByTestId('loading-indicator')).toBeTruthy();
+    expect(getByTestId('typing-indicator')).toBeTruthy();
   });
 
   it('disables input when loading', () => {

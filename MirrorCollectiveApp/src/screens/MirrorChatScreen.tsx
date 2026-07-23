@@ -17,7 +17,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AuthenticatedRoute from '@components/AuthenticatedRoute';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
-import { MessageBubble, ChatInput, LoadingIndicator } from '@components/ui';
+import { MessageBubble, ChatInput, TypingIndicator } from '@components/ui';
 import { useChat } from '@hooks/useChat';
 import {
   TTS_FEATURE_ENABLED,
@@ -139,7 +139,7 @@ export function MirrorChatContent() {
                   {messages.map(message => (
                     <MessageBubble key={message.id} message={message} />
                   ))}
-                  {loading && <LoadingIndicator />}
+                  {loading && <TypingIndicator />}
                 </ScrollView>
 
                 <ChatInput
