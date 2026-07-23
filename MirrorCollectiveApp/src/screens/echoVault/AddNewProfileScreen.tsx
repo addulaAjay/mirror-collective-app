@@ -75,13 +75,19 @@ const BackIcon: React.FC = () => (
 const CIRCLE = scale(186);
 
 const AddNewProfileScreen: React.FC<Props> = ({ navigation, route }) => {
+  const editRecipient = route.params?.editRecipient;
+  const isEdit = !!editRecipient;
   const mode = route.params?.mode ?? 'recipient';
   const isGuardian = mode === 'guardian';
 
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
+  const [name, setName] = useState(editRecipient?.name ?? '');
+  const [email, setEmail] = useState(editRecipient?.email ?? '');
   const [photoUri, setPhotoUri] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // In edit mode, show the existing photo until the user picks a new one.
+  const displayImageUri =
+    photoUri ?? (isEdit ? editRecipient?.profile_image_url ?? null : null);
 
   const handlePickImage = async () => {
     // Native crop / zoom / adjust → returns a cropped JPEG ready to upload.
@@ -136,6 +142,47 @@ const AddNewProfileScreen: React.FC<Props> = ({ navigation, route }) => {
     }
   };
 
+  // Edit mode: only the picture changes. Upload the newly-picked photo, then
+  // PATCH the recipient (name/email are immutable server-side).
+  const handleSave = async () => {
+    if (!editRecipient) return;
+    if (!photoUri) {
+      Alert.alert('No change', 'Pick a new photo to update.');
+      return;
+    }
+    try {
+      setLoading(true);
+      const urlRes = await echoApiService.getUploadUrl(
+        'image/jpeg',
+        undefined,
+        'profile',
+      );
+      if (!urlRes.success || !urlRes.data) {
+        throw new Error(urlRes.error ?? 'Could not get image upload URL');
+      }
+      await echoApiService.uploadMedia(
+        urlRes.data.upload_url,
+        photoUri,
+        'image/jpeg',
+      );
+      const response = await echoApiService.updateRecipientPhoto(
+        editRecipient.recipient_id,
+        urlRes.data.media_url,
+      );
+      if (response.success) {
+        Alert.alert('Success', 'Photo updated', [
+          { text: 'OK', onPress: () => navigation.goBack() },
+        ]);
+      } else {
+        Alert.alert('Error', response.error || 'Failed to update photo');
+      }
+    } catch (err: any) {
+      Alert.alert('Error', err?.message ?? 'An unexpected error occurred');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <BackgroundWrapper style={styles.bg} scrollable>
       <SafeAreaView style={styles.safe}>
@@ -165,7 +212,11 @@ const AddNewProfileScreen: React.FC<Props> = ({ navigation, route }) => {
               </TouchableOpacity>
               {/* Heading M: Cormorant Regular 28/32, gold, glow */}
               <Text style={styles.screenTitle}>
-                {isGuardian ? 'ADD GUARDIAN' : 'ADD PROFILE'}
+                {isEdit
+                  ? 'EDIT PROFILE'
+                  : isGuardian
+                    ? 'ADD GUARDIAN'
+                    : 'ADD PROFILE'}
               </Text>
               <View style={styles.headerSpacer} />
             </View>
@@ -190,14 +241,23 @@ const AddNewProfileScreen: React.FC<Props> = ({ navigation, route }) => {
               accessibilityRole="button"
               accessibilityLabel="Add photo from gallery"
             >
-              {photoUri ? (
-                <Image
-                  source={{ uri: photoUri }}
-                  style={styles.photoImg}
-                  resizeMode="cover"
-                />
+              {displayImageUri ? (
+                <>
+                  <Image
+                    source={{ uri: displayImageUri }}
+                    style={styles.photoImg}
+                    resizeMode="cover"
+                  />
+                  {isEdit ? (
+                    <View style={styles.photoOverlay}>
+                      <Text style={styles.addImageText}>Edit Image +</Text>
+                    </View>
+                  ) : null}
+                </>
               ) : (
-                <Text style={styles.addImageText}>Add Image +</Text>
+                <Text style={styles.addImageText}>
+                  {isEdit ? 'Edit Image +' : 'Add Image +'}
+                </Text>
               )}
             </TouchableOpacity>
 
@@ -207,6 +267,7 @@ const AddNewProfileScreen: React.FC<Props> = ({ navigation, route }) => {
               placeholder={isGuardian ? 'Enter name' : 'Enter name'}
               value={name}
               onChangeText={setName}
+              editable={!isEdit}
               autoCapitalize="words"
               placeholderAlign="left"
             />
@@ -219,6 +280,7 @@ const AddNewProfileScreen: React.FC<Props> = ({ navigation, route }) => {
               }
               value={email}
               onChangeText={setEmail}
+              editable={!isEdit}
               keyboardType="email-address"
               autoCapitalize="none"
               autoComplete="email"
@@ -236,9 +298,11 @@ const AddNewProfileScreen: React.FC<Props> = ({ navigation, route }) => {
               <Button
                 variant="primary"
                 size="L"
-                title="ADD"
-                onPress={handleAdd}
-                active={!!(name.trim() && email.trim())}
+                title={isEdit ? 'SAVE' : 'ADD'}
+                onPress={isEdit ? handleSave : handleAdd}
+                active={
+                  isEdit ? !!photoUri : !!(name.trim() && email.trim())
+                }
               />
             )}
           </View>
@@ -266,6 +330,7 @@ const styles = StyleSheet.create<{
   subtitle: TextStyle;
   photoCircle: ViewStyle;
   photoImg: ImageStyle;
+  photoOverlay: ViewStyle;
   addImageText: TextStyle;
 }>({
   bg:   { flex: 1 },
@@ -352,6 +417,14 @@ const styles = StyleSheet.create<{
     width:        '100%',
     height:       '100%',
     borderRadius: CIRCLE / 2,
+  },
+  // Edit mode: darkened scrim + "Edit Image +" over the existing photo.
+  photoOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems:      'center',
+    justifyContent:  'center',
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    borderRadius:    CIRCLE / 2,
   },
   // "Add Image +" — Heading XS: Cormorant Regular 20/24, gold
   addImageText: {

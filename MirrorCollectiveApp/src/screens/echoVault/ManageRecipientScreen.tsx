@@ -116,13 +116,28 @@ const ManageRecipientScreen: React.FC<Props> = ({ navigation }) => {
     const isLast = index === recipients.length - 1;
     return (
       <View style={[styles.row, !isLast && styles.rowBorder]}>
-        <View style={styles.rowLeft}>
+        <TouchableOpacity
+          style={styles.rowLeft}
+          activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityLabel={`Edit ${item.name}`}
+          onPress={() =>
+            navigation.navigate('AddNewProfileScreen', {
+              editRecipient: {
+                recipient_id: item.recipient_id,
+                name: item.name,
+                email: item.email,
+                profile_image_url: item.profile_image_url,
+              },
+            })
+          }
+        >
           {renderAvatar(item)}
           <View style={styles.rowText}>
             <Text style={styles.name}>{item.name.toUpperCase()}</Text>
             <Text style={styles.email}>{item.email}</Text>
           </View>
-        </View>
+        </TouchableOpacity>
 
         <View style={styles.rowRight}>
           {item.has_shared_echoes && (
