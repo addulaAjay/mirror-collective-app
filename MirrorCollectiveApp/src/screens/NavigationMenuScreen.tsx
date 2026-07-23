@@ -47,6 +47,7 @@ type MirrorSideMenuProps = {
   userName?: string;
   onClose: () => void;
   onNavigate: (route: string) => void;
+  onLogout: () => void;
 };
 
 // ── Nav item definitions ────────────────────────────────────────────────────
@@ -86,6 +87,16 @@ const CloseIcon: React.FC = () => (
   </Svg>
 );
 
+// ── Logout icon (Material logout — arrow exiting a door) ────────────────────
+const LogoutIcon: React.FC = () => (
+  <Svg width={scale(20)} height={scale(20)} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"
+      fill={palette.gold.warm}
+    />
+  </Svg>
+);
+
 // ── Divider — Figma node 2941:2759 (imgLine3)
 // Centre-bright gradient: transparent → navy.light → transparent
 const NavDivider: React.FC = () => (
@@ -111,6 +122,7 @@ const MirrorSideMenu: React.FC<MirrorSideMenuProps> = ({
   userName = 'Guest',
   onClose,
   onNavigate,
+  onLogout,
 }) => {
   // Decouple "is the menu logically open" (`isOpen` prop) from "is the
   // drawer mounted" (`mounted` local). On close we keep the component
@@ -299,6 +311,18 @@ const MirrorSideMenu: React.FC<MirrorSideMenuProps> = ({
                   <Text style={styles.primaryText}>{item.label}</Text>
                 </TouchableOpacity>
               ))}
+
+              {/* Logout — Figma node 2336:3446: label + exit icon, bottom of menu */}
+              <TouchableOpacity
+                activeOpacity={0.75}
+                onPress={onLogout}
+                style={styles.logoutItem}
+                accessibilityRole="button"
+                accessibilityLabel="Log out"
+              >
+                <Text style={styles.primaryText}>Logout</Text>
+                <LogoutIcon />
+              </TouchableOpacity>
             </View>
           </ScrollView>
         </View>
@@ -330,6 +354,7 @@ const styles = StyleSheet.create<{
   divider: ViewStyle;
   secondaryList: ViewStyle;
   secondaryItem: ViewStyle;
+  logoutItem: ViewStyle;
 }>({
   // ── Backdrop ─────────────────────────────────────────────────────────────
   backdrop: {
@@ -465,6 +490,15 @@ const styles = StyleSheet.create<{
   // Figma node 2336:3817
   secondaryItem: {
     padding: scale(spacing.s), // 12px all sides
+    width: '100%',
+  },
+
+  // Logout row: label + exit icon inline — Figma node 2336:3446
+  logoutItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: scale(spacing.s), // 12px between label and icon
+    padding: scale(spacing.s), // 12px all sides, matches secondaryItem
     width: '100%',
   },
 });
