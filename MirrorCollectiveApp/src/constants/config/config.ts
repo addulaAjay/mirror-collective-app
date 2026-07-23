@@ -74,6 +74,15 @@ export const REFLECTION_ROOM_ENABLED =
 export const REFLECTION_ROOM_USE_MOCK =
   String(process.env.REFLECTION_ROOM_USE_MOCK ?? 'true').toLowerCase() !== 'false';
 
+/**
+ * Public legal pages, opened in the device browser via Linking.openURL.
+ * Hosted on the marketing site.
+ */
+export const LEGAL_LINKS = {
+  TERMS: 'https://www.themirrorcollective.com/termsandconditions',
+  PRIVACY: 'https://www.themirrorcollective.com/privacy',
+} as const;
+
 export const APP_CONFIG = {
   CHAT: {
     MAX_MESSAGE_LENGTH: 1000,
