@@ -15,6 +15,7 @@ import {
   modalColors,
 } from '@theme';
 import type { RootStackParamList } from '@types';
+import { LEGAL_LINKS } from '@constants/config';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -25,6 +26,7 @@ import {
     TouchableOpacity,
     Image,
     ScrollView,
+    Linking,
     type ViewStyle,
     type TextStyle,
     type ImageStyle,
@@ -50,6 +52,14 @@ const TermsAndConditionsScreen = () => {
     const { t } = useTranslation();
     const [agreed, setAgreed] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+
+    const openLink = async (url: string) => {
+        try {
+            await Linking.openURL(url);
+        } catch {
+            Alert.alert('Unable to open link', 'Please try again later.');
+        }
+    };
 
     return (
       <BackgroundWrapper
@@ -185,8 +195,22 @@ const TermsAndConditionsScreen = () => {
                   <Text style={styles.cardBody}>
                     You can review our full policies here:
                   </Text>
-                  <Text style={styles.cardBody}>• Terms of Service</Text>
-                  <Text style={styles.cardBody}>• Privacy Policy</Text>
+                  <TouchableOpacity
+                    accessibilityRole="link"
+                    onPress={() => openLink(LEGAL_LINKS.TERMS)}
+                  >
+                    <Text style={[styles.cardBody, styles.cardLink]}>
+                      • Terms of Service
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    accessibilityRole="link"
+                    onPress={() => openLink(LEGAL_LINKS.PRIVACY)}
+                  >
+                    <Text style={[styles.cardBody, styles.cardLink]}>
+                      • Privacy Policy
+                    </Text>
+                  </TouchableOpacity>
                   <Text style={styles.cardBody}>
                     • AI Transparency &amp; Use Policy
                   </Text>
@@ -323,6 +347,7 @@ const styles = StyleSheet.create<{
   cardHeading: TextStyle;
   cardEmphasis: TextStyle;
   cardBody: TextStyle;
+  cardLink: TextStyle;
   footer: ViewStyle;
   checkboxRow: ViewStyle;
   checkboxBox: ViewStyle;
@@ -459,6 +484,10 @@ const styles = StyleSheet.create<{
     lineHeight: moderateScale(fontSize.s) * 1.5,
     color: palette.gold.subtlest,
     textAlign: 'center',
+  },
+  cardLink: {
+    color: palette.gold.warm,
+    textDecorationLine: 'underline',
   },
 
   // ── Footer ───────────────────────────────────────────────────────────────

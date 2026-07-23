@@ -26,6 +26,7 @@ import {
     Image,
     Alert,
     ScrollView,
+    Linking,
     type ViewStyle,
     type TextStyle,
     type ImageStyle,
@@ -37,6 +38,7 @@ import BackgroundWrapper from '@components/BackgroundWrapper';
 import Button from '@components/Button/Button';
 import LogoHeader from '@components/LogoHeader';
 import StarIcon from '@components/StarIcon';
+import { LEGAL_LINKS } from '@constants/config';
 
 import { useSession } from '@/context/SessionContext';
 import { useSubscription } from '@/context/SubscriptionContext';
@@ -96,6 +98,14 @@ const StartFreeTrialScreen = () => {
             } catch (error: any) {
                 Alert.alert('Purchase Failed', error.message || 'Unable to complete purchase');
             }
+        }
+    };
+
+    const openLink = async (url: string) => {
+        try {
+            await Linking.openURL(url);
+        } catch {
+            Alert.alert('Unable to open link', 'Please try again later.');
         }
     };
 
@@ -260,9 +270,19 @@ const StartFreeTrialScreen = () => {
 
           {/* ── Footer ───────────────────────────────────────────────── */}
           <View style={styles.footerLinksRow}>
-            <Text style={styles.footerLinkText}>Terms</Text>
+            <TouchableOpacity
+              accessibilityRole="link"
+              onPress={() => openLink(LEGAL_LINKS.TERMS)}
+            >
+              <Text style={styles.footerLinkText}>Terms</Text>
+            </TouchableOpacity>
             <Text style={styles.footerLinkText}>•</Text>
-            <Text style={styles.footerLinkText}>Privacy</Text>
+            <TouchableOpacity
+              accessibilityRole="link"
+              onPress={() => openLink(LEGAL_LINKS.PRIVACY)}
+            >
+              <Text style={styles.footerLinkText}>Privacy</Text>
+            </TouchableOpacity>
             <Text style={styles.footerLinkText}>•</Text>
             <Text style={styles.footerLinkText}>Restore Purchase</Text>
           </View>
