@@ -1303,6 +1303,24 @@ export class EchoApiService extends BaseApiService {
     );
     return ApiErrorHandler.handleApiResponse(response, 'Recipient removed');
   }
+
+  /**
+   * Update a recipient's profile picture only. `profileImageUrl` is the
+   * canonical S3 URL returned by the upload-url flow (getUploadUrl + uploadMedia).
+   * Name/email are immutable via this endpoint by design.
+   */
+  async updateRecipientPhoto(
+    id: string,
+    profileImageUrl: string,
+  ): Promise<ApiResponse<Recipient>> {
+    const response = await this.makeRequest<Recipient>(
+      `/api/recipients/${id}`,
+      'PATCH',
+      { profile_image_url: profileImageUrl },
+      true,
+    );
+    return ApiErrorHandler.handleApiResponse(response, 'Recipient photo updated');
+  }
 }
 
 export const echoApiService = new EchoApiService();
