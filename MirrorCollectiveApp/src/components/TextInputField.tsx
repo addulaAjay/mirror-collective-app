@@ -45,6 +45,8 @@ interface Props {
   secureTextEntry?: boolean;
   value?: string;
   onChangeText?: (text: string) => void;
+  /** When false, the field is display-only (non-editable). Defaults to true. */
+  editable?: boolean;
   keyboardType?: 'default' | 'email-address' | 'numeric' | 'phone-pad';
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
   autoComplete?: 'email' | 'password' | 'new-password' | 'name' | 'off' | 'one-time-code';
@@ -88,6 +90,7 @@ const TextInputField = ({
   secureTextEntry = false,
   value = '',
   onChangeText,
+  editable = true,
   keyboardType = 'default',
   autoCapitalize = 'none',
   autoComplete,
@@ -161,6 +164,7 @@ const TextInputField = ({
         <TextInput
           value={value}
           onChangeText={onChangeText}
+          editable={editable}
           placeholder=""
           secureTextEntry={secureTextEntry && !isPasswordVisible}
           keyboardType={keyboardType}

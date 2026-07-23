@@ -511,6 +511,31 @@ describe('EchoApiService', () => {
     });
   });
 
+  describe('updateRecipientPhoto', () => {
+    it('PATCHes /api/recipients/{id} with only the picture', async () => {
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          success: true,
+          data: {
+            recipient_id: 'r-1',
+            profile_image_url: 'https://presigned.example/get',
+          },
+        }),
+      });
+
+      const url =
+        'https://echo-vault-media.s3.us-east-1.amazonaws.com/profiles/u-1/new.jpg';
+      const result = await echoApiService.updateRecipientPhoto('r-1', url);
+
+      expect(result.success).toBe(true);
+      const [reqUrl, init] = (global.fetch as jest.Mock).mock.calls[0];
+      expect(String(reqUrl)).toContain('/api/recipients/r-1');
+      expect(init.method).toBe('PATCH');
+      expect(JSON.parse(init.body)).toEqual({ profile_image_url: url });
+    });
+  });
+
   describe('finalizeMedia', () => {
     it('POSTs to /api/echoes/{id}/finalize-media with key + content_type', async () => {
       (global.fetch as jest.Mock).mockResolvedValueOnce({

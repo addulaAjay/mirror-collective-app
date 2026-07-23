@@ -195,7 +195,19 @@ export type RootStackParamList = {
      */
     prefillLetter?: string;
   };
-  AddNewProfileScreen: { mode?: 'recipient' | 'guardian' } | undefined;
+  AddNewProfileScreen:
+    | {
+        mode?: 'recipient' | 'guardian';
+        // When present, the screen is in edit mode: name/email are shown
+        // read-only and only the photo can be changed (picture-only edit).
+        editRecipient?: {
+          recipient_id: string;
+          name: string;
+          email: string;
+          profile_image_url?: string;
+        };
+      }
+    | undefined;
   Checkout: undefined;
 };
 
