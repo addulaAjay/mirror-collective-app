@@ -350,7 +350,7 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
                 >
                   <View pointerEvents="none">
                     <TextInputField
-                      label="Lock Date (only if required)"
+                      label="Lock Date"
                       placeholder="When do you want to open it?"
                       placeholderAlign="left"
                       value={lockDate ? formatDate(lockDate) : ''}
@@ -366,6 +366,12 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
                   />
                 </View>
               </View>
+
+              {/* Sending rule — surfaced so users know an unset lock date
+                  means the echo is delivered right away (Figma 7820-2208). */}
+              <Text style={styles.lockDateHint}>
+                (echo is sent immediately if lock date is not set)
+              </Text>
 
               {/* Android: native self-dismissing dialog. */}
               {Platform.OS === 'android' && showDatePicker && (
@@ -459,6 +465,7 @@ const styles = StyleSheet.create<{
   // Field groups
   fieldGroup: ViewStyle;
   fieldLabel: TextStyle;
+  lockDateHint: TextStyle;
   fieldWithIcon: ViewStyle;
   fieldTouchable: ViewStyle;
   fieldIcon: ViewStyle;
@@ -531,6 +538,16 @@ const styles = StyleSheet.create<{
 
   // ── Field groups ────────────────────────────────────────────────────────────
   fieldGroup: { gap: verticalScale(spacing.xs) },
+
+  // Sending-rule caption under the Lock Date field — Body XS Italic, gold
+  // (Figma Text/Paragraph-1 #f2e1b0), matching node 7820-2208.
+  lockDateHint: {
+    fontFamily: fontFamily.bodyItalic,
+    fontStyle: 'italic',
+    fontSize: moderateScale(fontSize.xs),
+    lineHeight: lineHeight.s,
+    color: palette.gold.DEFAULT,
+  },
 
   fieldLabel: {
     // Mirror the TextInputField label so the Recipient and Lock Date labels
