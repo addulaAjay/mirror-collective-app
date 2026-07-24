@@ -291,7 +291,7 @@ export default ReflectionRoomMirrorMomentScreen;
 const ICON_BUTTON_SIZE = 40;
 
 const styles = StyleSheet.create({
-  bg: { flex: 1, backgroundColor: palette.navy.deep },
+  bg: { flex: 1 },
   safe: { flex: 1 },
   scroll: {
     paddingHorizontal: spacing.l,

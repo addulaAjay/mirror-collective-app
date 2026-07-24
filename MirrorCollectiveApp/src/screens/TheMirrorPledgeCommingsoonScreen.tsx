@@ -86,7 +86,6 @@ const styles = StyleSheet.create<{
 }>({
   bg: {
     flex: 1,
-    backgroundColor: palette.navy.deep,
   },
   bgImage: {
     resizeMode: 'cover',

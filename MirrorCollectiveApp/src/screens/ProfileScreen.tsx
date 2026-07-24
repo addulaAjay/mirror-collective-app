@@ -280,7 +280,7 @@ const styles = StyleSheet.create<{
   avatarImage: ImageStyle; avatarPlaceholder: TextStyle;
   form: ViewStyle; loader: ViewStyle;
 }>({
-  bg:   { flex: 1, backgroundColor: palette.navy.deep },
+  bg:   { flex: 1 },
   bgImage: { resizeMode: 'cover' },
   safe: { flex: 1, backgroundColor: 'transparent' },
   kav:  { flex: 1 },

@@ -87,6 +87,7 @@ const ButtonShowcaseScreen = __DEV__
   ? require('./src/screens/_dev/ButtonShowcase').default
   : null;
 
+import BackgroundWrapper from './src/components/BackgroundWrapper';
 import ErrorBoundary from './src/components/ErrorBoundary';
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -94,14 +95,22 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 // to the LIGHT DefaultTheme (≈white background). On a dark, full-bleed app whose
 // screens paint their own BackgroundWrapper, that light container can flash at
 // the screen's top edge during a native-stack push/pop — a transient pale/tinted
-// outline before the incoming screen's background paints. Anchoring the container
-// (and the per-screen content) to the app's deep navy removes that reveal.
+// outline before the incoming screen's background paints.
+//
+// Anchor it to the TOP stop of the app background ramp, not to a mid-ramp colour
+// like navy.deep. Screens paint a #080911 → #1a2238 gradient, so no single flat
+// colour matches them everywhere; navy.deep only lined up ~18% down the screen
+// and sat rgb(16,20,29) darker than the screen at the bottom edge, which showed
+// as a differently-coloured band wherever the container was revealed. The
+// darkest stop is the safe choice: the only place the container still shows is
+// the transition seam, where iOS draws its own shadow, so a too-dark sliver
+// reads as shadow while a too-light one reads as a seam.
 const navTheme: Theme = {
   ...DarkTheme,
   colors: {
     ...DarkTheme.colors,
-    background: palette.navy.deep, // #0b0f1c — deepest app background
-    card: palette.navy.deep,
+    background: palette.navy.screenTop, // #080911 — top stop of the app ramp
+    card: palette.navy.screenTop,
   },
 };
 
@@ -318,10 +327,12 @@ const AppNavigator = () => {
   // Hold a splash while the onboarding read is in flight so the navigator
   // doesn't mount with the stale default initialRoute.
   if (isAuthenticated && !routeReady) {
+    // Same gradient + starfield the first real screen paints, so handing over to
+    // the navigator is invisible. A flat fill here would step to the gradient.
     return (
-      <View style={styles.loadingScreen}>
-        <ActivityIndicator size="large" color="#f2e1b0" />
-      </View>
+      <BackgroundWrapper scrollable style={styles.loadingScreen}>
+        <ActivityIndicator size="large" color={palette.gold.DEFAULT} />
+      </BackgroundWrapper>
     );
   }
 
@@ -359,8 +370,6 @@ const AppNavigator = () => {
 const styles = StyleSheet.create({
   fill: { flex: 1 },
   loadingScreen: {
-    flex: 1,
-    backgroundColor: '#0b0f1c', // palette.navy.deep — no theme import needed here
     alignItems: 'center',
     justifyContent: 'center',
   },
