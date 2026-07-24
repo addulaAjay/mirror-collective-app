@@ -17,7 +17,6 @@ import MirrorSideMenu from '../screens/NavigationMenuScreen';
 
 import CircularLogoMark from './CircularLogoMark';
 import HeaderTextSvg from './HeaderTextSvg';
-import HomeIcon from './HomeIcon';
 
 type LogoHeaderProps = {
   containerStyle?: StyleProp<ViewStyle>;
@@ -45,6 +44,11 @@ const LogoHeader = ({
     } else {
       setDrawerOpen(true);
     }
+  };
+
+  const handleHomePress = () => {
+    if (!isAuthenticated) return;
+    navigation?.navigate('TalkToMirror' as never);
   };
 
   return (
@@ -79,24 +83,25 @@ const LogoHeader = ({
           )}
         </View>
 
-        {/* Centered Logo + Text */}
-        <View style={[styles.container, containerStyle]}>
+        {/* Centered Logo + Text — doubles as the Home button */}
+        <Pressable
+          onPress={handleHomePress}
+          disabled={!isAuthenticated}
+          hitSlop={spacing.s}
+          accessibilityRole={isAuthenticated ? 'button' : undefined}
+          accessibilityLabel={isAuthenticated ? 'Go to home' : undefined}
+          style={({ pressed }) => [
+            styles.container,
+            containerStyle,
+            pressed && isAuthenticated && styles.containerPressed,
+          ]}
+        >
           <CircularLogoMark size={scale(52)} />
           <HeaderTextSvg width={scale(93)} color={palette.neutral.white} />
-        </View>
+        </Pressable>
 
-        {/* Right side spacer or Home button to keep logo perfectly centered */}
-        <View style={styles.rightContainer}>
-          {isAuthenticated && (
-            <Pressable
-              onPress={() => navigation.navigate('TalkToMirror')}
-              hitSlop={spacing.s}
-              style={styles.homeButton}
-            >
-              <HomeIcon width={24} height={24} color={palette.gold.warm} />
-            </Pressable>
-          )}
-        </View>
+        {/* Right side spacer to keep logo perfectly centered */}
+        <View style={styles.rightContainer} />
       </View>
     </>
   );
@@ -124,9 +129,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'flex-end',
   },
-  homeButton: {
-    zIndex: 11,
-  },
   hamburgerButton: {
     zIndex: 11,
   },
@@ -145,6 +147,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: scale(spacing.s),
     alignItems: 'center',
+  },
+  containerPressed: {
+    opacity: 0.7,
   },
 });
 
