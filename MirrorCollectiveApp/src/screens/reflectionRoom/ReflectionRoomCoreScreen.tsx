@@ -6,7 +6,7 @@ import { useJourney } from '@features/reflection-room/state/JourneyContext';
 import type { MotifId } from '@features/reflection-room/types/ids';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { glassGradient, palette, radius, spacing, theme } from '@theme';
+import { glassGradient, radius, spacing, theme } from '@theme';
 import type { RootStackParamList } from '@types';
 import React from 'react';
 import {
@@ -146,7 +146,6 @@ export default ReflectionRoomCoreScreen;
 const styles = StyleSheet.create({
   bg: {
     flex: 1,
-    backgroundColor: palette.navy.deep,
   },
   bgImage: {
     resizeMode: 'cover',

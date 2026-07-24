@@ -189,7 +189,6 @@ const CONTENT_WIDTH = Math.min(screenWidth - 40, 345);
 const styles = StyleSheet.create({
   bg: {
     flex: 1,
-    backgroundColor: palette.navy.deep,
   },
   bgImage: {
     resizeMode: 'cover',

@@ -20,7 +20,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
-import { palette } from '@theme';
 import type { RootStackParamList } from '@types';
 
 import { getReflectionRoomClient } from '@features/reflection-room/api';
@@ -85,6 +84,6 @@ const ReflectionRoomPracticeOverlayScreen: React.FC = () => {
 export default ReflectionRoomPracticeOverlayScreen;
 
 const styles = StyleSheet.create({
-  bg: { flex: 1, backgroundColor: palette.navy.deep },
+  bg: { flex: 1 },
   safe: { flex: 1 },
 });

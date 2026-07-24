@@ -255,7 +255,7 @@ const ReflectionRoomQuizScreen: React.FC = () => {
 export default ReflectionRoomQuizScreen;
 
 const styles = StyleSheet.create({
-  bg: { flex: 1, backgroundColor: palette.navy.deep },
+  bg: { flex: 1 },
   safe: { flex: 1 },
   scroll: {
     alignItems: 'center',

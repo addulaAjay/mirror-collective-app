@@ -804,7 +804,7 @@ const styles = StyleSheet.create<{
   emptyText: TextStyle;
   emptySubtext: TextStyle;
 }>({
-  bg:   { flex: 1, backgroundColor: palette.navy.deep },
+  bg:   { flex: 1 },
   safe: { flex: 1, backgroundColor: palette.neutral.transparent },
 
   // Fixed outer column — page does not scroll; only the echo list inside scrolls

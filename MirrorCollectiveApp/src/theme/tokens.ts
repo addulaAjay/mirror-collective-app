@@ -35,6 +35,14 @@ export const palette = {
   navy: {
     DEFAULT: '#1a2238',  // Colour.Text.Inverse
     deep: '#0b0f1c',     // Code-defined: deepest dark background (add to Figma — Phase 8 follow-up)
+    // App background ramp. The starfield background is a pure vertical gradient
+    // from `screenTop` to navy.DEFAULT (measured off the original Figma export:
+    // a 2-stop linear fit reproduces it to <1/255). Anything that can be
+    // revealed behind or beside a screen — nav container, transition seam,
+    // pre-decode frame — must use one of these two, never a flat mid-ramp
+    // colour like navy.deep, or it reads as a differently-coloured edge.
+    screenTop: '#080911',    // Code-defined: top stop of the app background ramp
+    screenBottom: '#1a2238', // = navy.DEFAULT — bottom stop of the app background ramp
     card: '#1a1f2e',     // Code-defined: popup/card background dark navy (add to Figma — Phase 8 follow-up)
     // TODO: confirm with designer — glass card inner background (no Figma token yet); consolidating #191A23/#191B24 variants
     cardInner: '#191A23',  // Code-defined: glass card inner fill (slightly darker than navy.card)

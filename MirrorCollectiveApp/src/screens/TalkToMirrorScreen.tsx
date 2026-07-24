@@ -251,7 +251,7 @@ const styles = StyleSheet.create<{
   categoryIconBox: ViewStyle;
   categoryLabel: TextStyle;
 }>({
-  bg:   { flex: 1, backgroundColor: palette.navy.deep },
+  bg:   { flex: 1 },
   safe: { flex: 1, backgroundColor: palette.neutral.transparent },
 
   // ── ScrollView (vertical) ────────────────────────────────────────────────
