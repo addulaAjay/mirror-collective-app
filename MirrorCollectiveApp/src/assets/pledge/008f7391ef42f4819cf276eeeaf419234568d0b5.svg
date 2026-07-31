@@ -1,0 +1,7 @@
+<svg preserveAspectRatio="none" width="100%" height="100%" overflow="visible" style="display: block;" viewBox="0 0 360 42" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Android Navigation Bar">
+<rect id="Rectangle" x="273" y="14" width="14" height="14" rx="2" fill="var(--fill-0, white)"/>
+<path id="Vector" fill-rule="evenodd" clip-rule="evenodd" d="M83.4842 14.1461C84.1507 13.7449 85 14.2249 85 15.0028V26.9973C85 27.7752 84.1507 28.2553 83.4842 27.854L73.5222 21.8568C72.8765 21.4681 72.8765 20.532 73.5222 20.1433L83.4842 14.1461Z" fill="var(--fill-0, white)"/>
+<path id="Exclude" d="M180 13C184.418 13 188 16.5817 188 21C188 25.4183 184.418 29 180 29C175.582 29 172 25.4183 172 21C172 16.5817 175.582 13 180 13ZM180 14C176.134 14 173 17.134 173 21C173 24.866 176.134 28 180 28C183.866 28 187 24.866 187 21C187 17.134 183.866 14 180 14ZM180 15C183.314 15 186 17.6863 186 21C186 24.3137 183.314 27 180 27C176.686 27 174 24.3137 174 21C174 17.6863 176.686 15 180 15Z" fill="var(--fill-0, white)"/>
+</g>
+</svg>
