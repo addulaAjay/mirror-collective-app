@@ -59,10 +59,10 @@ Note: the screen uses a clean gold-bordered card, not yet the paywall's exact
 - [x] Tests: renders both options; default→monthly product, select Yearly→yearly product
 - [~] Dynamic price from IAP left as follow-up — using the confirmed $9.99/$89 constants (source of truth) rather than parsing cross-platform IAP price objects
 
-## Phase 3 — Backend hardening (API repo)
-- [ ] Populate `core_subscription` (+ leave storage null) in `GET /status` (currently TODO)
-- [ ] Real Apple webhook JWT signature verification (remove "DO NOT USE IN PRODUCTION" stub)
-- [ ] Wire App Store Server API env vars in serverless.yml; document ASC Server Notifications V2 URL → `/api/subscriptions/webhook/apple`
+## Phase 3 — Backend hardening (API repo — branch `feat/subscription-status-webhook`, `6203351`)
+- [x] Populate `core_subscription`/`storage_subscription` in `GET /status` — fetched from the subscriptions table via the profile's primary/storage ids, **trimmed** to a client-safe shape (`_public_subscription_for`) that excludes `receipt_data`/internal fields. Tests included.
+- [x] Wire App Store Server API env vars in `serverless.yml` (`APPLE_APP_STORE_KEY_ID/ISSUER_ID/BUNDLE_ID/PRIVATE_KEY/APP_APPLE_ID`)
+- [ ] **Deferred to its own PR:** real Apple webhook JWT verification. Approach: reuse the receipt validator's `SignedDataVerifier` (`_get_apple_signed_data_verifier`) with `verify_and_decode_notification` for the outer `signedPayload` and `verify_and_decode_signed_transaction` for the inner transaction, prod→sandbox fallback, **fail-closed**. Safe to sequence with turning on App Store Server Notifications V2 (URL → `/api/subscriptions/webhook/apple`), which isn't wired to Apple yet. Must be done **before** enabling webhooks in ASC.
 - [ ] Tests + commit
 
 ## Phase 4 — Beta test procedure
