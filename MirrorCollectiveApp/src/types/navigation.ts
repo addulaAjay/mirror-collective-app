@@ -84,7 +84,9 @@ export type RootStackParamList = {
   MirrorEchoVaultLibrary: undefined;
   EchoInboxScreen: undefined;
   NewEchoVault: undefined;
-  NewEchoScreen: undefined;
+  // prefillContent: seed the compose flow with text (e.g. saving a MirrorGPT
+  // reply into a new Echo). Threaded through to CreateEchoScreen.initialContent.
+  NewEchoScreen: { prefillContent?: string } | undefined;
   NewEchoCompose: {
     title: string;
     category: string;

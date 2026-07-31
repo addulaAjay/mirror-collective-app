@@ -141,6 +141,40 @@ describe('MessageBubble', () => {
     expect(queryByTestId(`speaker-button-${mockSystemMessage.id}`)).toBeNull();
   });
 
+  describe('save to Echo Vault', () => {
+    it('shows the save icon on an assistant reply when onSave is provided', () => {
+      const onSave = jest.fn();
+      const { getByTestId } = render(
+        <MessageBubble message={mockSystemMessage} onSave={onSave} />,
+      );
+      expect(getByTestId(`save-echo-${mockSystemMessage.id}`)).toBeTruthy();
+    });
+
+    it('calls onSave when the save icon is pressed', () => {
+      const onSave = jest.fn();
+      const { getByTestId } = render(
+        <MessageBubble message={mockSystemMessage} onSave={onSave} />,
+      );
+      fireEvent.press(getByTestId(`save-echo-${mockSystemMessage.id}`));
+      expect(onSave).toHaveBeenCalledTimes(1);
+    });
+
+    it("does not show the save icon on the user's own messages", () => {
+      const onSave = jest.fn();
+      const { queryByTestId } = render(
+        <MessageBubble message={mockUserMessage} onSave={onSave} />,
+      );
+      expect(queryByTestId(`save-echo-${mockUserMessage.id}`)).toBeNull();
+    });
+
+    it('shows no save icon when onSave is omitted', () => {
+      const { queryByTestId } = render(
+        <MessageBubble message={mockSystemMessage} />,
+      );
+      expect(queryByTestId(`save-echo-${mockSystemMessage.id}`)).toBeNull();
+    });
+  });
+
   // The speaker-button tests below describe the behavior the bubble has
   // when TTS_FEATURE_ENABLED is true. The feature is currently flagged
   // OFF (see src/services/speech/featureFlag.ts), so the assertions

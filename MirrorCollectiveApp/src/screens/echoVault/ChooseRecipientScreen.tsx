@@ -180,7 +180,10 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
       recipientId: selectedRecipient.recipient_id,
       recipientName: selectedRecipient.name,
       lockDate: lockDate?.toISOString(),
-      ...(editEchoId ? { editEchoId, initialContent: prefillContent } : {}),
+      ...(editEchoId ? { editEchoId } : {}),
+      // Seed the compose box for both edit (existing draft) and the
+      // save-a-MirrorGPT-reply flow (fresh create with prefilled text).
+      ...(prefillContent ? { initialContent: prefillContent } : {}),
     });
   };
 

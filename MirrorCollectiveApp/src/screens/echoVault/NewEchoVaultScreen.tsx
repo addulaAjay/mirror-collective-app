@@ -27,7 +27,7 @@
  *   Radius/S 12, Radius/M 16, Spacing/XS 8, Spacing/S 12, Spacing/M 16, Spacing/L 20
  */
 
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
   borderWidth,
@@ -148,6 +148,9 @@ const VideoModeIcon: React.FC = () => (
 // ── Screen ────────────────────────────────────────────────────────────────────
 const NewEchoScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
+  const route = useRoute<RouteProp<RootStackParamList, 'NewEchoScreen'>>();
+  // Optional text to seed the new Echo with (e.g. a saved MirrorGPT reply).
+  const prefillContent = route.params?.prefillContent;
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState<string | null>(null);
   const [categoryOpen, setCategoryOpen] = useState(false);
@@ -158,12 +161,21 @@ const NewEchoScreen: React.FC = () => {
     if (!title.trim()) return;
     const cat = category || 'Uncategorized';
     if (hasRecipient === 'yes') {
-      navigation.navigate('ChooseRecipientScreen', { title, category: cat, mode });
+      navigation.navigate('ChooseRecipientScreen', {
+        title,
+        category: cat,
+        mode,
+        prefillContent,
+      });
     } else {
       // No-recipient create path uses the new unified CreateEchoScreen
       // (message + attachments). The recipient path routes here too, via
       // ChooseRecipientScreen.
-      navigation.navigate('CreateEchoScreen', { title, category: cat });
+      navigation.navigate('CreateEchoScreen', {
+        title,
+        category: cat,
+        ...(prefillContent ? { initialContent: prefillContent } : {}),
+      });
     }
   };
 

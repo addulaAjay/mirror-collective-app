@@ -515,11 +515,15 @@ const CreateEchoScreen: React.FC = () => {
     letterToRecipient,
     editEchoId,
     viewEchoId,
+    initialContent,
   } = params;
   // Read-only view mode (tap an echo to open). editEchoId takes precedence.
   const readOnly = !editEchoId && !!viewEchoId;
 
-  const [message, setMessage] = useState('');
+  // Seed the compose box with prefilled text (e.g. a saved MirrorGPT reply).
+  // In edit/view mode the loaded echo content overwrites this via the effect
+  // below, so it only matters for a fresh create.
+  const [message, setMessage] = useState(initialContent ?? '');
   const [viewEcho, setViewEcho] = useState<EchoResponse | null>(null);
   const [attachments, setAttachments] = useState<DraftAttachment[]>([]);
   const [isSaving, setIsSaving] = useState(false);
