@@ -43,11 +43,15 @@ ASC subscription group (2 auto-renewable products) ⇄ react-native-iap ⇄
 - [ ] Create sandbox tester account(s)
 - [ ] Generate App Store Connect API key; provide values for backend env
 
-## Phase 1 — Issue #1: My Subscription screen (Figma 2323-2774)
-- [ ] `MySubscriptionScreen.tsx` — plan/status/trial-days/features from `useSubscription()`; prices $9.99/$89; **END SUBSCRIPTION** (deep-link to iOS Manage Subscriptions); Restore Purchase
-- [ ] Register `MySubscription` route (navigation.ts + App.tsx authenticated navigator)
-- [ ] Uncomment the menu item → route to `MySubscription` (NavigationMenuScreen)
-- [ ] Tests + commit
+## Phase 1 — Issue #1: My Subscription screen (Figma 2323-2774) ✅ DONE
+- [x] `MySubscriptionScreen.tsx` — status/trial line from `useSubscription()`; Mirror Core card; prices $9.99/$89; **END SUBSCRIPTION** (confirm → deep-link to iOS Manage Subscriptions); Restore Purchase
+- [x] Register `MySubscription` route (navigation.ts + both navigators in App.tsx)
+- [x] Uncomment the menu item → route to `MySubscription` (NavigationMenuScreen)
+- [x] Tests (render / trial line / end-subscription confirm) + full suite green
+
+Note: the screen uses a clean gold-bordered card, not yet the paywall's exact
+3-layer gradient-border card. DRY that into a shared `MirrorCoreCard` in Phase 2
+(when the toggle touches StartFreeTrialScreen anyway) and match pixel spec then.
 
 ## Phase 2 — Issue #2: core monthly/annual toggle (Figma 4928-8595)
 - [ ] Monthly/Yearly toggle in `StartFreeTrialScreen` (add `setSelectedPeriod`); pass `CORE_MONTHLY`/`CORE_YEARLY`
