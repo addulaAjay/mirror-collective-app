@@ -92,6 +92,12 @@ const MySubscriptionScreen: React.FC<Props> = ({ navigation }) => {
     );
   };
 
+  // Expired / never-subscribed users have no StoreKit purchase to restore —
+  // route them to the paywall to actually subscribe (it shows SUBSCRIBE NOW).
+  const handleSubscribe = () => {
+    navigation.navigate('StartFreeTrial');
+  };
+
   const handleRestore = async () => {
     setRestoring(true);
     try {
@@ -192,13 +198,21 @@ const MySubscriptionScreen: React.FC<Props> = ({ navigation }) => {
         )}
 
         <View style={styles.footer}>
-          <Button
-            variant="primary"
-            size="L"
-            title="END SUBSCRIPTION"
-            onPress={handleEndSubscription}
-            disabled={!hasActiveSubscription}
-          />
+          {hasActiveSubscription ? (
+            <Button
+              variant="primary"
+              size="L"
+              title="END SUBSCRIPTION"
+              onPress={handleEndSubscription}
+            />
+          ) : (
+            <Button
+              variant="primary"
+              size="L"
+              title="SUBSCRIBE"
+              onPress={handleSubscribe}
+            />
+          )}
           <View style={styles.footerLinksRow}>
             <TouchableOpacity accessibilityRole="link" onPress={() => openLink(LEGAL_LINKS.TERMS)}>
               <Text style={styles.footerLinkText}>Terms</Text>

@@ -66,4 +66,19 @@ describe('MySubscriptionScreen', () => {
     fireEvent.press(getByText('END SUBSCRIPTION'));
     expect(Alert.alert).toHaveBeenCalled();
   });
+
+  it('shows SUBSCRIBE (not END SUBSCRIPTION) and routes to the paywall when not active', () => {
+    mockSub = {
+      ...mockSub,
+      isInTrial: false,
+      status: 'trial_expired',
+      hasActiveSubscription: false,
+    };
+    const { getByText, queryByText } = render(
+      <MySubscriptionScreen navigation={nav as never} route={{} as never} />,
+    );
+    expect(queryByText('END SUBSCRIPTION')).toBeNull();
+    fireEvent.press(getByText('SUBSCRIBE'));
+    expect(nav.navigate).toHaveBeenCalledWith('StartFreeTrial');
+  });
 });
