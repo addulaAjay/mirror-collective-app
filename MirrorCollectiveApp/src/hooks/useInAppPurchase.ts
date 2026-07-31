@@ -1,4 +1,4 @@
-import {useEffect, useState, useCallback} from 'react';
+import {useEffect, useState, useCallback, useRef} from 'react';
 import {Platform, Alert} from 'react-native';
 import {
   initConnection,
@@ -46,13 +46,27 @@ interface PurchaseState {
   error: string | null;
 }
 
-export const useInAppPurchase = () => {
+export const useInAppPurchase = (options?: {
+  /**
+   * Called after a StoreKit purchase has been verified by the backend. Use it
+   * to refresh subscription status and route the user forward — the purchase
+   * is confirmed by an async listener, so `purchaseSubscription()` resolving
+   * does NOT mean the purchase is done yet.
+   */
+  onPurchaseVerified?: () => void | Promise<void>;
+}) => {
   const [state, setState] = useState<PurchaseState>({
     products: [],
     loading: true,
     purchasing: false,
     error: null,
   });
+
+  // Keep the latest callback in a ref so the purchase listener (subscribed
+  // once in the init effect below) always invokes the current one without
+  // needing to re-subscribe on every render.
+  const onPurchaseVerifiedRef = useRef(options?.onPurchaseVerified);
+  onPurchaseVerifiedRef.current = options?.onPurchaseVerified;
 
   // Initialize IAP connection
   useEffect(() => {
@@ -105,6 +119,14 @@ export const useInAppPurchase = () => {
                   );
 
                   setState(prev => ({...prev, purchasing: false}));
+
+                  // Purchase is verified — let the caller refresh status and
+                  // route the user into the app.
+                  try {
+                    await onPurchaseVerifiedRef.current?.();
+                  } catch (cbError) {
+                    console.warn('onPurchaseVerified callback failed:', cbError);
+                  }
                 } else {
                   throw new Error(result.message || 'Verification failed');
                 }

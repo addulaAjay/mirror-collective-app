@@ -33,28 +33,36 @@ jest.mock('@react-navigation/native', () => ({
 const CORE_MONTHLY = 'com.themirrorcollective.mirror.monthly';
 const CORE_YEARLY = 'com.themirrorcollective.mirror.yearly';
 const mockPurchase = jest.fn().mockResolvedValue(undefined);
+const mockRefresh = jest.fn().mockResolvedValue(undefined);
+const mockSetAuthenticated = jest.fn();
+// Holder (mock-prefixed so the jest.mock factory may reference it) that captures
+// the onPurchaseVerified callback the screen hands to the hook.
+const mockHook: { onVerified?: () => void | Promise<void> } = {};
 jest.mock('@/hooks/useInAppPurchase', () => ({
-  useInAppPurchase: () => ({
-    purchaseSubscription: mockPurchase,
-    purchasing: false,
-    PRODUCT_IDS: {
-      CORE_MONTHLY: 'com.themirrorcollective.mirror.monthly',
-      CORE_YEARLY: 'com.themirrorcollective.mirror.yearly',
-      STORAGE_MONTHLY: 'com.themirrorcollective.mirror.storage.monthly',
-      STORAGE_YEARLY: 'com.themirrorcollective.mirror.storage.yearly',
-    },
-  }),
+  useInAppPurchase: (opts?: { onPurchaseVerified?: () => void | Promise<void> }) => {
+    mockHook.onVerified = opts?.onPurchaseVerified;
+    return {
+      purchaseSubscription: mockPurchase,
+      purchasing: false,
+      PRODUCT_IDS: {
+        CORE_MONTHLY: 'com.themirrorcollective.mirror.monthly',
+        CORE_YEARLY: 'com.themirrorcollective.mirror.yearly',
+        STORAGE_MONTHLY: 'com.themirrorcollective.mirror.storage.monthly',
+        STORAGE_YEARLY: 'com.themirrorcollective.mirror.storage.yearly',
+      },
+    };
+  },
 }));
 // Trial already used + no active sub → button is "SUBSCRIBE NOW" (purchase path).
 jest.mock('@/context/SubscriptionContext', () => ({
   useSubscription: () => ({
     hasUsedTrial: true,
     hasActiveSubscription: false,
-    refreshSubscriptionStatus: jest.fn().mockResolvedValue(undefined),
+    refreshSubscriptionStatus: mockRefresh,
   }),
 }));
 jest.mock('@/context/SessionContext', () => ({
-  useSession: () => ({ setAuthenticated: jest.fn() }),
+  useSession: () => ({ setAuthenticated: mockSetAuthenticated }),
 }));
 jest.mock('@/services/api/subscriptionApi', () => ({
   subscriptionApiService: { startTrial: jest.fn() },
@@ -84,5 +92,14 @@ describe('StartFreeTrialScreen — monthly/yearly toggle', () => {
     await waitFor(() =>
       expect(mockPurchase).toHaveBeenCalledWith(CORE_YEARLY),
     );
+  });
+
+  it('refreshes status and enters the app once a purchase is verified', async () => {
+    render(<StartFreeTrialScreen />);
+    // The hook fires this after StoreKit + backend verification complete.
+    expect(mockHook.onVerified).toBeDefined();
+    await mockHook.onVerified?.();
+    expect(mockRefresh).toHaveBeenCalled();
+    expect(mockSetAuthenticated).toHaveBeenCalled();
   });
 });
