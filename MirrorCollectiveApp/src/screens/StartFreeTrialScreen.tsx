@@ -52,7 +52,17 @@ const StartFreeTrialScreen = () => {
     const canGoBack = navigation.canGoBack();
     const { hasUsedTrial, hasActiveSubscription, refreshSubscriptionStatus } = useSubscription();
     const { setAuthenticated } = useSession();
-    const { purchaseSubscription, purchasing, PRODUCT_IDS } = useInAppPurchase();
+    const { purchaseSubscription, purchasing, PRODUCT_IDS } = useInAppPurchase({
+        // A paid purchase is confirmed asynchronously (StoreKit listener →
+        // backend verify). When that completes, refresh status and enter the
+        // app — mirroring the trial path, which calls setAuthenticated()
+        // directly. Without this the user could be left on the paywall after
+        // a successful subscribe.
+        onPurchaseVerified: async () => {
+            await refreshSubscriptionStatus();
+            setAuthenticated();
+        },
+    });
     const [loading, setLoading] = useState(false);
     const [selectedPeriod, setSelectedPeriod] = useState<'monthly' | 'yearly'>('monthly');
 
@@ -93,8 +103,10 @@ const StartFreeTrialScreen = () => {
                 ? PRODUCT_IDS.CORE_MONTHLY
                 : PRODUCT_IDS.CORE_YEARLY;
             try {
+                // Verification, status refresh, and app entry happen in the
+                // onPurchaseVerified callback once StoreKit delivers the
+                // receipt — purchaseSubscription() resolves before that.
                 await purchaseSubscription(productId);
-                await refreshSubscriptionStatus();
             } catch (error: any) {
                 Alert.alert('Purchase Failed', error.message || 'Unable to complete purchase');
             }
