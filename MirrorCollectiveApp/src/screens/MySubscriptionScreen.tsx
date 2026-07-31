@@ -2,7 +2,7 @@
  * My Subscription screen — Figma Dev-Master-File node 2323-2774.
  *
  * Reached from the nav menu ("Subscription"). Shows the user's current plan,
- * trial/active status, and the Mirror Core details, with END SUBSCRIPTION
+ * trial/active status, and the Mirror Basic details, with END SUBSCRIPTION
  * (deep-links to the iOS Manage Subscriptions page — auto-renewable
  * subscriptions can only be cancelled by the user through the App Store) and
  * Restore Purchase.
@@ -139,7 +139,7 @@ const MySubscriptionScreen: React.FC<Props> = ({ navigation }) => {
               contentContainerStyle={styles.cardContent}
               showsVerticalScrollIndicator={false}
             >
-              <Text style={styles.cardTitle}>Mirror Core</Text>
+              <Text style={styles.cardTitle}>Mirror Basic</Text>
               <Text style={styles.cardSubtitle}>Your daily reflective companion.</Text>
 
               {/* Star divider */}

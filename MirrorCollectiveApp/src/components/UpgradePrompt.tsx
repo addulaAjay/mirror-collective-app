@@ -65,7 +65,7 @@ const UpgradePrompt: React.FC<UpgradePromptProps> = ({
       default:
         return {
           title: 'Upgrade Your Plan',
-          message: 'Get more features with Mirror Core.',
+          message: 'Get more features with Mirror Basic.',
         };
     }
   };

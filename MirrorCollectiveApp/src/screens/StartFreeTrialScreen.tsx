@@ -172,7 +172,7 @@ const StartFreeTrialScreen = () => {
                   bounces={true}
                 >
                   {/* Card heading */}
-                  <Text style={styles.cardTitle}>Mirror Core</Text>
+                  <Text style={styles.cardTitle}>Mirror Basic</Text>
                   <Text style={styles.cardSubtitle}>
                     Your daily reflective companion.
                   </Text>

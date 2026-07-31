@@ -33,12 +33,12 @@ describe('MySubscriptionScreen', () => {
     };
   });
 
-  it('renders the Mirror Core subscription details', () => {
+  it('renders the Mirror Basic subscription details', () => {
     const { getByText } = render(
       <MySubscriptionScreen navigation={nav as never} route={{} as never} />,
     );
     expect(getByText('SUBSCRIPTION')).toBeTruthy();
-    expect(getByText('Mirror Core')).toBeTruthy();
+    expect(getByText('Mirror Basic')).toBeTruthy();
     expect(getByText('END SUBSCRIPTION')).toBeTruthy();
     expect(getByText('Active subscription')).toBeTruthy();
   });
