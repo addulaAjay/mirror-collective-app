@@ -44,6 +44,7 @@ jest.mock('@/hooks/useInAppPurchase', () => ({
     return {
       purchaseSubscription: mockPurchase,
       purchasing: false,
+      products: [],
       PRODUCT_IDS: {
         CORE_MONTHLY: 'com.themirrorcollective.mirror.monthly',
         CORE_YEARLY: 'com.themirrorcollective.mirror.yearly',
@@ -52,6 +53,7 @@ jest.mock('@/hooks/useInAppPurchase', () => ({
       },
     };
   },
+  localizedPrice: (_products: unknown, _id: string, fallback: string) => fallback,
 }));
 // Trial already used + no active sub → button is "SUBSCRIBE NOW" (purchase path).
 jest.mock('@/context/SubscriptionContext', () => ({

@@ -39,6 +39,24 @@ const PRODUCT_IDS = {
   })!,
 };
 
+/**
+ * Localized App Store / Play Store price for a product (e.g. "$9.99"), or the
+ * fallback when products haven't loaded yet or the id isn't found. Lets the UI
+ * show the real store price instead of a hard-coded one — a price change in
+ * App Store Connect then reflects automatically.
+ */
+export const localizedPrice = (
+  products: Subscription[],
+  productId: string,
+  fallback: string,
+): string => {
+  const product = products.find(p => p.productId === productId);
+  // localizedPrice is present on iOS subscriptions; the Android variant nests
+  // pricing under subscriptionOfferDetails, so read it defensively.
+  const price = (product as {localizedPrice?: string} | undefined)?.localizedPrice;
+  return price || fallback;
+};
+
 interface PurchaseState {
   products: Subscription[];
   loading: boolean;

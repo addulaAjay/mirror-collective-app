@@ -42,7 +42,7 @@ import { LEGAL_LINKS } from '@constants/config';
 
 import { useSession } from '@/context/SessionContext';
 import { useSubscription } from '@/context/SubscriptionContext';
-import { useInAppPurchase } from '@/hooks/useInAppPurchase';
+import { useInAppPurchase, localizedPrice } from '@/hooks/useInAppPurchase';
 import { subscriptionApiService } from '@/services/api/subscriptionApi';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'StartFreeTrial'>;
@@ -52,7 +52,7 @@ const StartFreeTrialScreen = () => {
     const canGoBack = navigation.canGoBack();
     const { hasUsedTrial, hasActiveSubscription, refreshSubscriptionStatus } = useSubscription();
     const { setAuthenticated } = useSession();
-    const { purchaseSubscription, purchasing, PRODUCT_IDS } = useInAppPurchase({
+    const { purchaseSubscription, purchasing, PRODUCT_IDS, products } = useInAppPurchase({
         // A paid purchase is confirmed asynchronously (StoreKit listener →
         // backend verify). When that completes, refresh status and enter the
         // app — mirroring the trial path, which calls setAuthenticated()
@@ -65,6 +65,10 @@ const StartFreeTrialScreen = () => {
     });
     const [loading, setLoading] = useState(false);
     const [selectedPeriod, setSelectedPeriod] = useState<'monthly' | 'yearly'>('monthly');
+
+    // Live store prices (fall back to the confirmed defaults until IAP loads).
+    const monthlyPrice = localizedPrice(products, PRODUCT_IDS.CORE_MONTHLY, '$9.99');
+    const yearlyPrice = localizedPrice(products, PRODUCT_IDS.CORE_YEARLY, '$89');
 
     const isTrialMode = !hasUsedTrial && !hasActiveSubscription;
     const buttonText = isTrialMode ? 'START FREE TRIAL' : 'SUBSCRIBE NOW';
@@ -249,12 +253,12 @@ const StartFreeTrialScreen = () => {
 
                   {/* Pricing */}
                   <View style={styles.priceLine}>
-                    <Text style={styles.priceAmount}>$9.99</Text>
+                    <Text style={styles.priceAmount}>{monthlyPrice}</Text>
                     <Text style={styles.pricePerMonth}> /month </Text>
                     <View style={styles.priceOrContainer}>
                       <Text style={styles.priceOr}> or </Text>
                     </View>
-                    <Text style={styles.priceYearAmount}> $89</Text>
+                    <Text style={styles.priceYearAmount}> {yearlyPrice}</Text>
                     <Text style={styles.priceYearSuffix}> /year</Text>
                   </View>
 
