@@ -39,7 +39,7 @@ describe('ChooseRecipientScreen', () => {
     );
 
     expect(
-      getByText('(echo is sent immediately if lock date is not set)'),
+      getByText('(Echo is sent immediately if lock date is not set)'),
     ).toBeTruthy();
   });
 });

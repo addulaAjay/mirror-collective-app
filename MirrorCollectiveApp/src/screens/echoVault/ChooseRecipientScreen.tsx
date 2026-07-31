@@ -370,7 +370,7 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
               {/* Sending rule — surfaced so users know an unset lock date
                   means the echo is delivered right away (Figma 7820-2208). */}
               <Text style={styles.lockDateHint}>
-                (echo is sent immediately if lock date is not set)
+                (Echo is sent immediately if lock date is not set)
               </Text>
 
               {/* Android: native self-dismissing dialog. */}
@@ -547,6 +547,7 @@ const styles = StyleSheet.create<{
     fontSize: moderateScale(fontSize.xs),
     lineHeight: lineHeight.s,
     color: palette.gold.DEFAULT,
+    textAlign: 'center',
   },
 
   fieldLabel: {
