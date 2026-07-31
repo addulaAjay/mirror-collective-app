@@ -53,10 +53,11 @@ Note: the screen uses a clean gold-bordered card, not yet the paywall's exact
 3-layer gradient-border card. DRY that into a shared `MirrorCoreCard` in Phase 2
 (when the toggle touches StartFreeTrialScreen anyway) and match pixel spec then.
 
-## Phase 2 — Issue #2: core monthly/annual toggle (Figma 4928-8595)
-- [ ] Monthly/Yearly toggle in `StartFreeTrialScreen` (add `setSelectedPeriod`); pass `CORE_MONTHLY`/`CORE_YEARLY`
-- [ ] Dynamic price from IAP `products` with $9.99/$89 fallback
-- [ ] Tests + commit
+## Phase 2 — Issue #2: core monthly/annual toggle (Figma 4928-8595) ✅ DONE
+- [x] Monthly/Yearly segmented toggle in `StartFreeTrialScreen` (added the missing `setSelectedPeriod`); drives `CORE_MONTHLY`/`CORE_YEARLY`
+- [x] Prices corrected to **$9.99/$89** (were hard-coded $15.99/$139)
+- [x] Tests: renders both options; default→monthly product, select Yearly→yearly product
+- [~] Dynamic price from IAP left as follow-up — using the confirmed $9.99/$89 constants (source of truth) rather than parsing cross-platform IAP price objects
 
 ## Phase 3 — Backend hardening (API repo)
 - [ ] Populate `core_subscription` (+ leave storage null) in `GET /status` (currently TODO)

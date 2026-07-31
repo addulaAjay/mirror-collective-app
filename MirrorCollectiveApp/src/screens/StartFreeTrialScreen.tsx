@@ -54,7 +54,7 @@ const StartFreeTrialScreen = () => {
     const { setAuthenticated } = useSession();
     const { purchaseSubscription, purchasing, PRODUCT_IDS } = useInAppPurchase();
     const [loading, setLoading] = useState(false);
-    const [selectedPeriod] = useState<'monthly' | 'yearly'>('monthly');
+    const [selectedPeriod, setSelectedPeriod] = useState<'monthly' | 'yearly'>('monthly');
 
     const isTrialMode = !hasUsedTrial && !hasActiveSubscription;
     const buttonText = isTrialMode ? 'START FREE TRIAL' : 'SUBSCRIBE NOW';
@@ -237,13 +237,56 @@ const StartFreeTrialScreen = () => {
 
                   {/* Pricing */}
                   <View style={styles.priceLine}>
-                    <Text style={styles.priceAmount}>$15.99</Text>
+                    <Text style={styles.priceAmount}>$9.99</Text>
                     <Text style={styles.pricePerMonth}> /month </Text>
                     <View style={styles.priceOrContainer}>
                       <Text style={styles.priceOr}> or </Text>
                     </View>
-                    <Text style={styles.priceYearAmount}> $139</Text>
+                    <Text style={styles.priceYearAmount}> $89</Text>
                     <Text style={styles.priceYearSuffix}> /year</Text>
+                  </View>
+
+                  {/* Monthly / Yearly toggle (Figma 4928-8595) — selects which
+                      product the trial converts to / is purchased. */}
+                  <View style={styles.periodToggle}>
+                    <TouchableOpacity
+                      style={[
+                        styles.periodOption,
+                        selectedPeriod === 'monthly' && styles.periodOptionActive,
+                      ]}
+                      onPress={() => setSelectedPeriod('monthly')}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected: selectedPeriod === 'monthly' }}
+                      testID="period-monthly"
+                    >
+                      <Text
+                        style={[
+                          styles.periodText,
+                          selectedPeriod === 'monthly' && styles.periodTextActive,
+                        ]}
+                      >
+                        Monthly
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[
+                        styles.periodOption,
+                        selectedPeriod === 'yearly' && styles.periodOptionActive,
+                      ]}
+                      onPress={() => setSelectedPeriod('yearly')}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected: selectedPeriod === 'yearly' }}
+                      testID="period-yearly"
+                    >
+                      <Text
+                        style={[
+                          styles.periodText,
+                          selectedPeriod === 'yearly' && styles.periodTextActive,
+                        ]}
+                      >
+                        Yearly
+                      </Text>
+                    </TouchableOpacity>
                   </View>
 
                   {/* CTA button — standard Button component, gradient variant */}
@@ -324,6 +367,11 @@ const styles = StyleSheet.create<{
   priceOr: TextStyle;
   priceYearAmount: TextStyle;
   priceYearSuffix: TextStyle;
+  periodToggle: ViewStyle;
+  periodOption: ViewStyle;
+  periodOptionActive: ViewStyle;
+  periodText: TextStyle;
+  periodTextActive: TextStyle;
   ctaButtonWrapper: ViewStyle;
   ctaButtonContainer: ViewStyle;
   ctaButtonContent: ViewStyle;
@@ -549,6 +597,33 @@ const styles = StyleSheet.create<{
     lineHeight: moderateScale(fontSize.l) * 1.3,
     color: palette.gold.DEFAULT,
     textAlign: 'center',
+  },
+  // Monthly / Yearly segmented toggle (Figma 4928-8595)
+  periodToggle: {
+    flexDirection: 'row',
+    alignSelf: 'center',
+    borderWidth: 1,
+    borderColor: palette.gold.DEFAULT,
+    borderRadius: radius.s,
+    overflow: 'hidden',
+    marginTop: verticalScale(12),
+    marginBottom: verticalScale(4),
+  },
+  periodOption: {
+    paddingVertical: verticalScale(8),
+    paddingHorizontal: scale(28),
+  },
+  periodOptionActive: {
+    backgroundColor: palette.gold.DEFAULT,
+  },
+  periodText: {
+    fontFamily: fontFamily.body,
+    fontSize: moderateScale(fontSize.s),
+    color: palette.gold.DEFAULT,
+  },
+  periodTextActive: {
+    color: palette.navy.DEFAULT,
+    fontWeight: fontWeight.medium,
   },
 
   // ── CTA button — overrides for standard Button (gradient variant) ─────────
