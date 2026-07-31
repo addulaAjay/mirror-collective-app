@@ -10,7 +10,26 @@ import { TTS_FEATURE_ENABLED, ttsService, useTtsActiveId } from '@services/speec
 
 interface MessageBubbleProps {
   message: Message;
+  /**
+   * When provided, an assistant reply shows a "save to Echo Vault" icon that
+   * carries this reply's text into the create-Echo flow. Ignored for the
+   * user's own messages.
+   */
+  onSave?: () => void;
 }
+
+// Download-into-tray glyph (Figma 7811-2866) — the "save this reply" affordance.
+const SaveIcon: React.FC = () => (
+  <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"
+      stroke={palette.gold.DEFAULT}
+      strokeWidth={1.6}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
 
 const SpeakerPlayIcon: React.FC = () => (
   <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
@@ -41,7 +60,10 @@ const SpeakerStopIcon: React.FC = () => (
   </Svg>
 );
 
-export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
+export const MessageBubble: React.FC<MessageBubbleProps> = ({
+  message,
+  onSave,
+}) => {
   const isUser = message.sender === 'user';
   const activeUtteranceId = useTtsActiveId();
   const isSpeaking = activeUtteranceId === message.id;
@@ -69,22 +91,39 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
           <Text style={[styles.text, styles.userText]}>{message.text}</Text>
         </LinearGradient>
       ) : (
-        <View style={[styles.bubble, styles.systemBubble]}>
-          <Text style={[styles.text, styles.systemText]}>{message.text}</Text>
-          {TTS_FEATURE_ENABLED && (
-            <TouchableOpacity
-              onPress={handleSpeakerPress}
-              style={styles.speakerBtn}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              accessibilityRole="button"
-              accessibilityLabel={
-                isSpeaking ? 'Stop reading reply aloud' : 'Read reply aloud'
-              }
-              accessibilityState={{ selected: isSpeaking }}
-              testID={`speaker-button-${message.id}`}
-            >
-              {isSpeaking ? <SpeakerStopIcon /> : <SpeakerPlayIcon />}
-            </TouchableOpacity>
+        <View style={styles.systemColumn}>
+          <View style={[styles.bubble, styles.systemBubble, styles.systemBubbleWidth]}>
+            <Text style={[styles.text, styles.systemText]}>{message.text}</Text>
+            {TTS_FEATURE_ENABLED && (
+              <TouchableOpacity
+                onPress={handleSpeakerPress}
+                style={styles.speakerBtn}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  isSpeaking ? 'Stop reading reply aloud' : 'Read reply aloud'
+                }
+                accessibilityState={{ selected: isSpeaking }}
+                testID={`speaker-button-${message.id}`}
+              >
+                {isSpeaking ? <SpeakerStopIcon /> : <SpeakerPlayIcon />}
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {onSave && (
+            <View style={styles.actionRow}>
+              <TouchableOpacity
+                onPress={onSave}
+                style={styles.actionBtn}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                accessibilityRole="button"
+                accessibilityLabel="Save to Echo Vault"
+                testID={`save-echo-${message.id}`}
+              >
+                <SaveIcon />
+              </TouchableOpacity>
+            </View>
           )}
         </View>
       )}
@@ -104,6 +143,25 @@ const styles = StyleSheet.create({
   },
   rowSystem: {
     justifyContent: 'flex-start',
+  },
+  // Assistant messages stack the bubble + an action row (save icon) beneath it,
+  // left-aligned to the bubble edge. The column carries the 80% width cap.
+  systemColumn: {
+    maxWidth: '80%',
+    alignItems: 'flex-start',
+  },
+  systemBubbleWidth: {
+    maxWidth: '100%',
+  },
+  actionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+    marginTop: 8,
+    marginLeft: 4,
+  },
+  actionBtn: {
+    padding: 2,
   },
   bubble: {
     maxWidth: '80%',

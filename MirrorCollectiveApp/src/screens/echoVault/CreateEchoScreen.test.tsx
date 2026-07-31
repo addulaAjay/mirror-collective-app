@@ -10,9 +10,10 @@ jest.mock('@components/BackgroundWrapper', () => {
   return ({ children }: { children: React.ReactNode }) =>
     react.createElement('BackgroundWrapper', null, children);
 });
+let mockRouteParams: Record<string, unknown> = {};
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: jest.fn(), goBack: jest.fn() }),
-  useRoute: () => ({ params: {} }),
+  useRoute: () => ({ params: mockRouteParams }),
 }));
 jest.mock('react-native-image-picker', () => ({
   launchCamera: jest.fn(),
@@ -44,7 +45,10 @@ jest.mock('@services/api/echo', () => ({
 }));
 
 describe('CreateEchoScreen — keyboard dismissal', () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockRouteParams = {};
+  });
 
   // The Message field is multiline, so its Return key can't dismiss the
   // keyboard. Opening an attachment option must drop the keyboard so the
@@ -63,5 +67,19 @@ describe('CreateEchoScreen — keyboard dismissal', () => {
     fireEvent.press(getByText('Add voice recording'));
 
     expect(Keyboard.dismiss).toHaveBeenCalled();
+  });
+
+  it('seeds the compose box from initialContent (a saved MirrorGPT reply)', () => {
+    mockRouteParams = {
+      title: 'Reflection',
+      category: 'Uncategorized',
+      initialContent: 'You might be protecting yourself from escalation.',
+    };
+
+    const { getByDisplayValue } = render(<CreateEchoScreen />);
+
+    expect(
+      getByDisplayValue('You might be protecting yourself from escalation.'),
+    ).toBeTruthy();
   });
 });

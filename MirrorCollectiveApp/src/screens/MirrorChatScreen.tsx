@@ -70,6 +70,18 @@ export function MirrorChatContent() {
     [scrollViewRef],
   );
 
+  // Save a MirrorGPT reply into a new Echo: hand its text to the create-Echo
+  // flow (title/category/recipient → Create Echo, prefilled with this text).
+  const handleSaveToEcho = useCallback(
+    (text: string) => {
+      navigation.navigate(
+        'NewEchoScreen' as never,
+        { prefillContent: text } as never,
+      );
+    },
+    [navigation],
+  );
+
   // Re-anchor to the bottom whenever the keyboard appears. KeyboardAvoidingView
   // (from keyboard-controller) handles the layout shift — it adds bottom padding
   // equal to the keyboard height — but it does NOT adjust the ScrollView's
@@ -137,7 +149,15 @@ export function MirrorChatContent() {
                   }}
                 >
                   {messages.map(message => (
-                    <MessageBubble key={message.id} message={message} />
+                    <MessageBubble
+                      key={message.id}
+                      message={message}
+                      onSave={
+                        message.sender === 'user'
+                          ? undefined
+                          : () => handleSaveToEcho(message.text)
+                      }
+                    />
                   ))}
                   {loading && <TypingIndicator />}
                 </ScrollView>
