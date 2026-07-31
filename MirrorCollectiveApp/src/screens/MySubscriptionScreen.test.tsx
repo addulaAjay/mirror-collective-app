@@ -12,7 +12,15 @@ jest.mock('@components/BackgroundWrapper', () => {
 });
 const mockRestore = jest.fn().mockResolvedValue(undefined);
 jest.mock('@hooks/useInAppPurchase', () => ({
-  useInAppPurchase: () => ({ restorePurchases: mockRestore }),
+  useInAppPurchase: () => ({
+    restorePurchases: mockRestore,
+    products: [],
+    PRODUCT_IDS: {
+      CORE_MONTHLY: 'com.themirrorcollective.mirror.monthly',
+      CORE_YEARLY: 'com.themirrorcollective.mirror.yearly',
+    },
+  }),
+  localizedPrice: (_products: unknown, _id: string, fallback: string) => fallback,
 }));
 let mockSub: Record<string, unknown> = {};
 jest.mock('@context/SubscriptionContext', () => ({

@@ -34,15 +34,13 @@ import LogoHeader from '@components/LogoHeader';
 import StarIcon from '@components/StarIcon';
 import { LEGAL_LINKS } from '@constants/config';
 import { useSubscription } from '@context/SubscriptionContext';
-import { useInAppPurchase } from '@hooks/useInAppPurchase';
+import { useInAppPurchase, localizedPrice } from '@hooks/useInAppPurchase';
 
 // iOS Manage Subscriptions deep link. Auto-renewable subscriptions cannot be
 // cancelled programmatically — Apple requires the user to do it in Settings /
 // the App Store, so END SUBSCRIPTION routes there.
 const MANAGE_SUBSCRIPTIONS_URL = 'https://apps.apple.com/account/subscriptions';
 
-const CORE_MONTHLY_PRICE = '$9.99';
-const CORE_YEARLY_PRICE = '$89';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'MySubscription'>;
 
@@ -59,7 +57,9 @@ const Bullet: React.FC<{ lead: string; rest: string }> = ({ lead, rest }) => (
 const MySubscriptionScreen: React.FC<Props> = ({ navigation }) => {
   const { status, isInTrial, trialDaysRemaining, hasActiveSubscription, loading } =
     useSubscription();
-  const { restorePurchases } = useInAppPurchase();
+  const { restorePurchases, products, PRODUCT_IDS } = useInAppPurchase();
+  const monthlyPrice = localizedPrice(products, PRODUCT_IDS.CORE_MONTHLY, '$9.99');
+  const yearlyPrice = localizedPrice(products, PRODUCT_IDS.CORE_YEARLY, '$89');
   const [restoring, setRestoring] = useState(false);
 
   const statusLine = isInTrial
@@ -179,10 +179,10 @@ const MySubscriptionScreen: React.FC<Props> = ({ navigation }) => {
               />
 
               <View style={styles.priceLine}>
-                <Text style={styles.priceAmount}>{CORE_MONTHLY_PRICE}</Text>
+                <Text style={styles.priceAmount}>{monthlyPrice}</Text>
                 <Text style={styles.pricePer}> /month </Text>
                 <Text style={styles.priceOr}>or</Text>
-                <Text style={styles.priceYear}> {CORE_YEARLY_PRICE}</Text>
+                <Text style={styles.priceYear}> {yearlyPrice}</Text>
                 <Text style={styles.priceYearSuffix}> /year</Text>
               </View>
 
