@@ -18,13 +18,16 @@ import {subscriptionApiService} from '@/services/api/subscriptionApi';
 
 // Product IDs
 const PRODUCT_IDS = {
+  // Must match the product IDs created in App Store Connect exactly (product
+  // IDs are immutable once created). ASC group "Mirror Basic":
+  //   com.themirrorcollective.mirror.monthly / .yearly
   CORE_MONTHLY: Platform.select({
-    ios: 'com.themirrorcollective.mirror.core.monthly',
-    android: 'com.themirrorcollective.mirror.core.monthly',
+    ios: 'com.themirrorcollective.mirror.monthly',
+    android: 'com.themirrorcollective.mirror.monthly',
   })!,
   CORE_YEARLY: Platform.select({
-    ios: 'com.themirrorcollective.mirror.core.yearly',
-    android: 'com.themirrorcollective.mirror.core.yearly',
+    ios: 'com.themirrorcollective.mirror.yearly',
+    android: 'com.themirrorcollective.mirror.yearly',
   })!,
   STORAGE_MONTHLY: Platform.select({
     ios: 'com.themirrorcollective.mirror.storage.monthly',

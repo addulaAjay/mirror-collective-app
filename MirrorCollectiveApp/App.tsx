@@ -48,6 +48,7 @@ import EchoLedgerScreen from '@screens/MirrorPledge/EchoLedgerScreen';
 import MirrorPledgeIntroScreen from '@screens/MirrorPledge/MirrorPledgeIntroScreen';
 import PledgeThankYouScreen from '@screens/MirrorPledge/PledgeThankYouScreen';
 import ViewAllCausesScreen from '@screens/MirrorPledge/ViewAllCausesScreen';
+import MySubscriptionScreen from '@screens/MySubscriptionScreen';
 import ProfileScreen from '@screens/ProfileScreen';
 import QuizQuestionsScreen from '@screens/QuizQuestionsScreen';
 import QuizTuningScreen from '@screens/QuizTuningScreen';
@@ -162,6 +163,7 @@ const AuthNavigator = () => (
       component={MirrorEchoVaultHomeScreen}
     />
     <Stack.Screen name="Profile" component={ProfileScreen} />
+    <Stack.Screen name="MySubscription" component={MySubscriptionScreen} />
     <Stack.Screen
       name="TheMirrorPledge"
       component={TheMirrorPledgeCommingsoonScreen}
@@ -237,6 +239,7 @@ const AuthenticatedNavigator = ({ initialRouteName = 'EnterMirror' }: Authentica
     <Stack.Screen name="SoulPing" component={SoulPingScreen} />
     {/* Profile & Settings */}
     <Stack.Screen name="Profile" component={ProfileScreen} />
+    <Stack.Screen name="MySubscription" component={MySubscriptionScreen} />
     <Stack.Screen name="About" component={AboutScreen} />
     <Stack.Screen name="FAQ" component={FAQScreen} />
     {/* Menu Screens */}

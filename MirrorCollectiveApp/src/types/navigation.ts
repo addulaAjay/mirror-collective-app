@@ -51,6 +51,7 @@ export type RootStackParamList = {
   About: undefined;
   FAQ: undefined;
   Profile: undefined;
+  MySubscription: undefined;
   MirrorAnimation: undefined;
   EnterMirror: undefined;
   AppVideo: undefined;
