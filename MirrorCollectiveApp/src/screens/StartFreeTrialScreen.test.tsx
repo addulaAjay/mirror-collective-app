@@ -30,16 +30,16 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-const CORE_MONTHLY = 'com.themirrorcollective.mirror.core.monthly';
-const CORE_YEARLY = 'com.themirrorcollective.mirror.core.yearly';
+const CORE_MONTHLY = 'com.themirrorcollective.mirror.monthly';
+const CORE_YEARLY = 'com.themirrorcollective.mirror.yearly';
 const mockPurchase = jest.fn().mockResolvedValue(undefined);
 jest.mock('@/hooks/useInAppPurchase', () => ({
   useInAppPurchase: () => ({
     purchaseSubscription: mockPurchase,
     purchasing: false,
     PRODUCT_IDS: {
-      CORE_MONTHLY: 'com.themirrorcollective.mirror.core.monthly',
-      CORE_YEARLY: 'com.themirrorcollective.mirror.core.yearly',
+      CORE_MONTHLY: 'com.themirrorcollective.mirror.monthly',
+      CORE_YEARLY: 'com.themirrorcollective.mirror.yearly',
       STORAGE_MONTHLY: 'com.themirrorcollective.mirror.storage.monthly',
       STORAGE_YEARLY: 'com.themirrorcollective.mirror.storage.yearly',
     },
