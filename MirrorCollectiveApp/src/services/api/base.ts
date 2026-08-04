@@ -24,6 +24,23 @@ function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+/**
+ * True when a response body signals the server-side entitlement guard
+ * (`code: "subscription_required"`). The API's HTTPException serializer nests
+ * the detail under `error`, so the code arrives as `error.code`; we also accept
+ * a flat `error`/`code` string for resilience across error shapes.
+ */
+function isSubscriptionRequired(responseData: any): boolean {
+  const REQUIRED = 'subscription_required';
+  const error = responseData?.error;
+  return (
+    error?.code === REQUIRED ||
+    error === REQUIRED ||
+    responseData?.code === REQUIRED ||
+    responseData?.errorCode === REQUIRED
+  );
+}
+
 /** Compute the wait time before retry N (0-indexed). Honors a `Retry-After`
  *  header if the server set one; otherwise uses exponential backoff with
  *  full jitter. Capped at RETRY_MAX_DELAY_MS to bound user-visible latency. */
@@ -186,6 +203,18 @@ export class BaseApiService {
         if (response.status === 401 && requiresAuth) {
           authEvents.emitSessionExpired();
         }
+        // Server-side entitlement guard: a 403 carrying the
+        // `subscription_required` code means the user's trial/subscription
+        // lapsed (or they never subscribed). Signal the app to route to the
+        // paywall so they can subscribe, instead of a dead-end error. Note
+        // this runs BEFORE the graceful-4xx return below, since Echo Vault
+        // endpoints are handled gracefully and would otherwise swallow it.
+        if (
+          response.status === 403 &&
+          isSubscriptionRequired(responseData)
+        ) {
+          authEvents.emitSubscriptionRequired();
+        }
         if (ApiErrorHandler.shouldHandleGracefully(endpoint, response.status)) {
           return { ...responseData, statusCode: response.status };
         }
@@ -196,9 +225,18 @@ export class BaseApiService {
         const validationMessage = ApiErrorHandler.formatValidationErrors(
           responseData?.validationErrors,
         );
+        // `error` may be a plain string or a structured object
+        // (`{ code, message }`) from the API's HTTPException serializer.
+        // Pull the human-readable message out of the object form so we never
+        // surface "[object Object]".
+        const errorField = responseData?.error;
+        const errorText =
+          errorField && typeof errorField === 'object'
+            ? (errorField as { message?: string }).message
+            : errorField;
         const errorMessage =
           validationMessage ||
-          responseData?.error ||
+          errorText ||
           responseData?.message ||
           `Server error: ${response.status}`;
         const err = this.createApiError(errorMessage, response.status);
