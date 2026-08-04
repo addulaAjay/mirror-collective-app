@@ -6,6 +6,8 @@
  * subscriptionApi etc.).
  */
 
+import { authEvents } from '@services/authEvents';
+
 import { BaseApiService } from './base';
 import { ApiErrorHandler } from './errorHandler';
 
@@ -18,7 +20,10 @@ jest.mock('@services/tokenManager', () => ({
 }));
 
 jest.mock('@services/authEvents', () => ({
-  authEvents: { emitSessionExpired: jest.fn() },
+  authEvents: {
+    emitSessionExpired: jest.fn(),
+    emitSubscriptionRequired: jest.fn(),
+  },
 }));
 
 // Graceful-handling shim — return false so the 429 actually throws and
@@ -213,6 +218,64 @@ describe('BaseApiService — validation errors (422)', () => {
         { field: 'password', message: 'Password must contain at least one special character' },
       ],
     });
+  });
+});
+
+describe('BaseApiService — subscription_required (403 entitlement guard)', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('emits subscriptionRequired when a 403 carries the nested error.code', async () => {
+    (global.fetch as jest.Mock).mockResolvedValueOnce(
+      makeResponse({
+        status: 403,
+        body: {
+          success: false,
+          // API HTTPException serializer nests the detail under `error`.
+          error: {
+            code: 'subscription_required',
+            message: 'An active trial or subscription is required.',
+          },
+        },
+      }),
+    );
+
+    // shouldHandleGracefully is mocked false here, so it still throws — but the
+    // paywall signal must fire regardless, and the message is the nested one.
+    await expect(svc.call('/api/echoes', 'POST', {})).rejects.toMatchObject({
+      status: 403,
+      message: 'An active trial or subscription is required.',
+    });
+    expect(authEvents.emitSubscriptionRequired).toHaveBeenCalledTimes(1);
+  });
+
+  it('emits subscriptionRequired for a flat error string too', async () => {
+    (global.fetch as jest.Mock).mockResolvedValueOnce(
+      makeResponse({
+        status: 403,
+        body: { success: false, error: 'subscription_required' },
+      }),
+    );
+
+    await expect(svc.call('/api/echoes', 'POST', {})).rejects.toMatchObject({
+      status: 403,
+    });
+    expect(authEvents.emitSubscriptionRequired).toHaveBeenCalledTimes(1);
+  });
+
+  it('does NOT emit for an unrelated 403 (e.g. plain forbidden)', async () => {
+    (global.fetch as jest.Mock).mockResolvedValueOnce(
+      makeResponse({
+        status: 403,
+        body: { success: false, error: 'Forbidden' },
+      }),
+    );
+
+    await expect(svc.call('/api/echoes', 'POST', {})).rejects.toMatchObject({
+      status: 403,
+    });
+    expect(authEvents.emitSubscriptionRequired).not.toHaveBeenCalled();
   });
 });
 

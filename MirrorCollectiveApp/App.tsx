@@ -77,7 +77,12 @@ import TermsAndConditionsScreen from '@screens/TermsAndConditionsScreen';
 import TheMirrorPledgeCommingsoonScreen from '@screens/TheMirrorPledgeCommingsoonScreen';
 import VerifyEmailScreen from '@screens/VerifyEmailScreen';
 import { OnboardingService } from '@services';
-import { navigationRef, flushPendingNavigation } from '@services/navigationRef';
+import { authEvents } from '@services/authEvents';
+import {
+  navigationRef,
+  navigate,
+  flushPendingNavigation,
+} from '@services/navigationRef';
 import PushNotificationService from '@services/PushNotificationService';
 import { ThemeProvider, palette } from '@theme';
 import type { RootStackParamList } from '@types';
@@ -325,6 +330,21 @@ const AppNavigator = () => {
     return () => {
       cancelled = true;
     };
+  }, [isAuthenticated]);
+
+  // When the API layer signals a `subscription_required` 403 (trial expired /
+  // never subscribed), route the user to the paywall so they can subscribe.
+  // Only meaningful while authenticated — an unauthenticated 403 is handled by
+  // the auth flow instead.
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const unsubscribe = authEvents.onSubscriptionRequired(() => {
+      // Avoid a redundant hop if the user is already on the paywall.
+      if (navigationRef.getCurrentRoute()?.name !== 'StartFreeTrial') {
+        navigate('StartFreeTrial');
+      }
+    });
+    return unsubscribe;
   }, [isAuthenticated]);
 
   // Hold a splash while the onboarding read is in flight so the navigator
