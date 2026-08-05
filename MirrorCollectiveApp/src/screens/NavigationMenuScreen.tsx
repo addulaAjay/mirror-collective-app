@@ -1,14 +1,3 @@
-import {
-  palette,
-  fontFamily,
-  fontSize,
-  fontWeight,
-  lineHeight,
-  spacing,
-  radius,
-  scale,
-  verticalScale,
-} from '@theme';
 import React from 'react';
 import {
   Animated,
@@ -29,6 +18,17 @@ import LinearGradient from 'react-native-linear-gradient';
 import Svg, { Path } from 'react-native-svg';
 
 import CircularLogoMark from '@components/CircularLogoMark';
+import {
+  palette,
+  fontFamily,
+  fontSize,
+  fontWeight,
+  lineHeight,
+  spacing,
+  radius,
+  scale,
+  verticalScale,
+} from '@theme';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -66,16 +66,6 @@ const SECONDARY_ITEMS = [
   { label: 'About Us',     route: 'About' },
   { label: 'FAQ',          route: 'FAQ' },
 ] as const;
-
-// ── Hamburger icon (Material Dehaze) ────────────────────────────────────────
-const HamburgerIcon: React.FC = () => (
-  <Svg width={scale(24)} height={scale(24)} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"
-      fill={palette.gold.warm}
-    />
-  </Svg>
-);
 
 // ── Close icon ──────────────────────────────────────────────────────────────
 const CloseIcon: React.FC = () => (
@@ -374,7 +364,7 @@ const styles = StyleSheet.create<{
     // Soft right-edge shadow so the drawer reads as elevated above the
     // content it slides over. Subtle on purpose — the backdrop scrim
     // does most of the depth-layering work.
-    shadowColor:   '#000',
+    shadowColor:   palette.neutral.black,
     shadowOffset:  { width: 4, height: 0 },
     shadowOpacity: 0.25,
     shadowRadius:  12,

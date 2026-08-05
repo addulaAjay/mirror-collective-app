@@ -1,6 +1,5 @@
 
 import { useNavigation } from '@react-navigation/native';
-import { palette, spacing, scale, verticalScale } from '@theme';
 import React, { useState } from 'react';
 import {
   View,
@@ -13,6 +12,7 @@ import {
 
 import { useSession } from '@context/SessionContext';
 import { useUser } from '@context/UserContext';
+import { palette, spacing, scale, verticalScale } from '@theme';
 
 import MirrorSideMenu from '../screens/NavigationMenuScreen';
 
