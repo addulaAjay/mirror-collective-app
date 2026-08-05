@@ -1,16 +1,18 @@
-
-import {useNavigation} from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import React from 'react';
-import { palette } from '@theme';
+import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+
+import GlassCard from '@components/_internal/GlassCard';
+import Button from '@components/Button/Button';
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Modal,
-  Dimensions,
-} from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
+  fontFamily,
+  fontSize,
+  lineHeight,
+  modalColors,
+  palette,
+  radius,
+  spacing,
+} from '@theme';
 
 interface UpgradePromptProps {
   visible: boolean;
@@ -22,8 +24,45 @@ interface UpgradePromptProps {
   };
 }
 
-const {width} = Dimensions.get('window');
+const getMessage = (
+  reason: UpgradePromptProps['reason'],
+  quotaInfo: UpgradePromptProps['quotaInfo'],
+): { title: string; message: string } => {
+  switch (reason) {
+    case 'quota_exceeded':
+      return {
+        title: 'Storage Limit Reached',
+        message: `You've used ${quotaInfo?.usage_gb.toFixed(1)} GB of your ${
+          quotaInfo?.quota_gb
+        } GB storage. Upgrade to add more space.`,
+      };
+    case 'quota_approaching':
+      return {
+        title: 'Running Low on Storage',
+        message: `You've used ${(
+          ((quotaInfo?.usage_gb || 0) / (quotaInfo?.quota_gb || 1)) *
+          100
+        ).toFixed(0)}% of your storage. Consider adding more space.`,
+      };
+    case 'trial_expired':
+      return {
+        title: 'Trial Expired',
+        message:
+          'Your 14-day trial has ended. Subscribe to continue accessing your Echo Vault.',
+      };
+    default:
+      return {
+        title: 'Upgrade Your Plan',
+        message: 'Get more features with Mirror Basic.',
+      };
+  }
+};
 
+/**
+ * Upgrade / subscribe prompt, following the app's modal design system
+ * (GlassCard shell + theme tokens + the shared Button), matching
+ * MirrorGptInfoModal. Shown for quota limits and expired trials.
+ */
 const UpgradePrompt: React.FC<UpgradePromptProps> = ({
   visible,
   onClose,
@@ -37,136 +76,88 @@ const UpgradePrompt: React.FC<UpgradePromptProps> = ({
     navigation.navigate('StartFreeTrial' as never);
   };
 
-  const getMessage = () => {
-    switch (reason) {
-      case 'quota_exceeded':
-        return {
-          title: 'Storage Limit Reached',
-          message: `You've used ${quotaInfo?.usage_gb.toFixed(
-            1,
-          )} GB of your ${quotaInfo?.quota_gb} GB storage. Upgrade to add more space.`,
-        };
-      case 'quota_approaching':
-        return {
-          title: 'Running Low on Storage',
-          message: `You've used ${(
-            ((quotaInfo?.usage_gb || 0) / (quotaInfo?.quota_gb || 1)) *
-            100
-          ).toFixed(
-            0,
-          )}% of your storage. Consider adding more space.`,
-        };
-      case 'trial_expired':
-        return {
-          title: 'Trial Expired',
-          message:
-            'Your 14-day trial has ended. Subscribe to continue accessing your Echo Vault.',
-        };
-      default:
-        return {
-          title: 'Upgrade Your Plan',
-          message: 'Get more features with Mirror Basic.',
-        };
-    }
-  };
-
-  const {title, message} = getMessage();
+  const { title, message } = getMessage(reason, quotaInfo);
 
   return (
     <Modal
       visible={visible}
       transparent
       animationType="fade"
-      onRequestClose={onClose}>
-      <View style={styles.overlay}>
-        <View style={styles.modal}>
-          <Text style={styles.title}>{title}</Text>
-          <Text style={styles.message}>{message}</Text>
+      onRequestClose={onClose}
+    >
+      {/* Scrim tap dismisses; inner Pressable swallows taps on the card. */}
+      <Pressable
+        style={styles.scrim}
+        onPress={onClose}
+        accessibilityLabel="Dismiss"
+      >
+        <Pressable onPress={() => {}}>
+          <GlassCard
+            padding={spacing.l}
+            borderRadius={radius.m}
+            style={styles.card}
+          >
+            <Text style={styles.title} accessibilityRole="header">
+              {title}
+            </Text>
+            <Text style={styles.message}>{message}</Text>
 
-          <TouchableOpacity
-            style={styles.upgradeButtonWrapper}
-            onPress={handleUpgrade}
-            activeOpacity={0.8}>
-            <LinearGradient
-              colors={[
-                'rgba(253, 253, 249, 0.03)',
-                'rgba(253, 253, 249, 0.20)',
-              ]}
-              start={{x: 0.5, y: 0}}
-              end={{x: 0.5, y: 1}}
-              style={styles.upgradeButton}>
-              <Text style={styles.upgradeText}>UPGRADE NOW</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-
-          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <Text style={styles.closeText}>Not Now</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+            <View style={styles.actions}>
+              <Button
+                variant="primary"
+                size="L"
+                title="UPGRADE NOW"
+                onPress={handleUpgrade}
+              />
+              <Button variant="link" title="Not Now" onPress={onClose} />
+            </View>
+          </GlassCard>
+        </Pressable>
+      </Pressable>
     </Modal>
   );
 };
 
+export default UpgradePrompt;
+
 const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(11, 15, 28, 0.9)',
+  scrim: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: modalColors.backdrop,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 24,
+    paddingHorizontal: spacing.l,
   },
-  modal: {
-    width: width - 48,
-    maxWidth: 360,
-    backgroundColor: 'rgba(163, 179, 204, 0.05)',
-    borderRadius: 12,
-    borderWidth: 0.5,
-    borderColor: palette.navy.light,
-    padding: 24,
+  card: {
+    width: '100%',
+    maxWidth: 329,
     alignItems: 'center',
+    // Gold glow — matches MirrorGptInfoModal (Figma "Background Blur" shadow).
+    shadowColor: palette.gold.DEFAULT,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 15,
+    elevation: 8,
   },
   title: {
-    fontFamily: 'CormorantGaramond-Regular',
-    fontSize: 28,
+    fontFamily: fontFamily.heading,
+    fontSize: fontSize.xl, // 24
+    lineHeight: lineHeight.l, // 28
     color: palette.gold.DEFAULT,
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: spacing.s,
   },
   message: {
-    fontFamily: 'Inter',
-    fontSize: 16,
+    fontFamily: fontFamily.body,
+    fontSize: fontSize.s, // 16
+    lineHeight: lineHeight.m, // 24
     color: palette.gold.subtlest,
     textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: 24,
+    marginBottom: spacing.l,
   },
-  upgradeButtonWrapper: {
+  actions: {
     width: '100%',
-    marginBottom: 16,
-  },
-  upgradeButton: {
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    borderWidth: 0.5,
-    borderColor: palette.navy.light,
     alignItems: 'center',
-  },
-  upgradeText: {
-    fontFamily: 'CormorantGaramond-Regular',
-    fontSize: 20,
-    color: palette.gold.DEFAULT,
-    fontWeight: '400',
-  },
-  closeButton: {
-    paddingVertical: 8,
-  },
-  closeText: {
-    fontFamily: 'Inter',
-    fontSize: 14,
-    color: palette.navy.light,
+    gap: spacing.xs,
   },
 });
-
-export default UpgradePrompt;
