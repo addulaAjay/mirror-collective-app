@@ -1,11 +1,11 @@
-import { theme, spacing, radius, shadows, palette } from '@theme';
-import type { Message } from '@types';
 import React, { useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Svg, { Path, Rect } from 'react-native-svg';
 
 import { TTS_FEATURE_ENABLED, ttsService, useTtsActiveId } from '@services/speech';
+import { theme, spacing, radius, shadows, palette } from '@theme';
+import type { Message } from '@types';
 
 
 interface MessageBubbleProps {
@@ -18,11 +18,22 @@ interface MessageBubbleProps {
   onSave?: () => void;
 }
 
-// Download-into-tray glyph (Figma 7811-2866) — the "save this reply" affordance.
+// content_copy glyph (Figma 7811-2866) — the "copy this reply into an Echo"
+// affordance. The info modal (node 7915-4583) explicitly calls this "the copy
+// icon", so the design uses two overlapping sheets rather than a download arrow.
 const SaveIcon: React.FC = () => (
   <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+    <Rect
+      x={9}
+      y={9}
+      width={11}
+      height={11}
+      rx={2}
+      stroke={palette.gold.DEFAULT}
+      strokeWidth={1.6}
+    />
     <Path
-      d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"
+      d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
       stroke={palette.gold.DEFAULT}
       strokeWidth={1.6}
       strokeLinecap="round"

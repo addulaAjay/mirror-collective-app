@@ -1,5 +1,4 @@
 import { useNavigation } from '@react-navigation/native';
-import { theme, palette, spacing, shadows, textShadow } from '@theme';
 import React, { useCallback, useEffect } from 'react';
 import {
   View,
@@ -7,16 +6,19 @@ import {
   StyleSheet,
   ScrollView,
   Keyboard,
+  Pressable,
   type NativeSyntheticEvent,
   type TextInputContentSizeChangeEventData,
 } from 'react-native';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Svg, { Circle, Path } from 'react-native-svg';
 
 import AuthenticatedRoute from '@components/AuthenticatedRoute';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
+import MirrorGptInfoModal from '@components/MirrorGptInfoModal';
 import { MessageBubble, ChatInput, TypingIndicator } from '@components/ui';
 import { useChat } from '@hooks/useChat';
 import {
@@ -24,10 +26,32 @@ import {
   useAutoReadOnNewMessage,
   useAutoReadPreference,
 } from '@services/speech';
+import { theme, palette, spacing, shadows, textShadow } from '@theme';
+
+/** Circled "i" glyph (gold) — opens the "Capture your reflection" info modal. */
+const InfoGlyph: React.FC<{ size?: number }> = ({ size = 22 }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Circle
+      cx={12}
+      cy={12}
+      r={9.25}
+      stroke={palette.gold.DEFAULT}
+      strokeWidth={1.5}
+    />
+    <Circle cx={12} cy={7.9} r={1.05} fill={palette.gold.DEFAULT} />
+    <Path
+      d="M12 11.2v5.4"
+      stroke={palette.gold.DEFAULT}
+      strokeWidth={1.6}
+      strokeLinecap="round"
+    />
+  </Svg>
+);
 
 // Export content component for testing
 export function MirrorChatContent() {
   const navigation = useNavigation();
+  const [infoVisible, setInfoVisible] = React.useState(false);
   const {
     messages,
     draft,
@@ -124,7 +148,21 @@ export function MirrorChatContent() {
             >
               {/* Chat "card" */}
               <View style={styles.chatContainer}>
-                <Text style={styles.chatTitle}>MirrorGPT</Text>
+                <View style={styles.titleRow}>
+                  {/* Left spacer balances the info button so the title stays
+                      optically centered. */}
+                  <View style={styles.titleSpacer} />
+                  <Text style={styles.chatTitle}>MirrorGPT</Text>
+                  <Pressable
+                    onPress={() => setInfoVisible(true)}
+                    hitSlop={12}
+                    accessibilityRole="button"
+                    accessibilityLabel="How MirrorGPT works"
+                    style={styles.infoButton}
+                  >
+                    <InfoGlyph />
+                  </Pressable>
+                </View>
 
                 <ScrollView
                   ref={scrollViewRef}
@@ -173,6 +211,11 @@ export function MirrorChatContent() {
             </LinearGradient>
           </View>
         </KeyboardAvoidingView>
+
+        <MirrorGptInfoModal
+          visible={infoVisible}
+          onClose={() => setInfoVisible(false)}
+        />
       </SafeAreaView>
     </BackgroundWrapper>
   );
@@ -231,15 +274,34 @@ const styles = StyleSheet.create({
     ...shadows.LIGHT,
   },
 
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingTop: 30,
+    paddingHorizontal: spacing.xs,
+  },
+
+  titleSpacer: {
+    width: 24,
+    height: 24,
+  },
+
+  infoButton: {
+    width: 24,
+    height: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
   chatTitle: {
     ...theme.typography.styles.title,
+    flex: 1,
     fontFamily: 'CormorantGaramond-Regular',
     fontSize: 28,
     fontWeight: '300',
     lineHeight: 28,
     color: palette.gold.subtlest,
     textAlign: 'center',
-    paddingTop: 30,
   },
 
   messagesWrapper: {

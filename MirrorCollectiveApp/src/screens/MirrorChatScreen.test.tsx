@@ -118,6 +118,14 @@ describe('MirrorChatScreen', () => {
     expect(mockUseChat.sendMessage).toHaveBeenCalled();
   });
 
+  it('exposes the header info button and wires the capture-reflection modal', () => {
+    const { getByLabelText, getByText } = render(<MirrorChatContent />);
+    // The (i) button lives in the header, next to the MirrorGPT title.
+    const infoButton = getByLabelText('How MirrorGPT works');
+    fireEvent.press(infoButton); // opens the modal — must not throw
+    expect(getByText('CAPTURE YOUR REFLECTION')).toBeTruthy();
+  });
+
   it('shows loading indicator when loading', () => {
     (useChat as jest.Mock).mockReturnValue({
       ...mockUseChat,
