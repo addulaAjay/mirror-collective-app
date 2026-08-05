@@ -1,14 +1,3 @@
-import {
-  palette,
-  fontFamily,
-  fontSize,
-  fontWeight,
-  lineHeight,
-  spacing,
-  radius,
-  scale,
-  verticalScale,
-} from '@theme';
 import React from 'react';
 import {
   Animated,
@@ -29,6 +18,17 @@ import LinearGradient from 'react-native-linear-gradient';
 import Svg, { Path } from 'react-native-svg';
 
 import CircularLogoMark from '@components/CircularLogoMark';
+import {
+  palette,
+  fontFamily,
+  fontSize,
+  fontWeight,
+  lineHeight,
+  spacing,
+  radius,
+  scale,
+  verticalScale,
+} from '@theme';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -47,6 +47,7 @@ type MirrorSideMenuProps = {
   userName?: string;
   onClose: () => void;
   onNavigate: (route: string) => void;
+  onLogout: () => void;
 };
 
 // ── Nav item definitions ────────────────────────────────────────────────────
@@ -66,21 +67,21 @@ const SECONDARY_ITEMS = [
   { label: 'FAQ',          route: 'FAQ' },
 ] as const;
 
-// ── Hamburger icon (Material Dehaze) ────────────────────────────────────────
-const HamburgerIcon: React.FC = () => (
-  <Svg width={scale(24)} height={scale(24)} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"
-      fill={palette.gold.warm}
-    />
-  </Svg>
-);
-
 // ── Close icon ──────────────────────────────────────────────────────────────
 const CloseIcon: React.FC = () => (
   <Svg width={scale(24)} height={scale(24)} viewBox="0 0 24 24" fill="none">
     <Path
       d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+      fill={palette.gold.warm}
+    />
+  </Svg>
+);
+
+// ── Logout icon (Material logout — arrow exiting a door) ────────────────────
+const LogoutIcon: React.FC = () => (
+  <Svg width={scale(20)} height={scale(20)} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"
       fill={palette.gold.warm}
     />
   </Svg>
@@ -111,6 +112,7 @@ const MirrorSideMenu: React.FC<MirrorSideMenuProps> = ({
   userName = 'Guest',
   onClose,
   onNavigate,
+  onLogout,
 }) => {
   // Decouple "is the menu logically open" (`isOpen` prop) from "is the
   // drawer mounted" (`mounted` local). On close we keep the component
@@ -299,6 +301,18 @@ const MirrorSideMenu: React.FC<MirrorSideMenuProps> = ({
                   <Text style={styles.primaryText}>{item.label}</Text>
                 </TouchableOpacity>
               ))}
+
+              {/* Logout — Figma node 2336:3446: label + exit icon, bottom of menu */}
+              <TouchableOpacity
+                activeOpacity={0.75}
+                onPress={onLogout}
+                style={styles.logoutItem}
+                accessibilityRole="button"
+                accessibilityLabel="Log out"
+              >
+                <Text style={styles.primaryText}>Logout</Text>
+                <LogoutIcon />
+              </TouchableOpacity>
             </View>
           </ScrollView>
         </View>
@@ -330,6 +344,7 @@ const styles = StyleSheet.create<{
   divider: ViewStyle;
   secondaryList: ViewStyle;
   secondaryItem: ViewStyle;
+  logoutItem: ViewStyle;
 }>({
   // ── Backdrop ─────────────────────────────────────────────────────────────
   backdrop: {
@@ -349,7 +364,7 @@ const styles = StyleSheet.create<{
     // Soft right-edge shadow so the drawer reads as elevated above the
     // content it slides over. Subtle on purpose — the backdrop scrim
     // does most of the depth-layering work.
-    shadowColor:   '#000',
+    shadowColor:   palette.neutral.black,
     shadowOffset:  { width: 4, height: 0 },
     shadowOpacity: 0.25,
     shadowRadius:  12,
@@ -465,6 +480,15 @@ const styles = StyleSheet.create<{
   // Figma node 2336:3817
   secondaryItem: {
     padding: scale(spacing.s), // 12px all sides
+    width: '100%',
+  },
+
+  // Logout row: label + exit icon inline — Figma node 2336:3446
+  logoutItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: scale(spacing.s), // 12px between label and icon
+    padding: scale(spacing.s), // 12px all sides, matches secondaryItem
     width: '100%',
   },
 });

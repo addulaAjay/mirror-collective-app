@@ -1,17 +1,18 @@
 
 import { useNavigation } from '@react-navigation/native';
-import { palette, spacing, scale, verticalScale } from '@theme';
 import React, { useState } from 'react';
 import {
   View,
   StyleSheet,
   Pressable,
+  Alert,
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
 
 import { useSession } from '@context/SessionContext';
 import { useUser } from '@context/UserContext';
+import { palette, spacing, scale, verticalScale } from '@theme';
 
 import MirrorSideMenu from '../screens/NavigationMenuScreen';
 
@@ -33,9 +34,24 @@ const LogoHeader = ({
   const navigation = propNavigation || internalNavigation;
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { user } = useUser();
-  const { state } = useSession();
+  const { state, signOut } = useSession();
   const { isAuthenticated } = state;
   const displayName = user?.fullName  || 'Guest';
+
+  // Confirm before logging out so an accidental tap doesn't drop the session.
+  const handleLogout = () => {
+    Alert.alert('Log out', 'Are you sure you want to log out?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Log out',
+        style: 'destructive',
+        onPress: async () => {
+          setDrawerOpen(false);
+          await signOut();
+        },
+      },
+    ]);
+  };
 
   // If onMenuPress is provided, use it. Otherwise, use internal drawer state.
   const handleMenuPress = () => {
@@ -64,6 +80,7 @@ const LogoHeader = ({
               navigation.navigate(route as never);
             }
           }}
+          onLogout={handleLogout}
         />
       )}
       <View style={styles.wrapper}>
