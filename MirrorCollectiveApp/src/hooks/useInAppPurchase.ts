@@ -9,12 +9,22 @@ import {
   finishTransaction,
   purchaseUpdatedListener,
   purchaseErrorListener,
+  ErrorCode,
   type Subscription,
   type SubscriptionPurchase,
   type ProductPurchase,
 } from 'react-native-iap';
 
 import {subscriptionApiService} from '@/services/api/subscriptionApi';
+
+/**
+ * True when a purchase error is the user backing out of the Apple payment sheet
+ * (tapping Cancel). That's a normal action, not a failure — callers should reset
+ * the purchasing flag silently rather than surface an error.
+ */
+const isUserCancelled = (error: any): boolean =>
+  error?.code === ErrorCode.E_USER_CANCELLED ||
+  error?.code === 'E_USER_CANCELLED';
 
 // Product IDs
 const PRODUCT_IDS = {
@@ -162,6 +172,11 @@ export const useInAppPurchase = (options?: {
 
         // Listen for purchase errors
         purchaseErrorSubscription = purchaseErrorListener(error => {
+          // Cancel fires here too — treat it as a silent no-op.
+          if (isUserCancelled(error)) {
+            setState(prev => ({...prev, purchasing: false}));
+            return;
+          }
           console.warn('Purchase error:', error);
           setState(prev => ({
             ...prev,
@@ -202,6 +217,12 @@ export const useInAppPurchase = (options?: {
         sku: productId,
       });
     } catch (error: any) {
+      // User tapped Cancel on the Apple sheet — a normal action, not a failure.
+      // Reset the flag silently; don't log or set an error state.
+      if (isUserCancelled(error)) {
+        setState(prev => ({...prev, purchasing: false}));
+        return;
+      }
       console.error('Purchase error:', error);
       setState(prev => ({
         ...prev,
