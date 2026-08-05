@@ -15,26 +15,8 @@
  */
 
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { OnboardingService } from '@services';
+import React, { useEffect, useRef, useState } from 'react';
 import {
-  palette,
-  fontFamily,
-  fontSize,
-  fontWeight,
-  lineHeight,
-  radius,
-  borderWidth,
-  textShadow,
-  spacing,
-  glassGradient,
-  scale,
-  verticalScale,
-  moderateScale,
-} from '@theme';
-import type { RootStackParamList } from '@types';
-import React, { useEffect } from 'react';
-import {
-  Image,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -56,7 +38,27 @@ import MirrorPledgeIcon from '@components/icons/MirrorPledgeIcon';
 import ReflectionRoomIcon from '@components/icons/ReflectionRoomIcon';
 import LogoHeader from '@components/LogoHeader';
 import StarIcon from '@components/StarIcon';
+import TrialCountdown from '@components/TrialCountdown';
+import UpgradePrompt from '@components/UpgradePrompt';
+import { useSubscription } from '@context/SubscriptionContext';
 import { useUser } from '@context/UserContext';
+import { OnboardingService } from '@services';
+import {
+  palette,
+  fontFamily,
+  fontSize,
+  fontWeight,
+  lineHeight,
+  radius,
+  borderWidth,
+  textShadow,
+  spacing,
+  glassGradient,
+  scale,
+  verticalScale,
+  moderateScale,
+} from '@theme';
+import type { RootStackParamList } from '@types';
 
 interface Props {
   navigation: NativeStackNavigationProp<RootStackParamList, 'TalkToMirror'>;
@@ -103,6 +105,24 @@ const TalkToMirrorScreen: React.FC<Props> = ({ navigation }) => {
   const { user } = useUser();
   const firstName = user?.fullName ? user.fullName.split(' ')[0] : 'Friend';
 
+  // Surface an expired trial/subscription on landing so the user isn't left
+  // guessing (they'd otherwise only find out via My Subscription or by hitting
+  // the 403 wall). Shown once per mount — Home stays mounted at the root of the
+  // stack, so this fires once per login session and resets on the next login,
+  // not on every navigate-back. Active-trial users instead get the subtle
+  // TrialCountdown banner below.
+  const { status, loading: subscriptionLoading } = useSubscription();
+  const [expiredPromptVisible, setExpiredPromptVisible] = useState(false);
+  const expiredPromptShownRef = useRef(false);
+
+  useEffect(() => {
+    if (subscriptionLoading || expiredPromptShownRef.current) return;
+    if (status === 'trial_expired' || status === 'expired') {
+      expiredPromptShownRef.current = true;
+      setExpiredPromptVisible(true);
+    }
+  }, [status, subscriptionLoading]);
+
   useEffect(() => {
     OnboardingService.markOnboardingComplete().catch(() => {
       // non-fatal — onboarding flag is best-effort
@@ -131,6 +151,9 @@ const TalkToMirrorScreen: React.FC<Props> = ({ navigation }) => {
       <SafeAreaView style={styles.safe}>
         <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
         <LogoHeader />
+
+        {/* Self-gating: renders only during an active trial (days remaining). */}
+        <TrialCountdown />
 
         <ScrollView
           style={styles.scroll}
@@ -221,6 +244,13 @@ const TalkToMirrorScreen: React.FC<Props> = ({ navigation }) => {
 
           </View>
         </ScrollView>
+
+        {/* Expired trial/subscription → prompt to subscribe on landing. */}
+        <UpgradePrompt
+          visible={expiredPromptVisible}
+          onClose={() => setExpiredPromptVisible(false)}
+          reason="trial_expired"
+        />
       </SafeAreaView>
     </BackgroundWrapper>
   );
