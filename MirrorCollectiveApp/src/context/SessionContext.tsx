@@ -243,33 +243,41 @@ export const SessionProvider = ({ children }: SessionProviderProps) => {
   };
   const signOut = async () => {
     if (!isMountedRef.current) return;
-    try {
-      safeDispatch({ type: 'SET_LOADING', payload: true });
-      
-      // Unregister push notifications before clearing tokens
+    safeDispatch({ type: 'SET_LOADING', payload: true });
+
+    // Push-unregister and the server sign-out call are best-effort and MUST NOT
+    // block the user from actually logging out. Notably, unregisterDevice()
+    // resolves the device token via messaging().registerDeviceForRemoteMessages(),
+    // which can HANG indefinitely on the iOS Simulator (no APNs) — awaiting it
+    // directly leaves the user stuck on the current screen with no way back to
+    // sign-in. Time-box the whole remote cleanup so logout always proceeds.
+    const remoteCleanup = (async () => {
       try {
         await PushNotificationService.unregisterDevice();
       } catch (error) {
         if (__DEV__) console.warn('Push unregistration failed:', error);
       }
-
       try {
         await authApiService.signOut();
       } catch (error) {
         if (__DEV__) console.warn('Server logout failed:', error);
       }
+    })();
+    await Promise.race([
+      remoteCleanup,
+      new Promise<void>(resolve => setTimeout(resolve, 3000)),
+    ]);
+
+    // Local token clear is fast and authoritative — it's what actually ends the
+    // session. Always run it, then flip auth state so the navigator swaps to the
+    // sign-in stack.
+    try {
       await authApiService.clearTokens();
-      if (isMountedRef.current) {
-        safeDispatch({ type: 'LOGOUT_SUCCESS' });
-      }
-    } catch (error: any) {
-      console.error('Logout error:', error);
-      try {
-        await authApiService.clearTokens();
-      } catch (e) {}
-      if (isMountedRef.current) {
-        safeDispatch({ type: 'LOGOUT_SUCCESS' });
-      }
+    } catch (error) {
+      if (__DEV__) console.warn('Token clear failed during logout:', error);
+    }
+    if (isMountedRef.current) {
+      safeDispatch({ type: 'LOGOUT_SUCCESS' });
     }
   };
 
