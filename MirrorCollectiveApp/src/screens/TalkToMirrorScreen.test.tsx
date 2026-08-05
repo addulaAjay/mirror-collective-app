@@ -18,6 +18,26 @@ jest.mock('@context/UserContext', () => ({
 jest.mock('@services', () => ({
   OnboardingService: { markOnboardingComplete: jest.fn().mockResolvedValue(undefined) },
 }));
+// TrialCountdown calls useNavigation() internally (no NavigationContainer here);
+// stub it. Its own active-trial logic is exercised by its own component.
+jest.mock('@components/TrialCountdown', () => 'TrialCountdown');
+// Render UpgradePrompt as a visibility marker so we can assert it appears.
+jest.mock('@components/UpgradePrompt', () => {
+  const react = require('react');
+  const { Text } = require('react-native');
+  return ({ visible, reason }: { visible: boolean; reason?: string }) =>
+    visible ? react.createElement(Text, null, `UPGRADE_PROMPT:${reason}`) : null;
+});
+// Drive subscription status per-test.
+let mockSubscription = {
+  status: 'active',
+  loading: false,
+  isInTrial: false,
+  trialDaysRemaining: 0,
+};
+jest.mock('@context/SubscriptionContext', () => ({
+  useSubscription: () => mockSubscription,
+}));
 
 import { useUser } from '@context/UserContext';
 
@@ -29,6 +49,12 @@ describe('TalkToMirrorScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (useUser as jest.Mock).mockReturnValue({ user: null });
+    mockSubscription = {
+      status: 'active',
+      loading: false,
+      isInTrial: false,
+      trialDaysRemaining: 0,
+    };
   });
 
   it('renders greeting, talk button, and all three categories', () => {
@@ -59,5 +85,29 @@ describe('TalkToMirrorScreen', () => {
     fireEvent.press(getByText(label));
 
     expect(mockNavigation.navigate).toHaveBeenCalledWith(route);
+  });
+
+  it.each(['trial_expired', 'expired'])(
+    'shows the upgrade prompt on landing when status is %s',
+    status => {
+      mockSubscription = { ...mockSubscription, status };
+      const { getByText } = render(<TalkToMirrorScreen navigation={mockNavigation} />);
+      expect(getByText('UPGRADE_PROMPT:trial_expired')).toBeTruthy();
+    },
+  );
+
+  it.each(['active', 'trial', 'none'])(
+    'does NOT show the upgrade prompt when status is %s',
+    status => {
+      mockSubscription = { ...mockSubscription, status };
+      const { queryByText } = render(<TalkToMirrorScreen navigation={mockNavigation} />);
+      expect(queryByText('UPGRADE_PROMPT:trial_expired')).toBeNull();
+    },
+  );
+
+  it('does not show the prompt until the subscription status has loaded', () => {
+    mockSubscription = { ...mockSubscription, status: 'trial_expired', loading: true };
+    const { queryByText } = render(<TalkToMirrorScreen navigation={mockNavigation} />);
+    expect(queryByText('UPGRADE_PROMPT:trial_expired')).toBeNull();
   });
 });
