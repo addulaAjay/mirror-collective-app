@@ -32,17 +32,21 @@ const getMessage = (
     case 'quota_exceeded':
       return {
         title: 'Storage Limit Reached',
-        message: `You've used ${quotaInfo?.usage_gb.toFixed(1)} GB of your ${
-          quotaInfo?.quota_gb
-        } GB storage. Upgrade to add more space.`,
+        // Numbers when we have them, a clean fallback when we don't (the upload
+        // 507 doesn't carry usage figures).
+        message: quotaInfo
+          ? `You've used ${quotaInfo.usage_gb.toFixed(1)} GB of your ${quotaInfo.quota_gb} GB storage. Upgrade to add more space.`
+          : "You've reached your storage limit. Upgrade to add more space.",
       };
     case 'quota_approaching':
       return {
         title: 'Running Low on Storage',
-        message: `You've used ${(
-          ((quotaInfo?.usage_gb || 0) / (quotaInfo?.quota_gb || 1)) *
-          100
-        ).toFixed(0)}% of your storage. Consider adding more space.`,
+        message: quotaInfo
+          ? `You've used ${(
+              (quotaInfo.usage_gb / (quotaInfo.quota_gb || 1)) *
+              100
+            ).toFixed(0)}% of your storage. Consider adding more space.`
+          : "You're running low on storage. Consider adding more space.",
       };
     case 'trial_expired':
       return {
