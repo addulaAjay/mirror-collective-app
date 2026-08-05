@@ -40,4 +40,25 @@ describe('UpgradePrompt', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
     expect(mockNavigate).not.toHaveBeenCalled();
   });
+
+  it('shows a clean quota message when no usage figures are supplied', () => {
+    const { getByText } = render(
+      <UpgradePrompt visible onClose={jest.fn()} reason="quota_exceeded" />,
+    );
+    expect(getByText('Storage Limit Reached')).toBeTruthy();
+    // Fallback copy — no "undefined GB".
+    expect(getByText(/reached your storage limit/)).toBeTruthy();
+  });
+
+  it('shows the usage figures when quotaInfo is provided', () => {
+    const { getByText } = render(
+      <UpgradePrompt
+        visible
+        onClose={jest.fn()}
+        reason="quota_exceeded"
+        quotaInfo={{ usage_gb: 49.7, quota_gb: 50 }}
+      />,
+    );
+    expect(getByText(/49\.7 GB of your 50 GB/)).toBeTruthy();
+  });
 });

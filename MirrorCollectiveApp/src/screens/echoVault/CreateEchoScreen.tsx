@@ -21,20 +21,6 @@
 
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import {
-  borderWidth,
-  fontFamily,
-  fontSize,
-  fontWeight,
-  lineHeight,
-  moderateScale,
-  palette,
-  radius,
-  scale,
-  spacing,
-  verticalScale,
-} from '@theme';
-import type { RootStackParamList } from '@types';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -71,8 +57,23 @@ import BackgroundWrapper from '@components/BackgroundWrapper';
 import Button from '@components/Button/Button';
 import EchoAttachments from '@components/echo/EchoAttachments';
 import LogoHeader from '@components/LogoHeader';
+import UpgradePrompt from '@components/UpgradePrompt';
 import { echoApiService } from '@services/api/echo';
 import type { Attachment, EchoResponse, UploadStage } from '@services/api/echo';
+import {
+  borderWidth,
+  fontFamily,
+  fontSize,
+  fontWeight,
+  lineHeight,
+  moderateScale,
+  palette,
+  radius,
+  scale,
+  spacing,
+  verticalScale,
+} from '@theme';
+import type { RootStackParamList } from '@types';
 import {
   createPosterThumbnail,
   ensureWebSafePhoto,
@@ -138,7 +139,7 @@ const MAX_MESSAGE_HEIGHT = verticalScale(220);
 const KEYBOARD_TOOLBAR_PALETTE = {
   primary: palette.gold.DEFAULT,
   disabled: palette.navy.light,
-  background: '#1a2238', // Figma Border/Inverse — reads as an elevated dark bar
+  background: palette.navy.DEFAULT, // #1a2238 — reads as an elevated dark bar
   ripple: 'rgba(242, 226, 177, 0.2)',
 };
 const KEYBOARD_TOOLBAR_THEME = {
@@ -530,6 +531,8 @@ const CreateEchoScreen: React.FC = () => {
   const [uploadStage, setUploadStage] = useState<UploadStage | null>(null);
   const [showUploadSheet, setShowUploadSheet] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
+  // Over storage quota (507 on upload) → show the on-brand upgrade prompt.
+  const [quotaPromptVisible, setQuotaPromptVisible] = useState(false);
   // Picker must launch only AFTER the sheet fully dismisses (iOS races
   // otherwise). pendingPicker records the choice; the launch happens in
   // handleSheetDismissed (iOS) or a timeout (Android).
@@ -953,6 +956,12 @@ const CreateEchoScreen: React.FC = () => {
         },
       ]);
     } catch (error: unknown) {
+      // Over storage quota — the upload endpoints return 507. Surface the
+      // upgrade prompt instead of a raw error so the user can add space.
+      if ((error as { status?: number } | null)?.status === 507) {
+        setQuotaPromptVisible(true);
+        return;
+      }
       const msg =
         error instanceof Error ? error.message : 'Failed to save echo.';
       console.error('Create echo failed:', msg);
@@ -1362,6 +1371,13 @@ const CreateEchoScreen: React.FC = () => {
             </View>
           </View>
         </Modal>
+
+        {/* Over storage quota → prompt to add space / subscribe. */}
+        <UpgradePrompt
+          visible={quotaPromptVisible}
+          onClose={() => setQuotaPromptVisible(false)}
+          reason="quota_exceeded"
+        />
       </SafeAreaView>
     </BackgroundWrapper>
   );
