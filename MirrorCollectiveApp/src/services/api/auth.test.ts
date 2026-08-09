@@ -111,6 +111,46 @@ describe('AuthApiService', () => {
     });
   });
 
+  describe('deleteAccount', () => {
+    beforeEach(() => {
+      // DELETE /api/auth/account is an authenticated call — provide a token so
+      // makeRequest doesn't short-circuit with "Session expired".
+      (tokenManager.getValidToken as jest.Mock).mockResolvedValue(
+        'mock-jwt-token',
+      );
+    });
+
+    it('sends DELETE to /api/auth/account', async () => {
+      await authService.deleteAccount();
+
+      expect(global.fetch).toHaveBeenCalled();
+      const [url, init] = (global.fetch as jest.Mock).mock.calls[0];
+      const path = String(url).replace(/^https?:\/\/[^/]+/, '');
+      expect(path.startsWith('/api/auth/account')).toBe(true);
+      expect(init.method).toBe('DELETE');
+    });
+
+    it('clears local tokens after deletion (returns to signed-out state)', async () => {
+      await authService.deleteAccount();
+
+      // The account is gone server-side — the app must not keep using a
+      // now-invalid session, so tokens are always cleared.
+      expect(tokenManager.clearTokens).toHaveBeenCalled();
+    });
+
+    it('still clears tokens when the server call fails', async () => {
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        json: () => Promise.resolve({ error: 'boom' }),
+      });
+
+      await authService.deleteAccount();
+
+      expect(tokenManager.clearTokens).toHaveBeenCalled();
+    });
+  });
+
   describe('refreshToken', () => {
     const mockStore = (values: Record<string, string | null>) => {
       (AsyncStorage.getItem as jest.Mock).mockImplementation((key: string) =>

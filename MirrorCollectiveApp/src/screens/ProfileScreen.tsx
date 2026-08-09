@@ -1,19 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import {
-  borderWidth,
-  fontFamily,
-  fontSize,
-  fontWeight,
-  lineHeight,
-  moderateScale,
-  palette,
-  scale,
-  spacing,
-  textShadow,
-  verticalScale,
-} from '@theme';
-import type { RootStackParamList } from '@types';
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   ActivityIndicator,
@@ -40,11 +26,27 @@ import Button from '@components/Button/Button';
 import { CachedImage } from '@components/CachedImage';
 import LogoHeader from '@components/LogoHeader';
 import TextInputField from '@components/TextInputField';
+import { useSession } from '@context/SessionContext';
 import { useUser } from '@context/UserContext';
 import { authApiService } from '@services/api';
 import { echoApiService } from '@services/api/echo';
-import { pickProfilePhoto } from '@utils/media/pickProfilePhoto';
 import { TTS_FEATURE_ENABLED } from '@services/speech';
+import {
+  borderWidth,
+  fontFamily,
+  fontSize,
+  fontWeight,
+  lineHeight,
+  moderateScale,
+  palette,
+  scale,
+  spacing,
+  textShadow,
+  verticalScale,
+} from '@theme';
+import type { RootStackParamList } from '@types';
+import { pickProfilePhoto } from '@utils/media/pickProfilePhoto';
+
 import { SpeechSettingsRow } from './settings/SpeechSettingsRow';
 
 const AVATAR_SIZE = moderateScale(160);
@@ -61,12 +63,14 @@ const formatPhoneDisplay = (e164: string): string => {
 const ProfileScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { user, refreshUser } = useUser();
+  const { deleteAccount } = useSession();
 
   // E.164 stored internally — displayed via formatPhoneDisplay (matches SignUpScreen)
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('+1');
   const [localImageUri, setLocalImageUri] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [refreshed, setRefreshed] = useState(false);
   const [initialized, setInitialized] = useState(false);
 
@@ -135,6 +139,45 @@ const ProfileScreen: React.FC = () => {
       setIsSaving(false);
     }
   }, [localImageUri, name, phone, refreshUser]);
+
+  const performDelete = useCallback(async () => {
+    setIsDeleting(true);
+    try {
+      const ok = await deleteAccount();
+      if (!ok) {
+        Alert.alert(
+          'Deletion failed',
+          'We could not delete your account. Please try again, or contact support if the problem persists.',
+        );
+      }
+      // On success the SessionContext dispatches LOGOUT_SUCCESS, which unmounts
+      // the authenticated navigator and returns the app to the sign-in flow.
+    } catch {
+      Alert.alert(
+        'Deletion failed',
+        'Something went wrong deleting your account. Please try again.',
+      );
+    } finally {
+      setIsDeleting(false);
+    }
+  }, [deleteAccount]);
+
+  const handleDeleteAccount = useCallback(() => {
+    Alert.alert(
+      'Delete account?',
+      'This permanently deletes your account and all associated data. This cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => {
+            void performDelete();
+          },
+        },
+      ],
+    );
+  }, [performDelete]);
 
   return (
     <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage}>
@@ -263,6 +306,24 @@ const ProfileScreen: React.FC = () => {
                 />
               )}
 
+              {/* Delete account — Apple Guideline 5.1.1(v) requires an in-app
+                  path to permanently delete the account. */}
+              {isDeleting ? (
+                <ActivityIndicator
+                  color={palette.gold.DEFAULT}
+                  style={styles.loader}
+                />
+              ) : (
+                <TouchableOpacity
+                  onPress={handleDeleteAccount}
+                  style={styles.deleteButton}
+                  accessibilityRole="button"
+                  accessibilityLabel="Delete account"
+                >
+                  <Text style={styles.deleteButtonText}>Delete Account</Text>
+                </TouchableOpacity>
+              )}
+
             </View>
           </TouchableWithoutFeedback>
         </ScrollView>
@@ -279,6 +340,7 @@ const styles = StyleSheet.create<{
   subtitle: TextStyle; avatarRing: ViewStyle;
   avatarImage: ImageStyle; avatarPlaceholder: TextStyle;
   form: ViewStyle; loader: ViewStyle;
+  deleteButton: ViewStyle; deleteButtonText: TextStyle;
 }>({
   bg:   { flex: 1 },
   bgImage: { resizeMode: 'cover' },
@@ -376,6 +438,22 @@ const styles = StyleSheet.create<{
   },
 
   loader: { marginVertical: verticalScale(spacing.m) },
+
+  // ── Delete account ─────────────────────────────────────────────────────────
+  deleteButton: {
+    marginTop: verticalScale(spacing.s),
+    paddingVertical: verticalScale(spacing.s),
+    alignItems: 'center',
+  },
+  deleteButtonText: {
+    fontFamily: fontFamily.body,
+    fontSize: moderateScale(fontSize.s),
+    fontWeight: fontWeight.regular,
+    lineHeight: moderateScale(lineHeight.m),
+    color: palette.status.error,
+    textAlign: 'center',
+    textDecorationLine: 'underline',
+  },
 });
 
 export default ProfileScreen;

@@ -26,6 +26,34 @@ const isUserCancelled = (error: any): boolean =>
   error?.code === ErrorCode.E_USER_CANCELLED ||
   error?.code === 'E_USER_CANCELLED';
 
+/**
+ * Reject a promise if it doesn't settle within `ms`. Native StoreKit calls
+ * (initConnection / getSubscriptions) can hang indefinitely rather than
+ * rejecting — without a timeout the init effect's `loading` flag would stay
+ * true forever and wedge the paywall on "LOADING...". Wrapping them guarantees
+ * the effect always resolves one way or the other.
+ */
+const withTimeout = <T>(promise: Promise<T>, ms: number, label: string): Promise<T> => {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(
+      () => reject(new Error(`${label} timed out after ${ms}ms`)),
+      ms,
+    );
+    promise.then(
+      value => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      err => {
+        clearTimeout(timer);
+        reject(err);
+      },
+    );
+  });
+};
+
+const IAP_INIT_TIMEOUT_MS = 10000;
+
 // Product IDs
 const PRODUCT_IDS = {
   // Must match the product IDs created in App Store Connect exactly (product
@@ -102,26 +130,25 @@ export const useInAppPurchase = (options?: {
     let purchaseErrorSubscription: any;
 
     const initIAP = async () => {
-      try {
-        await initConnection();
-        console.log('IAP connection initialized');
+      // Register the purchase listeners BEFORE anything that can hang or throw
+      // (initConnection / getSubscriptions). StoreKit can deliver a queued
+      // transaction — e.g. an Ask-to-Buy approval or a restore — the instant the
+      // connection opens; if the listeners aren't attached yet that event is
+      // lost. Registering first also means a slow/hung getSubscriptions never
+      // costs us purchase delivery.
+      purchaseUpdateSubscription = purchaseUpdatedListener(
+        async (purchase: SubscriptionPurchase | ProductPurchase) => {
+          if (__DEV__) {
+            // Never log the full purchase object in release — it carries the
+            // signed transaction receipt. Product/transaction ids are enough
+            // to debug with.
+            console.log('Purchase updated:', {
+              productId: purchase.productId,
+              transactionId: purchase.transactionId,
+            });
+          }
 
-        // Fetch available products
-        const productIds = Object.values(PRODUCT_IDS);
-        const availableProducts = await getSubscriptions({skus: productIds});
-
-        setState(prev => ({
-          ...prev,
-          products: availableProducts,
-          loading: false,
-        }));
-
-        // Listen for purchase updates
-        purchaseUpdateSubscription = purchaseUpdatedListener(
-          async (purchase: SubscriptionPurchase | ProductPurchase) => {
-            console.log('Purchase updated:', purchase);
-
-            const receipt = Platform.select({
+          const receipt = Platform.select({
               ios: purchase.transactionReceipt,
               android: purchase.purchaseToken,
             });
@@ -170,20 +197,48 @@ export const useInAppPurchase = (options?: {
           },
         );
 
-        // Listen for purchase errors
-        purchaseErrorSubscription = purchaseErrorListener(error => {
-          // Cancel fires here too — treat it as a silent no-op.
-          if (isUserCancelled(error)) {
-            setState(prev => ({...prev, purchasing: false}));
-            return;
-          }
-          console.warn('Purchase error:', error);
-          setState(prev => ({
-            ...prev,
-            purchasing: false,
-            error: error.message,
-          }));
-        });
+      // Listen for purchase errors
+      purchaseErrorSubscription = purchaseErrorListener(error => {
+        // Cancel fires here too — treat it as a silent no-op.
+        if (isUserCancelled(error)) {
+          setState(prev => ({...prev, purchasing: false}));
+          return;
+        }
+        console.warn('Purchase error:', error);
+        setState(prev => ({
+          ...prev,
+          purchasing: false,
+          error: error.message,
+        }));
+      });
+
+      // Listeners are attached — now open the store connection and load
+      // products. Both native calls are wrapped in a timeout because StoreKit
+      // can hang without ever resolving or rejecting; on any failure we still
+      // clear `loading` so the paywall renders (with fallback prices) instead
+      // of being wedged on "LOADING..." forever.
+      try {
+        await withTimeout(
+          initConnection(),
+          IAP_INIT_TIMEOUT_MS,
+          'initConnection',
+        );
+        if (__DEV__) {
+          console.log('IAP connection initialized');
+        }
+
+        const productIds = Object.values(PRODUCT_IDS);
+        const availableProducts = await withTimeout(
+          getSubscriptions({skus: productIds}),
+          IAP_INIT_TIMEOUT_MS,
+          'getSubscriptions',
+        );
+
+        setState(prev => ({
+          ...prev,
+          products: availableProducts,
+          loading: false,
+        }));
       } catch (error: any) {
         console.error('IAP initialization error:', error);
         setState(prev => ({

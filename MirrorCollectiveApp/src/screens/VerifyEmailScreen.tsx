@@ -1,18 +1,6 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import {
-  fontFamily,
-  fontSize,
-  fontWeight,
-  lineHeight,
-  moderateScale,
-  palette,
-  scale,
-  textShadow,
-  verticalScale,
-} from '@theme';
-import type { RootStackParamList } from '@types';
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -32,6 +20,18 @@ import LogoHeader from '@components/LogoHeader';
 import TextInputField from '@components/TextInputField';
 import { authApiService } from '@services/api';
 import { QuizStorageService } from '@services/quizStorageService';
+import {
+  fontFamily,
+  fontSize,
+  fontWeight,
+  lineHeight,
+  moderateScale,
+  palette,
+  scale,
+  textShadow,
+  verticalScale,
+} from '@theme';
+import type { RootStackParamList } from '@types';
 import { getApiErrorMessage } from '@utils/apiErrorUtils';
 import { clearPendingVerification } from '@utils/verificationState';
 
@@ -86,11 +86,6 @@ const VerifyEmailScreen = () => {
     }
 
     setIsVerifying(true);
-
-    if (__DEV__) {
-      console.log('VerifyEmailScreen - verificationCode:', verificationCode);
-      console.log('VerifyEmailScreen - email:', normalizedEmail);
-    }
 
     try {
       // Get anonymousId for linking quiz data

@@ -183,7 +183,9 @@ class PushNotificationService {
         device_token: token,
         platform: Platform.OS,
       });
-      console.log(`Device registered successfully for user ${this.userId} on ${Platform.OS}`);
+      if (__DEV__) {
+        console.log(`Device registered successfully on ${Platform.OS}`);
+      }
     } catch (error) {
       console.error('Failed to register device with backend:', error);
     }
