@@ -1,6 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { palette, textShadow } from '@theme';
 import React from 'react';
 import {
   View,
@@ -14,10 +13,10 @@ import {
 import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { RootStackParamList } from '@/types';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
-
-import { RootStackParamList } from '@/types';
+import { palette, textShadow } from '@theme';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Checkout'>;
 
@@ -235,9 +234,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   backArrow: {
-    width: rs(24),
-    height: rs(24),
-    tintColor: CHECKOUT_COLORS.gold,
+    // Align with the app-wide header back arrow (Terms / StartFreeTrial):
+    // 20px, contained, warm gold — not the brighter gold.DEFAULT used elsewhere
+    // in this screen.
+    width: rs(20),
+    height: rs(20),
+    resizeMode: 'contain',
+    tintColor: palette.gold.warm,
   },
   title: {
     fontFamily: 'CormorantGaramond-Regular',

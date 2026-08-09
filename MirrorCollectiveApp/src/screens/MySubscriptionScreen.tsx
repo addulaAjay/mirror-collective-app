@@ -10,8 +10,6 @@
  * Subscription data comes from SubscriptionContext (server = source of truth).
  */
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { palette, fontFamily, fontSize, spacing, scale, radius } from '@theme';
-import type { RootStackParamList } from '@types';
 import React, { useState } from 'react';
 import {
   View,
@@ -35,6 +33,8 @@ import StarIcon from '@components/StarIcon';
 import { LEGAL_LINKS } from '@constants/config';
 import { useSubscription } from '@context/SubscriptionContext';
 import { useInAppPurchase, localizedPrice } from '@hooks/useInAppPurchase';
+import { palette, fontFamily, fontSize, scale, radius } from '@theme';
+import type { RootStackParamList } from '@types';
 
 // iOS Manage Subscriptions deep link. Auto-renewable subscriptions cannot be
 // cancelled programmatically — Apple requires the user to do it in Settings /
@@ -252,8 +252,22 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginTop: 8,
   },
-  backBtn: { width: scale(24), height: scale(24), justifyContent: 'center' },
-  backArrow: { width: scale(20), height: scale(20), tintColor: palette.gold.DEFAULT },
+  // Match the canonical header back-button treatment used across the app
+  // (TermsAndConditionsScreen / StartFreeTrialScreen): a 40px touch box with a
+  // 20px warm-gold arrow. The symmetric 40px spacer on the right keeps the
+  // flex:1 title centred.
+  backBtn: {
+    width: scale(40),
+    height: scale(40),
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  backArrow: {
+    width: scale(20),
+    height: scale(20),
+    resizeMode: 'contain',
+    tintColor: palette.gold.warm,
+  },
   title: {
     flex: 1,
     textAlign: 'center',
