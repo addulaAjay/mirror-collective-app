@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
     View,
     Text,
@@ -46,12 +46,15 @@ import type { RootStackParamList } from '@types';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'StartFreeTrial'>;
 
+// iOS Manage Subscriptions deep link — monthly↔yearly plan changes for an
+// active subscription are handled by Apple, not the in-app paywall.
+const MANAGE_SUBSCRIPTIONS_URL = 'https://apps.apple.com/account/subscriptions';
+
 const StartFreeTrialScreen = () => {
     const navigation = useNavigation<NavigationProp>();
     const canGoBack = navigation.canGoBack();
     const { status, hasUsedTrial, hasActiveSubscription, refreshSubscriptionStatus } = useSubscription();
-    const { setAuthenticated, state: sessionState } = useSession();
-    const { isAuthenticated } = sessionState;
+    const { setAuthenticated } = useSession();
     const { purchaseSubscription, restorePurchases, purchasing, PRODUCT_IDS, products } = useInAppPurchase({
         // A paid purchase is confirmed asynchronously (StoreKit listener →
         // backend verify). When that completes, refresh status and enter the
@@ -75,24 +78,18 @@ const StartFreeTrialScreen = () => {
     const buttonText = isTrialMode ? 'START FREE TRIAL' : 'SUBSCRIBE NOW';
 
     // Only a genuinely PAID subscription blocks re-purchasing. A trial counts as
-    // "active" for access purposes, but a trial user must still be able to
-    // convert to paid — so the CTA must NOT be disabled during a trial.
+    // "active" for access purposes, but the CTA must stay enabled so a new user
+    // can start their trial and a trial user can convert to paid. The paywall is
+    // intentionally shown to new users after verification — do NOT auto-route
+    // them into the app; the trial screen is part of onboarding.
     const isActivePaid = status === 'active';
-
-    // Onboarding rescue: a just-verified user can land here as the navigator
-    // ROOT (no back button). If they're already entitled (trial started), don't
-    // park them on the paywall — enter the app. Scoped to the pre-auth path
-    // only: an authenticated user who navigated here on purpose (e.g. to convert
-    // a trial to paid) is left alone so they can actually subscribe.
-    useEffect(() => {
-        if (!isAuthenticated && hasActiveSubscription) {
-            setAuthenticated();
-        }
-    }, [isAuthenticated, hasActiveSubscription, setAuthenticated]);
 
     const handleButtonPress = async () => {
         if (isActivePaid) {
-            Alert.alert('Already Subscribed', 'You already have an active subscription.');
+            // Already on a paid plan. Monthly↔yearly changes are an Apple-managed
+            // upgrade/downgrade — deep-link to Manage Subscriptions rather than
+            // showing a dead-end disabled button.
+            await openLink(MANAGE_SUBSCRIPTIONS_URL);
             return;
         }
 
@@ -347,9 +344,15 @@ const StartFreeTrialScreen = () => {
                   {/* CTA button — standard Button component, gradient variant */}
                   <Button
                     variant="gradient"
-                    title={loading || purchasing ? 'LOADING...' : buttonText}
+                    title={
+                      loading || purchasing
+                        ? 'LOADING...'
+                        : isActivePaid
+                          ? 'MANAGE SUBSCRIPTION'
+                          : buttonText
+                    }
                     onPress={handleButtonPress}
-                    disabled={loading || purchasing || isActivePaid}
+                    disabled={loading || purchasing}
                     style={styles.ctaButtonWrapper}
                     containerStyle={styles.ctaButtonContainer}
                     contentStyle={styles.ctaButtonContent}
