@@ -1,5 +1,6 @@
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import React from 'react';
+import { Linking } from 'react-native';
 
 import StartFreeTrialScreen from './StartFreeTrialScreen';
 
@@ -180,44 +181,32 @@ describe('StartFreeTrialScreen — App Store compliance', () => {
 });
 
 describe('StartFreeTrialScreen — entitlement handling', () => {
-  it('rescues an onboarding user who already has a trial (enters the app)', async () => {
-    // Post-verify, a trial user lands here as the navigator root with no back
-    // button — route them into the app instead of a dead-end paywall.
-    mockFlags.status = 'trial';
-    mockFlags.isAuthenticated = false;
-    render(<StartFreeTrialScreen />);
-    await waitFor(() => expect(mockSetAuthenticated).toHaveBeenCalled());
+  it('shows an enabled START FREE TRIAL for a brand-new user (kept on the paywall)', () => {
+    // New users see the trial screen after verification — they are NOT
+    // auto-routed into the app; the paywall is part of onboarding.
+    mockFlags.status = 'none';
+    mockFlags.hasUsedTrial = false;
+    const { getByText } = render(<StartFreeTrialScreen />);
+    expect(mockSetAuthenticated).not.toHaveBeenCalled();
+    expect(getByText('START FREE TRIAL')).toBeTruthy();
   });
 
-  it('lets an authenticated TRIAL user subscribe (button enabled, not bounced)', async () => {
-    // A trial user who navigates here to convert to paid must be able to buy.
+  it('lets a TRIAL user subscribe (CTA enabled, purchase fires)', async () => {
     mockFlags.status = 'trial';
-    mockFlags.isAuthenticated = true;
     const { getByText } = render(<StartFreeTrialScreen />);
-    // Not auto-routed away.
-    expect(mockSetAuthenticated).not.toHaveBeenCalled();
-    expect(mockGoBack).not.toHaveBeenCalled();
-    // CTA is enabled → tapping starts the purchase.
     fireEvent.press(getByText('SUBSCRIBE NOW'));
     await waitFor(() => expect(mockPurchase).toHaveBeenCalledWith(CORE_MONTHLY));
   });
 
-  it('blocks re-purchase only for a genuinely PAID subscription', async () => {
+  it('offers Manage Subscription (not a dead button) to a PAID subscriber', async () => {
     mockFlags.status = 'active';
-    mockFlags.isAuthenticated = true;
     const { getByText } = render(<StartFreeTrialScreen />);
-    fireEvent.press(getByText('SUBSCRIBE NOW')); // disabled — no-op
-    // Give any async a tick; purchase must NOT be attempted.
-    await Promise.resolve();
-    expect(mockPurchase).not.toHaveBeenCalled();
-  });
-
-  it('does NOT auto-route a brand-new user with no subscription', () => {
-    mockFlags.status = 'none';
-    mockFlags.hasUsedTrial = false; // fresh account → "START FREE TRIAL"
-    mockFlags.isAuthenticated = false;
-    const { getByText } = render(<StartFreeTrialScreen />);
-    expect(mockSetAuthenticated).not.toHaveBeenCalled();
-    expect(getByText('START FREE TRIAL')).toBeTruthy();
+    fireEvent.press(getByText('MANAGE SUBSCRIPTION'));
+    await waitFor(() =>
+      expect(Linking.openURL).toHaveBeenCalledWith(
+        'https://apps.apple.com/account/subscriptions',
+      ),
+    );
+    expect(mockPurchase).not.toHaveBeenCalled(); // no re-purchase from the paywall
   });
 });
