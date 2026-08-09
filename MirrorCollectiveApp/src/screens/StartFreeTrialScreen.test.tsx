@@ -22,11 +22,14 @@ jest.mock('@components/BackgroundWrapper', () => {
   return ({ children }: { children: React.ReactNode }) =>
     react.createElement('BackgroundWrapper', null, children);
 });
+const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
+const mockNav = { canGoBack: false };
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
-    canGoBack: () => false,
-    goBack: jest.fn(),
-    navigate: jest.fn(),
+    canGoBack: () => mockNav.canGoBack,
+    goBack: mockGoBack,
+    navigate: mockNavigate,
   }),
 }));
 
@@ -60,20 +63,41 @@ jest.mock('@/hooks/useInAppPurchase', () => ({
   },
   localizedPrice: (_products: unknown, _id: string, fallback: string) => fallback,
 }));
-// Trial already used + no active sub → button is "SUBSCRIBE NOW" (purchase path).
+// Mutable flags so individual tests can flip status / auth state.
+// Defaults: status "none" + trial already used → button is "SUBSCRIBE NOW".
+// hasActiveSubscription is derived from status exactly like the real context.
+const mockFlags = {
+  hasUsedTrial: true,
+  status: 'none' as 'none' | 'trial' | 'active' | 'expired',
+  isAuthenticated: false,
+};
 jest.mock('@/context/SubscriptionContext', () => ({
   useSubscription: () => ({
-    hasUsedTrial: true,
-    hasActiveSubscription: false,
+    status: mockFlags.status,
+    hasUsedTrial: mockFlags.hasUsedTrial,
+    hasActiveSubscription:
+      mockFlags.status === 'active' || mockFlags.status === 'trial',
     refreshSubscriptionStatus: mockRefresh,
   }),
 }));
 jest.mock('@/context/SessionContext', () => ({
-  useSession: () => ({ setAuthenticated: mockSetAuthenticated }),
+  useSession: () => ({
+    setAuthenticated: mockSetAuthenticated,
+    state: { isAuthenticated: mockFlags.isAuthenticated },
+  }),
 }));
 jest.mock('@/services/api/subscriptionApi', () => ({
   subscriptionApiService: { startTrial: jest.fn() },
 }));
+
+// Reset the mutable flags/nav and mock call history before every test.
+beforeEach(() => {
+  jest.clearAllMocks();
+  mockFlags.hasUsedTrial = true;
+  mockFlags.status = 'none';
+  mockFlags.isAuthenticated = false;
+  mockNav.canGoBack = false;
+});
 
 describe('StartFreeTrialScreen — monthly/yearly toggle', () => {
   beforeEach(() => jest.clearAllMocks());
@@ -152,5 +176,48 @@ describe('StartFreeTrialScreen — App Store compliance', () => {
     fireEvent.press(getByText('Restore Purchase'));
     await waitFor(() => expect(mockRestore).toHaveBeenCalled());
     expect(mockSetAuthenticated).not.toHaveBeenCalled();
+  });
+});
+
+describe('StartFreeTrialScreen — entitlement handling', () => {
+  it('rescues an onboarding user who already has a trial (enters the app)', async () => {
+    // Post-verify, a trial user lands here as the navigator root with no back
+    // button — route them into the app instead of a dead-end paywall.
+    mockFlags.status = 'trial';
+    mockFlags.isAuthenticated = false;
+    render(<StartFreeTrialScreen />);
+    await waitFor(() => expect(mockSetAuthenticated).toHaveBeenCalled());
+  });
+
+  it('lets an authenticated TRIAL user subscribe (button enabled, not bounced)', async () => {
+    // A trial user who navigates here to convert to paid must be able to buy.
+    mockFlags.status = 'trial';
+    mockFlags.isAuthenticated = true;
+    const { getByText } = render(<StartFreeTrialScreen />);
+    // Not auto-routed away.
+    expect(mockSetAuthenticated).not.toHaveBeenCalled();
+    expect(mockGoBack).not.toHaveBeenCalled();
+    // CTA is enabled → tapping starts the purchase.
+    fireEvent.press(getByText('SUBSCRIBE NOW'));
+    await waitFor(() => expect(mockPurchase).toHaveBeenCalledWith(CORE_MONTHLY));
+  });
+
+  it('blocks re-purchase only for a genuinely PAID subscription', async () => {
+    mockFlags.status = 'active';
+    mockFlags.isAuthenticated = true;
+    const { getByText } = render(<StartFreeTrialScreen />);
+    fireEvent.press(getByText('SUBSCRIBE NOW')); // disabled — no-op
+    // Give any async a tick; purchase must NOT be attempted.
+    await Promise.resolve();
+    expect(mockPurchase).not.toHaveBeenCalled();
+  });
+
+  it('does NOT auto-route a brand-new user with no subscription', () => {
+    mockFlags.status = 'none';
+    mockFlags.hasUsedTrial = false; // fresh account → "START FREE TRIAL"
+    mockFlags.isAuthenticated = false;
+    const { getByText } = render(<StartFreeTrialScreen />);
+    expect(mockSetAuthenticated).not.toHaveBeenCalled();
+    expect(getByText('START FREE TRIAL')).toBeTruthy();
   });
 });

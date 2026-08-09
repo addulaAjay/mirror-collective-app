@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     View,
     Text,
@@ -49,8 +49,9 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'StartFreeTr
 const StartFreeTrialScreen = () => {
     const navigation = useNavigation<NavigationProp>();
     const canGoBack = navigation.canGoBack();
-    const { hasUsedTrial, hasActiveSubscription, refreshSubscriptionStatus } = useSubscription();
-    const { setAuthenticated } = useSession();
+    const { status, hasUsedTrial, hasActiveSubscription, refreshSubscriptionStatus } = useSubscription();
+    const { setAuthenticated, state: sessionState } = useSession();
+    const { isAuthenticated } = sessionState;
     const { purchaseSubscription, restorePurchases, purchasing, PRODUCT_IDS, products } = useInAppPurchase({
         // A paid purchase is confirmed asynchronously (StoreKit listener →
         // backend verify). When that completes, refresh status and enter the
@@ -73,8 +74,24 @@ const StartFreeTrialScreen = () => {
     const isTrialMode = !hasUsedTrial && !hasActiveSubscription;
     const buttonText = isTrialMode ? 'START FREE TRIAL' : 'SUBSCRIBE NOW';
 
+    // Only a genuinely PAID subscription blocks re-purchasing. A trial counts as
+    // "active" for access purposes, but a trial user must still be able to
+    // convert to paid — so the CTA must NOT be disabled during a trial.
+    const isActivePaid = status === 'active';
+
+    // Onboarding rescue: a just-verified user can land here as the navigator
+    // ROOT (no back button). If they're already entitled (trial started), don't
+    // park them on the paywall — enter the app. Scoped to the pre-auth path
+    // only: an authenticated user who navigated here on purpose (e.g. to convert
+    // a trial to paid) is left alone so they can actually subscribe.
+    useEffect(() => {
+        if (!isAuthenticated && hasActiveSubscription) {
+            setAuthenticated();
+        }
+    }, [isAuthenticated, hasActiveSubscription, setAuthenticated]);
+
     const handleButtonPress = async () => {
-        if (hasActiveSubscription) {
+        if (isActivePaid) {
             Alert.alert('Already Subscribed', 'You already have an active subscription.');
             return;
         }
@@ -332,7 +349,7 @@ const StartFreeTrialScreen = () => {
                     variant="gradient"
                     title={loading || purchasing ? 'LOADING...' : buttonText}
                     onPress={handleButtonPress}
-                    disabled={loading || purchasing || hasActiveSubscription}
+                    disabled={loading || purchasing || isActivePaid}
                     style={styles.ctaButtonWrapper}
                     containerStyle={styles.ctaButtonContainer}
                     contentStyle={styles.ctaButtonContent}

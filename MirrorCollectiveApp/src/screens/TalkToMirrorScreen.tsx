@@ -38,7 +38,6 @@ import MirrorPledgeIcon from '@components/icons/MirrorPledgeIcon';
 import ReflectionRoomIcon from '@components/icons/ReflectionRoomIcon';
 import LogoHeader from '@components/LogoHeader';
 import StarIcon from '@components/StarIcon';
-import TrialCountdown from '@components/TrialCountdown';
 import UpgradePrompt from '@components/UpgradePrompt';
 import { useSubscription } from '@context/SubscriptionContext';
 import { useUser } from '@context/UserContext';
@@ -109,8 +108,7 @@ const TalkToMirrorScreen: React.FC<Props> = ({ navigation }) => {
   // guessing (they'd otherwise only find out via My Subscription or by hitting
   // the 403 wall). Shown once per mount — Home stays mounted at the root of the
   // stack, so this fires once per login session and resets on the next login,
-  // not on every navigate-back. Active-trial users instead get the subtle
-  // TrialCountdown banner below.
+  // not on every navigate-back.
   const { status, loading: subscriptionLoading } = useSubscription();
   const [expiredPromptVisible, setExpiredPromptVisible] = useState(false);
   const expiredPromptShownRef = useRef(false);
@@ -151,9 +149,6 @@ const TalkToMirrorScreen: React.FC<Props> = ({ navigation }) => {
       <SafeAreaView style={styles.safe}>
         <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
         <LogoHeader />
-
-        {/* Self-gating: renders only during an active trial (days remaining). */}
-        <TrialCountdown />
 
         <ScrollView
           style={styles.scroll}
