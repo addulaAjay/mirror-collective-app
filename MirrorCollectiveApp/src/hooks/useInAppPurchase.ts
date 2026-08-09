@@ -1,5 +1,5 @@
-import {useEffect, useState, useCallback, useRef} from 'react';
-import {Platform, Alert} from 'react-native';
+import { useEffect, useState, useCallback, useRef } from 'react';
+import { Platform, Alert } from 'react-native';
 import {
   initConnection,
   endConnection,
@@ -15,7 +15,7 @@ import {
   type ProductPurchase,
 } from 'react-native-iap';
 
-import {subscriptionApiService} from '@/services/api/subscriptionApi';
+import { subscriptionApiService } from '@/services/api/subscriptionApi';
 
 /**
  * True when a purchase error is the user backing out of the Apple payment sheet
@@ -33,7 +33,11 @@ const isUserCancelled = (error: any): boolean =>
  * true forever and wedge the paywall on "LOADING...". Wrapping them guarantees
  * the effect always resolves one way or the other.
  */
-const withTimeout = <T>(promise: Promise<T>, ms: number, label: string): Promise<T> => {
+const withTimeout = <T>(
+  promise: Promise<T>,
+  ms: number,
+  label: string,
+): Promise<T> => {
   return new Promise<T>((resolve, reject) => {
     const timer = setTimeout(
       () => reject(new Error(`${label} timed out after ${ms}ms`)),
@@ -91,7 +95,8 @@ export const localizedPrice = (
   const product = products.find(p => p.productId === productId);
   // localizedPrice is present on iOS subscriptions; the Android variant nests
   // pricing under subscriptionOfferDetails, so read it defensively.
-  const price = (product as {localizedPrice?: string} | undefined)?.localizedPrice;
+  const price = (product as { localizedPrice?: string } | undefined)
+    ?.localizedPrice;
   return price || fallback;
 };
 
@@ -149,59 +154,59 @@ export const useInAppPurchase = (options?: {
           }
 
           const receipt = Platform.select({
-              ios: purchase.transactionReceipt,
-              android: purchase.purchaseToken,
-            });
+            ios: purchase.transactionReceipt,
+            android: purchase.purchaseToken,
+          });
 
-            if (receipt) {
-              try {
-                // Verify purchase with backend
-                const result = await subscriptionApiService.verifyPurchase({
-                  platform: Platform.OS as 'ios' | 'android',
-                  receipt_data: receipt,
-                  product_id: purchase.productId,
-                  transaction_id: purchase.transactionId || purchase.productId,
-                });
+          if (receipt) {
+            try {
+              // Verify purchase with backend
+              const result = await subscriptionApiService.verifyPurchase({
+                platform: Platform.OS as 'ios' | 'android',
+                receipt_data: receipt,
+                product_id: purchase.productId,
+                transaction_id: purchase.transactionId || purchase.productId,
+              });
 
-                if (result.success) {
-                  // Finish the transaction
-                  await finishTransaction({purchase, isConsumable: false});
+              if (result.success) {
+                // Finish the transaction
+                await finishTransaction({ purchase, isConsumable: false });
 
-                  Alert.alert(
-                    'Subscription Activated',
-                    'Your subscription has been successfully activated!',
-                    [{text: 'OK'}],
-                  );
+                Alert.alert(
+                  'Subscription Activated',
+                  'Your subscription has been successfully activated!',
+                  [{ text: 'OK' }],
+                );
 
-                  setState(prev => ({...prev, purchasing: false}));
+                setState(prev => ({ ...prev, purchasing: false }));
 
-                  // Purchase is verified — let the caller refresh status and
-                  // route the user into the app.
-                  try {
-                    await onPurchaseVerifiedRef.current?.();
-                  } catch (cbError) {
-                    console.warn('onPurchaseVerified callback failed:', cbError);
-                  }
-                } else {
-                  throw new Error(result.message || 'Verification failed');
+                // Purchase is verified — let the caller refresh status and
+                // route the user into the app.
+                try {
+                  await onPurchaseVerifiedRef.current?.();
+                } catch (cbError) {
+                  console.warn('onPurchaseVerified callback failed:', cbError);
                 }
-              } catch (error: any) {
-                console.error('Purchase verification error:', error);
-                setState(prev => ({
-                  ...prev,
-                  purchasing: false,
-                  error: 'Failed to verify purchase. Please contact support.',
-                }));
+              } else {
+                throw new Error(result.message || 'Verification failed');
               }
+            } catch (error: any) {
+              console.error('Purchase verification error:', error);
+              setState(prev => ({
+                ...prev,
+                purchasing: false,
+                error: 'Failed to verify purchase. Please contact support.',
+              }));
             }
-          },
-        );
+          }
+        },
+      );
 
       // Listen for purchase errors
       purchaseErrorSubscription = purchaseErrorListener(error => {
         // Cancel fires here too — treat it as a silent no-op.
         if (isUserCancelled(error)) {
-          setState(prev => ({...prev, purchasing: false}));
+          setState(prev => ({ ...prev, purchasing: false }));
           return;
         }
         console.warn('Purchase error:', error);
@@ -229,7 +234,7 @@ export const useInAppPurchase = (options?: {
 
         const productIds = Object.values(PRODUCT_IDS);
         const availableProducts = await withTimeout(
-          getSubscriptions({skus: productIds}),
+          getSubscriptions({ skus: productIds }),
           IAP_INIT_TIMEOUT_MS,
           'getSubscriptions',
         );
@@ -265,7 +270,7 @@ export const useInAppPurchase = (options?: {
 
   // Purchase a subscription
   const purchaseSubscription = useCallback(async (productId: string) => {
-    setState(prev => ({...prev, purchasing: true, error: null}));
+    setState(prev => ({ ...prev, purchasing: true, error: null }));
 
     try {
       await requestSubscription({
@@ -275,7 +280,7 @@ export const useInAppPurchase = (options?: {
       // User tapped Cancel on the Apple sheet — a normal action, not a failure.
       // Reset the flag silently; don't log or set an error state.
       if (isUserCancelled(error)) {
-        setState(prev => ({...prev, purchasing: false}));
+        setState(prev => ({ ...prev, purchasing: false }));
         return;
       }
       console.error('Purchase error:', error);
@@ -289,7 +294,7 @@ export const useInAppPurchase = (options?: {
 
   // Restore purchases
   const restorePurchases = useCallback(async () => {
-    setState(prev => ({...prev, loading: true, error: null}));
+    setState(prev => ({ ...prev, loading: true, error: null }));
 
     try {
       // Get available purchases from the store
@@ -299,10 +304,13 @@ export const useInAppPurchase = (options?: {
         Alert.alert(
           'No Purchases Found',
           'No previous purchases were found to restore.',
-          [{text: 'OK'}],
+          [{ text: 'OK' }],
         );
-        setState(prev => ({...prev, loading: false}));
-        return {success: true, data: {restored_count: 0, subscriptions: []}};
+        setState(prev => ({ ...prev, loading: false }));
+        return {
+          success: true,
+          data: { restored_count: 0, subscriptions: [] },
+        };
       }
 
       // Format receipts based on platform
@@ -329,11 +337,11 @@ export const useInAppPurchase = (options?: {
         Alert.alert(
           'Purchases Restored',
           `${result.data.restored_count} subscription(s) restored successfully.`,
-          [{text: 'OK'}],
+          [{ text: 'OK' }],
         );
       }
 
-      setState(prev => ({...prev, loading: false}));
+      setState(prev => ({ ...prev, loading: false }));
       return result;
     } catch (error: any) {
       console.error('Restore error:', error);
