@@ -1,21 +1,5 @@
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import {
-  palette,
-  fontFamily,
-  fontSize,
-  fontWeight,
-  lineHeight,
-  radius,
-  borderWidth,
-  textShadow,
-  scale,
-  verticalScale,
-  moderateScale,
-  modalColors,
-} from '@theme';
-import type { RootStackParamList } from '@types';
-import { LEGAL_LINKS } from '@constants/config';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -36,8 +20,24 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import Button from '@components/Button/Button';
 import LogoHeader from '@components/LogoHeader';
+import { LEGAL_LINKS } from '@constants/config';
 import { useSession } from '@context/SessionContext';
 import { authApiService } from '@services/api';
+import {
+  palette,
+  fontFamily,
+  fontSize,
+  fontWeight,
+  lineHeight,
+  radius,
+  borderWidth,
+  textShadow,
+  scale,
+  verticalScale,
+  moderateScale,
+  modalColors,
+} from '@theme';
+import type { RootStackParamList } from '@types';
 import { getApiErrorMessage } from '@utils/apiErrorUtils';
 import { setPendingVerification } from '@utils/verificationState';
 
@@ -78,7 +78,9 @@ const TermsAndConditionsScreen = () => {
             */}
         <SafeAreaView style={styles.safe}>
           {/* ── Logo ─────────────────────────────────────────────── */}
-          <LogoHeader />
+          {/* Negative margin cancels `safe`'s horizontal padding so the header
+              is full-bleed and its menu button lines up with other screens. */}
+          <LogoHeader wrapperStyle={styles.headerBleed} />
 
           {/* ── Back + Title ──────────────────────────────────────── */}
           <View style={styles.headerRow}>
@@ -335,6 +337,7 @@ const styles = StyleSheet.create<{
   bg: ViewStyle;
   bgImage: ImageStyle;
   safe: ViewStyle;
+  headerBleed: ViewStyle;
   headerRow: ViewStyle;
   backButton: ViewStyle;
   backArrow: ImageStyle;
@@ -373,6 +376,8 @@ const styles = StyleSheet.create<{
     paddingBottom: verticalScale(24),
     gap: verticalScale(24),
   },
+  // Cancels `safe`'s horizontal padding so LogoHeader spans edge-to-edge.
+  headerBleed: { marginHorizontal: -scale(24) },
 
   // ── Header row ──────────────────────────────────────────────────────────
   headerRow: {

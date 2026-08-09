@@ -21,12 +21,20 @@ import HeaderTextSvg from './HeaderTextSvg';
 
 type LogoHeaderProps = {
   containerStyle?: StyleProp<ViewStyle>;
+  /**
+   * Style applied to the outer header wrapper. Screens whose content sits
+   * inside a horizontally-padded container pass a negative horizontal margin
+   * here so the header stays full-bleed and its menu button lines up with the
+   * rest of the app.
+   */
+  wrapperStyle?: StyleProp<ViewStyle>;
   navigation?: any;
   onMenuPress?: () => void;
 };
 
 const LogoHeader = ({
   containerStyle,
+  wrapperStyle,
   navigation: propNavigation,
   onMenuPress,
 }: LogoHeaderProps) => {
@@ -83,7 +91,7 @@ const LogoHeader = ({
           onLogout={handleLogout}
         />
       )}
-      <View style={styles.wrapper}>
+      <View style={[styles.wrapper, wrapperStyle]}>
         <View style={styles.leftContainer}>
           {isAuthenticated && (
             <Pressable

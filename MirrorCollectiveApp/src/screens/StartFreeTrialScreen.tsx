@@ -159,7 +159,9 @@ const StartFreeTrialScreen = () => {
       >
         <SafeAreaView style={styles.safe}>
           {/* ── Logo ────────────────────────────────────────────────── */}
-          <LogoHeader />
+          {/* Negative margin cancels `safe`'s horizontal padding so the header
+              is full-bleed and its menu button lines up with other screens. */}
+          <LogoHeader wrapperStyle={styles.headerBleed} />
 
           {/* ── Back + Title ─────────────────────────────────────────── */}
           {/* Single-element header — matches TermsAndConditionsScreen's
@@ -401,6 +403,7 @@ const styles = StyleSheet.create<{
   bg: ViewStyle;
   bgImage: ImageStyle;
   safe: ViewStyle;
+  headerBleed: ViewStyle;
   headerRow: ViewStyle;
   backButton: ViewStyle;
   backArrow: ImageStyle;
@@ -458,6 +461,9 @@ const styles = StyleSheet.create<{
     paddingBottom: verticalScale(24),
     gap: verticalScale(16),
   },
+
+  // Cancels `safe`'s horizontal padding so LogoHeader spans edge-to-edge.
+  headerBleed: { marginHorizontal: -scale(24) },
 
   // ── Header row — matches TermsAndConditionsScreen pattern exactly ─────────
   // back button is absolute so the title Text is the sole layout child

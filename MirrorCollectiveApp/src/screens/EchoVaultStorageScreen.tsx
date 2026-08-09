@@ -1,6 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { palette, textShadow } from '@theme';
 import React, { useState } from 'react';
 import {
   View,
@@ -16,11 +15,11 @@ import {
 import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { RootStackParamList } from '@/types';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
 import StarIcon from '@components/StarIcon';
-
-import { RootStackParamList } from '@/types';
+import { palette, textShadow } from '@theme';
 
 type NavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -66,7 +65,10 @@ const EchoVaultStorageScreen = () => {
     <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage}>
       <SafeAreaView style={styles.safe}>
         <View style={styles.outerBoxContainer}>
-          <LogoHeader />
+          {/* Negative margin cancels outerBoxContainer's horizontal padding so
+              the header is full-bleed and its menu button lines up with other
+              screens. */}
+          <LogoHeader wrapperStyle={styles.headerBleed} />
 
           <View style={styles.outerBox}>
             <View style={styles.headerRow}>
@@ -245,6 +247,7 @@ const styles = StyleSheet.create<{
   bgImage: ImageStyle;
   safe: ViewStyle;
   outerBoxContainer: ViewStyle;
+  headerBleed: ViewStyle;
   outerBox: ViewStyle;
   headerRow: ViewStyle;
   backButton: ViewStyle;
@@ -303,6 +306,11 @@ const styles = StyleSheet.create<{
       paddingTop: 20,
       paddingBottom: outerContainerPaddingBottom,
       alignItems: 'center',
+    },
+    // Cancels outerBoxContainer's horizontal padding so LogoHeader is full-bleed.
+    headerBleed: {
+      marginHorizontal: -outerContainerPaddingHorizontal,
+      alignSelf: 'stretch',
     },
 
     outerBox: {

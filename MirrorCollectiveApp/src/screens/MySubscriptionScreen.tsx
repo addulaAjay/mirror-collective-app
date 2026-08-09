@@ -111,7 +111,13 @@ const MySubscriptionScreen: React.FC<Props> = ({ navigation }) => {
     <BackgroundWrapper style={styles.bg}>
       <SafeAreaView style={styles.safe}>
         <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
-        <LogoHeader navigation={navigation} />
+        {/* Negative margin cancels `safe`'s 24px padding so the header is
+            full-bleed and its menu button sits at the same inset as every
+            other screen. */}
+        <LogoHeader
+          navigation={navigation}
+          wrapperStyle={styles.headerBleed}
+        />
 
         {/* Header row: ← | SUBSCRIPTION | spacer */}
         <View style={styles.headerRow}>
@@ -245,6 +251,8 @@ const GOLD = palette.gold.DEFAULT;
 const styles = StyleSheet.create({
   bg: { flex: 1 },
   safe: { flex: 1, backgroundColor: 'transparent', paddingHorizontal: 24 },
+  // Cancels `safe`'s 24px horizontal padding so LogoHeader spans edge-to-edge.
+  headerBleed: { marginHorizontal: -24 },
 
   headerRow: {
     flexDirection: 'row',

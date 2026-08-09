@@ -57,8 +57,9 @@ const CheckoutScreen: React.FC = () => {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          {/* Logo Header */}
-          <LogoHeader />
+          {/* Logo Header — negative margin cancels scrollContent's horizontal
+              padding so the menu button lines up with other screens. */}
+          <LogoHeader wrapperStyle={styles.headerBleed} />
 
           {/* Header Row: Back Arrow + Title */}
           <View style={styles.headerRow}>
@@ -217,6 +218,8 @@ const styles = StyleSheet.create({
     paddingBottom: rs(40),
     alignItems: 'center',
   },
+  // Cancels scrollContent's horizontal padding so LogoHeader is full-bleed.
+  headerBleed: { marginHorizontal: -rs(24), alignSelf: 'stretch' },
 
   // Header
   headerRow: {
