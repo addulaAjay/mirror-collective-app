@@ -63,17 +63,20 @@ jest.mock('@/hooks/useInAppPurchase', () => ({
   },
   localizedPrice: (_products: unknown, _id: string, fallback: string) => fallback,
 }));
-// Mutable flags so individual tests can flip active-sub / auth state.
-// Defaults: trial already used + no active sub → button is "SUBSCRIBE NOW".
+// Mutable flags so individual tests can flip status / auth state.
+// Defaults: status "none" + trial already used → button is "SUBSCRIBE NOW".
+// hasActiveSubscription is derived from status exactly like the real context.
 const mockFlags = {
   hasUsedTrial: true,
-  hasActiveSubscription: false,
+  status: 'none' as 'none' | 'trial' | 'active' | 'expired',
   isAuthenticated: false,
 };
 jest.mock('@/context/SubscriptionContext', () => ({
   useSubscription: () => ({
+    status: mockFlags.status,
     hasUsedTrial: mockFlags.hasUsedTrial,
-    hasActiveSubscription: mockFlags.hasActiveSubscription,
+    hasActiveSubscription:
+      mockFlags.status === 'active' || mockFlags.status === 'trial',
     refreshSubscriptionStatus: mockRefresh,
   }),
 }));
@@ -91,7 +94,7 @@ jest.mock('@/services/api/subscriptionApi', () => ({
 beforeEach(() => {
   jest.clearAllMocks();
   mockFlags.hasUsedTrial = true;
-  mockFlags.hasActiveSubscription = false;
+  mockFlags.status = 'none';
   mockFlags.isAuthenticated = false;
   mockNav.canGoBack = false;
 });
@@ -176,37 +179,41 @@ describe('StartFreeTrialScreen — App Store compliance', () => {
   });
 });
 
-describe('StartFreeTrialScreen — never strands an entitled user', () => {
-  // Regression: once a new user's status becomes "trial", hasActiveSubscription
-  // is true, which disables the CTA. This screen can be the navigator root (no
-  // back button), so the user would be trapped on a dead-end paywall.
-
-  it('routes a new/onboarding user into the app when they already have a trial', async () => {
-    mockFlags.hasActiveSubscription = true; // status "trial" or "active"
-    mockFlags.isAuthenticated = false; // onboarding — AuthNavigator
+describe('StartFreeTrialScreen — entitlement handling', () => {
+  it('rescues an onboarding user who already has a trial (enters the app)', async () => {
+    // Post-verify, a trial user lands here as the navigator root with no back
+    // button — route them into the app instead of a dead-end paywall.
+    mockFlags.status = 'trial';
+    mockFlags.isAuthenticated = false;
     render(<StartFreeTrialScreen />);
     await waitFor(() => expect(mockSetAuthenticated).toHaveBeenCalled());
   });
 
-  it('goes back when an authenticated user hits the paywall with an active sub', async () => {
-    mockFlags.hasActiveSubscription = true;
+  it('lets an authenticated TRIAL user subscribe (button enabled, not bounced)', async () => {
+    // A trial user who navigates here to convert to paid must be able to buy.
+    mockFlags.status = 'trial';
     mockFlags.isAuthenticated = true;
-    mockNav.canGoBack = true;
-    render(<StartFreeTrialScreen />);
-    await waitFor(() => expect(mockGoBack).toHaveBeenCalled());
+    const { getByText } = render(<StartFreeTrialScreen />);
+    // Not auto-routed away.
     expect(mockSetAuthenticated).not.toHaveBeenCalled();
+    expect(mockGoBack).not.toHaveBeenCalled();
+    // CTA is enabled → tapping starts the purchase.
+    fireEvent.press(getByText('SUBSCRIBE NOW'));
+    await waitFor(() => expect(mockPurchase).toHaveBeenCalledWith(CORE_MONTHLY));
   });
 
-  it('navigates home when authenticated + active sub + cannot go back', async () => {
-    mockFlags.hasActiveSubscription = true;
+  it('blocks re-purchase only for a genuinely PAID subscription', async () => {
+    mockFlags.status = 'active';
     mockFlags.isAuthenticated = true;
-    mockNav.canGoBack = false;
-    render(<StartFreeTrialScreen />);
-    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('TalkToMirror'));
+    const { getByText } = render(<StartFreeTrialScreen />);
+    fireEvent.press(getByText('SUBSCRIBE NOW')); // disabled — no-op
+    // Give any async a tick; purchase must NOT be attempted.
+    await Promise.resolve();
+    expect(mockPurchase).not.toHaveBeenCalled();
   });
 
   it('does NOT auto-route a brand-new user with no subscription', () => {
-    mockFlags.hasActiveSubscription = false;
+    mockFlags.status = 'none';
     mockFlags.hasUsedTrial = false; // fresh account → "START FREE TRIAL"
     mockFlags.isAuthenticated = false;
     const { getByText } = render(<StartFreeTrialScreen />);

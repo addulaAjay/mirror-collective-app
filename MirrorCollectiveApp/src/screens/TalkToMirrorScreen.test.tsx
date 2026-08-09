@@ -18,9 +18,6 @@ jest.mock('@context/UserContext', () => ({
 jest.mock('@services', () => ({
   OnboardingService: { markOnboardingComplete: jest.fn().mockResolvedValue(undefined) },
 }));
-// TrialCountdown calls useNavigation() internally (no NavigationContainer here);
-// stub it. Its own active-trial logic is exercised by its own component.
-jest.mock('@components/TrialCountdown', () => 'TrialCountdown');
 // Render UpgradePrompt as a visibility marker so we can assert it appears.
 jest.mock('@components/UpgradePrompt', () => {
   const react = require('react');

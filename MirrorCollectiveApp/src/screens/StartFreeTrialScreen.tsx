@@ -49,7 +49,7 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'StartFreeTr
 const StartFreeTrialScreen = () => {
     const navigation = useNavigation<NavigationProp>();
     const canGoBack = navigation.canGoBack();
-    const { hasUsedTrial, hasActiveSubscription, refreshSubscriptionStatus } = useSubscription();
+    const { status, hasUsedTrial, hasActiveSubscription, refreshSubscriptionStatus } = useSubscription();
     const { setAuthenticated, state: sessionState } = useSession();
     const { isAuthenticated } = sessionState;
     const { purchaseSubscription, restorePurchases, purchasing, PRODUCT_IDS, products } = useInAppPurchase({
@@ -74,28 +74,24 @@ const StartFreeTrialScreen = () => {
     const isTrialMode = !hasUsedTrial && !hasActiveSubscription;
     const buttonText = isTrialMode ? 'START FREE TRIAL' : 'SUBSCRIBE NOW';
 
-    // Never strand an already-entitled user here. The CTA is disabled while
-    // hasActiveSubscription is true, and this screen can be the navigator root
-    // (no back button) — so an active subscriber who lands here would be stuck
-    // with no way forward. As soon as we see an active subscription, route them
-    // into the app instead of showing a dead-end paywall.
+    // Only a genuinely PAID subscription blocks re-purchasing. A trial counts as
+    // "active" for access purposes, but a trial user must still be able to
+    // convert to paid — so the CTA must NOT be disabled during a trial.
+    const isActivePaid = status === 'active';
+
+    // Onboarding rescue: a just-verified user can land here as the navigator
+    // ROOT (no back button). If they're already entitled (trial started), don't
+    // park them on the paywall — enter the app. Scoped to the pre-auth path
+    // only: an authenticated user who navigated here on purpose (e.g. to convert
+    // a trial to paid) is left alone so they can actually subscribe.
     useEffect(() => {
-        if (!hasActiveSubscription) return;
-        if (isAuthenticated) {
-            // Reached via an in-app push (e.g. a stale subscription_required 403).
-            if (navigation.canGoBack()) {
-                navigation.goBack();
-            } else {
-                navigation.navigate('TalkToMirror' as never);
-            }
-        } else {
-            // Onboarding path — flip the session into the authenticated app.
+        if (!isAuthenticated && hasActiveSubscription) {
             setAuthenticated();
         }
-    }, [hasActiveSubscription, isAuthenticated, navigation, setAuthenticated]);
+    }, [isAuthenticated, hasActiveSubscription, setAuthenticated]);
 
     const handleButtonPress = async () => {
-        if (hasActiveSubscription) {
+        if (isActivePaid) {
             Alert.alert('Already Subscribed', 'You already have an active subscription.');
             return;
         }
@@ -353,7 +349,7 @@ const StartFreeTrialScreen = () => {
                     variant="gradient"
                     title={loading || purchasing ? 'LOADING...' : buttonText}
                     onPress={handleButtonPress}
-                    disabled={loading || purchasing || hasActiveSubscription}
+                    disabled={loading || purchasing || isActivePaid}
                     style={styles.ctaButtonWrapper}
                     containerStyle={styles.ctaButtonContainer}
                     contentStyle={styles.ctaButtonContent}
