@@ -139,6 +139,30 @@ export class AuthApiService extends BaseApiService {
     );
   }
 
+  /**
+   * Permanently delete the current user's account (Apple Guideline 5.1.1(v)
+   * requires in-app account deletion). Calls DELETE /api/auth/account, then
+   * clears local tokens so the app returns to the signed-out state.
+   */
+  async deleteAccount(): Promise<ApiResponse> {
+    const response = await this.makeRequest<any>(
+      '/api/auth/account',
+      'DELETE',
+      undefined,
+      true,
+    );
+
+    // The account is gone server-side — always clear local tokens so the app
+    // can't keep using a now-invalid session.
+    await this.clearTokens();
+
+    return ApiErrorHandler.handleApiResponse(
+      response,
+      'Account deleted',
+      'UnknownError',
+    );
+  }
+
   // Token management
   async storeTokens(tokens: {
     accessToken: string;

@@ -1,22 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import {
-  palette,
-  fontFamily,
-  fontSize,
-  fontWeight,
-  lineHeight,
-  radius,
-  borderWidth,
-  textShadow,
-  glassGradient,
-  semantic,
-  scale,
-  verticalScale,
-  moderateScale,
-  modalColors,
-} from '@theme';
-import type { RootStackParamList } from '@types';
 import React, { useState } from 'react';
 import {
     View,
@@ -34,16 +17,32 @@ import {
 import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useSession } from '@/context/SessionContext';
+import { useSubscription } from '@/context/SubscriptionContext';
+import { useInAppPurchase, localizedPrice } from '@/hooks/useInAppPurchase';
+import { subscriptionApiService } from '@/services/api/subscriptionApi';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import Button from '@components/Button/Button';
 import LogoHeader from '@components/LogoHeader';
 import StarIcon from '@components/StarIcon';
 import { LEGAL_LINKS } from '@constants/config';
-
-import { useSession } from '@/context/SessionContext';
-import { useSubscription } from '@/context/SubscriptionContext';
-import { useInAppPurchase, localizedPrice } from '@/hooks/useInAppPurchase';
-import { subscriptionApiService } from '@/services/api/subscriptionApi';
+import {
+  palette,
+  fontFamily,
+  fontSize,
+  fontWeight,
+  lineHeight,
+  radius,
+  borderWidth,
+  textShadow,
+  glassGradient,
+  semantic,
+  scale,
+  verticalScale,
+  moderateScale,
+  modalColors,
+} from '@theme';
+import type { RootStackParamList } from '@types';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'StartFreeTrial'>;
 
@@ -52,7 +51,7 @@ const StartFreeTrialScreen = () => {
     const canGoBack = navigation.canGoBack();
     const { hasUsedTrial, hasActiveSubscription, refreshSubscriptionStatus } = useSubscription();
     const { setAuthenticated } = useSession();
-    const { purchaseSubscription, purchasing, PRODUCT_IDS, products } = useInAppPurchase({
+    const { purchaseSubscription, restorePurchases, purchasing, PRODUCT_IDS, products } = useInAppPurchase({
         // A paid purchase is confirmed asynchronously (StoreKit listener →
         // backend verify). When that completes, refresh status and enter the
         // app — mirroring the trial path, which calls setAuthenticated()
@@ -64,6 +63,7 @@ const StartFreeTrialScreen = () => {
         },
     });
     const [loading, setLoading] = useState(false);
+    const [restoring, setRestoring] = useState(false);
     const [selectedPeriod, setSelectedPeriod] = useState<'monthly' | 'yearly'>('monthly');
 
     // Live store prices (fall back to the confirmed defaults until IAP loads).
@@ -125,6 +125,26 @@ const StartFreeTrialScreen = () => {
         }
     };
 
+    // Apple requires a visible "Restore Purchases" control on any screen that
+    // sells a subscription. Re-syncs any prior purchase on this Apple ID and,
+    // if one is active, routes the user into the app.
+    const handleRestore = async () => {
+        if (restoring) return;
+        try {
+            setRestoring(true);
+            const result = await restorePurchases();
+            if (result && result.success && (result.data?.restored_count ?? 0) > 0) {
+                await refreshSubscriptionStatus();
+                setAuthenticated();
+            }
+            // The hook already surfaces "no purchases found" / success alerts.
+        } catch (error: any) {
+            Alert.alert('Restore Failed', error?.message || 'Unable to restore purchases.');
+        } finally {
+            setRestoring(false);
+        }
+    };
+
     return (
       /*
           FLAT layout — SafeAreaView is the sole flex container.
@@ -139,7 +159,9 @@ const StartFreeTrialScreen = () => {
       >
         <SafeAreaView style={styles.safe}>
           {/* ── Logo ────────────────────────────────────────────────── */}
-          <LogoHeader />
+          {/* Negative margin cancels `safe`'s horizontal padding so the header
+              is full-bleed and its menu button lines up with other screens. */}
+          <LogoHeader wrapperStyle={styles.headerBleed} />
 
           {/* ── Back + Title ─────────────────────────────────────────── */}
           {/* Single-element header — matches TermsAndConditionsScreen's
@@ -321,7 +343,23 @@ const StartFreeTrialScreen = () => {
                     ]}
                   />
 
-                  <Text style={styles.cancelText}>Cancel anytime.</Text>
+                  {/* Auto-renewal disclosure — required by App Store Review
+                      Guideline 3.1.2. Must state price + cadence, that payment
+                      is charged to the Apple ID, that it auto-renews unless
+                      turned off ≥24h before period end, and how to manage. */}
+                  <Text style={styles.disclosureText}>
+                    {selectedPeriod === 'monthly'
+                      ? `Mirror Basic is ${monthlyPrice} per month`
+                      : `Mirror Basic is ${yearlyPrice} per year`}
+                    {isTrialMode
+                      ? ', billed after your 14-day free trial. '
+                      : '. '}
+                    Payment is charged to your Apple ID at confirmation of
+                    purchase. Your subscription automatically renews unless
+                    auto-renew is turned off at least 24 hours before the end of
+                    the current period. Manage or cancel anytime in your Apple ID
+                    Account Settings.
+                  </Text>
                 </ScrollView>
               </View>
             </View>
@@ -343,7 +381,16 @@ const StartFreeTrialScreen = () => {
               <Text style={styles.footerLinkText}>Privacy</Text>
             </TouchableOpacity>
             <Text style={styles.footerLinkText}>•</Text>
-            <Text style={styles.footerLinkText}>Restore Purchase</Text>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel="Restore purchase"
+              disabled={restoring}
+              onPress={handleRestore}
+            >
+              <Text style={styles.footerLinkText}>
+                {restoring ? 'Restoring…' : 'Restore Purchase'}
+              </Text>
+            </TouchableOpacity>
           </View>
         </SafeAreaView>
       </BackgroundWrapper>
@@ -356,6 +403,7 @@ const styles = StyleSheet.create<{
   bg: ViewStyle;
   bgImage: ImageStyle;
   safe: ViewStyle;
+  headerBleed: ViewStyle;
   headerRow: ViewStyle;
   backButton: ViewStyle;
   backArrow: ImageStyle;
@@ -392,7 +440,7 @@ const styles = StyleSheet.create<{
   ctaButtonContainer: ViewStyle;
   ctaButtonContent: ViewStyle;
   ctaButtonText: TextStyle;
-  cancelText: TextStyle;
+  disclosureText: TextStyle;
   footerLinksRow: ViewStyle;
   footerLinkText: TextStyle;
 }>({
@@ -413,6 +461,9 @@ const styles = StyleSheet.create<{
     paddingBottom: verticalScale(24),
     gap: verticalScale(16),
   },
+
+  // Cancels `safe`'s horizontal padding so LogoHeader spans edge-to-edge.
+  headerBleed: { marginHorizontal: -scale(24) },
 
   // ── Header row — matches TermsAndConditionsScreen pattern exactly ─────────
   // back button is absolute so the title Text is the sole layout child
@@ -673,11 +724,16 @@ const styles = StyleSheet.create<{
     textTransform: 'none',
   },
   // semantic.typography.styles.label — italic Inter 14px — with gold.subtlest colour override
-  cancelText: {
-    ...semantic.typography.styles.label,
+  disclosureText: {
+    fontFamily: fontFamily.body,
+    fontSize: moderateScale(fontSize.xs),
+    fontWeight: fontWeight.light,
+    lineHeight: moderateScale(fontSize.xs) * 1.5,
     color: palette.gold.subtlest,
     textAlign: 'center',
-    opacity: 0.85,
+    opacity: 0.8,
+    marginTop: verticalScale(8),
+    paddingHorizontal: scale(8),
   },
 
   // ── Footer ────────────────────────────────────────────────────────────────

@@ -26,6 +26,7 @@ interface SessionContextType {
   signUp: (fullName: string, email: string, password: string, phoneNumber?: string, termsAcceptedAt?: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<any>; // Returns full response for UserContext to use
   signOut: () => Promise<void>;
+  deleteAccount: () => Promise<boolean>;
   forgotPassword: (email: string) => Promise<void>;
   resetPassword: (
     email: string,
@@ -281,6 +282,29 @@ export const SessionProvider = ({ children }: SessionProviderProps) => {
     }
   };
 
+  // Permanently delete the account (Apple 5.1.1(v)). Returns true on success so
+  // the caller can decide what to surface; either way the session is cleared and
+  // the app drops to the signed-out stack.
+  const deleteAccount = async (): Promise<boolean> => {
+    if (!isMountedRef.current) return false;
+    let ok = false;
+    try {
+      const response = await authApiService.deleteAccount();
+      ok = response.success !== false;
+    } catch (error) {
+      if (__DEV__) console.warn('Account deletion request failed:', error);
+    }
+    try {
+      await authApiService.clearTokens();
+    } catch (error) {
+      if (__DEV__) console.warn('Token clear failed during account delete:', error);
+    }
+    if (isMountedRef.current) {
+      safeDispatch({ type: 'LOGOUT_SUCCESS' });
+    }
+    return ok;
+  };
+
   const forgotPassword = async (email: string) => {
     if (!isMountedRef.current) return;
     try {
@@ -346,6 +370,7 @@ export const SessionProvider = ({ children }: SessionProviderProps) => {
     signUp,
     signIn,
     signOut,
+    deleteAccount,
     forgotPassword,
     resetPassword,
     clearError,
