@@ -22,11 +22,14 @@ jest.mock('@components/BackgroundWrapper', () => {
   return ({ children }: { children: React.ReactNode }) =>
     react.createElement('BackgroundWrapper', null, children);
 });
+const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
+const mockNav = { canGoBack: false };
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
-    canGoBack: () => false,
-    goBack: jest.fn(),
-    navigate: jest.fn(),
+    canGoBack: () => mockNav.canGoBack,
+    goBack: mockGoBack,
+    navigate: mockNavigate,
   }),
 }));
 
@@ -60,20 +63,38 @@ jest.mock('@/hooks/useInAppPurchase', () => ({
   },
   localizedPrice: (_products: unknown, _id: string, fallback: string) => fallback,
 }));
-// Trial already used + no active sub → button is "SUBSCRIBE NOW" (purchase path).
+// Mutable flags so individual tests can flip active-sub / auth state.
+// Defaults: trial already used + no active sub → button is "SUBSCRIBE NOW".
+const mockFlags = {
+  hasUsedTrial: true,
+  hasActiveSubscription: false,
+  isAuthenticated: false,
+};
 jest.mock('@/context/SubscriptionContext', () => ({
   useSubscription: () => ({
-    hasUsedTrial: true,
-    hasActiveSubscription: false,
+    hasUsedTrial: mockFlags.hasUsedTrial,
+    hasActiveSubscription: mockFlags.hasActiveSubscription,
     refreshSubscriptionStatus: mockRefresh,
   }),
 }));
 jest.mock('@/context/SessionContext', () => ({
-  useSession: () => ({ setAuthenticated: mockSetAuthenticated }),
+  useSession: () => ({
+    setAuthenticated: mockSetAuthenticated,
+    state: { isAuthenticated: mockFlags.isAuthenticated },
+  }),
 }));
 jest.mock('@/services/api/subscriptionApi', () => ({
   subscriptionApiService: { startTrial: jest.fn() },
 }));
+
+// Reset the mutable flags/nav and mock call history before every test.
+beforeEach(() => {
+  jest.clearAllMocks();
+  mockFlags.hasUsedTrial = true;
+  mockFlags.hasActiveSubscription = false;
+  mockFlags.isAuthenticated = false;
+  mockNav.canGoBack = false;
+});
 
 describe('StartFreeTrialScreen — monthly/yearly toggle', () => {
   beforeEach(() => jest.clearAllMocks());
@@ -152,5 +173,44 @@ describe('StartFreeTrialScreen — App Store compliance', () => {
     fireEvent.press(getByText('Restore Purchase'));
     await waitFor(() => expect(mockRestore).toHaveBeenCalled());
     expect(mockSetAuthenticated).not.toHaveBeenCalled();
+  });
+});
+
+describe('StartFreeTrialScreen — never strands an entitled user', () => {
+  // Regression: once a new user's status becomes "trial", hasActiveSubscription
+  // is true, which disables the CTA. This screen can be the navigator root (no
+  // back button), so the user would be trapped on a dead-end paywall.
+
+  it('routes a new/onboarding user into the app when they already have a trial', async () => {
+    mockFlags.hasActiveSubscription = true; // status "trial" or "active"
+    mockFlags.isAuthenticated = false; // onboarding — AuthNavigator
+    render(<StartFreeTrialScreen />);
+    await waitFor(() => expect(mockSetAuthenticated).toHaveBeenCalled());
+  });
+
+  it('goes back when an authenticated user hits the paywall with an active sub', async () => {
+    mockFlags.hasActiveSubscription = true;
+    mockFlags.isAuthenticated = true;
+    mockNav.canGoBack = true;
+    render(<StartFreeTrialScreen />);
+    await waitFor(() => expect(mockGoBack).toHaveBeenCalled());
+    expect(mockSetAuthenticated).not.toHaveBeenCalled();
+  });
+
+  it('navigates home when authenticated + active sub + cannot go back', async () => {
+    mockFlags.hasActiveSubscription = true;
+    mockFlags.isAuthenticated = true;
+    mockNav.canGoBack = false;
+    render(<StartFreeTrialScreen />);
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('TalkToMirror'));
+  });
+
+  it('does NOT auto-route a brand-new user with no subscription', () => {
+    mockFlags.hasActiveSubscription = false;
+    mockFlags.hasUsedTrial = false; // fresh account → "START FREE TRIAL"
+    mockFlags.isAuthenticated = false;
+    const { getByText } = render(<StartFreeTrialScreen />);
+    expect(mockSetAuthenticated).not.toHaveBeenCalled();
+    expect(getByText('START FREE TRIAL')).toBeTruthy();
   });
 });

@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     View,
     Text,
@@ -50,7 +50,8 @@ const StartFreeTrialScreen = () => {
     const navigation = useNavigation<NavigationProp>();
     const canGoBack = navigation.canGoBack();
     const { hasUsedTrial, hasActiveSubscription, refreshSubscriptionStatus } = useSubscription();
-    const { setAuthenticated } = useSession();
+    const { setAuthenticated, state: sessionState } = useSession();
+    const { isAuthenticated } = sessionState;
     const { purchaseSubscription, restorePurchases, purchasing, PRODUCT_IDS, products } = useInAppPurchase({
         // A paid purchase is confirmed asynchronously (StoreKit listener →
         // backend verify). When that completes, refresh status and enter the
@@ -72,6 +73,26 @@ const StartFreeTrialScreen = () => {
 
     const isTrialMode = !hasUsedTrial && !hasActiveSubscription;
     const buttonText = isTrialMode ? 'START FREE TRIAL' : 'SUBSCRIBE NOW';
+
+    // Never strand an already-entitled user here. The CTA is disabled while
+    // hasActiveSubscription is true, and this screen can be the navigator root
+    // (no back button) — so an active subscriber who lands here would be stuck
+    // with no way forward. As soon as we see an active subscription, route them
+    // into the app instead of showing a dead-end paywall.
+    useEffect(() => {
+        if (!hasActiveSubscription) return;
+        if (isAuthenticated) {
+            // Reached via an in-app push (e.g. a stale subscription_required 403).
+            if (navigation.canGoBack()) {
+                navigation.goBack();
+            } else {
+                navigation.navigate('TalkToMirror' as never);
+            }
+        } else {
+            // Onboarding path — flip the session into the authenticated app.
+            setAuthenticated();
+        }
+    }, [hasActiveSubscription, isAuthenticated, navigation, setAuthenticated]);
 
     const handleButtonPress = async () => {
         if (hasActiveSubscription) {
