@@ -125,11 +125,6 @@ const navTheme: Theme = {
 const screenOptions = {
   headerShown: false,
   contentStyle: { backgroundColor: 'transparent' },
-  // Cross-fade instead of the native iOS push slide. On a dark, full-bleed app
-  // the slide draws a soft leading-edge shadow that reads as a seam/border
-  // between screens; a fade has no sliding edge, so transitions are seamless.
-  // The back-swipe gesture still works — only the visual animation changes.
-  animation: 'fade',
 } as const;
 // Wrapped MirrorChat component with error boundary
 const MirrorChatWithErrorBoundary = () => (
