@@ -1,8 +1,6 @@
 // NewEchoAudioScreen.tsx
 import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { palette, scale, textShadow } from '@theme';
-import { RootStackParamList } from '@types';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
   View,
@@ -23,6 +21,7 @@ import AudioRecorderPlayer from 'react-native-audio-recorder-player';
 import DocumentPicker from 'react-native-document-picker';
 import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useMicrophonePermission } from 'react-native-vision-camera';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
@@ -30,6 +29,8 @@ import StarIcon from '@components/StarIcon';
 import UploadProgressOverlay from '@components/UploadProgressOverlay';
 import { echoApiService } from '@services/api';
 import type { UploadStage } from '@services/api/echo';
+import { palette, scale, textShadow } from '@theme';
+import { RootStackParamList } from '@types';
 
 // Audio files are small — compression rarely runs — so the bar advances
 // almost entirely during the upload phase. Mirror the mapping used by
@@ -51,12 +52,11 @@ const stageToProgress = (stage: UploadStage): number => {
 
 type Props = NativeStackScreenProps<RootStackParamList, 'NewEchoAudioScreen'>;
 
-const { width: W, height: H } = Dimensions.get('window');
+const { width: W } = Dimensions.get('window');
 
 const GOLD = palette.gold.mid;
 const OFFWHITE = 'rgba(253, 253, 249, 0.92)';
 
-const SURFACE_BORDER = 'rgba(253, 253, 249, 0.18)';
 const SURFACE_BORDER_2 = 'rgba(253, 253, 249, 0.08)';
 
 const NewEchoAudioScreen: React.FC<Props> = ({ navigation, route }) => {
@@ -72,6 +72,9 @@ const NewEchoAudioScreen: React.FC<Props> = ({ navigation, route }) => {
 
   // Singleton instance (default export). Ref stops React from treating it as state.
   const audioRecorderPlayer = useRef(AudioRecorderPlayer).current;
+  // Microphone permission — v4's startRecorder() no longer auto-prompts on iOS.
+  const { hasPermission: hasMicPermission, requestPermission: requestMicPermission } =
+    useMicrophonePermission();
   // Synchronous source-of-truth for whether a recording session is currently
   // live — avoids stale closures in the unmount cleanup.
   const isRecordingRef = useRef(false);
@@ -104,10 +107,6 @@ const NewEchoAudioScreen: React.FC<Props> = ({ navigation, route }) => {
     }, [audioRecorderPlayer]),
   );
 
-  // iOS: NSMicrophoneUsageDescription is in Info.plist — startRecorder()
-  // triggers the system permission prompt automatically on first call. We
-  // catch the rejection in the surrounding try/catch and surface a friendly
-  // alert. No Vision Camera dependency needed.
   const checkAndRequestPermission = async (): Promise<boolean> => {
     if (Platform.OS === 'android') {
       try {
@@ -131,7 +130,23 @@ const NewEchoAudioScreen: React.FC<Props> = ({ navigation, route }) => {
         return false;
       }
     }
-    return true; // iOS handled at startRecorder() time
+
+    // iOS: react-native-audio-recorder-player v4 does NOT auto-prompt for the
+    // microphone on startRecorder(), so recording throws when permission is
+    // undetermined (exactly the fresh-install case App Review hit). Request it
+    // explicitly via Vision Camera's mic permission before recording.
+    if (hasMicPermission) return true;
+    const granted = await requestMicPermission();
+    if (granted) return true;
+    Alert.alert(
+      'Microphone access needed',
+      'Enable microphone access to record a voice echo.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Open Settings', onPress: () => Linking.openSettings() },
+      ],
+    );
+    return false;
   };
 
   const onMicPress = async () => {
