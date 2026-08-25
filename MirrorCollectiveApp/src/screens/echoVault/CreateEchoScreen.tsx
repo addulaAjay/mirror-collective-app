@@ -27,6 +27,7 @@ import {
   Alert,
   Image,
   Keyboard,
+  Linking,
   Modal,
   Platform,
   ScrollView,
@@ -52,6 +53,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import Video from 'react-native-video';
+import { useMicrophonePermission } from 'react-native-vision-camera';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import Button from '@components/Button/Button';
@@ -531,6 +533,11 @@ const CreateEchoScreen: React.FC = () => {
   const [uploadStage, setUploadStage] = useState<UploadStage | null>(null);
   const [showUploadSheet, setShowUploadSheet] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
+  // Microphone permission for voice recording. react-native-audio-recorder-player
+  // v4 does NOT auto-prompt on startRecorder(), so we must request explicitly —
+  // otherwise recording throws on a device where permission is undetermined.
+  const { hasPermission: hasMicPermission, requestPermission: requestMicPermission } =
+    useMicrophonePermission();
   // Over storage quota (507 on upload) → show the on-brand upgrade prompt.
   const [quotaPromptVisible, setQuotaPromptVisible] = useState(false);
   // Picker must launch only AFTER the sheet fully dismisses (iOS races
@@ -764,6 +771,22 @@ const CreateEchoScreen: React.FC = () => {
       recordUri.current = uri;
       setIsRecording(false);
       return;
+    }
+    // Ensure microphone permission BEFORE recording. v4's startRecorder() no
+    // longer auto-prompts on iOS, so without this it throws on first use.
+    if (!hasMicPermission) {
+      const granted = await requestMicPermission();
+      if (!granted) {
+        Alert.alert(
+          'Microphone access needed',
+          'Enable microphone access to record a voice echo.',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Open Settings', onPress: () => Linking.openSettings() },
+          ],
+        );
+        return;
+      }
     }
     try {
       const uri = await audioRecorder.startRecorder();
