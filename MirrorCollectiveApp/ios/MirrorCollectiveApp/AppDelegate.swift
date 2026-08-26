@@ -3,6 +3,7 @@ import React
 import React_RCTAppDelegate
 import ReactAppDependencyProvider
 import Firebase
+import AVFoundation
 // Expo modules autolinking. ExpoReactNativeFactory subclasses
 // RCTReactNativeFactory and is the seam where ExpoModulesCore installs
 // its JSI globals (globalThis.expo.NativeModule etc) at app launch.
@@ -28,6 +29,28 @@ class AppDelegate: ExpoAppDelegate {
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
   ) -> Bool {
     FirebaseApp.configure()
+
+    // Prime the shared AVAudioSession to a record-capable category at launch.
+    // react-native-audio-recorder-player v4 configures .playAndRecord inside
+    // startRecorder(), but on a cold start (before any Vision Camera / video
+    // component has claimed the session) that first activation intermittently
+    // fails on iOS/iPadOS — recording then reports "microphone unavailable"
+    // until video recording is opened once (which warms the session). Setting
+    // the category here establishes a recordable session from launch so the
+    // very first voice recording works. .mixWithOthers avoids interrupting any
+    // playing audio; .defaultToSpeaker keeps playback on the main speaker.
+    do {
+      let session = AVAudioSession.sharedInstance()
+      try session.setCategory(
+        .playAndRecord,
+        mode: .default,
+        options: [.defaultToSpeaker, .allowBluetooth, .mixWithOthers]
+      )
+      try session.setActive(true)
+    } catch {
+      print("AVAudioSession setup at launch failed: \(error)")
+    }
+
     let delegate = ReactNativeDelegate()
     let factoryInstance = ExpoReactNativeFactory(delegate: delegate)
     delegate.dependencyProvider = RCTAppDependencyProvider()
