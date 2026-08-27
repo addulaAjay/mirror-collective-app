@@ -1,18 +1,4 @@
 import { useFocusEffect } from '@react-navigation/native';
-import {
-  palette,
-  fontFamily,
-  fontSize,
-  fontWeight,
-  lineHeight,
-  textShadow,
-  spacing,
-  radius,
-  borderWidth,
-  scale,
-  verticalScale,
-  moderateScale,
-} from '@theme';
 import React, { useCallback, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -28,6 +14,20 @@ import Video from 'react-native-video';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
+import {
+  palette,
+  fontFamily,
+  fontSize,
+  fontWeight,
+  lineHeight,
+  textShadow,
+  spacing,
+  radius,
+  borderWidth,
+  scale,
+  verticalScale,
+  moderateScale,
+} from '@theme';
 
 const VIDEO_URL =
   'https://mirror-app-video.s3.us-east-1.amazonaws.com/Mirror+App+Explainer+Video.mp4';
@@ -71,6 +71,8 @@ const AboutScreen: React.FC = () => {
               </View>
             ) : (
               <Video
+                // Keep the AVAudioSession record-capable — see AppDelegate.
+                disableAudioSessionManagement
                 ref={videoRef}
                 source={{ uri: VIDEO_URL }}
                 style={styles.video}

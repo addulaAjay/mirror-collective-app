@@ -12,17 +12,6 @@
  * scroll so it drops into fixed-layout screens without breaking them.
  */
 
-import {
-  borderWidth,
-  fontFamily,
-  fontSize,
-  moderateScale,
-  palette,
-  radius,
-  scale,
-  spacing,
-  verticalScale,
-} from '@theme';
 import React, { useEffect, useState } from 'react';
 import {
   Image,
@@ -38,6 +27,17 @@ import AudioRecorderPlayer from 'react-native-audio-recorder-player';
 import Video from 'react-native-video';
 
 import type { Attachment } from '@services/api/echo';
+import {
+  borderWidth,
+  fontFamily,
+  fontSize,
+  moderateScale,
+  palette,
+  radius,
+  scale,
+  spacing,
+  verticalScale,
+} from '@theme';
 
 const audioPlayer = AudioRecorderPlayer;
 
@@ -188,6 +188,8 @@ function AttachmentCard({ att }: { att: Attachment }) {
               </Text>
             </TouchableOpacity>
             <Video
+              // Keep the AVAudioSession record-capable — see AppDelegate.
+              disableAudioSessionManagement
               source={{ uri: att.media_url }}
               style={styles.videoModalPlayer}
               controls
