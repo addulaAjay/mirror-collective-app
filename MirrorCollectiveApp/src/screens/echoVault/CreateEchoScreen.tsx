@@ -1340,6 +1340,8 @@ const CreateEchoScreen: React.FC = () => {
             </TouchableOpacity>
             {previewVideo ? (
               <Video
+                // Keep the AVAudioSession record-capable — see AppDelegate.
+                disableAudioSessionManagement
                 source={{ uri: previewVideo.uri }}
                 style={styles.videoModalPlayer}
                 controls
