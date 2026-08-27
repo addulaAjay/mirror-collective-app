@@ -797,7 +797,12 @@ const CreateEchoScreen: React.FC = () => {
       setIsRecording(true);
     } catch (err) {
       console.warn('Audio record failed:', err);
-      Alert.alert('Microphone unavailable', 'Could not start recording.');
+      // Surface the underlying reason (the recorder library reports the real
+      // cause, e.g. an audio-session/category error) so we can diagnose the
+      // "microphone unavailable" failures instead of hiding them.
+      const reason =
+        err instanceof Error ? err.message : String(err ?? 'unknown error');
+      Alert.alert('Microphone unavailable', `Could not start recording.\n\n${reason}`);
     }
   };
 
