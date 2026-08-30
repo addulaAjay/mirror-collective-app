@@ -1,13 +1,3 @@
-import {
-  palette,
-  fontFamily,
-  fontSize,
-  lineHeight,
-  moderateScale,
-  scale,
-  verticalScale,
-  textShadow,
-} from '@theme';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -27,6 +17,16 @@ import BackgroundWrapper from '@components/BackgroundWrapper';
 import Button from '@components/Button';
 import LogoHeader from '@components/LogoHeader';
 import TextInputField from '@components/TextInputField';
+import {
+  palette,
+  fontFamily,
+  fontSize,
+  lineHeight,
+  moderateScale,
+  scale,
+  verticalScale,
+  textShadow,
+} from '@theme';
 
 interface SignUpScreenProps {
   navigation: any;
@@ -101,10 +101,11 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
       isValid = false;
     }
 
-    if (phoneNumber === '+1' || phoneNumber.length <= 2) {
-      newErrors.phoneNumber = t('auth.validation.missingPhone');
-      isValid = false;
-    } else if (!/^\+[1-9]\d{1,14}$/.test(phoneNumber)) {
+    // Phone number is OPTIONAL (App Store Guideline 5.1.1(v) — not required for
+    // the app's core functionality). Only validate the format if the user
+    // actually entered a number beyond the '+1' country-code prefix.
+    const hasPhone = phoneNumber !== '+1' && phoneNumber.length > 2;
+    if (hasPhone && !/^\+[1-9]\d{1,14}$/.test(phoneNumber)) {
       newErrors.phoneNumber = t('auth.validation.invalidPhone');
       isValid = false;
     }
@@ -141,11 +142,14 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
     if (!validateForm()) {
       return;
     }
+    // Omit an empty phone (just the '+1' prefix) so we never store a bogus
+    // number — the field is optional.
+    const hasPhone = phoneNumber !== '+1' && phoneNumber.length > 2;
     navigation.navigate('TermsAndConditions', {
       fullName: fullName.trim(),
       email: email.toLowerCase().trim(),
       password,
-      phoneNumber,
+      phoneNumber: hasPhone ? phoneNumber : undefined,
     });
   };
 

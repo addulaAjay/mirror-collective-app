@@ -120,6 +120,28 @@ describe('SignUpScreen', () => {
     });
   });
 
+  it('allows sign up without a phone number (optional — Guideline 5.1.1(v))', () => {
+    const { getByTestId } = render(
+      <SignUpScreen navigation={mockNavigation as any} />
+    );
+
+    fireEvent.changeText(getByTestId('fullname-input'), 'Test User');
+    fireEvent.changeText(getByTestId('email-input'), 'test@example.com');
+    // Phone left blank on purpose.
+    fireEvent.changeText(getByTestId('password-input'), 'Password123!');
+    fireEvent.changeText(getByTestId('confirm-password-input'), 'Password123!');
+
+    fireEvent.press(getByTestId('signup-button'));
+
+    // Not blocked, and an empty phone is omitted (undefined), not sent as "+1".
+    expect(mockNavigation.navigate).toHaveBeenCalledWith('TermsAndConditions', {
+      fullName: 'Test User',
+      email: 'test@example.com',
+      password: 'Password123!',
+      phoneNumber: undefined,
+    });
+  });
+
   it('validates invalid email format', () => {
     const { getByTestId } = render(
       <SignUpScreen navigation={mockNavigation as any} />
