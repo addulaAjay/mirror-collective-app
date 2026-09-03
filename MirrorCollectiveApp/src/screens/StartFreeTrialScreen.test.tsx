@@ -181,14 +181,18 @@ describe('StartFreeTrialScreen — App Store compliance', () => {
 });
 
 describe('StartFreeTrialScreen — entitlement handling', () => {
-  it('shows an enabled START FREE TRIAL for a brand-new user (kept on the paywall)', () => {
-    // New users see the trial screen after verification — they are NOT
-    // auto-routed into the app; the paywall is part of onboarding.
+  it('shows START FREE TRIAL for a new user and starts a StoreKit purchase', async () => {
+    // New users see the trial screen after verification (not auto-routed in).
+    // Tapping START FREE TRIAL now goes through StoreKit — Apple applies the
+    // 14-day intro offer — instead of a server-side trial (Guideline 3.1.2(c)).
     mockFlags.status = 'none';
     mockFlags.hasUsedTrial = false;
     const { getByText } = render(<StartFreeTrialScreen />);
     expect(mockSetAuthenticated).not.toHaveBeenCalled();
-    expect(getByText('START FREE TRIAL')).toBeTruthy();
+    const cta = getByText('START FREE TRIAL');
+    expect(cta).toBeTruthy();
+    fireEvent.press(cta);
+    await waitFor(() => expect(mockPurchase).toHaveBeenCalledWith(CORE_MONTHLY));
   });
 
   it('lets a TRIAL user subscribe (CTA enabled, purchase fires)', async () => {
