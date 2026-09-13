@@ -38,6 +38,7 @@ describe('MySubscriptionScreen', () => {
       trialDaysRemaining: 0,
       hasActiveSubscription: true,
       loading: false,
+      refreshSubscriptionStatus: jest.fn(),
     };
   });
 
@@ -47,7 +48,7 @@ describe('MySubscriptionScreen', () => {
     );
     expect(getByText('SUBSCRIPTION')).toBeTruthy();
     expect(getByText('Mirror Basic')).toBeTruthy();
-    expect(getByText('END SUBSCRIPTION')).toBeTruthy();
+    expect(getByText('MANAGE SUBSCRIPTION')).toBeTruthy();
     expect(getByText('Active subscription')).toBeTruthy();
   });
 
@@ -59,11 +60,11 @@ describe('MySubscriptionScreen', () => {
     expect(getByText('10-day free trial')).toBeTruthy();
   });
 
-  it('END SUBSCRIPTION opens a confirm to manage in the App Store', () => {
+  it('MANAGE SUBSCRIPTION opens a confirm to change plan or cancel', () => {
     const { getByText } = render(
       <MySubscriptionScreen navigation={nav as never} route={{} as never} />,
     );
-    fireEvent.press(getByText('END SUBSCRIPTION'));
+    fireEvent.press(getByText('MANAGE SUBSCRIPTION'));
     expect(Alert.alert).toHaveBeenCalled();
   });
 
