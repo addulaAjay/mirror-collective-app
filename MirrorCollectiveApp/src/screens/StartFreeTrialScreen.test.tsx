@@ -1,6 +1,5 @@
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import React from 'react';
-import { Linking } from 'react-native';
 
 import StartFreeTrialScreen from './StartFreeTrialScreen';
 
@@ -37,6 +36,7 @@ jest.mock('@react-navigation/native', () => ({
 const CORE_MONTHLY = 'com.themirrorcollective.mirror.monthly';
 const CORE_YEARLY = 'com.themirrorcollective.mirror.yearly';
 const mockPurchase = jest.fn().mockResolvedValue(undefined);
+const mockManageSubs = jest.fn().mockResolvedValue(undefined);
 const mockRestore = jest.fn().mockResolvedValue({
   success: true,
   data: { restored_count: 0, subscriptions: [] },
@@ -52,6 +52,7 @@ jest.mock('@/hooks/useInAppPurchase', () => ({
     return {
       purchaseSubscription: mockPurchase,
       restorePurchases: mockRestore,
+      openManageSubscriptions: mockManageSubs,
       purchasing: false,
       products: [],
       PRODUCT_IDS: {
@@ -206,11 +207,7 @@ describe('StartFreeTrialScreen — entitlement handling', () => {
     mockFlags.status = 'active';
     const { getByText } = render(<StartFreeTrialScreen />);
     fireEvent.press(getByText('MANAGE SUBSCRIPTION'));
-    await waitFor(() =>
-      expect(Linking.openURL).toHaveBeenCalledWith(
-        'https://apps.apple.com/account/subscriptions',
-      ),
-    );
+    await waitFor(() => expect(mockManageSubs).toHaveBeenCalled());
     expect(mockPurchase).not.toHaveBeenCalled(); // no re-purchase from the paywall
   });
 });

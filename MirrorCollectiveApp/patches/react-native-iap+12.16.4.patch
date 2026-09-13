@@ -1,0 +1,39 @@
+diff --git a/node_modules/react-native-iap/lib/commonjs/index.js b/node_modules/react-native-iap/lib/commonjs/index.js
+index a221808..c177dac 100644
+--- a/node_modules/react-native-iap/lib/commonjs/index.js
++++ b/node_modules/react-native-iap/lib/commonjs/index.js
+@@ -80,4 +80,11 @@ Object.keys(_modules).forEach(function (key) {
+     }
+   });
+ });
++var _iosSk2 = require("./modules/iosSk2");
++Object.defineProperty(exports, "showManageSubscriptions", {
++  enumerable: true,
++  get: function () {
++    return _iosSk2.showManageSubscriptions;
++  },
++});
+ //# sourceMappingURL=index.js.map
+\ No newline at end of file
+diff --git a/node_modules/react-native-iap/lib/module/index.js b/node_modules/react-native-iap/lib/module/index.js
+index 69690d0..5d75e85 100644
+--- a/node_modules/react-native-iap/lib/module/index.js
++++ b/node_modules/react-native-iap/lib/module/index.js
+@@ -5,4 +5,5 @@ export * from './hooks/useIAP';
+ export * from './hooks/withIAPContext';
+ export * from './purchaseError';
+ export * from './modules';
++export { showManageSubscriptions } from './modules/iosSk2';
+ //# sourceMappingURL=index.js.map
+\ No newline at end of file
+diff --git a/node_modules/react-native-iap/lib/typescript/src/index.d.ts b/node_modules/react-native-iap/lib/typescript/src/index.d.ts
+index 1e1769f..899ee5d 100644
+--- a/node_modules/react-native-iap/lib/typescript/src/index.d.ts
++++ b/node_modules/react-native-iap/lib/typescript/src/index.d.ts
+@@ -5,4 +5,5 @@ export * from './hooks/useIAP';
+ export * from './hooks/withIAPContext';
+ export * from './purchaseError';
+ export * from './modules';
++export { showManageSubscriptions } from './modules/iosSk2';
+ //# sourceMappingURL=index.d.ts.map
+\ No newline at end of file

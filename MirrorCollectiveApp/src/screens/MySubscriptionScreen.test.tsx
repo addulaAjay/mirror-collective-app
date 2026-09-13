@@ -14,6 +14,7 @@ const mockRestore = jest.fn().mockResolvedValue(undefined);
 jest.mock('@hooks/useInAppPurchase', () => ({
   useInAppPurchase: () => ({
     restorePurchases: mockRestore,
+    openManageSubscriptions: jest.fn(),
     products: [],
     PRODUCT_IDS: {
       CORE_MONTHLY: 'com.themirrorcollective.mirror.monthly',

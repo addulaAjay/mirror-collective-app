@@ -37,11 +37,6 @@ import { useInAppPurchase, localizedPrice } from '@hooks/useInAppPurchase';
 import { palette, fontFamily, fontSize, scale, radius } from '@theme';
 import type { RootStackParamList } from '@types';
 
-// iOS Manage Subscriptions deep link. Auto-renewable subscriptions cannot be
-// cancelled programmatically — Apple requires the user to do it in Settings /
-// the App Store, so END SUBSCRIPTION routes there.
-const MANAGE_SUBSCRIPTIONS_URL = 'https://apps.apple.com/account/subscriptions';
-
 
 type Props = NativeStackScreenProps<RootStackParamList, 'MySubscription'>;
 
@@ -64,7 +59,8 @@ const MySubscriptionScreen: React.FC<Props> = ({ navigation }) => {
     loading,
     refreshSubscriptionStatus,
   } = useSubscription();
-  const { restorePurchases, products, PRODUCT_IDS } = useInAppPurchase();
+  const { restorePurchases, openManageSubscriptions, products, PRODUCT_IDS } =
+    useInAppPurchase();
 
   // Refresh subscription status every time this screen gains focus. The status
   // lives in an app-level provider that only refetches on mount / user change,
@@ -105,7 +101,7 @@ const MySubscriptionScreen: React.FC<Props> = ({ navigation }) => {
         { text: 'Not now', style: 'cancel' },
         {
           text: 'Open',
-          onPress: () => openLink(MANAGE_SUBSCRIPTIONS_URL),
+          onPress: () => openManageSubscriptions(),
         },
       ],
     );

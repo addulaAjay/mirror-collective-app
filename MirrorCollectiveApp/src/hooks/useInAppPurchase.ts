@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useSyncExternalStore } from 'react';
-import { Platform, Alert } from 'react-native';
+import { Platform, Alert, Linking } from 'react-native';
 import {
   initConnection,
   endConnection,
@@ -9,6 +9,10 @@ import {
   finishTransaction,
   purchaseUpdatedListener,
   purchaseErrorListener,
+  // Presents Apple's native "Manage Subscriptions" sheet IN-APP (StoreKit 2).
+  // Re-exported from the package root via patches/react-native-iap+12.16.4.patch
+  // (the library keeps it in an internal submodule otherwise).
+  showManageSubscriptions,
   ErrorCode,
   type Subscription,
   type SubscriptionPurchase,
@@ -57,6 +61,10 @@ const withTimeout = <T>(
 };
 
 const IAP_INIT_TIMEOUT_MS = 10000;
+
+// Apple account subscriptions page — fallback if the native StoreKit manage
+// sheet isn't available (e.g. older iOS, or the call rejects).
+const MANAGE_SUBSCRIPTIONS_URL = 'https://apps.apple.com/account/subscriptions';
 
 // Product IDs
 const PRODUCT_IDS = {
@@ -398,6 +406,30 @@ const restore = async () => {
   }
 };
 
+/**
+ * Open Apple's "Manage Subscriptions" UI, where the user can change their plan
+ * (monthly↔yearly, same group) or cancel. Prefers StoreKit's native in-app
+ * sheet (showManageSubscriptions); falls back to the App Store account URL if
+ * the native call is unavailable or rejects.
+ */
+const manageSubscriptions = async (): Promise<void> => {
+  if (Platform.OS === 'ios') {
+    try {
+      await showManageSubscriptions();
+      return;
+    } catch (error) {
+      if (__DEV__) {
+        console.warn('showManageSubscriptions failed, falling back to URL:', error);
+      }
+    }
+  }
+  try {
+    await Linking.openURL(MANAGE_SUBSCRIPTIONS_URL);
+  } catch {
+    Alert.alert('Unable to open', 'Please open Settings to manage your subscription.');
+  }
+};
+
 /** Test-only: reset the module singleton between test cases. */
 export const __resetIapStoreForTests = (): void => {
   state = {
@@ -445,6 +477,7 @@ export const useInAppPurchase = (options?: {
   }, []);
 
   const restorePurchases = useCallback(() => restore(), []);
+  const openManageSubscriptions = useCallback(() => manageSubscriptions(), []);
 
   return {
     products: snapshot.products,
@@ -454,6 +487,7 @@ export const useInAppPurchase = (options?: {
     error: snapshot.error,
     purchaseSubscription,
     restorePurchases,
+    openManageSubscriptions,
     PRODUCT_IDS,
   };
 };
