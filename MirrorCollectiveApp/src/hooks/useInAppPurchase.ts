@@ -104,6 +104,10 @@ interface PurchaseState {
   products: Subscription[];
   loading: boolean;
   purchasing: boolean;
+  // Restore runs on its own flag rather than reusing `loading` — `loading` is
+  // the initial product-fetch state a paywall may gate its CTA on, and a restore
+  // triggered from another mounted screen must not flip it.
+  restoring: boolean;
   error: string | null;
 }
 
@@ -124,6 +128,7 @@ let state: PurchaseState = {
   products: [],
   loading: true,
   purchasing: false,
+  restoring: false,
   error: null,
 };
 const subscribers = new Set<() => void>();
@@ -311,7 +316,13 @@ const releaseConnection = (): void => {
   endConnection();
   // Reset transient flags so a later fresh mount re-initialises cleanly. Keep
   // the last-known products so the paywall can render immediately on remount.
-  state = { products: state.products, loading: true, purchasing: false, error: null };
+  state = {
+    products: state.products,
+    loading: true,
+    purchasing: false,
+    restoring: false,
+    error: null,
+  };
   userInitiatedPurchase = false;
   activeVerifiedCallback = undefined;
   processedTransactionIds.clear();
@@ -340,7 +351,7 @@ const purchase = async (
 };
 
 const restore = async () => {
-  setState({ loading: true, error: null });
+  setState({ restoring: true, error: null });
   try {
     const availablePurchases = await getAvailablePurchases();
 
@@ -350,7 +361,7 @@ const restore = async () => {
         'No previous purchases were found to restore.',
         [{ text: 'OK' }],
       );
-      setState({ loading: false });
+      setState({ restoring: false });
       return { success: true, data: { restored_count: 0, subscriptions: [] } };
     }
 
@@ -378,18 +389,24 @@ const restore = async () => {
       );
     }
 
-    setState({ loading: false });
+    setState({ restoring: false });
     return result;
   } catch (error: any) {
     console.error('Restore error:', error);
-    setState({ loading: false, error: 'Failed to restore purchases' });
+    setState({ restoring: false, error: 'Failed to restore purchases' });
     return null;
   }
 };
 
 /** Test-only: reset the module singleton between test cases. */
 export const __resetIapStoreForTests = (): void => {
-  state = { products: [], loading: true, purchasing: false, error: null };
+  state = {
+    products: [],
+    loading: true,
+    purchasing: false,
+    restoring: false,
+    error: null,
+  };
   subscribers.clear();
   processedTransactionIds.clear();
   refCount = 0;
@@ -433,6 +450,7 @@ export const useInAppPurchase = (options?: {
     products: snapshot.products,
     loading: snapshot.loading,
     purchasing: snapshot.purchasing,
+    restoring: snapshot.restoring,
     error: snapshot.error,
     purchaseSubscription,
     restorePurchases,
