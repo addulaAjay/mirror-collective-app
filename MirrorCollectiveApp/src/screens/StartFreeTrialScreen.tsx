@@ -1,30 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import React, { useState } from 'react';
-import {
-    View,
-    Text,
-    StyleSheet,
-    TouchableOpacity,
-    Image,
-    Alert,
-    ScrollView,
-    Linking,
-    type ViewStyle,
-    type TextStyle,
-    type ImageStyle,
-} from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
-import { SafeAreaView } from 'react-native-safe-area-context';
-
-import { useSession } from '@/context/SessionContext';
-import { useSubscription } from '@/context/SubscriptionContext';
-import { useInAppPurchase, localizedPrice } from '@/hooks/useInAppPurchase';
-import BackgroundWrapper from '@components/BackgroundWrapper';
-import Button from '@components/Button/Button';
-import LogoHeader from '@components/LogoHeader';
-import StarIcon from '@components/StarIcon';
-import { LEGAL_LINKS } from '@constants/config';
 import {
   palette,
   fontFamily,
@@ -42,6 +17,32 @@ import {
   modalColors,
 } from '@theme';
 import type { RootStackParamList } from '@types';
+import React, { useState } from 'react';
+import {
+    View,
+    Text,
+    StyleSheet,
+    TouchableOpacity,
+    Image,
+    Alert,
+    ScrollView,
+    Linking,
+    type ViewStyle,
+    type TextStyle,
+    type ImageStyle,
+} from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+import BackgroundWrapper from '@components/BackgroundWrapper';
+import Button from '@components/Button/Button';
+import LogoHeader from '@components/LogoHeader';
+import StarIcon from '@components/StarIcon';
+import { LEGAL_LINKS } from '@constants/config';
+
+import { useSession } from '@/context/SessionContext';
+import { useSubscription } from '@/context/SubscriptionContext';
+import { useInAppPurchase, localizedPrice } from '@/hooks/useInAppPurchase';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'StartFreeTrial'>;
 
