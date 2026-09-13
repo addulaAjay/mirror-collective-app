@@ -50,6 +50,10 @@ const defaultFeatures: SubscriptionFeatures = {
   echo_map_enabled: false,
 };
 
+/** A 401 from the status call means the session is invalid (not a transient
+ * error), so entitlement state should be cleared rather than retained. */
+const isUnauthorized = (statusCode?: number): boolean => statusCode === 401;
+
 const SubscriptionContext = createContext<SubscriptionContextType | undefined>(
   undefined,
 );
@@ -74,6 +78,16 @@ export const SubscriptionProvider = ({
   const [loading, setLoading] = useState<boolean>(true);
   const [hasUsedTrial, setHasUsedTrial] = useState<boolean>(false);
 
+  const resetToDefaults = useCallback(() => {
+    setTier('free');
+    setStatus('none');
+    setTrialDaysRemaining(0);
+    setFeatures(defaultFeatures);
+    setCoreSubscription(null);
+    setStorageSubscription(null);
+    setHasUsedTrial(false);
+  }, []);
+
   const refreshSubscriptionStatus = useCallback(async () => {
     if (!user) {
       // Logged out (or between accounts): reset to the free/no-subscription
@@ -81,13 +95,7 @@ export const SubscriptionProvider = ({
       // lingers in the shared provider and bleeds into the next session — a
       // brand-new user would then see the paywall's "MANAGE SUBSCRIPTION"
       // (isActivePaid) instead of "START FREE TRIAL".
-      setTier('free');
-      setStatus('none');
-      setTrialDaysRemaining(0);
-      setFeatures(defaultFeatures);
-      setCoreSubscription(null);
-      setStorageSubscription(null);
-      setHasUsedTrial(false);
+      resetToDefaults();
       setLoading(false);
       return;
     }
@@ -104,13 +112,25 @@ export const SubscriptionProvider = ({
         setCoreSubscription(response.data.core_subscription || null);
         setStorageSubscription(response.data.storage_subscription || null);
         setHasUsedTrial(response.data.has_used_trial || false);
+      } else if (isUnauthorized((response as {statusCode?: number}).statusCode)) {
+        // 401 = the session is invalid (the API layer also emits sessionExpired,
+        // which logs the user out). Reset now so we never keep showing the prior
+        // user's entitlement. A non-auth failure (5xx/network) is retained so a
+        // transient blip doesn't flap a real subscriber's UI.
+        resetToDefaults();
       }
     } catch (error) {
-      console.error('Failed to fetch subscription status:', error);
+      if (isUnauthorized((error as {status?: number})?.status)) {
+        resetToDefaults();
+      } else {
+        // Transient (5xx / network): keep last-known status — server-side
+        // entitlement enforcement is authoritative regardless.
+        console.error('Failed to fetch subscription status:', error);
+      }
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, resetToDefaults]);
 
   // Refresh on mount and when user changes
   useEffect(() => {

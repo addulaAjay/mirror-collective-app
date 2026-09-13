@@ -110,6 +110,25 @@ describe('useInAppPurchase — init resilience (paywall wedge fix)', () => {
   });
 });
 
+describe('useInAppPurchase — restore uses its own flag', () => {
+  it('sets `restoring` (not the shared `loading`) during restore', async () => {
+    const iap = require('react-native-iap');
+    jest.spyOn(iap, 'getAvailablePurchases').mockResolvedValue([]);
+    jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+    const { result } = renderHook(() => useInAppPurchase());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    await act(async () => {
+      await result.current.restorePurchases();
+    });
+
+    // Restore must not have flipped the init `loading` flag a paywall may gate
+    // its CTA on; it uses the dedicated `restoring` flag instead.
+    expect(result.current.loading).toBe(false);
+    expect(result.current.restoring).toBe(false); // settled after restore
+  });
+});
+
 describe('useInAppPurchase — user cancel handling', () => {
   afterEach(() => jest.restoreAllMocks());
 
