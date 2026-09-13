@@ -20,7 +20,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSession } from '@/context/SessionContext';
 import { useSubscription } from '@/context/SubscriptionContext';
 import { useInAppPurchase, localizedPrice } from '@/hooks/useInAppPurchase';
-import { subscriptionApiService } from '@/services/api/subscriptionApi';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import Button from '@components/Button/Button';
 import LogoHeader from '@components/LogoHeader';
@@ -66,7 +65,6 @@ const StartFreeTrialScreen = () => {
             setAuthenticated();
         },
     });
-    const [loading, setLoading] = useState(false);
     const [restoring, setRestoring] = useState(false);
     const [selectedPeriod, setSelectedPeriod] = useState<'monthly' | 'yearly'>('monthly');
 
@@ -93,41 +91,21 @@ const StartFreeTrialScreen = () => {
             return;
         }
 
-        if (isTrialMode) {
-            try {
-                setLoading(true);
-                const response = await subscriptionApiService.startTrial();
-                if (response.success) {
-                    await refreshSubscriptionStatus();
-                    setAuthenticated();
-                } else {
-                    const msg = response.message ?? '';
-                    // Trial already started (user navigated back after success)
-                    // — treat as success and proceed rather than blocking them.
-                    if (msg.toLowerCase().includes('already used') || msg.toLowerCase().includes('already has')) {
-                        await refreshSubscriptionStatus();
-                        setAuthenticated();
-                        return;
-                    }
-                    throw new Error(msg || 'Failed to start trial');
-                }
-            } catch (error: any) {
-                Alert.alert('Error', error.message || 'Failed to start trial');
-            } finally {
-                setLoading(false);
-            }
-        } else {
-            const productId = selectedPeriod === 'monthly'
-                ? PRODUCT_IDS.CORE_MONTHLY
-                : PRODUCT_IDS.CORE_YEARLY;
-            try {
-                // Verification, status refresh, and app entry happen in the
-                // onPurchaseVerified callback once StoreKit delivers the
-                // receipt — purchaseSubscription() resolves before that.
-                await purchaseSubscription(productId);
-            } catch (error: any) {
-                Alert.alert('Purchase Failed', error.message || 'Unable to complete purchase');
-            }
+        // Every non-paid user (new / trial-eligible / expired) purchases through
+        // StoreKit. Apple automatically applies the 14-day free-trial
+        // introductory offer to eligible users and charges ineligible ones — so
+        // the advertised free trial is a real StoreKit offer (Guideline
+        // 3.1.2(c)) and the purchase path is always reachable (Guideline
+        // 2.1(b)). No server-side trial. Verification, status refresh, and app
+        // entry happen in the onPurchaseVerified callback once StoreKit delivers
+        // the receipt — purchaseSubscription() resolves before that.
+        const productId = selectedPeriod === 'monthly'
+            ? PRODUCT_IDS.CORE_MONTHLY
+            : PRODUCT_IDS.CORE_YEARLY;
+        try {
+            await purchaseSubscription(productId);
+        } catch (error: any) {
+            Alert.alert('Purchase Failed', error.message || 'Unable to complete purchase');
         }
     };
 
@@ -345,14 +323,14 @@ const StartFreeTrialScreen = () => {
                   <Button
                     variant="gradient"
                     title={
-                      loading || purchasing
+                      purchasing
                         ? 'LOADING...'
                         : isActivePaid
                           ? 'MANAGE SUBSCRIPTION'
                           : buttonText
                     }
                     onPress={handleButtonPress}
-                    disabled={loading || purchasing}
+                    disabled={purchasing}
                     style={styles.ctaButtonWrapper}
                     containerStyle={styles.ctaButtonContainer}
                     contentStyle={styles.ctaButtonContent}
