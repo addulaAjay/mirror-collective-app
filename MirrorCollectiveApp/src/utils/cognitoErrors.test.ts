@@ -16,6 +16,13 @@ describe('cognitoErrors', () => {
       { message: 'User is not confirmed.' },
       { message: 'User not confirmed' },
       { message: 'Email is not verified' },
+      // The exact message the backend returns (Cognito UserNotConfirmed remapped
+      // to AuthenticationError). Regression: this previously did NOT match, so
+      // login didn't route the user to the verification screen.
+      {
+        message:
+          'Account not verified. Please check your email for verification code.',
+      },
     ])('matches %p', input => {
       expect(isUserNotConfirmedError(input)).toBe(true);
     });

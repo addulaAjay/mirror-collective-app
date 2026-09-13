@@ -5,13 +5,13 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Alert,
-  KeyboardAvoidingView,
   Platform,
   Pressable,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
@@ -194,11 +194,16 @@ const VerifyEmailScreen = () => {
       <SafeAreaView style={styles.safe}>
         <LogoHeader />
 
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.kav}
+        <KeyboardAwareScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContainer}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode={
+            Platform.OS === 'ios' ? 'interactive' : 'on-drag'
+          }
+          bottomOffset={16}
         >
-        <View style={styles.contentContainer}>
           {/* Main Content */}
           <View style={styles.messageContainer}>
             {/* Header */}
@@ -291,8 +296,7 @@ const VerifyEmailScreen = () => {
               </Text>
             </Pressable>
           </View>
-        </View>
-        </KeyboardAvoidingView>
+        </KeyboardAwareScrollView>
       </SafeAreaView>
     </BackgroundWrapper>
   );
@@ -307,16 +311,20 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     width: '100%',
   },
-  kav: {
+  scrollView: {
     flex: 1,
     width: '100%',
   },
-  contentContainer: {
-    flex: 1,
+  // flexGrow:1 + centering makes short content vertically centered but lets it
+  // SCROLL under the keyboard when the keyboard is open — so the content never
+  // overlaps the fixed LogoHeader (app header) or the page title.
+  scrollContainer: {
+    flexGrow: 1,
     width: '100%',
     alignItems: 'center',
-    paddingHorizontal: scale(24),
     justifyContent: 'center',
+    paddingHorizontal: scale(24),
+    paddingVertical: verticalScale(24),
   },
   messageContainer: {
     alignItems: 'center',
