@@ -238,6 +238,28 @@ describe('useInAppPurchase — transaction delivery hardening', () => {
     expect(result.current.purchasing).toBe(false);
   });
 
+  it('still verifies when the same txn is redelivered WITH a receipt after a no-receipt delivery', async () => {
+    jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+    const { result } = renderHook(() => useInAppPurchase());
+    await waitFor(() => expect(mockGetSubscriptions).toHaveBeenCalled());
+    await act(async () => {
+      await result.current.purchaseSubscription('sku');
+    });
+
+    // First delivery has no receipt (must not poison dedupe for this txId).
+    await deliver({ productId: 'sku', transactionId: 'tx-late-receipt' });
+    expect(mockVerifyPurchase).not.toHaveBeenCalled();
+
+    // StoreKit redelivers the SAME transaction, now with a receipt.
+    await deliver({
+      productId: 'sku',
+      transactionId: 'tx-late-receipt',
+      transactionReceipt: 'r',
+    });
+    expect(mockVerifyPurchase).toHaveBeenCalledTimes(1);
+    expect(mockFinishTransaction).toHaveBeenCalledTimes(1);
+  });
+
   it('does NOT finish on verify failure, so StoreKit can redeliver + retry', async () => {
     jest.spyOn(console, 'error').mockImplementation(() => {});
     const { result } = renderHook(() => useInAppPurchase());

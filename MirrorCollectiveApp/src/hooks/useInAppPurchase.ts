@@ -181,9 +181,6 @@ const handlePurchaseUpdate = async (
   if (txId && processedTransactionIds.has(txId)) {
     return;
   }
-  if (txId) {
-    processedTransactionIds.add(txId);
-  }
 
   const receipt = Platform.select({
     ios: purchase.transactionReceipt,
@@ -192,9 +189,17 @@ const handlePurchaseUpdate = async (
 
   // No receipt means there is nothing to verify — clear the flag so the CTA
   // never wedges on "LOADING..." waiting for a verification that can't happen.
+  // Do NOT mark the transaction processed here: if StoreKit later redelivers
+  // the same transaction WITH a receipt, we must still verify it (else the user
+  // could be charged but never activated).
   if (!receipt) {
     setState({ purchasing: false });
     return;
+  }
+
+  // Mark processed only now that we're actually going to verify + finish it.
+  if (txId) {
+    processedTransactionIds.add(txId);
   }
 
   const wasUserInitiated = userInitiatedPurchase;
