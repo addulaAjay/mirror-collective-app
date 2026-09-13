@@ -31,7 +31,13 @@ export function isUserNotConfirmedError(err: unknown): boolean {
   return (
     msg.includes('user is not confirmed') ||
     msg.includes('user not confirmed') ||
-    msg.includes('email is not verified')
+    msg.includes('email is not verified') ||
+    // The backend remaps Cognito's UserNotConfirmedException to this phrasing
+    // (AuthenticationError, 401), which none of the above matched — so the
+    // login recovery-to-verify path never fired and the user saw a generic
+    // error instead of being routed to the verification screen.
+    msg.includes('account not verified') ||
+    msg.includes('check your email for verification')
   );
 }
 
