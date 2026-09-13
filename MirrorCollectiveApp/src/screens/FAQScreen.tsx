@@ -1,6 +1,6 @@
 // FAQScreen.tsx
+import { useNavigation } from '@react-navigation/native';
 import React from 'react';
-import { palette, fontFamily } from '@theme';
 import {
   View,
   Text,
@@ -12,7 +12,8 @@ import {
   UIManager,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+
+import { palette, fontFamily } from '@theme';
 
 import BackgroundWrapper from '../components/BackgroundWrapper';
 import LogoHeader from '../components/LogoHeader';
@@ -77,7 +78,7 @@ const SECTIONS: Section[] = [
       },
       {
         q: 'Can I cancel anytime?',
-        a: 'Yes. Manage or cancel in your App Store or Google Play settings.',
+        a: 'Yes. Manage or cancel anytime in your App Store subscription settings.',
       },
       {
         q: 'Need help or want to share feedback?',
@@ -420,7 +421,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: 'rgba(163, 179, 204, 0.05)',
     borderWidth: 0.25,
-    borderColor: '#808fb2',
+    borderColor: palette.navy.border,
     padding: 8,
     paddingHorizontal: 12,
   },
@@ -440,14 +441,14 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 20,
     lineHeight: 24,
-    color: '#fdfdf9',
+    color: palette.gold.subtlest,
     fontFamily: 'CormorantGaramond-Italic',
   },
 
   cardIcon: {
     fontSize: 22,
     lineHeight: 24,
-    color: '#fdfdf9',
+    color: palette.gold.subtlest,
     marginLeft: 8,
     marginTop: 1,
   },
@@ -455,7 +456,7 @@ const styles = StyleSheet.create({
   cardAnswer: {
     fontSize: 16,
     lineHeight: 24,
-    color: '#fdfdf9',
+    color: palette.gold.subtlest,
     fontFamily: fontFamily.body,
     paddingBottom: 4,
   },
