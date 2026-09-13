@@ -13,27 +13,26 @@ import { ChatErrorBoundary } from '@components/error';
 import { SessionProvider, useSession } from '@context/SessionContext';
 import { SubscriptionProvider } from '@context/SubscriptionContext';
 import { UserProvider } from '@context/UserContext';
+import { JourneyProvider } from '@features/reflection-room/state/JourneyContext';
 import useAppStateHandler from '@hooks/useAppStateHandler';
 import useInactivityTimer from '@hooks/useInactivityTimer';
 // Import your screens
 import AboutScreen from '@screens/AboutScreen';
 import AppVideoScreen from '@screens/AppVideoScreen';
 import ArchetypeScreen from '@screens/ArchetypeScreen';
-import CheckoutScreen from '@screens/CheckoutScreen';
 import AddNewProfileScreen from '@screens/echoVault/AddNewProfileScreen';
 import ChooseGuardianScreen from '@screens/echoVault/ChooseGuardianScreen';
 import ChooseRecipientScreen from '@screens/echoVault/ChooseRecipientScreen';
-import MirrorEchoVaultHomeScreen from '@screens/echoVault/EchoVaultHomeScreen';
+import CreateEchoScreen from '@screens/echoVault/CreateEchoScreen';
 import EchoInboxScreen from '@screens/echoVault/EchoInboxScreen';
+import MirrorEchoVaultHomeScreen from '@screens/echoVault/EchoVaultHomeScreen';
 import MirrorEchoVaultLibraryScreen from '@screens/echoVault/EchoVaultLibraryScreen';
 import ManageGuardianScreen from '@screens/echoVault/ManageGuardianScreen';
 import ManageRecipientScreen from '@screens/echoVault/ManageRecipientScreen';
 import NewEchoAudioScreen from '@screens/echoVault/NewEchoAudioScreen';
 import NewEchoComposeScreen from '@screens/echoVault/NewEchoComposeScreen';
-import CreateEchoScreen from '@screens/echoVault/CreateEchoScreen';
 import NewEchoScreen from '@screens/echoVault/NewEchoVaultScreen';
 import NewEchoVideoScreen from '@screens/echoVault/NewEchoVideoScreen';
-import EchoVaultStorageScreen from '@screens/EchoVaultStorageScreen';
 import EnterMirrorScreen from '@screens/EnterMirrorScreen';
 import FAQScreen from '@screens/FAQScreen';
 import ForgotPasswordScreen from '@screens/ForgotPasswordScreen';
@@ -41,7 +40,6 @@ import LoginScreen from '@screens/LoginScreen';
 import MirrorAnimationScreen from '@screens/MirrorAnimationScreen';
 import MirrorChatScreen from '@screens/MirrorChatScreen';
 import MirrorCodeLibraryCommingsoonScreen from '@screens/MirrorCodeLibraryCommingsoonScreen';
-import ReflectionRoomCommingsoonScreen from '@screens/ReflectionRoomCommingsoonScreen';
 import MirrorEchoCommingsoonScreen from '@screens/MirrorEchoCommingsoonScreen';
 import CausesCarouselScreen from '@screens/MirrorPledge/CausesCarouselScreen';
 import EchoLedgerScreen from '@screens/MirrorPledge/EchoLedgerScreen';
@@ -65,12 +63,11 @@ import ReflectionRoomQuizEntryScreen from '@screens/reflectionRoom/ReflectionRoo
 import ReflectionRoomQuizScreen from '@screens/reflectionRoom/ReflectionRoomQuizScreen';
 import ReflectionRoomTodaysMotifScreen from '@screens/reflectionRoom/ReflectionRoomTodaysMotifScreen';
 import ReflectionRoomWelcomeScreen from '@screens/reflectionRoom/ReflectionRoomWelcomeScreen';
-
-import { JourneyProvider } from '@features/reflection-room/state/JourneyContext';
+import ReflectionRoomCommingsoonScreen from '@screens/ReflectionRoomCommingsoonScreen';
 import ResetPasswordScreen from '@screens/ResetPasswordScreen';
 import SignUpScreen from '@screens/SignUpScreen';
-import SplashScreen from '@screens/SplashScreen';
 import SoulPingScreen from '@screens/SoulPingScreen';
+import SplashScreen from '@screens/SplashScreen';
 import StartFreeTrialScreen from '@screens/StartFreeTrialScreen';
 import TalkToMirrorScreen from '@screens/TalkToMirrorScreen';
 import TermsAndConditionsScreen from '@screens/TermsAndConditionsScreen';
@@ -87,14 +84,15 @@ import PushNotificationService from '@services/PushNotificationService';
 import { ThemeProvider, palette } from '@theme';
 import type { RootStackParamList } from '@types';
 
+import BackgroundWrapper from './src/components/BackgroundWrapper';
+import ErrorBoundary from './src/components/ErrorBoundary';
+
 // DEV-only: button visual QA + blur tuning screen. Loaded lazily so the
 // showcase code never executes outside __DEV__.
 const ButtonShowcaseScreen = __DEV__
   ? require('./src/screens/_dev/ButtonShowcase').default
   : null;
 
-import BackgroundWrapper from './src/components/BackgroundWrapper';
-import ErrorBoundary from './src/components/ErrorBoundary';
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 // Dark navigation theme. Without an explicit theme, React Navigation falls back
@@ -204,8 +202,6 @@ const AuthNavigator = () => (
       component={TermsAndConditionsScreen}
     />
     <Stack.Screen name="StartFreeTrial" component={StartFreeTrialScreen} />
-    <Stack.Screen name="Checkout" component={CheckoutScreen} />
-    <Stack.Screen name="EchoVaultStorage" component={EchoVaultStorageScreen} />
     <Stack.Screen name="Splash" component={SplashScreen} />
     <Stack.Screen name="MirrorAnimation" component={MirrorAnimationScreen} />
     {/* Quiz Flow (Pre-Auth) */}
@@ -283,9 +279,7 @@ const AuthenticatedNavigator = ({ initialRouteName = 'EnterMirror' }: Authentica
     <Stack.Screen name="ChooseGuardianScreen" component={ChooseGuardianScreen} />
     <Stack.Screen name="ChooseRecipientScreen" component={ChooseRecipientScreen} />
     <Stack.Screen name="AddNewProfileScreen" component={AddNewProfileScreen} />
-    <Stack.Screen name="Checkout" component={CheckoutScreen} />
     <Stack.Screen name="StartFreeTrial" component={StartFreeTrialScreen} />
-    <Stack.Screen name="EchoVaultStorage" component={EchoVaultStorageScreen} />
   </Stack.Navigator>
 );
 

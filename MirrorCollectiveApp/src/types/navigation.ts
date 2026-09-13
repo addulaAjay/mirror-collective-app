@@ -27,7 +27,6 @@ export type RootStackParamList = {
     phoneNumber?: string;
   };
   StartFreeTrial: undefined;
-  EchoVaultStorage: undefined;
   MirrorEcho: undefined;
   ReflectionRoom: undefined;
   ReflectionRoomCommingsoon: undefined;
@@ -211,7 +210,6 @@ export type RootStackParamList = {
         };
       }
     | undefined;
-  Checkout: undefined;
 };
 
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
