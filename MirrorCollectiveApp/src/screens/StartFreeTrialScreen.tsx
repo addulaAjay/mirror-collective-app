@@ -45,16 +45,12 @@ import type { RootStackParamList } from '@types';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'StartFreeTrial'>;
 
-// iOS Manage Subscriptions deep link — monthly↔yearly plan changes for an
-// active subscription are handled by Apple, not the in-app paywall.
-const MANAGE_SUBSCRIPTIONS_URL = 'https://apps.apple.com/account/subscriptions';
-
 const StartFreeTrialScreen = () => {
     const navigation = useNavigation<NavigationProp>();
     const canGoBack = navigation.canGoBack();
     const { status, hasUsedTrial, hasActiveSubscription, refreshSubscriptionStatus } = useSubscription();
     const { setAuthenticated } = useSession();
-    const { purchaseSubscription, restorePurchases, purchasing, PRODUCT_IDS, products } = useInAppPurchase({
+    const { purchaseSubscription, restorePurchases, openManageSubscriptions, purchasing, PRODUCT_IDS, products } = useInAppPurchase({
         // A paid purchase is confirmed asynchronously (StoreKit listener →
         // backend verify). When that completes, refresh status and enter the
         // app — mirroring the trial path, which calls setAuthenticated()
@@ -84,10 +80,10 @@ const StartFreeTrialScreen = () => {
 
     const handleButtonPress = async () => {
         if (isActivePaid) {
-            // Already on a paid plan. Monthly↔yearly changes are an Apple-managed
-            // upgrade/downgrade — deep-link to Manage Subscriptions rather than
-            // showing a dead-end disabled button.
-            await openLink(MANAGE_SUBSCRIPTIONS_URL);
+            // Already on a paid plan. Monthly↔yearly changes are Apple-managed —
+            // open Apple's Manage Subscriptions (native sheet, URL fallback)
+            // rather than showing a dead-end disabled button.
+            await openManageSubscriptions();
             return;
         }
 

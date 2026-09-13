@@ -9,8 +9,9 @@
  *
  * Subscription data comes from SubscriptionContext (server = source of truth).
  */
+import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   View,
   Text,
@@ -36,11 +37,6 @@ import { useInAppPurchase, localizedPrice } from '@hooks/useInAppPurchase';
 import { palette, fontFamily, fontSize, scale, radius } from '@theme';
 import type { RootStackParamList } from '@types';
 
-// iOS Manage Subscriptions deep link. Auto-renewable subscriptions cannot be
-// cancelled programmatically — Apple requires the user to do it in Settings /
-// the App Store, so END SUBSCRIPTION routes there.
-const MANAGE_SUBSCRIPTIONS_URL = 'https://apps.apple.com/account/subscriptions';
-
 
 type Props = NativeStackScreenProps<RootStackParamList, 'MySubscription'>;
 
@@ -55,9 +51,27 @@ const Bullet: React.FC<{ lead: string; rest: string }> = ({ lead, rest }) => (
 );
 
 const MySubscriptionScreen: React.FC<Props> = ({ navigation }) => {
-  const { status, isInTrial, trialDaysRemaining, hasActiveSubscription, loading } =
-    useSubscription();
-  const { restorePurchases, products, PRODUCT_IDS } = useInAppPurchase();
+  const {
+    status,
+    isInTrial,
+    trialDaysRemaining,
+    hasActiveSubscription,
+    loading,
+    refreshSubscriptionStatus,
+  } = useSubscription();
+  const { restorePurchases, openManageSubscriptions, products, PRODUCT_IDS } =
+    useInAppPurchase();
+
+  // Refresh subscription status every time this screen gains focus. The status
+  // lives in an app-level provider that only refetches on mount / user change,
+  // so without this the screen could render a stale button (e.g. after a
+  // purchase or plan change on another screen) until the user navigated away
+  // and back.
+  useFocusEffect(
+    useCallback(() => {
+      refreshSubscriptionStatus();
+    }, [refreshSubscriptionStatus]),
+  );
   const monthlyPrice = localizedPrice(products, PRODUCT_IDS.CORE_MONTHLY, '$9.99');
   const yearlyPrice = localizedPrice(products, PRODUCT_IDS.CORE_YEARLY, '$89');
   const [restoring, setRestoring] = useState(false);
@@ -78,15 +92,16 @@ const MySubscriptionScreen: React.FC<Props> = ({ navigation }) => {
     }
   };
 
-  const handleEndSubscription = () => {
+  const handleManageSubscription = () => {
     Alert.alert(
-      'End subscription',
-      'You manage and cancel your subscription in the App Store. Open Manage Subscriptions now?',
+      'Manage subscription',
+      'Change your plan (monthly or yearly) or cancel your subscription in the '
+        + 'App Store. Open Manage Subscriptions now?',
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: 'Not now', style: 'cancel' },
         {
           text: 'Open',
-          onPress: () => openLink(MANAGE_SUBSCRIPTIONS_URL),
+          onPress: () => openManageSubscriptions(),
         },
       ],
     );
@@ -208,8 +223,8 @@ const MySubscriptionScreen: React.FC<Props> = ({ navigation }) => {
             <Button
               variant="primary"
               size="L"
-              title="END SUBSCRIPTION"
-              onPress={handleEndSubscription}
+              title="MANAGE SUBSCRIPTION"
+              onPress={handleManageSubscription}
             />
           ) : (
             <Button

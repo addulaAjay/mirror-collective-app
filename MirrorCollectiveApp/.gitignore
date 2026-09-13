@@ -171,3 +171,7 @@ update_imports.py
 
 # Project scripts (outside app folder)
 ../scripts/
+
+# patch-package patches MUST be committed so postinstall can apply them on CI
+!patches/
+!patches/**
