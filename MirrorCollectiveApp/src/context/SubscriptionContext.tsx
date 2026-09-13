@@ -7,9 +7,10 @@ import React, {
   useCallback,
 } from 'react';
 
+import {subscriptionApiService} from '@/services/api/subscriptionApi';
+
 import {useUser} from './UserContext';
 
-import {subscriptionApiService} from '@/services/api/subscriptionApi';
 
 interface SubscriptionFeatures {
   echo_vault_enabled: boolean;
@@ -75,6 +76,18 @@ export const SubscriptionProvider = ({
 
   const refreshSubscriptionStatus = useCallback(async () => {
     if (!user) {
+      // Logged out (or between accounts): reset to the free/no-subscription
+      // defaults. Without this, the PREVIOUS user's status (e.g. 'active')
+      // lingers in the shared provider and bleeds into the next session — a
+      // brand-new user would then see the paywall's "MANAGE SUBSCRIPTION"
+      // (isActivePaid) instead of "START FREE TRIAL".
+      setTier('free');
+      setStatus('none');
+      setTrialDaysRemaining(0);
+      setFeatures(defaultFeatures);
+      setCoreSubscription(null);
+      setStorageSubscription(null);
+      setHasUsedTrial(false);
       setLoading(false);
       return;
     }
