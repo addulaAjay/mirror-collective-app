@@ -53,6 +53,35 @@ describe('MySubscriptionScreen', () => {
     expect(getByText('Active subscription')).toBeTruthy();
   });
 
+  it('shows "Cancelled · access until <date>" when auto-renew is off', () => {
+    // A cancel keeps status active; only auto_renew flips. The screen must
+    // reflect that instead of the misleading "Active subscription".
+    const future = new Date(Date.now() + 30 * 864e5).toISOString();
+    mockSub = {
+      ...mockSub,
+      status: 'active',
+      coreSubscription: { auto_renew_enabled: false, expiry_date: future },
+    };
+    const { getByText, queryByText } = render(
+      <MySubscriptionScreen navigation={nav as never} route={{} as never} />,
+    );
+    expect(getByText(/Cancelled · access until/)).toBeTruthy();
+    expect(queryByText('Active subscription')).toBeNull();
+  });
+
+  it('shows "Active · renews <date>" when auto-renew is on with a future expiry', () => {
+    const future = new Date(Date.now() + 30 * 864e5).toISOString();
+    mockSub = {
+      ...mockSub,
+      status: 'active',
+      coreSubscription: { auto_renew_enabled: true, expiry_date: future },
+    };
+    const { getByText } = render(
+      <MySubscriptionScreen navigation={nav as never} route={{} as never} />,
+    );
+    expect(getByText(/Active · renews/)).toBeTruthy();
+  });
+
   it('shows the trial status line while in trial', () => {
     mockSub = { ...mockSub, isInTrial: true, trialDaysRemaining: 10, status: 'trial' };
     const { getByText } = render(
