@@ -34,7 +34,15 @@ import StarIcon from '@components/StarIcon';
 import { LEGAL_LINKS } from '@constants/config';
 import { useSubscription } from '@context/SubscriptionContext';
 import { useInAppPurchase, localizedPrice } from '@hooks/useInAppPurchase';
-import { palette, fontFamily, fontSize, scale, radius } from '@theme';
+import {
+  palette,
+  fontFamily,
+  fontSize,
+  scale,
+  verticalScale,
+  moderateScale,
+  radius,
+} from '@theme';
 import type { RootStackParamList } from '@types';
 
 
@@ -57,6 +65,8 @@ const MySubscriptionScreen: React.FC<Props> = ({ navigation }) => {
     trialDaysRemaining,
     hasActiveSubscription,
     coreSubscription,
+    storageSubscription,
+    features,
     loading,
     refreshSubscriptionStatus,
   } = useSubscription();
@@ -246,6 +256,30 @@ const MySubscriptionScreen: React.FC<Props> = ({ navigation }) => {
           </View>
         )}
 
+        {/* Storage usage + add-on entry. Only meaningful with active Core —
+            the add-on grants no quota without it (backend rule). */}
+        {hasActiveSubscription && (
+          <View style={styles.storageRow}>
+            <Text style={styles.storageUsage}>
+              {`${(features?.used_gb ?? 0).toFixed(1)} of ${
+                features?.quota_gb ?? 0
+              } GB used`}
+            </Text>
+            {storageSubscription ? (
+              <Text style={styles.storageActive}>
+                Storage add-on active · +100 GB
+              </Text>
+            ) : (
+              <TouchableOpacity
+                accessibilityRole="button"
+                onPress={() => navigation.navigate('AddStorage')}
+              >
+                <Text style={styles.storageAddLink}>+ Add Storage (100 GB)</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
+
         <View style={styles.footer}>
           {hasActiveSubscription ? (
             <Button
@@ -409,6 +443,30 @@ const styles = StyleSheet.create({
   },
 
   footer: { paddingVertical: 20, alignItems: 'center', gap: 16 },
+  storageRow: {
+    alignItems: 'center',
+    gap: verticalScale(4),
+    paddingTop: verticalScale(8),
+  },
+  storageUsage: {
+    fontFamily: fontFamily.bodyLight,
+    fontSize: moderateScale(fontSize.s),
+    color: palette.gold.subtlest,
+    textAlign: 'center',
+  },
+  storageActive: {
+    fontFamily: fontFamily.body,
+    fontSize: moderateScale(fontSize.s),
+    color: palette.gold.subtlest,
+    textAlign: 'center',
+  },
+  storageAddLink: {
+    fontFamily: fontFamily.body,
+    fontSize: moderateScale(fontSize.s),
+    color: palette.gold.DEFAULT,
+    textAlign: 'center',
+    textDecorationLine: 'underline',
+  },
   footerLinksRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   footerLinkText: {
     fontFamily: fontFamily.bodyLight,
