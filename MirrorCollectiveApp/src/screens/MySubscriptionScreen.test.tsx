@@ -98,6 +98,19 @@ describe('MySubscriptionScreen', () => {
     expect(Alert.alert).toHaveBeenCalled();
   });
 
+  it('warns that cancelling Core also ends the add-on when storage is active', () => {
+    mockSub = {
+      ...mockSub,
+      storageSubscription: { auto_renew_enabled: true },
+    };
+    const { getByText } = render(
+      <MySubscriptionScreen navigation={nav as never} route={{} as never} />,
+    );
+    fireEvent.press(getByText('MANAGE SUBSCRIPTION'));
+    const message = (Alert.alert as jest.Mock).mock.calls[0][1];
+    expect(message).toMatch(/add-on/i);
+  });
+
   it('shows SUBSCRIBE (not END SUBSCRIPTION) and routes to the paywall when not active', () => {
     mockSub = {
       ...mockSub,

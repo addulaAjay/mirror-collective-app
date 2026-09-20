@@ -131,18 +131,24 @@ const MySubscriptionScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   const handleManageSubscription = () => {
-    Alert.alert(
-      'Manage subscription',
-      'Change your plan (monthly or yearly) or cancel your subscription in the '
-        + 'App Store. Open Manage Subscriptions now?',
-      [
-        { text: 'Not now', style: 'cancel' },
-        {
-          text: 'Open',
-          onPress: () => openManageSubscriptions(),
-        },
-      ],
-    );
+    // When the storage add-on is active, warn that cancelling Mirror Basic also
+    // ends the add-on — and that the add-on bills separately on the App Store,
+    // so they must cancel it too if they no longer want it (Apple treats them as
+    // independent subscriptions; we can't cancel one from the other).
+    const message = storageSubscription
+      ? 'Change your plan or cancel in the App Store.\n\n'
+        + 'Note: cancelling Mirror Basic also ends your Echo Vault Storage '
+        + 'add-on. The add-on is billed separately, so cancel it too in the '
+        + 'App Store if you no longer want it.\n\nOpen Manage Subscriptions now?'
+      : 'Change your plan (monthly or yearly) or cancel your subscription in the '
+        + 'App Store. Open Manage Subscriptions now?';
+    Alert.alert('Manage subscription', message, [
+      { text: 'Not now', style: 'cancel' },
+      {
+        text: 'Open',
+        onPress: () => openManageSubscriptions(),
+      },
+    ]);
   };
 
   // Expired / never-subscribed users have no StoreKit purchase to restore —
