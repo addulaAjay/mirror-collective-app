@@ -56,6 +56,7 @@ const MySubscriptionScreen: React.FC<Props> = ({ navigation }) => {
     isInTrial,
     trialDaysRemaining,
     hasActiveSubscription,
+    coreSubscription,
     loading,
     refreshSubscriptionStatus,
   } = useSubscription();
@@ -76,10 +77,37 @@ const MySubscriptionScreen: React.FC<Props> = ({ navigation }) => {
   const yearlyPrice = localizedPrice(products, PRODUCT_IDS.CORE_YEARLY, '$89');
   const [restoring, setRestoring] = useState(false);
 
+  // Format an ISO date like the rest of the app ("September 21, 2026"), but only
+  // when it's a valid FUTURE date — a stale/past expiry from the backend
+  // shouldn't render a confusing "access until <past date>".
+  const formatFutureDate = (iso?: string): string => {
+    if (!iso) return '';
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime()) || d.getTime() <= Date.now()) return '';
+    return d.toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  };
+
+  // A cancel keeps `status === 'active'` until the period ends — only
+  // `auto_renew_enabled` flips. Surface that so a cancelled-but-still-active
+  // user sees "Cancelled" instead of a misleading "Active subscription".
+  const renewLabel = formatFutureDate(coreSubscription?.expiry_date);
+  const activeLine =
+    coreSubscription?.auto_renew_enabled === false
+      ? renewLabel
+        ? `Cancelled · access until ${renewLabel}`
+        : "Cancelled · won't renew"
+      : renewLabel
+        ? `Active · renews ${renewLabel}`
+        : 'Active subscription';
+
   const statusLine = isInTrial
     ? `${trialDaysRemaining || 14}-day free trial`
     : status === 'active'
-      ? 'Active subscription'
+      ? activeLine
       : status === 'expired' || status === 'trial_expired'
         ? 'Subscription expired'
         : 'No active subscription';
