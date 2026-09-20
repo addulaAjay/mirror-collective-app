@@ -58,7 +58,8 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'AddStorage'
 const AddStorageScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const canGoBack = navigation.canGoBack();
-  const { storageSubscription, refreshSubscriptionStatus } = useSubscription();
+  const { storageSubscription, hasActiveSubscription, refreshSubscriptionStatus } =
+    useSubscription();
   const {
     purchaseSubscription,
     restorePurchases,
@@ -89,6 +90,25 @@ const AddStorageScreen = () => {
   const handleAdd = async () => {
     if (isAddonActive) {
       await openManageSubscriptions();
+      return;
+    }
+    // Client-side guard: the add-on requires active Mirror Basic (Apple can't
+    // enforce this — separate subscription groups — and the backend grants no
+    // add-on quota without Core). Block the purchase and route to Core instead
+    // of selling storage that would give the user nothing.
+    if (!hasActiveSubscription) {
+      Alert.alert(
+        'Mirror Basic required',
+        'The Echo Vault Storage add-on adds space on top of Mirror Basic. '
+          + 'Start Mirror Basic first, then add storage anytime.',
+        [
+          { text: 'Not now', style: 'cancel' },
+          {
+            text: 'Get Mirror Basic',
+            onPress: () => navigation.navigate('StartFreeTrial'),
+          },
+        ],
+      );
       return;
     }
     const productId =
