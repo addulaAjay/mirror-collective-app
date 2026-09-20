@@ -66,7 +66,6 @@ const MySubscriptionScreen: React.FC<Props> = ({ navigation }) => {
     hasActiveSubscription,
     coreSubscription,
     storageSubscription,
-    features,
     loading,
     refreshSubscriptionStatus,
   } = useSubscription();
@@ -262,15 +261,10 @@ const MySubscriptionScreen: React.FC<Props> = ({ navigation }) => {
           </View>
         )}
 
-        {/* Storage usage + add-on entry. Only meaningful with active Core —
-            the add-on grants no quota without it (backend rule). */}
+        {/* Storage add-on entry. Only meaningful with active Core — the add-on
+            grants no quota without it (backend rule). */}
         {hasActiveSubscription && (
           <View style={styles.storageRow}>
-            <Text style={styles.storageUsage}>
-              {`${(features?.used_gb ?? 0).toFixed(1)} of ${
-                features?.quota_gb ?? 0
-              } GB used`}
-            </Text>
             {storageSubscription ? (
               <Text style={styles.storageActive}>
                 Storage add-on active · +100 GB
@@ -453,12 +447,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: verticalScale(4),
     paddingTop: verticalScale(8),
-  },
-  storageUsage: {
-    fontFamily: fontFamily.bodyLight,
-    fontSize: moderateScale(fontSize.s),
-    color: palette.gold.subtlest,
-    textAlign: 'center',
   },
   storageActive: {
     fontFamily: fontFamily.body,
