@@ -37,6 +37,7 @@ import {
   Alert,
   ScrollView,
   Linking,
+  ActivityIndicator,
   type ViewStyle,
   type TextStyle,
   type ImageStyle,
@@ -267,7 +268,7 @@ const AddStorageScreen = () => {
                   variant="gradient"
                   title={
                     purchasing
-                      ? 'LOADING...'
+                      ? 'PROCESSING…'
                       : isAddonActive
                         ? 'MANAGE'
                         : 'ADD'
@@ -284,13 +285,29 @@ const AddStorageScreen = () => {
                   ]}
                 />
 
-                {!isAddonActive && (
-                  <TouchableOpacity
-                    accessibilityRole="button"
-                    onPress={() => navigation.goBack()}
-                  >
-                    <Text style={styles.notNow}>Not Now</Text>
-                  </TouchableOpacity>
+                {/* While a purchase is in flight (tap → StoreKit → backend
+                    verify), show an explicit processing state and hide "Not Now"
+                    so the user can't navigate away mid-verification. On verify,
+                    onPurchaseVerified pops back automatically. */}
+                {purchasing ? (
+                  <View style={styles.processingRow}>
+                    <ActivityIndicator
+                      size="small"
+                      color={palette.gold.DEFAULT}
+                    />
+                    <Text style={styles.processingText}>
+                      Processing your purchase…
+                    </Text>
+                  </View>
+                ) : (
+                  !isAddonActive && (
+                    <TouchableOpacity
+                      accessibilityRole="button"
+                      onPress={() => navigation.goBack()}
+                    >
+                      <Text style={styles.notNow}>Not Now</Text>
+                    </TouchableOpacity>
+                  )
                 )}
 
                 <Text style={styles.changeAnytime}>
@@ -384,6 +401,8 @@ const styles = StyleSheet.create<{
   ctaButtonContent: ViewStyle;
   ctaButtonText: TextStyle;
   notNow: TextStyle;
+  processingRow: ViewStyle;
+  processingText: TextStyle;
   changeAnytime: TextStyle;
   disclosureText: TextStyle;
   footerLinksRow: ViewStyle;
@@ -601,6 +620,20 @@ const styles = StyleSheet.create<{
     textAlign: 'center',
     textDecorationLine: 'underline',
     marginTop: verticalScale(4),
+  },
+  processingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: scale(8),
+    marginTop: verticalScale(4),
+  },
+  processingText: {
+    fontFamily: fontFamily.body,
+    fontSize: moderateScale(fontSize.s),
+    fontWeight: fontWeight.light,
+    color: palette.gold.subtlest,
+    textAlign: 'center',
   },
   changeAnytime: {
     fontFamily: fontFamily.bodyItalic,
