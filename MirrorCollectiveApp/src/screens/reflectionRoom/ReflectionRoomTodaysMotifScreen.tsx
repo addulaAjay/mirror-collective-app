@@ -1,9 +1,11 @@
 /**
- * Reflection Room — Today's Motif reveal (§12.6, Figma node 4654-3272 frame 7).
+ * Reflection Room — Today's Motif reveal (§12.6, Figma node 7128-5771 success /
+ * 7128-6104 error).
  *
  * Renders the motif assigned by /reflection/quiz, sourced from JourneyContext.
  * Handles two states:
- *   - success: motif name (uppercase) + glyph + why_text + "VIEW SIGNATURE" CTA.
+ *   - success: TODAY'S MOTIF eyebrow (with info affordance) + motif name
+ *     (uppercase) + glyph + why_text + "VIEW ECHO SIGNATURE" CTA.
  *   - error  : §12.7 RESULTS NOT AVAILABLE state with retry CTA back to QuizEntry.
  */
 
@@ -13,7 +15,15 @@ import type {
   NativeStackScreenProps,
 } from '@react-navigation/native-stack';
 import React from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  Image,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
 
@@ -21,24 +31,27 @@ import { MOTIF_SVG } from '@assets/motifs-icons/MotifIconAssets';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
 import {
-  borderWidth,
-  fontFamily,
-  fontSize,
-  lineHeight,
-  palette,
-  radius,
-  spacing,
-  textShadow,
-} from '@theme';
-import type { RootStackParamList } from '@types';
-
-import {
   QUIZ_ERROR,
   TODAYS_MOTIF,
   displayMotifUpper,
 } from '@features/reflection-room/copy/strings';
 import { useJourney } from '@features/reflection-room/state/JourneyContext';
 import type { MotifId } from '@features/reflection-room/types/ids';
+import {
+  borderWidth,
+  fontFamily,
+  fontSize,
+  glassGradient,
+  lineHeight,
+  moderateScale,
+  palette,
+  radius,
+  scale,
+  spacing,
+  textShadow,
+  verticalScale,
+} from '@theme';
+import type { RootStackParamList } from '@types';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -46,6 +59,35 @@ type RouteProps = NativeStackScreenProps<
   RootStackParamList,
   'ReflectionRoomTodaysMotif'
 >;
+
+const ICON_SIZE = scale(24);
+const GLYPH_SIZE = scale(240);
+
+/**
+ * Glass CTA — Figma "Component 5": transparent-white vertical gradient over a
+ * subtle steel border, radius s (top-right radius m), Heading S gold label.
+ */
+const GlassCta: React.FC<{
+  label: string;
+  accessibilityLabel: string;
+  onPress: () => void;
+}> = ({ label, accessibilityLabel, onPress }) => (
+  <Pressable
+    onPress={onPress}
+    accessibilityRole="button"
+    accessibilityLabel={accessibilityLabel}
+    style={({ pressed }) => [styles.ctaWrap, pressed && styles.pressed]}
+  >
+    <LinearGradient
+      colors={[glassGradient.echoSecondary.start, glassGradient.echoSecondary.end]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 0, y: 1 }}
+      style={styles.ctaButton}
+    >
+      <Text style={styles.ctaText}>{label}</Text>
+    </LinearGradient>
+  </Pressable>
+);
 
 const ReflectionRoomTodaysMotifScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
@@ -88,38 +130,40 @@ const ReflectionRoomTodaysMotifScreen: React.FC = () => {
           contentContainerStyle={styles.scroll}
           showsVerticalScrollIndicator={false}
         >
-          <Text
-            style={styles.eyebrow}
-            accessibilityRole="header"
-            accessibilityLabel={TODAYS_MOTIF.eyebrow}
-          >
-            {TODAYS_MOTIF.eyebrow}
-          </Text>
+          {/* Eyebrow row: leading spacer, centered title, info affordance. */}
+          <View style={styles.titleRow}>
+            <View style={styles.iconSlot} accessibilityElementsHidden />
+            <Text
+              style={styles.eyebrow}
+              accessibilityRole="header"
+              accessibilityLabel={TODAYS_MOTIF.eyebrow}
+            >
+              {TODAYS_MOTIF.eyebrow}
+            </Text>
+            <View style={styles.iconSlot} accessibilityElementsHidden>
+              <Image
+                source={require('@assets/rr-info-icon.png')}
+                style={styles.infoIcon}
+                resizeMode="contain"
+              />
+            </View>
+          </View>
+
           <Text style={styles.motifName} accessibilityLabel={motif.motif_name}>
             {motifNameUpper}
           </Text>
 
           <View style={styles.glyphContainer} accessibilityElementsHidden>
-            <SvgXml
-              xml={motifSvg}
-              width="100%"
-              height="100%"
-            />
+            <SvgXml xml={motifSvg} width="100%" height="100%" />
           </View>
 
           <Text style={styles.whyText}>{motif.why_text}</Text>
 
-          <Pressable
-            onPress={() => navigation.replace('ReflectionRoomEchoSignature')}
-            accessibilityRole="button"
+          <GlassCta
+            label="VIEW ECHO SIGNATURE"
             accessibilityLabel="View Signature"
-            style={({ pressed }) => [
-              styles.ctaButton,
-              pressed && styles.pressed,
-            ]}
-          >
-            <Text style={styles.ctaText}>VIEW SIGNATURE</Text>
-          </Pressable>
+            onPress={() => navigation.replace('ReflectionRoomEchoSignature')}
+          />
         </ScrollView>
       </SafeAreaView>
     </BackgroundWrapper>
@@ -133,28 +177,22 @@ const ErrorState: React.FC<{ onRetry: () => void }> = ({ onRetry }) => (
     <SafeAreaView style={styles.safe}>
       <LogoHeader />
       <ScrollView
-        contentContainerStyle={styles.scroll}
+        contentContainerStyle={styles.errorScroll}
         showsVerticalScrollIndicator={false}
       >
         <Text
-          style={styles.eyebrow}
+          style={styles.errorHeader}
           accessibilityRole="header"
           accessibilityLabel={QUIZ_ERROR.header}
         >
           {QUIZ_ERROR.header}
         </Text>
         <Text style={styles.errorBody}>{QUIZ_ERROR.body}</Text>
-        <Pressable
-          onPress={onRetry}
-          accessibilityRole="button"
+        <GlassCta
+          label="RETAKE QUIZ"
           accessibilityLabel="Retake Quiz"
-          style={({ pressed }) => [
-            styles.ctaButton,
-            pressed && styles.pressed,
-          ]}
-        >
-          <Text style={styles.ctaText}>RETAKE QUIZ</Text>
-        </Pressable>
+          onPress={onRetry}
+        />
       </ScrollView>
     </SafeAreaView>
   </BackgroundWrapper>
@@ -165,37 +203,55 @@ const styles = StyleSheet.create({
   safe: { flex: 1 },
   scroll: {
     alignItems: 'center',
-    paddingHorizontal: spacing.l,
+    paddingHorizontal: scale(24),
     paddingBottom: spacing.xxxl,
-    gap: spacing.l,
+    gap: verticalScale(40),
     flexGrow: 1,
     justifyContent: 'center',
   },
+  // §12.6 eyebrow row — leading spacer + centered title + info icon.
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    alignSelf: 'stretch',
+    gap: spacing.l,
+  },
+  iconSlot: {
+    width: ICON_SIZE,
+    height: ICON_SIZE,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  infoIcon: {
+    width: ICON_SIZE,
+    height: ICON_SIZE,
+    tintColor: palette.gold.DEFAULT,
+  },
   eyebrow: {
+    flex: 1,
     fontFamily: fontFamily.heading,
-    fontSize: fontSize['2xl'],
-    lineHeight: lineHeight.xl,
+    fontSize: fontSize['3xl'],
+    lineHeight: lineHeight.xxl,
     color: palette.gold.DEFAULT,
     textAlign: 'center',
-    letterSpacing: 4,
     textShadowColor: textShadow.glow.color,
     textShadowOffset: textShadow.glow.offset,
     textShadowRadius: textShadow.glow.radius,
   },
   motifName: {
     fontFamily: fontFamily.heading,
-    fontSize: fontSize['4xl'],
-    lineHeight: lineHeight.xxl,
+    fontSize: moderateScale(40),
+    lineHeight: moderateScale(52),
     color: palette.gold.DEFAULT,
     textAlign: 'center',
-    letterSpacing: 3,
     textShadowColor: textShadow.glowStrong.color,
     textShadowOffset: textShadow.glowStrong.offset,
     textShadowRadius: textShadow.glowStrong.radius,
   },
   glyphContainer: {
-    width: 240,
-    height: 240,
+    width: GLYPH_SIZE,
+    height: GLYPH_SIZE,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -207,6 +263,25 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     paddingHorizontal: spacing.s,
   },
+  // §12.7 error state.
+  errorScroll: {
+    alignItems: 'center',
+    paddingHorizontal: scale(24),
+    paddingBottom: spacing.xxxl,
+    gap: spacing.xxxl,
+    flexGrow: 1,
+    justifyContent: 'center',
+  },
+  errorHeader: {
+    fontFamily: fontFamily.heading,
+    fontSize: fontSize['2xl'],
+    lineHeight: lineHeight.xl,
+    color: palette.gold.DEFAULT,
+    textAlign: 'center',
+    textShadowColor: textShadow.glow.color,
+    textShadowOffset: textShadow.glow.offset,
+    textShadowRadius: textShadow.glow.radius,
+  },
   errorBody: {
     fontFamily: fontFamily.body,
     fontSize: fontSize.s,
@@ -215,22 +290,29 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     paddingHorizontal: spacing.s,
   },
-  ctaButton: {
-    minWidth: 240,
-    paddingVertical: spacing.s,
-    paddingHorizontal: spacing.xl,
+  // Figma "Component 5" glass CTA.
+  ctaWrap: {
     borderRadius: radius.s,
+    borderTopRightRadius: radius.m,
     borderWidth: borderWidth.thin,
     borderColor: palette.navy.light,
-    backgroundColor: palette.neutral.transparent,
+    overflow: 'hidden',
+  },
+  ctaButton: {
+    paddingVertical: spacing.s,
+    paddingHorizontal: spacing.m,
     alignItems: 'center',
     justifyContent: 'center',
   },
   ctaText: {
     fontFamily: fontFamily.heading,
     fontSize: fontSize.xl,
+    lineHeight: lineHeight.l,
     color: palette.gold.DEFAULT,
-    letterSpacing: 2,
+    textAlign: 'center',
+    textShadowColor: textShadow.glow.color,
+    textShadowOffset: textShadow.glow.offset,
+    textShadowRadius: textShadow.glow.radius,
   },
   pressed: { opacity: 0.7 },
 });

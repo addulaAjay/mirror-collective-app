@@ -41,8 +41,10 @@ import {
   fontSize,
   lineHeight,
   palette,
+  scale,
   spacing,
   textShadow,
+  verticalScale,
 } from '@theme';
 import type { RootStackParamList } from '@types';
 
@@ -201,8 +203,10 @@ const ReflectionRoomLoadingScreen: React.FC = () => {
             ))}
           </View>
 
-          <Text style={styles.status}>{QUIZ_TUNING.status}</Text>
-          <Text style={styles.body}>{QUIZ_TUNING.body}</Text>
+          <View style={styles.messageBlock}>
+            <Text style={styles.status}>{QUIZ_TUNING.status}</Text>
+            <Text style={styles.body}>{QUIZ_TUNING.body}</Text>
+          </View>
         </ScrollView>
       </SafeAreaView>
     </BackgroundWrapper>
@@ -219,15 +223,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.l,
     paddingTop: spacing.xxxl,
     paddingBottom: spacing.xxxl,
-    gap: spacing.l,
+    // Figma: 60px between the tuning title and the icon row (node 7128:5622).
+    gap: verticalScale(60),
   },
   eyebrow: {
     fontFamily: fontFamily.heading,
-    fontSize: fontSize['3xl'],
+    // Figma Heading M (Cormorant): 2XL/28 with XL/32 line-height, no tracking.
+    fontSize: fontSize['2xl'],
     lineHeight: lineHeight.xl,
-    color: palette.gold.DEFAULT,
+    color: palette.gold.DEFAULT, // text/paragraph-1 (#f2e2b1)
     textAlign: 'center',
-    letterSpacing: 2,
+    // Title wraps to two lines at 265px per the Figma frame (node 7128:5623).
+    maxWidth: scale(265),
     textShadowColor: textShadow.glow.color,
     textShadowOffset: textShadow.glow.offset,
     textShadowRadius: textShadow.glow.radius,
@@ -236,8 +243,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'flex-end',
-    gap: spacing.s,
-    marginVertical: spacing.l,
+    // Figma: 20px gap between the tuning glyphs (node 7128:5624).
+    gap: spacing.l,
   },
   iconContainer: {
     width: ICON_SIZE,
@@ -246,18 +253,26 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   icon: { width: '100%', height: '100%' },
+  // Figma node 7128:5650/5651 — status + body grouped with a 24px gap.
+  messageBlock: {
+    width: '100%',
+    alignItems: 'center',
+    gap: spacing.xl,
+  },
   status: {
     fontFamily: fontFamily.heading,
+    // Figma Heading M (Cormorant): 2XL/28 with XL/32 line-height.
     fontSize: fontSize['2xl'],
     lineHeight: lineHeight.xl,
-    color: palette.gold.subtlest,
+    color: palette.gold.subtlest, // text/paragraph-2 (#fdfdf9)
     textAlign: 'center',
   },
   body: {
     fontFamily: fontFamily.body,
+    // Figma Body S (Inter): S/16 with M/24 line-height.
     fontSize: fontSize.s,
     lineHeight: lineHeight.m,
-    color: palette.gold.subtlest,
+    color: palette.gold.subtlest, // text/paragraph-2 (#fdfdf9)
     textAlign: 'center',
     paddingHorizontal: spacing.s,
   },

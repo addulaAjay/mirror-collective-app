@@ -17,6 +17,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
 import {
+  LANDING,
   QUIZ_ENTRY,
   WELCOME_OVERLAYS,
 } from '@features/reflection-room/copy/strings';
@@ -27,9 +28,11 @@ import {
   modalColors,
   palette,
   radius,
+  scale,
   spacing,
   textShadow,
   theme,
+  verticalScale,
 } from '@theme';
 import type { RootStackParamList } from '@types';
 
@@ -48,6 +51,10 @@ const ReflectionRoomLandingScreen: React.FC = () => {
   const { welcomeChecked, welcomeSeen } = useJourney();
   const [showInfo, setShowInfo] = useState(false);
   const [infoPage, setInfoPage] = useState(0);
+  // Fail-state variant (Figma node 7128:10048 "Reflection Room - fail state").
+  // Defaults to false so the live entry flow is unchanged; flipped only when a
+  // caller/entry data-load fails. Retrying resets to the normal entry.
+  const [failState, setFailState] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -57,6 +64,67 @@ const ReflectionRoomLandingScreen: React.FC = () => {
     }, [welcomeChecked, welcomeSeen, navigation]),
   );
 
+  if (failState) {
+    return (
+      <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage}>
+        <SafeAreaView style={styles.safe}>
+          <LogoHeader />
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Frame 546: RESULTS NOT AVAILABLE — Cormorant 2XL, gold, centered */}
+            <Text
+              style={styles.failTitle}
+              accessibilityRole="header"
+              accessibilityLabel={LANDING.failHeader}
+            >
+              {LANDING.failHeader}
+            </Text>
+
+            {/* Frame 486: 317x300 archway illustration (shared with entry) */}
+            <View style={styles.imageContainer} accessibilityElementsHidden>
+              <Image
+                source={require('@assets/reflection-room-arch-1.png')}
+                style={styles.archLayer1}
+                resizeMode="contain"
+              />
+              <Image
+                source={require('@assets/reflection-room-arch-2.png')}
+                style={styles.archLayer2}
+                resizeMode="contain"
+              />
+              <Image
+                source={require('@assets/reflection-room-stairs.png')}
+                style={styles.stairsImage}
+                resizeMode="contain"
+              />
+              <Image
+                source={require('@assets/reflection-room-arch-3.png')}
+                style={styles.archLayer3}
+                resizeMode="contain"
+              />
+            </View>
+
+            {/* Fail body: Inter 16/24 paragraph-2, 345w, centered */}
+            <Text style={styles.failBody}>{LANDING.failBody}</Text>
+
+            {/* TRY AGAIN: Component 5 — 159x52, r=12, border=Border/Subtle */}
+            <TouchableOpacity
+              style={styles.retryButton}
+              onPress={() => setFailState(false)}
+              activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel={LANDING.failRetry}
+            >
+              <Text style={styles.startText}>{LANDING.failRetry}</Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </SafeAreaView>
+      </BackgroundWrapper>
+    );
+  }
+
   return (
     <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage}>
       <SafeAreaView style={styles.safe}>
@@ -65,11 +133,11 @@ const ReflectionRoomLandingScreen: React.FC = () => {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          {/* Frame 600: 345x84, HORIZONTAL, pa=CENTER, ca=CENTER
+          {/* Frame 600: 345x64, HORIZONTAL, pa=CENTER, ca=CENTER
               No back button. Title centered with info icon absolutely pinned right. */}
           <View style={styles.titleRow}>
             <Text style={styles.title}>REFLECTION ROOM</Text>
-            {/* Frame 612: 24x84, vertically centered info icon */}
+            {/* Frame 612: 24x64, vertically centered info icon */}
             <View style={styles.infoWrapper}>
               <TouchableOpacity
                 onPress={() => {
@@ -115,7 +183,7 @@ const ReflectionRoomLandingScreen: React.FC = () => {
             {QUIZ_ENTRY.body}
           </Text>
 
-          {/* START: Component 2 — 104x55, r=12, border=palette.navy.light 0.5 */}
+          {/* START: Component 2 — 104x52, r=12, border=Border/Subtle 0.5 */}
           <TouchableOpacity
             style={styles.startButton}
             onPress={() => navigation.navigate('ReflectionRoomQuiz')}
@@ -205,31 +273,33 @@ const styles = StyleSheet.create({
     gap: spacing.xxxl,
   },
 
-  // Frame 600: 345x84, title centered, info icon absolute right
+  // Frame 600: 345x64, title centered, info icon absolute right
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     width: CONTENT_WIDTH,
-    height: 84,
+    height: verticalScale(64),
   },
-  // Title: Figma 217x84 — fixed width forces 2-line wrap, centered in row
+  // Title: Figma Heading M (Cormorant) — 2XL=28 / lineHeight XL=32, gold,
+  // 217w fixed forces the 2-line "REFLECTION ROOM" wrap, centered in row.
+  // (theme.typography sizes are offset one step: Figma 2XL -> sizes['3xl'].)
   title: {
     fontFamily: theme.typography.fontFamily.heading,
-    fontSize: theme.typography.sizes['4xl'],
+    fontSize: theme.typography.sizes['3xl'],
     fontWeight: theme.typography.weights.regular,
     color: theme.colors.text.paragraph1,
     textAlign: 'center',
-    lineHeight: 38,
+    lineHeight: theme.typography.lineHeights['2xl'],
     width: 217,
   },
-  // Frame 612: 24x84, absolute top-right — separate from title text
+  // Frame 612: 24x64, absolute top-right — separate from title text
   infoWrapper: {
     position: 'absolute',
     right: 0,
     top: 0,
     width: 24,
-    height: 84,
+    height: verticalScale(64),
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -288,12 +358,12 @@ const styles = StyleSheet.create({
     width: 317,
   },
 
-  // START: 104x55, r=12, border=palette.navy.light 0.5
+  // START: Component 2 — 104x52, r=12 (Radius/S), border=Border/Subtle 0.5
   startButton: {
-    minWidth: 104,
-    minHeight: 55,
+    minWidth: scale(104),
+    minHeight: verticalScale(52),
     borderRadius: radius.s,
-    borderWidth: 0.5,
+    borderWidth: borderWidth.thin,
     borderColor: theme.colors.border.subtle,
     backgroundColor: palette.neutral.transparent,
     justifyContent: 'center',
@@ -301,12 +371,48 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.m,
     paddingVertical: spacing.xs,
   },
+  // Text button label: Figma Heading S (Cormorant) — XL=24, gold.
   startText: {
     fontFamily: theme.typography.fontFamily.heading,
     fontSize: theme.typography.sizes['2xl'],
     fontWeight: theme.typography.weights.regular,
     color: theme.colors.text.paragraph1,
     letterSpacing: 1,
+  },
+  // Fail state (Figma 7128:10048) --------------------------------------------
+  // Title: RESULTS NOT AVAILABLE — Cormorant 2XL=28 / lineHeight 32, gold,
+  // full-width (345) centered. (Figma 2XL -> sizes['3xl'].)
+  failTitle: {
+    fontFamily: theme.typography.fontFamily.heading,
+    fontSize: theme.typography.sizes['3xl'],
+    fontWeight: theme.typography.weights.regular,
+    color: theme.colors.text.paragraph1,
+    textAlign: 'center',
+    lineHeight: theme.typography.lineHeights['2xl'],
+    width: CONTENT_WIDTH,
+  },
+  // Fail body: Inter S=16 / lineHeight M=24, paragraph-2, 345w centered.
+  failBody: {
+    fontFamily: theme.typography.fontFamily.body,
+    fontSize: theme.typography.sizes.base,
+    fontWeight: theme.typography.weights.regular,
+    color: theme.colors.text.paragraph2,
+    textAlign: 'center',
+    lineHeight: theme.typography.lineHeights.lg,
+    width: CONTENT_WIDTH,
+  },
+  // TRY AGAIN: Component 5 — 159x52, same text-button treatment as START.
+  retryButton: {
+    minWidth: scale(159),
+    minHeight: verticalScale(52),
+    borderRadius: radius.s,
+    borderWidth: borderWidth.thin,
+    borderColor: theme.colors.border.subtle,
+    backgroundColor: palette.neutral.transparent,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: spacing.m,
+    paddingVertical: spacing.xs,
   },
 
   // Frame 95: 345x32, HORIZONTAL, gap=20, pa=CENTER (items centered together)

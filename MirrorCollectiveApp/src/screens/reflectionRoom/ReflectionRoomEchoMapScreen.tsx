@@ -1,51 +1,32 @@
 /**
- * Reflection Room — Echo Map (§5 + §12.9, Figma node 4654-2881).
+ * Reflection Room — Echo Map (§5 + §12.9, Figma nodes 7128:2411 / 7128:2795 /
+ * 7128:3134).
  *
- * Visualizes the cached `/echo/snapshot` as 6 loop nodes around a ring:
- *   - Each loop has a fixed angular slot.
- *   - Distance from center scales with `intensity_score` (closer = higher).
- *   - Tone-state drives a colored halo (rising=amber, softening=aqua,
+ * Visualizes the cached `/echo/snapshot` as 6 loop nodes arranged around a
+ * concentric-ring field with a glowing "YOU" center (baked into ECHO_MAP_SVG):
+ *   - Each loop sits in a fixed Figma slot (top / right / bottom-right / …).
+ *   - Tone-state drives a soft colored glow (rising=amber, softening=aqua,
  *     steady=lavender) per UI handoff §5.1.
+ *   - `intensity_score` remains available on the loop payload for overlays.
  *
  * Tap a node → 5-element overlay (§12.9).
  * Tap "i"    → 2-page info overlay (§12.9 overlays 1 + 2).
  *
- * States: loading | active | empty | error.
+ * States (each matched to its Figma frame):
+ *   - loading → 7128:3134 "Echo Map Loading" (title + dimmed icon-only field).
+ *   - active  → 7128:2411 "Echo Map" (labeled nodes + footer + CTA).
+ *   - empty   → canonical §12.9 strings, centered.
+ *   - error   → 7128:2795 "Echo Map - error" (heading + body + retry).
  *
  * Reduced motion: respected via `useReflectionRoomPrefs().reduced_motion`.
  * V1 ships with no orbit animation regardless — Phase 9 may add a subtle
  * 10s pulse for the prefers-motion case.
  */
 
-import { getReflectionRoomClient } from '@features/reflection-room/api';
-import {
-  ReflectionRoomApiError,
-  type LoopState,
-} from '@features/reflection-room/api/types';
-import InfoOverlay, {
-  type InfoPage,
-} from '@features/reflection-room/components/InfoOverlay';
-import { loopNodeXml } from '@features/reflection-room/components/loopNodeIcons';
-import LoopOverlay from '@features/reflection-room/components/LoopOverlay';
-import { toneColor } from '@features/reflection-room/components/toneColors';
-import { ECHO_MAP, LANDING } from '@features/reflection-room/copy/strings';
-import { useJourney } from '@features/reflection-room/state/JourneyContext';
-import type { LoopId } from '@features/reflection-room/types/ids';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import {
-  borderWidth,
-  fontFamily,
-  fontSize,
-  lineHeight,
-  palette,
-  radius,
-  spacing,
-  textShadow,
-} from '@theme';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
   Dimensions,
   Image,
   Pressable,
@@ -58,10 +39,38 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
 
 import {
+  CONNECTING_LINES_SVG,
   ECHO_MAP_SVG,
 } from '@assets/reflection-room-ech0-map-assets/ReflectionRoomEchoMapAssets';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
+import { getReflectionRoomClient } from '@features/reflection-room/api';
+import {
+  ReflectionRoomApiError,
+  type LoopState,
+} from '@features/reflection-room/api/types';
+import InfoOverlay, {
+  type InfoPage,
+} from '@features/reflection-room/components/InfoOverlay';
+import { loopNodeXml } from '@features/reflection-room/components/loopNodeIcons';
+import LoopOverlay from '@features/reflection-room/components/LoopOverlay';
+import { toneColor } from '@features/reflection-room/components/toneColors';
+import { ECHO_MAP, LANDING, displayLoopName } from '@features/reflection-room/copy/strings';
+import { useJourney } from '@features/reflection-room/state/JourneyContext';
+import type { LoopId } from '@features/reflection-room/types/ids';
+import {
+  borderWidth,
+  fontFamily,
+  fontSize,
+  lineHeight,
+  moderateScale,
+  palette,
+  radius,
+  scale,
+  spacing,
+  textShadow,
+  verticalScale,
+} from '@theme';
 import type { RootStackParamList } from '@types';
 
 
@@ -71,48 +80,42 @@ type Status = 'loading' | 'active' | 'empty' | 'error';
 const { width: screenWidth } = Dimensions.get('window');
 
 // ---------------------------------------------------------------------------
-// Layout — fixed angular slots per loop. Center of ring is the geometric
-// center of the map; radius scales with `intensity_score`.
+// Layout — the field is a fixed 345 × 452 canvas (Figma "Group 142"). The
+// concentric-ring SVG (272 × 272, "YOU" baked in) is centered, connecting
+// lines overlay the full canvas, and each loop occupies a fixed 100 × 100
+// slot. We scale the whole canvas to the device width so proportions hold.
 // ---------------------------------------------------------------------------
 
-const FIELD_WIDTH = Math.min(screenWidth - 40, 345);
-const FIELD_HEIGHT = 452; // matches existing assets pack viewBox
-const CENTER_X = FIELD_WIDTH / 2;
-const CENTER_Y = FIELD_HEIGHT / 2;
-const NODE_SIZE = 90;
-const HALO_SIZE = 110;
-const RING_RENDER_SIZE = 280;
-const MAX_RADIUS = 150;
-const MIN_RADIUS = 30;
+const FIELD_W = 345;
+const FIELD_H = 452;
+const FIELD_SCALE = Math.min((screenWidth - scale(48)) / FIELD_W, 1);
 
-/** Loop_id → fixed angular slot (radians, RN screen coords: y+ = down). */
-const LOOP_ANGLE: Record<LoopId, number> = {
-  transition: -Math.PI / 2, // top
-  pressure: -Math.PI / 6, // top-right
-  grief: Math.PI / 3, // bottom-right
-  overwhelm: Math.PI / 2, // bottom
-  agency: (2 * Math.PI) / 3, // bottom-left
-  self_silencing: -(5 * Math.PI) / 6, // top-left
+const RING_SIZE = 272; // Figma "Frame 594" — ECHO_MAP_SVG native viewBox.
+const RING_LEFT = 37; // Figma "Group 141" x within the 345-wide field.
+const RING_TOP = 66; // Figma "Group 141" y within the 452-tall field.
+
+const NODE_SIZE = 100; // Figma node frame (100 × 100 / 100 × 98).
+const NODE_ICON = 48; // Figma icon glyph box inside a node.
+
+/** Loop_id → fixed top-left offset of its 100 × 100 slot in the field. */
+const NODE_SLOT: Record<LoopId, { left: number; top: number }> = {
+  self_silencing: { left: 12, top: 14 }, // top-left
+  overwhelm: { left: 123, top: 0 }, // top-center
+  pressure: { left: 243, top: 82 }, // right
+  agency: { left: 245, top: 312 }, // bottom-right
+  transition: { left: 117, top: 352 }, // bottom-center
+  grief: { left: 0, top: 284 }, // bottom-left
 };
 
-interface NodeLayout {
-  loop: LoopState;
-  x: number;
-  y: number;
-}
-
-function nodePositions(loops: LoopState[]): NodeLayout[] {
-  return loops.map(loop => {
-    const angle = LOOP_ANGLE[loop.loop_id];
-    const radius =
-      MAX_RADIUS - loop.intensity_score * (MAX_RADIUS - MIN_RADIUS);
-    return {
-      loop,
-      x: CENTER_X + radius * Math.cos(angle),
-      y: CENTER_Y + radius * Math.sin(angle),
-    };
-  });
-}
+/** Stable render order (matches Figma z-order top→bottom). */
+const LOOP_RENDER_ORDER: LoopId[] = [
+  'self_silencing',
+  'overwhelm',
+  'pressure',
+  'agency',
+  'transition',
+  'grief',
+];
 
 // ---------------------------------------------------------------------------
 // Info overlay pages (§12.9)
@@ -131,6 +134,34 @@ const INFO_PAGES: InfoPage[] = [
     footer: ECHO_MAP.infoOverlay2.footer,
   },
 ];
+
+// ---------------------------------------------------------------------------
+// Field — shared ring + connecting-lines backdrop.
+// ---------------------------------------------------------------------------
+
+const RingField: React.FC<{ children?: React.ReactNode }> = ({ children }) => (
+  <View
+    style={styles.field}
+    accessibilityRole="image"
+    accessibilityLabel="Echo map field with loop nodes"
+  >
+    <View style={styles.fieldInner}>
+      <SvgXml
+        xml={CONNECTING_LINES_SVG}
+        width={FIELD_W}
+        height={FIELD_H}
+        style={styles.lines}
+      />
+      <SvgXml
+        xml={ECHO_MAP_SVG}
+        width={RING_SIZE}
+        height={RING_SIZE}
+        style={styles.ring}
+      />
+      {children}
+    </View>
+  </View>
+);
 
 // ---------------------------------------------------------------------------
 // Screen
@@ -185,9 +216,84 @@ const ReflectionRoomEchoMapScreen: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const layout =
-    status === 'active' && snapshot ? nodePositions(snapshot.loops) : [];
+  const loops = status === 'active' && snapshot ? snapshot.loops : [];
+  const loopById = new Map(loops.map(l => [l.loop_id, l]));
 
+  // -------------------------------------------------------------------------
+  // Error — Figma 7128:2795. Centered heading + body + retry, no title row.
+  // -------------------------------------------------------------------------
+  if (status === 'error') {
+    return (
+      <BackgroundWrapper style={styles.bg}>
+        <SafeAreaView style={styles.safe}>
+          <LogoHeader />
+          <View style={styles.centeredState}>
+            <Text style={styles.stateHeader}>{ECHO_MAP.errorHeader}</Text>
+            <Text style={styles.stateBody}>{ECHO_MAP.errorBody}</Text>
+            <Pressable
+              onPress={() => void fetchSnapshot()}
+              accessibilityRole="button"
+              accessibilityLabel={LANDING.failRetry}
+              style={({ pressed }) => [
+                styles.button,
+                styles.stateButton,
+                pressed && styles.pressed,
+              ]}
+            >
+              <Text style={styles.buttonText}>{LANDING.failRetry}</Text>
+            </Pressable>
+          </View>
+        </SafeAreaView>
+      </BackgroundWrapper>
+    );
+  }
+
+  // -------------------------------------------------------------------------
+  // Loading — Figma 7128:3134. Title above a dimmed, icon-only ring field.
+  // -------------------------------------------------------------------------
+  if (status === 'loading') {
+    return (
+      <BackgroundWrapper style={styles.bg}>
+        <SafeAreaView style={styles.safe}>
+          <LogoHeader />
+          <View style={styles.loadingWrap}>
+            <Text
+              style={styles.loadingHeader}
+              accessibilityRole="header"
+              accessibilityLabel={ECHO_MAP.loadingHeader}
+            >
+              {ECHO_MAP.loadingHeader}
+            </Text>
+            <RingField>
+              {LOOP_RENDER_ORDER.map(loopId => {
+                const slot = NODE_SLOT[loopId];
+                return (
+                  <View
+                    key={loopId}
+                    style={[
+                      styles.node,
+                      styles.nodeLoading,
+                      { left: slot.left, top: slot.top },
+                    ]}
+                  >
+                    <SvgXml
+                      xml={loopNodeXml(loopId)}
+                      width={NODE_ICON}
+                      height={NODE_ICON}
+                    />
+                  </View>
+                );
+              })}
+            </RingField>
+          </View>
+        </SafeAreaView>
+      </BackgroundWrapper>
+    );
+  }
+
+  // -------------------------------------------------------------------------
+  // Active + empty — Figma 7128:2411 (title row + field + footer + CTA).
+  // -------------------------------------------------------------------------
   return (
     <BackgroundWrapper style={styles.bg}>
       <SafeAreaView style={styles.safe}>
@@ -203,7 +309,7 @@ const ReflectionRoomEchoMapScreen: React.FC = () => {
               accessibilityRole="button"
               accessibilityLabel="Back"
               hitSlop={8}
-              style={styles.backButton}
+              style={styles.iconButton}
             >
               <Image
                 source={require('@assets/back-arrow.png')}
@@ -223,7 +329,7 @@ const ReflectionRoomEchoMapScreen: React.FC = () => {
               accessibilityRole="button"
               accessibilityLabel="About the Echo Map"
               hitSlop={8}
-              style={styles.infoButton}
+              style={styles.iconButton}
             >
               <Image
                 source={require('@assets/rr-info-icon.png')}
@@ -235,92 +341,49 @@ const ReflectionRoomEchoMapScreen: React.FC = () => {
 
           <Text style={styles.subhead}>{ECHO_MAP.subhead}</Text>
 
-          {/* Field */}
-          <View
-            style={styles.field}
-            accessibilityRole="image"
-            accessibilityLabel="Echo map field with loop nodes"
-          >
-            <SvgXml
-              xml={ECHO_MAP_SVG}
-              width={RING_RENDER_SIZE}
-              height={RING_RENDER_SIZE}
-              style={[
-                styles.ring,
-                { left: CENTER_X - RING_RENDER_SIZE / 2, top: CENTER_Y - RING_RENDER_SIZE / 2 },
-              ]}
-            />
-
-            {status === 'loading' && (
-              <View style={styles.fieldOverlay}>
-                <Text style={styles.stateHeader}>{ECHO_MAP.loadingHeader}</Text>
-                <ActivityIndicator
-                  size="large"
-                  color={palette.gold.DEFAULT}
-                  style={styles.spinner}
-                />
-              </View>
-            )}
-
-            {status === 'error' && (
-              <View style={styles.fieldOverlay}>
-                <Text style={styles.stateHeader}>{ECHO_MAP.errorHeader}</Text>
-                <Text style={styles.stateBody}>{ECHO_MAP.errorBody}</Text>
-                <Pressable
-                  onPress={() => void fetchSnapshot()}
-                  accessibilityRole="button"
-                  accessibilityLabel={LANDING.failRetry}
-                  style={({ pressed }) => [
-                    styles.button,
-                    pressed && styles.pressed,
-                  ]}
-                >
-                  <Text style={styles.buttonText}>{LANDING.failRetry}</Text>
-                </Pressable>
-              </View>
-            )}
-
-            {status === 'empty' && (
-              <View style={styles.fieldOverlay}>
-                <Text style={styles.stateHeader}>{ECHO_MAP.emptyHeader}</Text>
-                <Text style={styles.stateBody}>{ECHO_MAP.emptyBody}</Text>
-              </View>
-            )}
-
-            {status === 'active' &&
-              layout.map(({ loop, x, y }) => (
-                <Pressable
-                  key={loop.loop_id}
-                  onPress={() => setSelectedLoop(loop)}
-                  accessibilityRole="button"
-                  accessibilityLabel={`${loop.loop_id} ${loop.tone_state}, intensity ${loop.intensity_label}`}
-                  hitSlop={8}
-                  style={[
-                    styles.nodeWrap,
-                    {
-                      left: x - HALO_SIZE / 2,
-                      top: y - HALO_SIZE / 2,
-                    },
-                  ]}
-                >
-                  <View
-                    style={[
-                      styles.halo,
+          {status === 'empty' ? (
+            <View style={styles.centeredState}>
+              <Text style={styles.stateHeader}>{ECHO_MAP.emptyHeader}</Text>
+              <Text style={styles.stateBody}>{ECHO_MAP.emptyBody}</Text>
+            </View>
+          ) : (
+            <RingField>
+              {LOOP_RENDER_ORDER.map(loopId => {
+                const loop = loopById.get(loopId);
+                if (!loop) return null;
+                const slot = NODE_SLOT[loopId];
+                const glow = toneColor(loop.tone_state);
+                return (
+                  <Pressable
+                    key={loopId}
+                    onPress={() => setSelectedLoop(loop)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${loop.loop_id} ${loop.tone_state}, intensity ${loop.intensity_label}`}
+                    hitSlop={4}
+                    style={({ pressed }) => [
+                      styles.node,
                       {
-                        backgroundColor: `${toneColor(loop.tone_state)}33`, // 20% opacity
-                        borderColor: toneColor(loop.tone_state),
+                        left: slot.left,
+                        top: slot.top,
+                        borderColor: `${glow}66`, // tone tint on the ring edge
+                        shadowColor: glow,
                       },
+                      pressed && styles.pressed,
                     ]}
                   >
                     <SvgXml
                       xml={loopNodeXml(loop.loop_id)}
-                      width={NODE_SIZE}
-                      height={NODE_SIZE}
+                      width={NODE_ICON}
+                      height={NODE_ICON}
                     />
-                  </View>
-                </Pressable>
-              ))}
-          </View>
+                    <Text style={styles.nodeLabel} numberOfLines={2}>
+                      {displayLoopName(loop.loop_id)}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </RingField>
+          )}
 
           {/* Footer fixed string */}
           <Text style={styles.footer}>{ECHO_MAP.footer}</Text>
@@ -365,41 +428,40 @@ export default ReflectionRoomEchoMapScreen;
 // Styles
 // ---------------------------------------------------------------------------
 
-const BACK_SIZE = 40;
+const ICON_BTN = scale(24);
 
 const styles = StyleSheet.create({
   bg: { flex: 1 },
   safe: { flex: 1 },
   scroll: {
-    paddingHorizontal: spacing.l,
-    paddingBottom: spacing.xxxl,
-    gap: spacing.m,
+    paddingHorizontal: scale(24),
+    paddingBottom: verticalScale(40),
+    gap: verticalScale(spacing.m),
   },
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: spacing.s,
+    marginTop: verticalScale(spacing.m),
   },
-  backButton: {
-    width: BACK_SIZE,
-    height: BACK_SIZE,
+  iconButton: {
+    width: ICON_BTN,
+    height: ICON_BTN,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  infoButton: {
-    width: BACK_SIZE,
-    height: BACK_SIZE,
-    alignItems: 'center',
-    justifyContent: 'center',
+  iconImg: {
+    width: ICON_BTN,
+    height: ICON_BTN,
+    tintColor: palette.gold.DEFAULT,
   },
-  iconImg: { width: 20, height: 20, tintColor: palette.gold.DEFAULT },
   eyebrow: {
     fontFamily: fontFamily.heading,
     fontSize: fontSize['2xl'],
     lineHeight: lineHeight.xl,
     color: palette.gold.DEFAULT,
     letterSpacing: 2,
+    textAlign: 'center',
     textShadowColor: textShadow.glow.color,
     textShadowOffset: textShadow.glow.offset,
     textShadowRadius: textShadow.glow.radius,
@@ -411,25 +473,80 @@ const styles = StyleSheet.create({
     color: palette.gold.subtlest,
     textAlign: 'center',
   },
+  // --- Field ---------------------------------------------------------------
   field: {
-    width: FIELD_WIDTH,
-    height: FIELD_HEIGHT,
+    width: FIELD_W * FIELD_SCALE,
+    height: FIELD_H * FIELD_SCALE,
     alignSelf: 'center',
-    position: 'relative',
+  },
+  fieldInner: {
+    width: FIELD_W,
+    height: FIELD_H,
+    transform: [{ scale: FIELD_SCALE }],
+    transformOrigin: 'top left',
+  },
+  lines: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
   },
   ring: {
     position: 'absolute',
+    left: RING_LEFT,
+    top: RING_TOP,
   },
-  fieldOverlay: {
+  node: {
     position: 'absolute',
-    top: 0,
-    bottom: 0,
-    left: 0,
-    right: 0,
+    width: NODE_SIZE,
+    height: NODE_SIZE,
+    borderRadius: NODE_SIZE / 2,
+    borderWidth: borderWidth.thin,
+    borderColor: palette.navy.light,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: spacing.s,
-    paddingHorizontal: spacing.l,
+    gap: verticalScale(spacing.xxs),
+    shadowOffset: { width: 0, height: 0 },
+    shadowRadius: 12,
+    shadowOpacity: 0.5,
+  },
+  nodeLoading: {
+    opacity: 0.55,
+    borderColor: `${palette.gold.active}55`,
+  },
+  nodeLabel: {
+    fontFamily: fontFamily.body,
+    fontSize: fontSize.s,
+    lineHeight: lineHeight.m,
+    color: palette.gold.subtlest,
+    textAlign: 'center',
+  },
+  // --- Loading -------------------------------------------------------------
+  loadingWrap: {
+    flex: 1,
+    paddingHorizontal: scale(24),
+    paddingTop: verticalScale(spacing.xxl),
+    gap: verticalScale(spacing.xl),
+    alignItems: 'center',
+  },
+  loadingHeader: {
+    fontFamily: fontFamily.heading,
+    fontSize: fontSize['2xl'],
+    lineHeight: lineHeight.xl,
+    color: palette.gold.DEFAULT,
+    letterSpacing: 2,
+    textAlign: 'center',
+    textShadowColor: textShadow.glow.color,
+    textShadowOffset: textShadow.glow.offset,
+    textShadowRadius: textShadow.glow.radius,
+  },
+  // --- Centered states (empty / error) -------------------------------------
+  centeredState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: verticalScale(spacing.xl),
+    paddingHorizontal: scale(24),
+    minHeight: verticalScale(320),
   },
   stateHeader: {
     fontFamily: fontFamily.heading,
@@ -438,6 +555,9 @@ const styles = StyleSheet.create({
     color: palette.gold.DEFAULT,
     textAlign: 'center',
     letterSpacing: 1,
+    textShadowColor: textShadow.glow.color,
+    textShadowOffset: textShadow.glow.offset,
+    textShadowRadius: textShadow.glow.radius,
   },
   stateBody: {
     fontFamily: fontFamily.body,
@@ -446,34 +566,22 @@ const styles = StyleSheet.create({
     color: palette.gold.subtlest,
     textAlign: 'center',
   },
-  spinner: { marginVertical: spacing.s },
-  nodeWrap: {
-    position: 'absolute',
-    width: HALO_SIZE,
-    height: HALO_SIZE,
-    alignItems: 'center',
-    justifyContent: 'center',
+  stateButton: {
+    marginTop: verticalScale(spacing.s),
   },
-  halo: {
-    width: HALO_SIZE,
-    height: HALO_SIZE,
-    borderRadius: HALO_SIZE / 2,
-    borderWidth: borderWidth.regular,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  // --- Footer + CTA --------------------------------------------------------
   footer: {
     fontFamily: fontFamily.bodyItalic,
     fontSize: fontSize.s,
     lineHeight: lineHeight.m,
     color: palette.gold.subtlest,
     textAlign: 'center',
-    paddingHorizontal: spacing.s,
+    paddingHorizontal: scale(spacing.s),
   },
   button: {
-    minWidth: 200,
-    paddingVertical: spacing.s,
-    paddingHorizontal: spacing.xl,
+    minWidth: scale(159),
+    paddingVertical: verticalScale(spacing.s),
+    paddingHorizontal: scale(spacing.xl),
     borderRadius: radius.s,
     borderWidth: borderWidth.thin,
     borderColor: palette.navy.light,
@@ -483,8 +591,10 @@ const styles = StyleSheet.create({
   buttonText: {
     fontFamily: fontFamily.heading,
     fontSize: fontSize.xl,
+    lineHeight: lineHeight.l,
     color: palette.gold.DEFAULT,
-    letterSpacing: 2,
+    letterSpacing: moderateScale(2),
+    textAlign: 'center',
   },
   bottomCta: {
     alignSelf: 'center',
