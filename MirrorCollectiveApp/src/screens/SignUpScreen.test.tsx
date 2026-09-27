@@ -92,9 +92,10 @@ describe('SignUpScreen', () => {
 
     fireEvent.press(getByTestId('signup-button'));
 
-    // Length check fires first.
+    // The error now enumerates the unmet requirements (length + missing
+    // character classes) via a single dynamic message.
     expect(getByTestId('password-error').props.children).toBe(
-      'auth.validation.passwordTooShort'
+      'auth.validation.passwordNeeds'
     );
     expect(mockNavigation.navigate).not.toHaveBeenCalled();
   });

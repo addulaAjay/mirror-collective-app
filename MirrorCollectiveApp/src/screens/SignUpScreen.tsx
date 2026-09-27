@@ -27,6 +27,10 @@ import {
   verticalScale,
   textShadow,
 } from '@theme';
+import {
+  buildPasswordError,
+  getUnmetPasswordRequirements,
+} from '@utils/passwordValidation';
 
 interface SignUpScreenProps {
   navigation: any;
@@ -52,8 +56,12 @@ const formatPhoneDisplay = (e164: string): string => {
   const digits = e164.startsWith('+1') ? e164.slice(2) : '';
   if (digits.length === 0) return '+1';
   if (digits.length <= 3) return `+1 (${digits}`;
-  if (digits.length <= 6) return `+1 (${digits.slice(0, 3)}) ${digits.slice(3)}`;
-  return `+1 (${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
+  if (digits.length <= 6)
+    return `+1 (${digits.slice(0, 3)}) ${digits.slice(3)}`;
+  return `+1 (${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(
+    6,
+    10,
+  )}`;
 };
 
 const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
@@ -113,18 +121,12 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
     if (!password) {
       newErrors.password = t('auth.validation.missingPassword');
       isValid = false;
-    } else if (password.length < 8) {
-      newErrors.password = t('auth.validation.passwordTooShort');
-      isValid = false;
     } else {
-      const hasUpperCase = /[A-Z]/.test(password);
-      const hasLowerCase = /[a-z]/.test(password);
-      const hasNumbers = /\d/.test(password);
-      const hasSpecialChar = /[!"#$%&'()*+,-./:;<=>?@[\]^_{|}~`.]/.test(
-        password,
-      );
-      if (!hasUpperCase || !hasLowerCase || !hasNumbers || !hasSpecialChar) {
-        newErrors.password = t('auth.validation.weakPasswordMessage');
+      const unmet = getUnmetPasswordRequirements(password);
+      if (unmet.length > 0) {
+        // Tell the user exactly which requirements are missing rather than a
+        // vague "add symbols or numbers" hint that omits the case rules.
+        newErrors.password = buildPasswordError(unmet, t);
         isValid = false;
       }
     }
@@ -167,167 +169,170 @@ const SignUpScreen = ({ navigation }: SignUpScreenProps) => {
           }
           bottomOffset={16}
         >
-            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-              <View style={styles.contentContainer}>
-                {/* Header Section */}
-                <View style={styles.headerSection}>
-                  <View style={styles.titleRow}>
-                    <TouchableOpacity
-                      onPress={() => navigation.goBack()}
-                      style={styles.backButton}
-                      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                      testID="back-button"
-                    >
-                      <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
-                        <Path
-                          d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
-                          fill={palette.gold.DEFAULT}
-                        />
-                      </Svg>
-                    </TouchableOpacity>
-                    <Text style={styles.title}>{t('auth.signup.title')}</Text>
-                    <View style={styles.backButtonSpacer} />
-                  </View>
-                  <Text style={styles.subtitle}>{t('auth.signup.subtitle')}</Text>
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <View style={styles.contentContainer}>
+              {/* Header Section */}
+              <View style={styles.headerSection}>
+                <View style={styles.titleRow}>
+                  <TouchableOpacity
+                    onPress={() => navigation.goBack()}
+                    style={styles.backButton}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                    testID="back-button"
+                  >
+                    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+                      <Path
+                        d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
+                        fill={palette.gold.DEFAULT}
+                      />
+                    </Svg>
+                  </TouchableOpacity>
+                  <Text style={styles.title}>{t('auth.signup.title')}</Text>
+                  <View style={styles.backButtonSpacer} />
                 </View>
-
-                {/* Form Section — Figma: node 286:1358, gap-12px, px-16px */}
-                <View style={styles.formSection}>
-                  {/* Full Name Field */}
-                  <View style={styles.fieldContainer}>
-                    <TextInputField
-                      size="S"
-                      label={t('auth.signup.fields.fullName')}
-                      placeholder={t('auth.signup.fields.fullNamePlaceholder')}
-                      value={fullName}
-                      onChangeText={text => {
-                        setFullName(text);
-                        clearError('fullName');
-                      }}
-                      autoCapitalize="words"
-                      autoComplete="name"
-                      placeholderAlign="left"
-                      testID="fullname-input"
-                    />
-                    {errors.fullName ? (
-                      <Text style={styles.errorText} testID="fullname-error">
-                        {errors.fullName}
-                      </Text>
-                    ) : null}
-                  </View>
-
-                  {/* Email Field */}
-                  <View style={styles.fieldContainer}>
-                    <TextInputField
-                      size="S"
-                      label={t('auth.signup.fields.email')}
-                      placeholder={t('auth.signup.fields.emailPlaceholder')}
-                      value={email}
-                      onChangeText={text => {
-                        setEmail(text);
-                        clearError('email');
-                      }}
-                      keyboardType="email-address"
-                      autoCapitalize="none"
-                      autoComplete="email"
-                      placeholderAlign="left"
-                      testID="email-input"
-                    />
-                    {errors.email ? (
-                      <Text style={styles.errorText} testID="email-error">
-                        {errors.email}
-                      </Text>
-                    ) : null}
-                  </View>
-
-                  {/* Phone Number Field */}
-                  <View style={styles.fieldContainer}>
-                    <TextInputField
-                      size="S"
-                      label={t('auth.signup.fields.phone')}
-                      placeholder={t('auth.signup.fields.phonePlaceholder')}
-                      value={formatPhoneDisplay(phoneNumber)}
-                      onChangeText={handlePhoneChange}
-                      keyboardType="phone-pad"
-                      autoCapitalize="none"
-                      placeholderAlign="left"
-                      testID="phone-input"
-                    />
-                    {errors.phoneNumber ? (
-                      <Text style={styles.errorText} testID="phone-error">
-                        {errors.phoneNumber}
-                      </Text>
-                    ) : null}
-                  </View>
-
-                  {/* Password Field */}
-                  <View style={styles.fieldContainer}>
-                    <TextInputField
-                      size="S"
-                      label={t('auth.signup.fields.password')}
-                      placeholder={t('auth.signup.fields.passwordPlaceholder')}
-                      value={password}
-                      onChangeText={text => {
-                        setPassword(text);
-                        clearError('password');
-                      }}
-                      secureTextEntry={!showPassword}
-                      showPasswordToggle={true}
-                      isPasswordVisible={showPassword}
-                      onTogglePassword={() => setShowPassword(!showPassword)}
-                      autoComplete="new-password"
-                      textContentType="newPassword"
-                      placeholderAlign="left"
-                      testID="password-input"
-                    />
-                    {errors.password ? (
-                      <Text style={styles.errorText} testID="password-error">
-                        {errors.password}
-                      </Text>
-                    ) : null}
-                  </View>
-
-                  {/* Confirm Password Field */}
-                  <View style={styles.fieldContainer}>
-                    <TextInputField
-                      size="S"
-                      label={t('auth.signup.fields.confirmPassword')}
-                      placeholder={t(
-                        'auth.signup.fields.confirmPasswordPlaceholder',
-                      )}
-                      value={confirmPassword}
-                      onChangeText={text => {
-                        setConfirmPassword(text);
-                        clearError('confirmPassword');
-                      }}
-                      secureTextEntry={!showConfirmPassword}
-                      showPasswordToggle={true}
-                      isPasswordVisible={showConfirmPassword}
-                      onTogglePassword={() =>
-                        setShowConfirmPassword(!showConfirmPassword)
-                      }
-                      autoComplete="new-password"
-                      textContentType="newPassword"
-                      placeholderAlign="left"
-                      testID="confirm-password-input"
-                    />
-                    {errors.confirmPassword ? (
-                      <Text style={styles.errorText} testID="confirm-password-error">
-                        {errors.confirmPassword}
-                      </Text>
-                    ) : null}
-                  </View>
-                </View>
-
-                {/* Continue Button — Figma: auth-CTA pattern */}
-                <Button
-                  variant="primary"
-                  title={t('auth.signup.buttons.continue')}
-                  onPress={handleContinue}
-                  testID="signup-button"
-                />
+                <Text style={styles.subtitle}>{t('auth.signup.subtitle')}</Text>
               </View>
-            </TouchableWithoutFeedback>
+
+              {/* Form Section — Figma: node 286:1358, gap-12px, px-16px */}
+              <View style={styles.formSection}>
+                {/* Full Name Field */}
+                <View style={styles.fieldContainer}>
+                  <TextInputField
+                    size="S"
+                    label={t('auth.signup.fields.fullName')}
+                    placeholder={t('auth.signup.fields.fullNamePlaceholder')}
+                    value={fullName}
+                    onChangeText={text => {
+                      setFullName(text);
+                      clearError('fullName');
+                    }}
+                    autoCapitalize="words"
+                    autoComplete="name"
+                    placeholderAlign="left"
+                    testID="fullname-input"
+                  />
+                  {errors.fullName ? (
+                    <Text style={styles.errorText} testID="fullname-error">
+                      {errors.fullName}
+                    </Text>
+                  ) : null}
+                </View>
+
+                {/* Email Field */}
+                <View style={styles.fieldContainer}>
+                  <TextInputField
+                    size="S"
+                    label={t('auth.signup.fields.email')}
+                    placeholder={t('auth.signup.fields.emailPlaceholder')}
+                    value={email}
+                    onChangeText={text => {
+                      setEmail(text);
+                      clearError('email');
+                    }}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    autoComplete="email"
+                    placeholderAlign="left"
+                    testID="email-input"
+                  />
+                  {errors.email ? (
+                    <Text style={styles.errorText} testID="email-error">
+                      {errors.email}
+                    </Text>
+                  ) : null}
+                </View>
+
+                {/* Phone Number Field */}
+                <View style={styles.fieldContainer}>
+                  <TextInputField
+                    size="S"
+                    label={t('auth.signup.fields.phone')}
+                    placeholder={t('auth.signup.fields.phonePlaceholder')}
+                    value={formatPhoneDisplay(phoneNumber)}
+                    onChangeText={handlePhoneChange}
+                    keyboardType="phone-pad"
+                    autoCapitalize="none"
+                    placeholderAlign="left"
+                    testID="phone-input"
+                  />
+                  {errors.phoneNumber ? (
+                    <Text style={styles.errorText} testID="phone-error">
+                      {errors.phoneNumber}
+                    </Text>
+                  ) : null}
+                </View>
+
+                {/* Password Field */}
+                <View style={styles.fieldContainer}>
+                  <TextInputField
+                    size="S"
+                    label={t('auth.signup.fields.password')}
+                    placeholder={t('auth.signup.fields.passwordPlaceholder')}
+                    value={password}
+                    onChangeText={text => {
+                      setPassword(text);
+                      clearError('password');
+                    }}
+                    secureTextEntry={!showPassword}
+                    showPasswordToggle={true}
+                    isPasswordVisible={showPassword}
+                    onTogglePassword={() => setShowPassword(!showPassword)}
+                    autoComplete="new-password"
+                    textContentType="newPassword"
+                    placeholderAlign="left"
+                    testID="password-input"
+                  />
+                  {errors.password ? (
+                    <Text style={styles.errorText} testID="password-error">
+                      {errors.password}
+                    </Text>
+                  ) : null}
+                </View>
+
+                {/* Confirm Password Field */}
+                <View style={styles.fieldContainer}>
+                  <TextInputField
+                    size="S"
+                    label={t('auth.signup.fields.confirmPassword')}
+                    placeholder={t(
+                      'auth.signup.fields.confirmPasswordPlaceholder',
+                    )}
+                    value={confirmPassword}
+                    onChangeText={text => {
+                      setConfirmPassword(text);
+                      clearError('confirmPassword');
+                    }}
+                    secureTextEntry={!showConfirmPassword}
+                    showPasswordToggle={true}
+                    isPasswordVisible={showConfirmPassword}
+                    onTogglePassword={() =>
+                      setShowConfirmPassword(!showConfirmPassword)
+                    }
+                    autoComplete="new-password"
+                    textContentType="newPassword"
+                    placeholderAlign="left"
+                    testID="confirm-password-input"
+                  />
+                  {errors.confirmPassword ? (
+                    <Text
+                      style={styles.errorText}
+                      testID="confirm-password-error"
+                    >
+                      {errors.confirmPassword}
+                    </Text>
+                  ) : null}
+                </View>
+              </View>
+
+              {/* Continue Button — Figma: auth-CTA pattern */}
+              <Button
+                variant="primary"
+                title={t('auth.signup.buttons.continue')}
+                onPress={handleContinue}
+                testID="signup-button"
+              />
+            </View>
+          </TouchableWithoutFeedback>
         </KeyboardAwareScrollView>
       </SafeAreaView>
     </BackgroundWrapper>
@@ -353,13 +358,13 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
     alignItems: 'center',
-    paddingHorizontal: scale(24),    // Figma: left:24px on 393px frame
+    paddingHorizontal: scale(24), // Figma: left:24px on 393px frame
     paddingTop: verticalScale(20),
     paddingBottom: verticalScale(60),
   },
   contentContainer: {
     alignItems: 'center',
-    gap: verticalScale(40),          // Figma: gap-40px between all sections
+    gap: verticalScale(40), // Figma: gap-40px between all sections
     width: '100%',
   },
 
@@ -382,32 +387,32 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   backButtonSpacer: {
-    width: scale(20),               // Mirrors backButton for visual centering of title
+    width: scale(20), // Mirrors backButton for visual centering of title
   },
 
   // Figma: Heading/Heading L — Cormorant Regular 3XL (32px), lh:40 (XXL), #f2e2b1, glow shadow
   title: {
-    fontFamily: fontFamily.heading,                       // CormorantGaramond-Regular
-    fontSize: moderateScale(fontSize['3xl']),              // 32px
+    fontFamily: fontFamily.heading, // CormorantGaramond-Regular
+    fontSize: moderateScale(fontSize['3xl']), // 32px
     fontWeight: '400',
-    lineHeight: lineHeight.xxl,                           // 40px — Figma: font/line-height/XXL
+    lineHeight: lineHeight.xxl, // 40px — Figma: font/line-height/XXL
     letterSpacing: 0,
-    color: palette.gold.DEFAULT,                          // #f2e2b1
-    textShadowColor: textShadow.glow.color,                // Glow: #F0D4A8 · 30%
-    textShadowOffset: textShadow.glow.offset,              // X:0 Y:0
-    textShadowRadius: textShadow.glow.radius,              // Blur:10
+    color: palette.gold.DEFAULT, // #f2e2b1
+    textShadowColor: textShadow.glow.color, // Glow: #F0D4A8 · 30%
+    textShadowOffset: textShadow.glow.offset, // X:0 Y:0
+    textShadowRadius: textShadow.glow.radius, // Blur:10
     textAlign: 'center',
     flex: 1,
   },
 
   // Figma: Heading/Heading S — Cormorant Regular XL (24px), lh:28 (2XL), #fdfdf9
   subtitle: {
-    fontFamily: fontFamily.heading,                       // CormorantGaramond-Regular
-    fontSize: moderateScale(fontSize.xl),                 // 24px — Figma: font/size/XL
+    fontFamily: fontFamily.heading, // CormorantGaramond-Regular
+    fontSize: moderateScale(fontSize.xl), // 24px — Figma: font/size/XL
     fontWeight: '400',
-    lineHeight: fontSize['2xl'],                          // 28px — Figma: leading-[var(--font/size/2xl,28px)]
+    lineHeight: fontSize['2xl'], // 28px — Figma: leading-[var(--font/size/2xl,28px)]
     letterSpacing: 0,
-    color: palette.gold.subtlest,                         // #fdfdf9
+    color: palette.gold.subtlest, // #fdfdf9
     textAlign: 'center',
     width: '100%',
   },
@@ -416,7 +421,7 @@ const styles = StyleSheet.create({
   formSection: {
     width: '100%',
     gap: verticalScale(12),
-    paddingHorizontal: scale(16),   // Figma: px-[16px] on form section
+    paddingHorizontal: scale(16), // Figma: px-[16px] on form section
   },
 
   // Figma: gap-8px between label and field
@@ -427,9 +432,9 @@ const styles = StyleSheet.create({
 
   errorText: {
     fontFamily: fontFamily.body,
-    fontSize: moderateScale(fontSize.xs),                 // 14px
+    fontSize: moderateScale(fontSize.xs), // 14px
     lineHeight: moderateScale(fontSize.xs) * 1.4,
-    color: palette.status.error,                          // #f83b3d (NOT errorHover)
+    color: palette.status.error, // #f83b3d (NOT errorHover)
     marginTop: -verticalScale(4),
     paddingLeft: scale(2),
   },
@@ -444,15 +449,15 @@ const styles = StyleSheet.create({
 
   // Figma: Heading/Heading S — Cormorant Regular XL (24px), lh:2XL (28px), #f2e2b1, shadow 0 0 4px warmGlow
   continueText: {
-    fontFamily: fontFamily.heading,                       // CormorantGaramond-Regular
-    fontSize: moderateScale(fontSize.xl),                 // 24px — Figma: font/size/XL
+    fontFamily: fontFamily.heading, // CormorantGaramond-Regular
+    fontSize: moderateScale(fontSize.xl), // 24px — Figma: font/size/XL
     fontWeight: '400',
-    lineHeight: fontSize['2xl'],                          // 28px — Figma: font/size/2XL
+    lineHeight: fontSize['2xl'], // 28px — Figma: font/size/2XL
     letterSpacing: 0,
-    color: palette.gold.DEFAULT,                          // #f2e2b1
-    textShadowColor: textShadow.warmGlow.color,           // #E5D6B0 · 50%
+    color: palette.gold.DEFAULT, // #f2e2b1
+    textShadowColor: textShadow.warmGlow.color, // #E5D6B0 · 50%
     textShadowOffset: textShadow.warmGlow.offset,
-    textShadowRadius: 4,                                  // Figma: Blur 4px
+    textShadowRadius: 4, // Figma: Blur 4px
   },
 });
 

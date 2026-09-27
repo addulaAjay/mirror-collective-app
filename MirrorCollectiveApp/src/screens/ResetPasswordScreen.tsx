@@ -1,19 +1,6 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import {
-  fontFamily,
-  fontSize,
-  fontWeight,
-  lineHeight,
-  moderateScale,
-  palette,
-  scale,
-  textShadow,
-  theme,
-  verticalScale,
-} from '@theme';
-import type { RootStackParamList } from '@types';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -27,7 +14,7 @@ import {
   Keyboard,
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 
 import BackgroundWrapper from '@components/BackgroundWrapper';
@@ -35,7 +22,24 @@ import Button from '@components/Button';
 import LogoHeader from '@components/LogoHeader';
 import TextInputField from '@components/TextInputField';
 import { useSession } from '@context/SessionContext';
+import {
+  fontFamily,
+  fontSize,
+  fontWeight,
+  lineHeight,
+  moderateScale,
+  palette,
+  scale,
+  textShadow,
+  theme,
+  verticalScale,
+} from '@theme';
+import type { RootStackParamList } from '@types';
 import { getApiErrorMessage } from '@utils/apiErrorUtils';
+import {
+  buildPasswordError,
+  getUnmetPasswordRequirements,
+} from '@utils/passwordValidation';
 
 // Figma 4928:7988 — back arrow, 20×20, gold
 const BackArrowIcon: React.FC = () => (
@@ -72,22 +76,6 @@ const ResetPasswordScreen = () => {
   const route = useRoute<ResetPasswordScreenRouteProp>();
   const { email } = route.params;
 
-  const validatePassword = (password: string) => {
-    const minLength = 8;
-    const hasUpperCase = /[A-Z]/.test(password);
-    const hasLowerCase = /[a-z]/.test(password);
-    const hasNumbers = /\d/.test(password);
-    const hasNonalphas = /\W/.test(password);
-
-    return (
-      password.length >= minLength &&
-      hasUpperCase &&
-      hasLowerCase &&
-      hasNumbers &&
-      hasNonalphas
-    );
-  };
-
   const handleResetPassword = async () => {
     if (!resetCode.trim()) {
       Alert.alert(t('common.error'), 'Please enter the reset code');
@@ -104,10 +92,11 @@ const ResetPasswordScreen = () => {
       return;
     }
 
-    if (!validatePassword(newPassword)) {
+    const unmetRequirements = getUnmetPasswordRequirements(newPassword);
+    if (unmetRequirements.length > 0) {
       Alert.alert(
         t('auth.validation.weakPasswordTitle'),
-        t('auth.validation.weakPasswordMessage'),
+        buildPasswordError(unmetRequirements, t),
       );
       return;
     }
@@ -155,114 +144,116 @@ const ResetPasswordScreen = () => {
           }
           bottomOffset={16}
         >
-            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-              <View style={styles.contentContainer}>
-                {/* Header row — back arrow + centered title + spacer
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <View style={styles.contentContainer}>
+              {/* Header row — back arrow + centered title + spacer
                     (matches ForgotPassword Figma 4928:7986). */}
-                <View style={styles.headerRow}>
-                  <TouchableOpacity
-                    onPress={handleBackToLogin}
-                    style={styles.backBtn}
-                    accessibilityRole="button"
-                    accessibilityLabel="Back"
-                    hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-                    testID="header-back-button"
-                  >
-                    <BackArrowIcon />
-                  </TouchableOpacity>
-                  <Text style={styles.title}>
-                    {t('auth.resetPassword.title')}
-                  </Text>
-                  <View style={styles.headerSpacer} />
-                </View>
+              <View style={styles.headerRow}>
+                <TouchableOpacity
+                  onPress={handleBackToLogin}
+                  style={styles.backBtn}
+                  accessibilityRole="button"
+                  accessibilityLabel="Back"
+                  hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                  testID="header-back-button"
+                >
+                  <BackArrowIcon />
+                </TouchableOpacity>
+                <Text style={styles.title}>
+                  {t('auth.resetPassword.title')}
+                </Text>
+                <View style={styles.headerSpacer} />
+              </View>
 
-                {/* Form Section */}
-                <View style={styles.formSection}>
-                  {/* Reset Code Field */}
-                  <View style={styles.fieldContainer}>
-                    <TextInputField
-                      label='Reset Code'
-                      testID="reset-code-input"
-                      placeholder="6-digit reset code"
-                      value={resetCode}
-                      onChangeText={setResetCode}
-                      keyboardType="numeric"
-                      autoCapitalize="none"
-                      autoComplete="off"
-                      size="small"
-                    />
-                  </View>
-
-                  {/* New Password Field */}
-                  <View style={styles.fieldContainer}>
-                    <TextInputField
-                      label={t('auth.resetPassword.passwordPlaceholder')}
-                      testID="new-password-input"
-                      placeholder={t('auth.resetPassword.passwordPlaceholder')}
-                      value={newPassword}
-                      onChangeText={setNewPassword}
-                      secureTextEntry={!isPasswordVisible}
-                      autoCapitalize="none"
-                      autoComplete="password"
-                      showPasswordToggle={true}
-                      isPasswordVisible={isPasswordVisible}
-                      size="small"
-                      onTogglePassword={() =>
-                        setIsPasswordVisible(!isPasswordVisible)
-                      }
-                    />
-                  </View>
-
-                  {/* Confirm Password Field */}
-                  <View style={styles.fieldContainer}>
-                    <TextInputField
-                      label={t('auth.signup.fields.confirmPassword')}
-                      testID="confirm-password-input"
-                      placeholder={t('auth.signup.fields.confirmPasswordPlaceholder')}
-                      value={confirmPassword}
-                      onChangeText={setConfirmPassword}
-                      secureTextEntry={!isConfirmPasswordVisible}
-                      autoCapitalize="none"
-                      autoComplete="password"
-                      showPasswordToggle={true}
-                      isPasswordVisible={isConfirmPasswordVisible}
-                      size="small"
-                      onTogglePassword={() =>
-                        setIsConfirmPasswordVisible(!isConfirmPasswordVisible)
-                      }
-                    />
-                  </View>
-
-                  {state.error && (
-                    <Text style={styles.errorText}>{state.error}</Text>
-                  )}
-
-                  {/* Reset Password Button — extra top margin so it has
-                      breathing room from the confirm-password input. */}
-                  <Button
-                    variant="primary"
-                    title={
-                      isLoading
-                        ? t('auth.resetPassword.resettingButton')
-                        : t('auth.resetPassword.resetButton')
-                    }
-                    onPress={handleResetPassword}
-                    disabled={isLoading}
-                    testID="reset-password-button"
-                    style={styles.submitButton}
+              {/* Form Section */}
+              <View style={styles.formSection}>
+                {/* Reset Code Field */}
+                <View style={styles.fieldContainer}>
+                  <TextInputField
+                    label="Reset Code"
+                    testID="reset-code-input"
+                    placeholder="6-digit reset code"
+                    value={resetCode}
+                    onChangeText={setResetCode}
+                    keyboardType="numeric"
+                    autoCapitalize="none"
+                    autoComplete="off"
+                    size="small"
                   />
                 </View>
 
-                {/* Back to Login — link variant of the shared Button so
-                    styling matches other auth screens. */}
+                {/* New Password Field */}
+                <View style={styles.fieldContainer}>
+                  <TextInputField
+                    label={t('auth.resetPassword.passwordPlaceholder')}
+                    testID="new-password-input"
+                    placeholder={t('auth.resetPassword.passwordPlaceholder')}
+                    value={newPassword}
+                    onChangeText={setNewPassword}
+                    secureTextEntry={!isPasswordVisible}
+                    autoCapitalize="none"
+                    autoComplete="password"
+                    showPasswordToggle={true}
+                    isPasswordVisible={isPasswordVisible}
+                    size="small"
+                    onTogglePassword={() =>
+                      setIsPasswordVisible(!isPasswordVisible)
+                    }
+                  />
+                </View>
+
+                {/* Confirm Password Field */}
+                <View style={styles.fieldContainer}>
+                  <TextInputField
+                    label={t('auth.signup.fields.confirmPassword')}
+                    testID="confirm-password-input"
+                    placeholder={t(
+                      'auth.signup.fields.confirmPasswordPlaceholder',
+                    )}
+                    value={confirmPassword}
+                    onChangeText={setConfirmPassword}
+                    secureTextEntry={!isConfirmPasswordVisible}
+                    autoCapitalize="none"
+                    autoComplete="password"
+                    showPasswordToggle={true}
+                    isPasswordVisible={isConfirmPasswordVisible}
+                    size="small"
+                    onTogglePassword={() =>
+                      setIsConfirmPasswordVisible(!isConfirmPasswordVisible)
+                    }
+                  />
+                </View>
+
+                {state.error && (
+                  <Text style={styles.errorText}>{state.error}</Text>
+                )}
+
+                {/* Reset Password Button — extra top margin so it has
+                      breathing room from the confirm-password input. */}
                 <Button
-                  variant="link"
-                  title={t('auth.forgotPassword.backToLogin')}
-                  onPress={handleBackToLogin}
-                  testID="back-to-login-button"
+                  variant="primary"
+                  title={
+                    isLoading
+                      ? t('auth.resetPassword.resettingButton')
+                      : t('auth.resetPassword.resetButton')
+                  }
+                  onPress={handleResetPassword}
+                  disabled={isLoading}
+                  testID="reset-password-button"
+                  style={styles.submitButton}
                 />
               </View>
-            </TouchableWithoutFeedback>
+
+              {/* Back to Login — link variant of the shared Button so
+                    styling matches other auth screens. */}
+              <Button
+                variant="link"
+                title={t('auth.forgotPassword.backToLogin')}
+                onPress={handleBackToLogin}
+                testID="back-to-login-button"
+              />
+            </View>
+          </TouchableWithoutFeedback>
         </KeyboardAwareScrollView>
       </SafeAreaView>
     </BackgroundWrapper>
@@ -312,9 +303,9 @@ const styles = StyleSheet.create({
   title: {
     flex: 1,
     fontFamily: fontFamily.heading,
-    fontSize: moderateScale(fontSize['2xl']),    // 28
+    fontSize: moderateScale(fontSize['2xl']), // 28
     fontWeight: fontWeight.regular,
-    lineHeight: lineHeight.xl,                    // 32
+    lineHeight: lineHeight.xl, // 32
     letterSpacing: 0,
     color: palette.gold.DEFAULT,
     textAlign: 'center',
