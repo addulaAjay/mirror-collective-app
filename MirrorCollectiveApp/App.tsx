@@ -69,6 +69,7 @@ import SignUpScreen from '@screens/SignUpScreen';
 import SoulPingScreen from '@screens/SoulPingScreen';
 import SplashScreen from '@screens/SplashScreen';
 import StartFreeTrialScreen from '@screens/StartFreeTrialScreen';
+import AddStorageScreen from '@screens/AddStorageScreen';
 import TalkToMirrorScreen from '@screens/TalkToMirrorScreen';
 import TermsAndConditionsScreen from '@screens/TermsAndConditionsScreen';
 import TheMirrorPledgeCommingsoonScreen from '@screens/TheMirrorPledgeCommingsoonScreen';
@@ -202,6 +203,7 @@ const AuthNavigator = () => (
       component={TermsAndConditionsScreen}
     />
     <Stack.Screen name="StartFreeTrial" component={StartFreeTrialScreen} />
+    <Stack.Screen name="AddStorage" component={AddStorageScreen} />
     <Stack.Screen name="Splash" component={SplashScreen} />
     <Stack.Screen name="MirrorAnimation" component={MirrorAnimationScreen} />
     {/* Quiz Flow (Pre-Auth) */}
@@ -280,6 +282,7 @@ const AuthenticatedNavigator = ({ initialRouteName = 'EnterMirror' }: Authentica
     <Stack.Screen name="ChooseRecipientScreen" component={ChooseRecipientScreen} />
     <Stack.Screen name="AddNewProfileScreen" component={AddNewProfileScreen} />
     <Stack.Screen name="StartFreeTrial" component={StartFreeTrialScreen} />
+    <Stack.Screen name="AddStorage" component={AddStorageScreen} />
   </Stack.Navigator>
 );
 

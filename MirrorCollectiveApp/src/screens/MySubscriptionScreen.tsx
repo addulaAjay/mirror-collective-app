@@ -34,7 +34,15 @@ import StarIcon from '@components/StarIcon';
 import { LEGAL_LINKS } from '@constants/config';
 import { useSubscription } from '@context/SubscriptionContext';
 import { useInAppPurchase, localizedPrice } from '@hooks/useInAppPurchase';
-import { palette, fontFamily, fontSize, scale, radius } from '@theme';
+import {
+  palette,
+  fontFamily,
+  fontSize,
+  scale,
+  verticalScale,
+  moderateScale,
+  radius,
+} from '@theme';
 import type { RootStackParamList } from '@types';
 
 
@@ -57,6 +65,7 @@ const MySubscriptionScreen: React.FC<Props> = ({ navigation }) => {
     trialDaysRemaining,
     hasActiveSubscription,
     coreSubscription,
+    storageSubscription,
     loading,
     refreshSubscriptionStatus,
   } = useSubscription();
@@ -121,18 +130,24 @@ const MySubscriptionScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   const handleManageSubscription = () => {
-    Alert.alert(
-      'Manage subscription',
-      'Change your plan (monthly or yearly) or cancel your subscription in the '
-        + 'App Store. Open Manage Subscriptions now?',
-      [
-        { text: 'Not now', style: 'cancel' },
-        {
-          text: 'Open',
-          onPress: () => openManageSubscriptions(),
-        },
-      ],
-    );
+    // When the storage add-on is active, warn that cancelling Mirror Basic also
+    // ends the add-on — and that the add-on bills separately on the App Store,
+    // so they must cancel it too if they no longer want it (Apple treats them as
+    // independent subscriptions; we can't cancel one from the other).
+    const message = storageSubscription
+      ? 'Change your plan or cancel in the App Store.\n\n'
+        + 'Note: cancelling Mirror Basic also ends your Echo Vault Storage '
+        + 'add-on. The add-on is billed separately, so cancel it too in the '
+        + 'App Store if you no longer want it.\n\nOpen Manage Subscriptions now?'
+      : 'Change your plan (monthly or yearly) or cancel your subscription in the '
+        + 'App Store. Open Manage Subscriptions now?';
+    Alert.alert('Manage subscription', message, [
+      { text: 'Not now', style: 'cancel' },
+      {
+        text: 'Open',
+        onPress: () => openManageSubscriptions(),
+      },
+    ]);
   };
 
   // Expired / never-subscribed users have no StoreKit purchase to restore —
@@ -243,6 +258,25 @@ const MySubscriptionScreen: React.FC<Props> = ({ navigation }) => {
 
               <Text style={styles.cancelText}>Cancel anytime.</Text>
             </ScrollView>
+          </View>
+        )}
+
+        {/* Storage add-on entry. Only meaningful with active Core — the add-on
+            grants no quota without it (backend rule). */}
+        {hasActiveSubscription && (
+          <View style={styles.storageRow}>
+            {storageSubscription ? (
+              <Text style={styles.storageActive}>
+                Storage add-on active · +100 GB
+              </Text>
+            ) : (
+              <TouchableOpacity
+                accessibilityRole="button"
+                onPress={() => navigation.navigate('AddStorage')}
+              >
+                <Text style={styles.storageAddLink}>+ Add Storage (100 GB)</Text>
+              </TouchableOpacity>
+            )}
           </View>
         )}
 
@@ -409,6 +443,24 @@ const styles = StyleSheet.create({
   },
 
   footer: { paddingVertical: 20, alignItems: 'center', gap: 16 },
+  storageRow: {
+    alignItems: 'center',
+    gap: verticalScale(4),
+    paddingTop: verticalScale(8),
+  },
+  storageActive: {
+    fontFamily: fontFamily.body,
+    fontSize: moderateScale(fontSize.s),
+    color: palette.gold.subtlest,
+    textAlign: 'center',
+  },
+  storageAddLink: {
+    fontFamily: fontFamily.body,
+    fontSize: moderateScale(fontSize.s),
+    color: palette.gold.DEFAULT,
+    textAlign: 'center',
+    textDecorationLine: 'underline',
+  },
   footerLinksRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   footerLinkText: {
     fontFamily: fontFamily.bodyLight,

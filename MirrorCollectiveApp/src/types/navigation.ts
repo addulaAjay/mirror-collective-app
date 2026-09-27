@@ -27,6 +27,7 @@ export type RootStackParamList = {
     phoneNumber?: string;
   };
   StartFreeTrial: undefined;
+  AddStorage: undefined;
   MirrorEcho: undefined;
   ReflectionRoom: undefined;
   ReflectionRoomCommingsoon: undefined;
