@@ -1,6 +1,4 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { palette, scale, textShadow } from '@theme';
-import { RootStackParamList } from '@types';
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
@@ -23,6 +21,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
 import { echoApiService, Guardian } from '@services/api/echo';
+import { palette, scale, textShadow } from '@theme';
+import { RootStackParamList } from '@types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ChooseGuardianScreen'>;
 
@@ -78,10 +78,25 @@ const ChooseGuardianScreen: React.FC<Props> = ({ navigation, route }) => {
     );
   };
 
-  const handleSelectGuardian = (guardian: Guardian) => {
+  const handleSelectGuardian = useCallback((guardian: Guardian) => {
     setSelectedGuardian(guardian);
     setShowDropdown(false);
-  };
+  }, []);
+
+  // Hoisted + stable so the guardian FlatList doesn't rebuild every row on
+  // each parent render (e.g. while typing in the form above).
+  const renderGuardian = useCallback(
+    ({ item }: { item: Guardian }) => (
+      <TouchableOpacity
+        style={styles.dropdownItem}
+        onPress={() => handleSelectGuardian(item)}
+      >
+        <Text style={styles.dropdownItemName}>{item.name}</Text>
+        <Text style={styles.dropdownItemEmail}>{item.email}</Text>
+      </TouchableOpacity>
+    ),
+    [handleSelectGuardian],
+  );
 
   const handleContinue = () => {
     if (selectedGuardian) {
@@ -281,15 +296,7 @@ const ChooseGuardianScreen: React.FC<Props> = ({ navigation, route }) => {
                 <FlatList
                   data={guardians}
                   keyExtractor={(item, index) => item.guardian_id || index.toString()}
-                  renderItem={({ item }) => (
-                    <TouchableOpacity
-                      style={styles.dropdownItem}
-                      onPress={() => handleSelectGuardian(item)}
-                    >
-                      <Text style={styles.dropdownItemName}>{item.name}</Text>
-                      <Text style={styles.dropdownItemEmail}>{item.email}</Text>
-                    </TouchableOpacity>
-                  )}
+                  renderItem={renderGuardian}
                 />
               )}
               {/* Add New Guardian Button */}
