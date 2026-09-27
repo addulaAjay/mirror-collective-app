@@ -5,6 +5,7 @@ import React, {
   useEffect,
   ReactNode,
   useCallback,
+  useMemo,
 } from 'react';
 
 import {subscriptionApiService} from '@/services/api/subscriptionApi';
@@ -140,19 +141,38 @@ export const SubscriptionProvider = ({
   const hasActiveSubscription = status === 'active' || status === 'trial';
   const isInTrial = status === 'trial';
 
-  const contextValue: SubscriptionContextType = {
-    tier,
-    status,
-    trialDaysRemaining,
-    features,
-    coreSubscription,
-    storageSubscription,
-    loading,
-    refreshSubscriptionStatus,
-    hasActiveSubscription,
-    isInTrial,
-    hasUsedTrial,
-  };
+  // Memoized so consumers of useSubscription() only re-render when a value
+  // actually changes — not on every SubscriptionProvider render (e.g. a
+  // loading flip during refresh). refreshSubscriptionStatus is useCallback-
+  // stable; the rest are useState values / derived primitives.
+  const contextValue = useMemo<SubscriptionContextType>(
+    () => ({
+      tier,
+      status,
+      trialDaysRemaining,
+      features,
+      coreSubscription,
+      storageSubscription,
+      loading,
+      refreshSubscriptionStatus,
+      hasActiveSubscription,
+      isInTrial,
+      hasUsedTrial,
+    }),
+    [
+      tier,
+      status,
+      trialDaysRemaining,
+      features,
+      coreSubscription,
+      storageSubscription,
+      loading,
+      refreshSubscriptionStatus,
+      hasActiveSubscription,
+      isInTrial,
+      hasUsedTrial,
+    ],
+  );
 
   return (
     <SubscriptionContext.Provider value={contextValue}>

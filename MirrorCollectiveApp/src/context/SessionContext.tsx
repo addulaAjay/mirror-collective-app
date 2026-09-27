@@ -6,6 +6,7 @@ import React, {
   ReactNode,
   useRef,
   useCallback,
+  useMemo,
 } from 'react';
 
 import { authApiService } from '@services/api';
@@ -177,7 +178,7 @@ export const SessionProvider = ({ children }: SessionProviderProps) => {
     return unsubscribe;
   }, [safeDispatch]);
 
-  const signUp = async (fullName: string, email: string, password: string, phoneNumber?: string, termsAcceptedAt?: string) => {
+  const signUp = useCallback(async (fullName: string, email: string, password: string, phoneNumber?: string, termsAcceptedAt?: string) => {
     if (!isMountedRef.current) return;
     try {
       safeDispatch({ type: 'SET_LOADING', payload: true });
@@ -207,9 +208,9 @@ export const SessionProvider = ({ children }: SessionProviderProps) => {
       }
       throw error;
     }
-  };
+  }, [safeDispatch]);
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = useCallback(async (email: string, password: string) => {
     if (!isMountedRef.current) return;
     try {
       safeDispatch({ type: 'SET_LOADING', payload: true });
@@ -241,8 +242,8 @@ export const SessionProvider = ({ children }: SessionProviderProps) => {
       }
       throw error;
     }
-  };
-  const signOut = async () => {
+  }, [safeDispatch]);
+  const signOut = useCallback(async () => {
     if (!isMountedRef.current) return;
     safeDispatch({ type: 'SET_LOADING', payload: true });
 
@@ -280,12 +281,12 @@ export const SessionProvider = ({ children }: SessionProviderProps) => {
     if (isMountedRef.current) {
       safeDispatch({ type: 'LOGOUT_SUCCESS' });
     }
-  };
+  }, [safeDispatch]);
 
   // Permanently delete the account (Apple 5.1.1(v)). Returns true on success so
   // the caller can decide what to surface; either way the session is cleared and
   // the app drops to the signed-out stack.
-  const deleteAccount = async (): Promise<boolean> => {
+  const deleteAccount = useCallback(async (): Promise<boolean> => {
     if (!isMountedRef.current) return false;
     let ok = false;
     try {
@@ -303,9 +304,9 @@ export const SessionProvider = ({ children }: SessionProviderProps) => {
       safeDispatch({ type: 'LOGOUT_SUCCESS' });
     }
     return ok;
-  };
+  }, [safeDispatch]);
 
-  const forgotPassword = async (email: string) => {
+  const forgotPassword = useCallback(async (email: string) => {
     if (!isMountedRef.current) return;
     try {
       safeDispatch({ type: 'SET_LOADING', payload: true });
@@ -322,9 +323,9 @@ export const SessionProvider = ({ children }: SessionProviderProps) => {
       }
       throw error;
     }
-  };
+  }, [safeDispatch]);
 
-  const resetPassword = async (email: string, resetCode: string, newPassword: string) => {
+  const resetPassword = useCallback(async (email: string, resetCode: string, newPassword: string) => {
     if (!isMountedRef.current) return;
     try {
       safeDispatch({ type: 'SET_LOADING', payload: true });
@@ -345,38 +346,56 @@ export const SessionProvider = ({ children }: SessionProviderProps) => {
       }
       throw error;
     }
-  };
+  }, [safeDispatch]);
 
-  const clearError = () => {
+  const clearError = useCallback(() => {
     if (isMountedRef.current) {
       safeDispatch({ type: 'CLEAR_ERROR' });
     }
-  };
+  }, [safeDispatch]);
 
-  const setLoading = (isLoading: boolean) => {
-      if (isMountedRef.current) {
-          safeDispatch({ type: 'SET_LOADING', payload: isLoading });
-      }
-  };
+  const setLoading = useCallback((isLoading: boolean) => {
+    if (isMountedRef.current) {
+      safeDispatch({ type: 'SET_LOADING', payload: isLoading });
+    }
+  }, [safeDispatch]);
 
-  const setAuthenticated = () => {
+  const setAuthenticated = useCallback(() => {
     if (isMountedRef.current) {
       safeDispatch({ type: 'LOGIN_SUCCESS' });
     }
-  };
+  }, [safeDispatch]);
 
-  const contextValue: SessionContextType = {
-    state,
-    signUp,
-    signIn,
-    signOut,
-    deleteAccount,
-    forgotPassword,
-    resetPassword,
-    clearError,
-    setLoading,
-    setAuthenticated,
-  };
+  // Memoized so consumers of useSession() only re-render when `state` actually
+  // changes — not on every SessionProvider render. All handlers above are
+  // useCallback-stable, so the value identity is stable across renders where
+  // state is unchanged.
+  const contextValue = useMemo<SessionContextType>(
+    () => ({
+      state,
+      signUp,
+      signIn,
+      signOut,
+      deleteAccount,
+      forgotPassword,
+      resetPassword,
+      clearError,
+      setLoading,
+      setAuthenticated,
+    }),
+    [
+      state,
+      signUp,
+      signIn,
+      signOut,
+      deleteAccount,
+      forgotPassword,
+      resetPassword,
+      clearError,
+      setLoading,
+      setAuthenticated,
+    ],
+  );
 
   return (
     <SessionContext.Provider value={contextValue}>{children}</SessionContext.Provider>

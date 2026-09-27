@@ -13,9 +13,11 @@ interface MessageBubbleProps {
   /**
    * When provided, an assistant reply shows a "save to Echo Vault" icon that
    * carries this reply's text into the create-Echo flow. Ignored for the
-   * user's own messages.
+   * user's own messages. Receives the reply text so the parent can pass ONE
+   * stable handler for every bubble (rather than a fresh per-message closure,
+   * which would defeat React.memo below).
    */
-  onSave?: () => void;
+  onSave?: (text: string) => void;
 }
 
 // content_copy glyph (Figma 7811-2866) — the "copy this reply into an Echo"
@@ -71,13 +73,20 @@ const SpeakerStopIcon: React.FC = () => (
   </Svg>
 );
 
-export const MessageBubble: React.FC<MessageBubbleProps> = ({
+const MessageBubbleComponent: React.FC<MessageBubbleProps> = ({
   message,
   onSave,
 }) => {
   const isUser = message.sender === 'user';
   const activeUtteranceId = useTtsActiveId();
   const isSpeaking = activeUtteranceId === message.id;
+
+  // Bind the reply text here so the save button uses one stable handler and the
+  // parent can pass a single shared onSave for every bubble.
+  const handleSavePress = useCallback(
+    () => onSave?.(message.text),
+    [onSave, message.text],
+  );
 
   // Tap toggles: tapping the active bubble stops it; tapping any other
   // bubble starts that one (the wrapper takes care of stopping whichever
@@ -125,7 +134,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
           {onSave && (
             <View style={styles.actionRow}>
               <TouchableOpacity
-                onPress={onSave}
+                onPress={handleSavePress}
                 style={styles.actionBtn}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 accessibilityRole="button"
@@ -141,6 +150,12 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
     </View>
   );
 };
+
+// The chat list re-renders on every keystroke in the input and on each new
+// message. Memoized so a bubble only re-renders when its own message (stable
+// ref) or the shared onSave handler actually changes — not for the whole list
+// on every parent render.
+export const MessageBubble = React.memo(MessageBubbleComponent);
 
 const styles = StyleSheet.create({
   // Full-width row so bubbles never render "outside" the scroll area

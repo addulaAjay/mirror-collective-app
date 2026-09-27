@@ -63,11 +63,31 @@ class AppDelegate: ExpoAppDelegate {
 
     window = UIWindow(frame: UIScreen.main.bounds)
 
+    // Dark ground behind the whole RN surface. During a native-stack push the
+    // transition animates ABOVE the JS NavigationContainer background, so the
+    // incoming card's rounded corner briefly exposes the native UIWindow. With
+    // no explicit color the window defaults to a light/system fill, which
+    // flashed as a pale/gold sliver at the right corner on every transition.
+    // Anchor it to the app's darkest ramp stop (#080911 == navTheme.card) so any
+    // reveal reads as shadow, not a seam. `contentStyle` on the navigator paints
+    // the JS scene; this covers the native layer the JS tree can't reach.
+    let groundColor = UIColor(
+      red: 8.0 / 255.0,
+      green: 9.0 / 255.0,
+      blue: 17.0 / 255.0,
+      alpha: 1.0
+    )
+    window?.backgroundColor = groundColor
+
     factoryInstance.startReactNative(
       withModuleName: "MirrorCollectiveApp",
       in: window,
       launchOptions: launchOptions
     )
+
+    // The RN root view controller's view sits behind the navigator too; paint it
+    // the same ground so nothing light shows through at the transition seam.
+    window?.rootViewController?.view.backgroundColor = groundColor
 
     return true
   }

@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useCallback } from 'react';
 import {
   View,
   Text,
@@ -11,11 +11,12 @@ import {
 } from 'react-native';
 import { SvgXml } from 'react-native-svg';
 
+import { palette } from '@/theme';
+
 import { CLOSE_ICON_XML, MOTIF_ICONS } from '../assets/motifs/MotifAssets';
 
 import BlurSurface from './_internal/BlurSurface';
 
-import { palette } from '@/theme';
 
 interface MotifSelectionModalProps {
   visible: boolean;
@@ -31,15 +32,16 @@ const MotifSelectionModal: React.FC<MotifSelectionModalProps> = ({
   onClose,
   onSelect,
 }) => {
-  const renderItem = ({ item }: { item: { id: string; xml: string } }) => (
-    <TouchableOpacity
-      style={styles.motifItem}
-      onPress={() => onSelect(item.id)}
-    >
-      <View style={styles.motifInner}>
-        <SvgXml xml={item.xml} width="100%" height="100%" />
-      </View>
-    </TouchableOpacity>
+  // Stable across renders so FlatList rows don't remount on every parent render.
+  const renderItem = useCallback(
+    ({ item }: { item: { id: string; xml: string } }) => (
+      <TouchableOpacity style={styles.motifItem} onPress={() => onSelect(item.id)}>
+        <View style={styles.motifInner}>
+          <SvgXml xml={item.xml} width="100%" height="100%" />
+        </View>
+      </TouchableOpacity>
+    ),
+    [onSelect],
   );
 
   return (

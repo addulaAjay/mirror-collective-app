@@ -60,10 +60,11 @@ const VerifyEmailScreen = () => {
   const normalizedEmail = initialEmail.trim().toLowerCase();
 
   useEffect(() => {
-    let timer: ReturnType<typeof setTimeout>;
-    if (countdown > 0) {
-      timer = setTimeout(() => setCountdown(countdown - 1), 1000);
-    }
+    // A visible countdown has to re-render each second to show the new number,
+    // so that render is inherent — but use the functional updater so the timer
+    // doesn't close over a stale `countdown` value.
+    if (countdown <= 0) return undefined;
+    const timer = setTimeout(() => setCountdown(c => c - 1), 1000);
     return () => clearTimeout(timer);
   }, [countdown]);
 

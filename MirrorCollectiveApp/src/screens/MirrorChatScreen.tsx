@@ -190,10 +190,11 @@ export function MirrorChatContent() {
                     <MessageBubble
                       key={message.id}
                       message={message}
+                      // Pass the STABLE handler (not a per-message closure) so
+                      // MessageBubble's React.memo actually holds — the bubble
+                      // binds message.text internally.
                       onSave={
-                        message.sender === 'user'
-                          ? undefined
-                          : () => handleSaveToEcho(message.text)
+                        message.sender === 'user' ? undefined : handleSaveToEcho
                       }
                     />
                   ))}
