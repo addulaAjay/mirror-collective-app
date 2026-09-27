@@ -28,6 +28,27 @@ A current-state audit of both repos found the feature is **~90% implemented on b
 
 ---
 
+## 0b. Implementation pass — 2026-09-27 (multi-agent workflow)
+
+A 12-agent workflow (8 frontend screen-groups + 4 backend) ran against Figma node `7128-1706`. Branches: app `feat/reflection-room-v1-figma-match` (commit c47dfb7), backend `feat/reflection-room-v1-hardening` (commit a01ff31). Verified: tsc/eslint clean, 173 reflection tests pass (app); black/isort/flake8/mypy clean, all reflection/practice tests pass (backend).
+
+**Done ✅**
+- Frontend: 8 screens + 2 components refined to match Figma presentation (spacing/size/color-via-tokens/typography/icons) + added missing loading/error/empty state variants. Logic/wiring preserved.
+- Backend **D4** (per-family starred fallbacks + `NO_ELIGIBLE_PRACTICE`), **D6** (safety-metadata normalization), **G4** (idempotency + completion dedup). **D2** verified already spec-correct (next-midnight expiry).
+
+**NOT done yet — remaining for a truly "complete" V1**
+- ⬜ **Mock→real integration (Phase 3):** screens still default to `REFLECTION_ROOM_USE_MOCK=true`. Flipping to the real client + auth + session-expiry handling is the next milestone; the Figma-matching pass did NOT touch this.
+- ⬜ **On-device visual QA:** agents can't render RN, so pixel-parity needs your eyes on a build.
+- ⬜ **Assets still needed:** real `transition` loop/node icon (placeholder now); exact Figma glyph vectors for loading rows / info icons (inline SVG approximations now).
+
+**New design/product questions surfaced by the agents (need a decision):**
+- **Q-A:** Today's Motif Figma shows a per-motif **bold-italic tagline** (e.g. "Growth isn't linear…") that does NOT exist in the API `MotifPayload` or copy — needs 11 taglines added (backend/content) or the design line dropped.
+- **Q-B:** Practice Complete Figma shows **one** CTA ("GO TO REFLECTION ROOM"); code keeps **three** per spec §12.10. Drop two to match Figma, or keep per spec?
+- **Q-C:** Info "i" icons on Today's Motif and Echo Signature are **presentational** (no overlay copy defined). Intended to be tappable overlays, or decorative?
+- **Q-D:** Landing **fail-state** variant exists but isn't wired to a real failure trigger (Landing has no data fetch). Wire it to what?
+
+---
+
 ## 1. Scope & journey
 
 Single **linear** journey (no Echo-Vault-style branching), per the Figma USER STORY and spec §2:
