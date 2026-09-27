@@ -584,7 +584,7 @@ export function EchoLibraryContent() {
               Preserve memories that matter most
             </Text>
             <Text style={styles.subtitleHint}>
-              Slide to edit or delete your echo.
+              Slide to edit or delete your unsent echo.
             </Text>
           </View>
 
