@@ -216,6 +216,15 @@ const handlePurchaseUpdate = async (
   }
 
   const wasUserInitiated = userInitiatedPurchase;
+  // Consume the flag SYNCHRONOUSLY, before any await. StoreKit can deliver a
+  // whole backlog of queued/unfinished transactions in one burst (common in
+  // sandbox, where subs renew every few minutes and pile up). The reset used to
+  // live after `await verifyPurchase`, so every transaction in the burst captured
+  // `userInitiatedPurchase === true` before the first reset ran — and each popped
+  // its own "Subscription Activated" alert (the 10s-of-popups bug). Resetting
+  // here means only the FIRST delivered transaction is treated as user-initiated;
+  // the rest verify + finish silently.
+  userInitiatedPurchase = false;
 
   try {
     const result = await subscriptionApiService.verifyPurchase({
@@ -239,7 +248,6 @@ const handlePurchaseUpdate = async (
     // initiated. A renewal/queued transaction delivered mid-session is verified
     // and finished silently; the app reflects it on the next status refresh.
     if (wasUserInitiated) {
-      userInitiatedPurchase = false;
       Alert.alert(
         'Subscription Activated',
         'Your subscription has been successfully activated!',

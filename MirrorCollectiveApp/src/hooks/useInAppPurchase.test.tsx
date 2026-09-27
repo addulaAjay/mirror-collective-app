@@ -301,4 +301,43 @@ describe('useInAppPurchase — transaction delivery hardening', () => {
     await deliver(tx);
     expect(mockFinishTransaction).toHaveBeenCalledTimes(1);
   });
+
+  it('alerts ONCE for a burst of queued transactions, not once each', async () => {
+    // Regression: StoreKit can deliver a backlog of unfinished transactions in
+    // one burst (sandbox subs renew every few minutes and pile up). The
+    // user-initiated flag must be consumed synchronously, before the first
+    // `await`, or every transaction in the burst captures it as true and pops
+    // its own "Subscription Activated" alert (the 10s-of-popups bug).
+    const onVerified = jest.fn();
+    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+    const { result } = renderHook(() =>
+      useInAppPurchase({ onPurchaseVerified: onVerified }),
+    );
+    await waitFor(() => expect(mockGetSubscriptions).toHaveBeenCalled());
+
+    // User taps buy → this session is flagged user-initiated.
+    await act(async () => {
+      await result.current.purchaseSubscription('sku');
+    });
+
+    // A burst of DISTINCT queued transactions delivered concurrently.
+    const tx = (id: string) => ({
+      productId: 'sku',
+      transactionId: id,
+      transactionReceipt: `receipt-${id}`,
+    });
+    await act(async () => {
+      await Promise.all([
+        capturedUpdateListener(tx('burst-1')),
+        capturedUpdateListener(tx('burst-2')),
+        capturedUpdateListener(tx('burst-3')),
+      ]);
+    });
+
+    // All three drained (verified + finished)...
+    expect(mockFinishTransaction).toHaveBeenCalledTimes(3);
+    // ...but exactly ONE alert + ONE forward-route, not one per transaction.
+    expect(alertSpy).toHaveBeenCalledTimes(1);
+    expect(onVerified).toHaveBeenCalledTimes(1);
+  });
 });
