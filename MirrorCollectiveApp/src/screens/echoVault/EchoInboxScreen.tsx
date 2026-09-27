@@ -22,6 +22,29 @@
 
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import React, { useCallback, useEffect, useState } from 'react';
+import {
+  ActivityIndicator,
+  FlatList,
+  Image,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  type ImageStyle,
+  type ListRenderItem,
+  type TextStyle,
+  type ViewStyle,
+} from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Svg, { Path } from 'react-native-svg';
+
+import BackgroundWrapper from '@components/BackgroundWrapper';
+import Button from '@components/Button/Button';
+import LogoHeader from '@components/LogoHeader';
+import { echoApiService, type EchoResponse } from '@services/api/echo';
 import {
   borderWidth,
   fontFamily,
@@ -35,28 +58,6 @@ import {
   verticalScale,
 } from '@theme';
 import type { RootStackParamList } from '@types';
-import React, { useCallback, useEffect, useState } from 'react';
-import {
-  ActivityIndicator,
-  Image,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  type ImageStyle,
-  type TextStyle,
-  type ViewStyle,
-} from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import Svg, { Path } from 'react-native-svg';
-
-import BackgroundWrapper from '@components/BackgroundWrapper';
-import Button from '@components/Button/Button';
-import LogoHeader from '@components/LogoHeader';
-import { echoApiService, type EchoResponse } from '@services/api/echo';
 
 type EchoInboxNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -87,6 +88,18 @@ const BackIcon: React.FC = () => (
   />
 );
 
+const formatDate = (dateString: string): string =>
+  new Date(dateString).toLocaleDateString('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  });
+
+// Stable divider between rows — FlatList renders it BETWEEN items only, which
+// naturally drops the trailing border after the last row (matches the old
+// per-row rowBorder behavior).
+const RowSeparator = () => <View style={styles.separator} />;
+
 // ── Screen ────────────────────────────────────────────────────────────────────
 export function EchoInboxContent() {
   const navigation = useNavigation<EchoInboxNavigationProp>();
@@ -95,16 +108,12 @@ export function EchoInboxContent() {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'SENDER' | 'CATEGORY'>('SENDER');
 
-  // TODO(infinite-scroll): convert this screen to FlatList +
-  // useInfiniteList. The outer ScrollView wraps a stylized card that
-  // contains tabs + the echo rows; splitting them into ListHeader/
-  // ListFooter requires reshaping the gradient + border to live on
-  // the FlatList container. Tracked separately so we don't reshape
-  // the visual design in this PR.
-  //
-  // Until then the legacy auto-paginating getInboxEchoes() (which
-  // loops through the backend's cursor pages internally) makes sure
-  // power users don't see a silently-truncated inbox.
+  // Rows render through a virtualized FlatList inside the flex card (see the
+  // return below), so long inboxes don't mount every row at once. Data still
+  // comes from the auto-paginating getInboxEchoes() (which loops the backend's
+  // cursor pages internally), so there's no silent truncation; incremental
+  // useInfiniteList-style paging is a possible future refinement but isn't
+  // needed for correctness.
   const refresh = useCallback(async () => {
     try {
       setLoading(true);
@@ -132,23 +141,49 @@ export function EchoInboxContent() {
   }, [refresh]);
 
   // Unified read-only view (message + all attachments) for received echoes.
-  const handleOpenItem = (item: EchoResponse) => {
-    navigation.navigate('CreateEchoScreen', { viewEchoId: item.echo_id });
-  };
+  const handleOpenItem = useCallback(
+    (item: EchoResponse) => {
+      navigation.navigate('CreateEchoScreen', { viewEchoId: item.echo_id });
+    },
+    [navigation],
+  );
 
-  const formatDate = (dateString: string) =>
-    new Date(dateString).toLocaleDateString('en-US', {
-      month: 'long',
-      day: 'numeric',
-      year: 'numeric',
-    });
-
-  const getRightLabel = (item: EchoResponse) => {
-    if (activeTab === 'SENDER') {
-      return item.sender?.name?.toUpperCase() ?? 'UNKNOWN';
-    }
-    return item.category?.toUpperCase() ?? 'UNCATEGORIZED';
-  };
+  // Stable row renderer so the list doesn't rebuild every row on each parent
+  // render. Right-label depends on the active tab.
+  const renderRow = useCallback<ListRenderItem<EchoResponse>>(
+    ({ item }) => {
+      const isLocked = !!item.scheduled_at;
+      const rightLabel =
+        activeTab === 'SENDER'
+          ? (item.sender?.name?.toUpperCase() ?? 'UNKNOWN')
+          : (item.category?.toUpperCase() ?? 'UNCATEGORIZED');
+      return (
+        <TouchableOpacity
+          activeOpacity={0.9}
+          onPress={() => handleOpenItem(item)}
+          style={styles.row}
+        >
+          <View style={styles.rowLeft}>
+            <View style={styles.rowText}>
+              <Text style={styles.rowTitle} numberOfLines={1}>
+                {item.title}
+              </Text>
+              <Text style={styles.rowSub} numberOfLines={1}>
+                {isLocked
+                  ? `Unlocks ${formatDate(item.scheduled_at!)}`
+                  : `Saved ${formatDate(item.created_at)}`}
+              </Text>
+            </View>
+          </View>
+          <View style={styles.rowRight}>
+            <Text style={styles.rowLabel}>{rightLabel}</Text>
+            {isLocked && <LockIcon />}
+          </View>
+        </TouchableOpacity>
+      );
+    },
+    [activeTab, handleOpenItem],
+  );
 
   return (
     <BackgroundWrapper style={styles.bg} scrollable>
@@ -158,12 +193,9 @@ export function EchoInboxContent() {
         {/* Figma: LogoHeader (hamburger / MC logo / home) at top of outer column */}
         <LogoHeader navigation={navigation} />
 
-        {/* Figma 1436:1831 — content column: gap:24 */}
-        <ScrollView
-          style={styles.scroll}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-        >
+        {/* Figma 1436:1831 — content column: gap:24. Header + CTA stay fixed;
+            only the echo list (inside the card) scrolls, so it can virtualize. */}
+        <View style={styles.content}>
           {/* ── Header section ───────────────────────────────────────────── */}
           {/* Figma 1439:1929 — flex-col gap:16 */}
           <View style={styles.headerSection}>
@@ -252,41 +284,14 @@ export function EchoInboxContent() {
                 </Text>
               </View>
             ) : (
-              echoes.map((item, index) => {
-                const isLast = index === echoes.length - 1;
-                const isLocked = !!item.scheduled_at;
-                return (
-                  <TouchableOpacity
-                    key={item.echo_id}
-                    activeOpacity={0.9}
-                    onPress={() => handleOpenItem(item)}
-                    style={[styles.row, !isLast && styles.rowBorder]}
-                  >
-                    {/* Left: title + date */}
-                    <View style={styles.rowLeft}>
-                      <View style={styles.rowText}>
-                        {/* Heading XS: Cormorant Regular 20/24, white */}
-                        <Text style={styles.rowTitle} numberOfLines={1}>
-                          {item.title}
-                        </Text>
-                        {/* Inter Light Italic 14/1.5, white */}
-                        <Text style={styles.rowSub} numberOfLines={1}>
-                          {isLocked
-                            ? `Unlocks ${formatDate(item.scheduled_at!)}`
-                            : `Saved ${formatDate(item.created_at)}`}
-                        </Text>
-                      </View>
-                    </View>
-
-                    {/* Right: label + lock */}
-                    <View style={styles.rowRight}>
-                      {/* Inter Light 16/24, #f2e1b0 */}
-                      <Text style={styles.rowLabel}>{getRightLabel(item)}</Text>
-                      {isLocked && <LockIcon />}
-                    </View>
-                  </TouchableOpacity>
-                );
-              })
+              <FlatList
+                data={echoes}
+                keyExtractor={item => item.echo_id}
+                renderItem={renderRow}
+                ItemSeparatorComponent={RowSeparator}
+                showsVerticalScrollIndicator={false}
+                style={styles.list}
+              />
             )}
           </View>
 
@@ -299,7 +304,7 @@ export function EchoInboxContent() {
             onPress={() => navigation.navigate('NewEchoScreen')}
             style={styles.btn}
           />
-        </ScrollView>
+        </View>
       </SafeAreaView>
     </BackgroundWrapper>
   );
@@ -314,8 +319,8 @@ export default function EchoInboxScreen() {
 const styles = StyleSheet.create<{
   bg: ViewStyle;
   safe: ViewStyle;
-  scroll: ViewStyle;
-  scrollContent: ViewStyle;
+  content: ViewStyle;
+  list: ViewStyle;
   headerSection: ViewStyle;
   titleRow: ViewStyle;
   backBtn: ViewStyle;
@@ -332,7 +337,7 @@ const styles = StyleSheet.create<{
   tabTextActive: TextStyle;
   tabTextInactive: TextStyle;
   row: ViewStyle;
-  rowBorder: ViewStyle;
+  separator: ViewStyle;
   rowLeft: ViewStyle;
   rowText: ViewStyle;
   rowTitle: TextStyle;
@@ -350,15 +355,18 @@ const styles = StyleSheet.create<{
   bg:   { flex: 1 },
   safe: { flex: 1, backgroundColor: palette.neutral.transparent },
 
-  scroll: { flex: 1 },
-  // Figma: left:24, outer gap:40 from header → content, inner gap:24 between sections
-  scrollContent: {
+  // Figma: left:24, outer gap:40 from header → content, inner gap:24 between
+  // sections. A flex column (not a ScrollView) so the card can bound the inner
+  // FlatList and let it virtualize.
+  content: {
+    flex:              1,
     paddingHorizontal: scale(spacing.xl),         // 24px
     paddingTop:        verticalScale(30),          // outer column gap
     paddingBottom:     verticalScale(spacing.xxxl),
     gap:               verticalScale(spacing.xl),  // 24px inner gap
-    flexGrow:          1,
   },
+  // The scrolling echo list fills the flex card so it virtualizes.
+  list: { flex: 1 },
 
   // ── Header section ──────────────────────────────────────────────────────────
   // Figma 1439:1929 — flex-col gap:16
@@ -465,9 +473,9 @@ const styles = StyleSheet.create<{
     justifyContent:  'space-between',
     paddingVertical: verticalScale(spacing.m),       // 16px
   },
-  rowBorder: {
-    borderBottomWidth: borderWidth.hairline,
-    borderBottomColor: palette.navy.light,
+  separator: {
+    height:          borderWidth.hairline,
+    backgroundColor: palette.navy.light,
   },
 
   rowLeft: {

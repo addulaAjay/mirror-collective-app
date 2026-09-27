@@ -1508,13 +1508,13 @@ const styles = StyleSheet.create<{
   // through and no backing colour is ever needed.
   footer: {
     width: '100%',
-    paddingHorizontal: scale(spacing.xl),
+    paddingHorizontal: moderateScale(spacing.xl),
     paddingTop: verticalScale(spacing.m),
     paddingBottom: verticalScale(spacing.m),
   },
   content: {
     width: '100%',
-    paddingHorizontal: scale(spacing.xl),
+    paddingHorizontal: moderateScale(spacing.xl),
     paddingTop: verticalScale(spacing.l),
     paddingBottom: verticalScale(spacing.xl),
     gap: verticalScale(spacing.xl),
@@ -1553,7 +1553,7 @@ const styles = StyleSheet.create<{
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: scale(spacing.xs),
+    gap: moderateScale(spacing.xs),
     width: '100%',
   },
   starLine: {
@@ -1576,13 +1576,13 @@ const styles = StyleSheet.create<{
     fontSize: moderateScale(fontSize.l),
     lineHeight: moderateScale(24),
     color: palette.gold.subtlest,
-    paddingHorizontal: scale(2),
+    paddingHorizontal: moderateScale(2),
   },
   messageInput: {
     borderRadius: radius.s,
     borderWidth: borderWidth.thin,
     borderColor: palette.navy.light,
-    paddingHorizontal: scale(spacing.m),
+    paddingHorizontal: moderateScale(spacing.m),
     paddingVertical: verticalScale(spacing.xs),
     fontFamily: fontFamily.body,
     fontSize: moderateScale(fontSize.s, 0.3),
@@ -1596,7 +1596,7 @@ const styles = StyleSheet.create<{
     borderRadius: radius.s,
     borderWidth: borderWidth.thin,
     borderColor: palette.navy.light,
-    paddingHorizontal: scale(spacing.m),
+    paddingHorizontal: moderateScale(spacing.m),
     paddingVertical: verticalScale(spacing.s),
     backgroundColor: 'rgba(253,253,249,0.02)',
   },
@@ -1615,11 +1615,11 @@ const styles = StyleSheet.create<{
   viewActions: {
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: scale(spacing.l),
+    gap: moderateScale(spacing.l),
     width: '100%',
   },
   viewActionBtn: {
-    paddingHorizontal: scale(spacing.l),
+    paddingHorizontal: moderateScale(spacing.l),
     paddingVertical: verticalScale(spacing.s),
     borderRadius: radius.m,
     borderWidth: borderWidth.thin,
@@ -1636,7 +1636,7 @@ const styles = StyleSheet.create<{
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: scale(6),
+    gap: moderateScale(6),
     width: '100%',
   },
   sectionLabel: {
@@ -1653,7 +1653,7 @@ const styles = StyleSheet.create<{
     flexDirection: 'row',
     alignItems: 'stretch',
     justifyContent: 'space-between',
-    gap: scale(spacing.s),
+    gap: moderateScale(spacing.s),
     width: '100%',
   },
   // Cards flex to share the row evenly (no fixed width) and grow with their
@@ -1669,7 +1669,7 @@ const styles = StyleSheet.create<{
     alignItems: 'center',
     justifyContent: 'center',
     gap: verticalScale(spacing.xs),
-    paddingHorizontal: scale(6),
+    paddingHorizontal: moderateScale(6),
     paddingVertical: verticalScale(spacing.s),
   },
   addCardDisabled: { opacity: 0.5 },
@@ -1687,12 +1687,12 @@ const styles = StyleSheet.create<{
   errorBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: scale(spacing.s),
+    gap: moderateScale(spacing.s),
     borderRadius: radius.s,
     borderWidth: borderWidth.thin,
     borderColor: 'rgba(163,179,204,0.4)',
     backgroundColor: 'rgba(253,253,249,0.02)',
-    paddingHorizontal: scale(spacing.m),
+    paddingHorizontal: moderateScale(spacing.m),
     paddingVertical: verticalScale(spacing.s),
   },
   errorIconCircle: {
@@ -1748,10 +1748,10 @@ const styles = StyleSheet.create<{
   previewCaption: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: scale(spacing.xs),
+    gap: moderateScale(spacing.xs),
     alignSelf: 'flex-start',
-    margin: scale(spacing.s),
-    paddingHorizontal: scale(spacing.s),
+    margin: moderateScale(spacing.s),
+    paddingHorizontal: moderateScale(spacing.s),
     paddingVertical: verticalScale(spacing.xs),
     borderRadius: radius.s,
     backgroundColor: 'rgba(10,12,18,0.7)',
@@ -1775,8 +1775,8 @@ const styles = StyleSheet.create<{
     left: '50%',
     width: scale(56),
     height: scale(56),
-    marginLeft: scale(-28),
-    marginTop: scale(-28),
+    marginLeft: moderateScale(-28),
+    marginTop: moderateScale(-28),
     borderRadius: scale(28),
     backgroundColor: palette.gold.DEFAULT,
     alignItems: 'center',
@@ -1785,7 +1785,7 @@ const styles = StyleSheet.create<{
   previewPlayGlyph: {
     color: palette.navy.deep,
     fontSize: moderateScale(20),
-    marginLeft: scale(3),
+    marginLeft: moderateScale(3),
   },
   previewBadge: {
     position: 'absolute',
@@ -1793,8 +1793,8 @@ const styles = StyleSheet.create<{
     bottom: scale(spacing.s),
     flexDirection: 'row',
     alignItems: 'center',
-    gap: scale(4),
-    paddingHorizontal: scale(spacing.s),
+    gap: moderateScale(4),
+    paddingHorizontal: moderateScale(spacing.s),
     paddingVertical: verticalScale(4),
     borderRadius: radius.s,
     borderWidth: borderWidth.thin,
@@ -1810,7 +1810,7 @@ const styles = StyleSheet.create<{
     position: 'absolute',
     right: scale(spacing.s),
     bottom: scale(spacing.s),
-    paddingHorizontal: scale(spacing.s),
+    paddingHorizontal: moderateScale(spacing.s),
     paddingVertical: verticalScale(4),
     borderRadius: radius.s,
     borderWidth: borderWidth.thin,
@@ -1831,9 +1831,9 @@ const styles = StyleSheet.create<{
     borderWidth: borderWidth.thin,
     borderColor: 'rgba(163,179,204,0.4)',
     backgroundColor: 'rgba(253,253,249,0.02)',
-    paddingHorizontal: scale(spacing.m),
+    paddingHorizontal: moderateScale(spacing.m),
     paddingVertical: verticalScale(spacing.s),
-    gap: scale(spacing.s),
+    gap: moderateScale(spacing.s),
   },
   chipText: {
     flex: 1,
@@ -1878,7 +1878,7 @@ const styles = StyleSheet.create<{
     backgroundColor: 'rgba(0,0,0,0.6)',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: scale(spacing.xl),
+    paddingHorizontal: moderateScale(spacing.xl),
   },
   // File-upload sheet (Figma 7544:2839)
   sheetCard: {
@@ -1888,7 +1888,7 @@ const styles = StyleSheet.create<{
     backgroundColor: 'rgba(11,15,28,0.96)',
     borderWidth: borderWidth.hairline, // 0.25
     borderColor: palette.navy.light, // Border/Subtle #a3b3cc
-    padding: scale(spacing.xl), // 24
+    padding: moderateScale(spacing.xl), // 24
     alignItems: 'center',
     gap: verticalScale(spacing.m), // 16
     // Glow: 0 0 15 3 rgba(229,214,176,0.3)
@@ -1920,7 +1920,7 @@ const styles = StyleSheet.create<{
   sheetOptions: {
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: scale(spacing.m), // 16
+    gap: moderateScale(spacing.m), // 16
   },
   sheetOption: {
     alignItems: 'center',
@@ -1996,7 +1996,7 @@ const styles = StyleSheet.create<{
     backgroundColor: palette.gold.DEFAULT,
   },
   recordSaveBtn: {
-    paddingHorizontal: scale(spacing.l),
+    paddingHorizontal: moderateScale(spacing.l),
     paddingVertical: verticalScale(spacing.s),
     borderRadius: radius.m,
     borderWidth: borderWidth.thin,
