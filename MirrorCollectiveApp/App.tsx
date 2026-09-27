@@ -18,6 +18,7 @@ import useAppStateHandler from '@hooks/useAppStateHandler';
 import useInactivityTimer from '@hooks/useInactivityTimer';
 // Import your screens
 import AboutScreen from '@screens/AboutScreen';
+import AddStorageScreen from '@screens/AddStorageScreen';
 import AppVideoScreen from '@screens/AppVideoScreen';
 import ArchetypeScreen from '@screens/ArchetypeScreen';
 import AddNewProfileScreen from '@screens/echoVault/AddNewProfileScreen';
@@ -69,7 +70,6 @@ import SignUpScreen from '@screens/SignUpScreen';
 import SoulPingScreen from '@screens/SoulPingScreen';
 import SplashScreen from '@screens/SplashScreen';
 import StartFreeTrialScreen from '@screens/StartFreeTrialScreen';
-import AddStorageScreen from '@screens/AddStorageScreen';
 import TalkToMirrorScreen from '@screens/TalkToMirrorScreen';
 import TermsAndConditionsScreen from '@screens/TermsAndConditionsScreen';
 import TheMirrorPledgeCommingsoonScreen from '@screens/TheMirrorPledgeCommingsoonScreen';
@@ -119,11 +119,19 @@ const navTheme: Theme = {
   },
 };
 
-// Screens own their full-bleed background, so keep the native-stack content
-// container transparent — nothing but the app's own background ever paints.
+// Paint the native-stack scene with the app's darkest background stop rather
+// than leaving it transparent. A transparent scene reveals whatever sits behind
+// the native stack DURING a push/pop — and the native-stack animation runs
+// above the JS NavigationContainer background, so the layer it exposes is the
+// native iOS window (default ~white), which flashed as a pale/gold sliver at the
+// screen edges and rounded phone corners on every transition. An opaque scene
+// anchored to screenTop (#080911, == navTheme.card) means there is nothing
+// see-through to reveal; screens still paint their own full-bleed
+// BackgroundWrapper on top, so this colour only shows at the transition seam,
+// where it reads as shadow.
 const screenOptions = {
   headerShown: false,
-  contentStyle: { backgroundColor: 'transparent' },
+  contentStyle: { backgroundColor: palette.navy.screenTop },
 } as const;
 // Wrapped MirrorChat component with error boundary
 const MirrorChatWithErrorBoundary = () => (
