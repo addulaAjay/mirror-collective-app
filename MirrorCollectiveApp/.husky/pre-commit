@@ -1,5 +1,9 @@
 npx lint-staged
 
+# Guard: performance budgets on staged files (see scripts/check-perf-budgets.mjs)
+# — hard-fails a newly added image over 500KB, advises on <ScrollView>+.map().
+node scripts/check-perf-budgets.mjs
+
 # Guard: Figma token round-trip
 # If anyone staged a hand-edit to src/theme/generated/tokens.ts, reject.
 # Generated tokens must come from `npm run tokens:build` (sourced from
