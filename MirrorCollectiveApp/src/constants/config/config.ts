@@ -33,6 +33,13 @@ export const API_CONFIG = {
     SESSION: {
       GREETING: '/api/mirrorgpt/session/greeting',
     },
+    // Speech-to-text for chat voice input. Its own endpoint rather than a
+    // step inside MIRROR_CHAT: that route already runs p95 25-35s against a
+    // 30s API Gateway ceiling, so chaining transcription in front of it
+    // would produce 504s.
+    MIRRORGPT: {
+      TRANSCRIBE: '/api/mirrorgpt/transcribe',
+    },
     // QUIZ: {
     //   SUBMIT: '/api/quiz/submit',
     // },

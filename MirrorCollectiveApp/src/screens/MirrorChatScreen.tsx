@@ -20,7 +20,7 @@ import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
 import MirrorGptInfoModal from '@components/MirrorGptInfoModal';
 import { MessageBubble, ChatInput, TypingIndicator } from '@components/ui';
-import { CHAT_PHOTO_ENABLED } from '@features/chat-media';
+import { CHAT_PHOTO_ENABLED, CHAT_VOICE_ENABLED } from '@features/chat-media';
 import { useChat } from '@hooks/useChat';
 import {
   TTS_FEATURE_ENABLED,
@@ -67,6 +67,12 @@ export function MirrorChatContent() {
     pickPhotoFromLibrary,
     takePhoto,
     removeAttachment,
+    transcribing,
+    isRecording,
+    recordingMs,
+    startRecording,
+    stopAndTranscribe,
+    cancelRecording,
   } = useChat();
   // Read the preference unconditionally so the hook call shape is
   // stable across renders; only wire it into the auto-read effect
@@ -223,6 +229,16 @@ export function MirrorChatContent() {
                   }
                   onTakePhoto={CHAT_PHOTO_ENABLED ? takePhoto : undefined}
                   onRemoveAttachment={removeAttachment}
+                  // Same pattern as the photo handlers: passing undefined is
+                  // what hides the mic when voice is flagged off.
+                  onStartRecording={
+                    CHAT_VOICE_ENABLED ? startRecording : undefined
+                  }
+                  onStopRecording={stopAndTranscribe}
+                  onCancelRecording={cancelRecording}
+                  isRecording={isRecording}
+                  recordingMs={recordingMs}
+                  transcribing={transcribing}
                 />
               </View>
             </LinearGradient>

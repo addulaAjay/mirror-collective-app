@@ -27,6 +27,15 @@
 export const CHAT_PHOTO_ENABLED =
   String(process.env.CHAT_PHOTO_ENABLED ?? 'true').toLowerCase() === 'true';
 
-/** Voice input in MirrorGPT chat (V2 — not yet implemented client-side). */
+/**
+ * Voice input in MirrorGPT chat (V2).
+ *
+ * **Defaulted ON for this branch**, same rationale as the photo flag: the
+ * feature should be visible in the UI so it can be tracked at branch level.
+ * Revisit before merge.
+ *
+ * Set `CHAT_VOICE_ENABLED=false` in the env to turn it off without a code
+ * change.
+ */
 export const CHAT_VOICE_ENABLED =
-  String(process.env.CHAT_VOICE_ENABLED ?? 'false').toLowerCase() === 'true';
+  String(process.env.CHAT_VOICE_ENABLED ?? 'true').toLowerCase() === 'true';

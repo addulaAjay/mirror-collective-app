@@ -1019,3 +1019,57 @@ shipped code — re-confirming that visible chat history stays off the roadmap
 un-owned, and D7 makes it harder rather than easier: with nothing stored there
 is no object to scan asynchronously, so moderation would have to run inline
 inside the 30s-capped request.
+
+---
+
+## 13. Phase 5 as built (voice input)
+
+Phase 5 is complete; voice now works end to end. Two notes on how it differs
+from the phase body above.
+
+**`CHAT_VOICE_ENABLED` also defaults ON for this branch**, matching the photo
+flag's branch-level-tracking rationale. Same caveat: not the shipping default,
+revisit before merge.
+
+**The mic replaces send rather than joining the row.** Send always wins when
+there is something sendable (text *or* a staged photo); the mic only appears
+when there is nothing to send. The row was already tight at `MAX_LINES`, so a
+fourth child would have crowded it.
+
+### What the extraction preserved
+
+The recorder lifecycle came from `NewEchoAudioScreen`, which learned these the
+hard way. Each is carried over with its reason in a comment, because every one
+of them looks removable and isn't:
+
+| Behaviour | Why |
+|---|---|
+| 300ms pre-delay before `startRecorder` | Lets a prior Vision Camera / react-native-video release `AVAudioSession`; without it, coming from a video screen fails with "audio session was hijacked" |
+| `removeRecordBackListener()` *before* adding | A retry otherwise stacks listeners and the timer advances in multiples |
+| **Synchronous** `isRecordingRef` guard | `stopRecorder()` on an idle recorder can throw on iOS, and state updates land too late to prevent it |
+| Capturing `stopRecorder()`'s return value | It *is* the saved file path — dropping it loses the recording |
+| Unmount teardown | Otherwise the mic stays hot after navigating away, and iOS leaves the orange indicator lit |
+| Error-substring → user copy | "Disconnect AirPods" is actionable; "recording failed" is not. A Bluetooth device holding the audio session is the most common real cause on iOS |
+
+### New in Phase 5
+
+- **`SPEECH_AUDIO_SET`** — 16kHz mono, separate from Echo Vault's 44.1kHz
+  archival config. Whisper resamples to 16kHz internally, so the archival set
+  is ~4× the bytes for zero accuracy gain, and those bytes ride inline in the
+  request. The two configs are commented as deliberately different so nobody
+  unifies them.
+- **The 120s cap**, which existed nowhere in the app. Latched so it fires once
+  (the record-back listener ticks continuously), and `onAutoStop` hands the
+  file to transcription so an auto-stopped recording isn't silently discarded.
+  The UI warns at 105s rather than cutting the user off mid-sentence.
+- **Transcript appends to the draft** rather than replacing it — the user may
+  have typed something before deciding to speak. It never auto-sends (D1).
+- **Empty transcript is not an error.** Silence returns 200 with `text: ""`,
+  and the UI says "the Mirror didn't catch that" rather than showing a failure.
+
+### Incidental fix
+
+`ApiErrorType` gained `'TranscriptionError'`. It is a closed union, so adding
+a new error type is a required edit — the same latent problem still affects
+`services/api/user.ts`, which passes `'PledgeAcceptanceError'` and is one of
+the four pre-existing `tsc` errors on `main`.

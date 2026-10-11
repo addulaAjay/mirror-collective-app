@@ -1,4 +1,4 @@
-import { useCallback, useState, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ScrollView } from 'react-native';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
@@ -9,10 +9,16 @@ import {
   readPhotoAsBase64,
   type PreparedChatPhoto,
 } from '@features/chat-media';
-import { chatApiService, sessionApiService } from '@services/api';
+import { useAudioRecorder } from '@hooks/useAudioRecorder';
+import {
+  chatApiService,
+  sessionApiService,
+  transcribeApiService,
+} from '@services/api';
 import { SessionManager } from '@services/sessionManager';
 import type { ChatAttachment, Message } from '@types';
 import { getApiErrorMessage } from '@utils/apiErrorUtils';
+import { CHAT_AUDIO_CONTENT_TYPE } from '@utils/media/mime';
 import { ensureCameraPermission } from '@utils/permissions/media';
 
 /**
@@ -52,6 +58,7 @@ export const useChat = () => {
   // send tap stays responsive. The bytes are only read at send time.
   const [prepared, setPrepared] = useState<PreparedChatPhoto | null>(null);
   const [preparing, setPreparing] = useState(false);
+  const [transcribing, setTranscribing] = useState(false);
   const [greetingLoaded, setGreetingLoaded] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
   // Synchronous in-flight guard. `greetingLoaded` alone can't prevent
@@ -118,6 +125,97 @@ export const useChat = () => {
       setLoading(false);
     }
   }, [user?.fullName]);
+
+  /** Push a system message into the thread — how this surface talks to users. */
+  const pushSystemMessage = useCallback((text: string) => {
+    setMessages(msgs => [...msgs, createMessage(text, 'system')]);
+  }, []);
+
+  /**
+   * Transcribe a finished recording into the draft.
+   *
+   * D1: the transcript becomes the message, but the user reads and edits it
+   * first — this never auto-sends. Appends rather than replaces, because they
+   * may have typed something before deciding to speak.
+   */
+  const transcribeRecording = useCallback(
+    async (uri: string) => {
+      setTranscribing(true);
+      try {
+        let data_base64: string;
+        try {
+          data_base64 = await readPhotoAsBase64(uri);
+        } catch {
+          pushSystemMessage(
+            "Couldn't read that recording. Try speaking again.",
+          );
+          return;
+        }
+
+        const response = await transcribeApiService.transcribe({
+          mime_type: CHAT_AUDIO_CONTENT_TYPE,
+          data_base64,
+        });
+
+        if (!response.success) {
+          pushSystemMessage(getApiErrorMessage(response, t));
+          return;
+        }
+
+        const text = (response.data?.text ?? '').trim();
+        if (!text) {
+          // Silence is a legitimate outcome, not an error — say so plainly
+          // rather than leaving the user staring at an unchanged input.
+          pushSystemMessage("The Mirror didn't catch that. Try again?");
+          return;
+        }
+
+        setDraft(previous =>
+          previous.trim() ? `${previous.trim()} ${text}` : text,
+        );
+      } catch (error) {
+        pushSystemMessage(getApiErrorMessage(error, t));
+      } finally {
+        setTranscribing(false);
+      }
+    },
+    [pushSystemMessage, t],
+  );
+
+  // The 120s cap stops the recording on the user's behalf; carry on exactly
+  // as if they had tapped stop, so the speech isn't silently discarded.
+  const recorder = useAudioRecorder({
+    onAutoStop: uri => {
+      void transcribeRecording(uri);
+    },
+  });
+
+  // Surface a recorder failure (denied mic, hijacked audio session) in the
+  // thread. Keyed on the message so the same error isn't repeated on every
+  // re-render.
+  const reportedRecorderErrorRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (recorder.error && recorder.error !== reportedRecorderErrorRef.current) {
+      reportedRecorderErrorRef.current = recorder.error;
+      pushSystemMessage(recorder.error);
+    }
+  }, [recorder.error, pushSystemMessage]);
+
+  const startRecording = useCallback(async () => {
+    reportedRecorderErrorRef.current = null;
+    await recorder.start();
+  }, [recorder]);
+
+  /** Stop, then transcribe into the draft. */
+  const stopAndTranscribe = useCallback(async () => {
+    const uri = await recorder.stop();
+    if (!uri) return;
+    await transcribeRecording(uri);
+  }, [recorder, transcribeRecording]);
+
+  const cancelRecording = useCallback(async () => {
+    await recorder.cancel();
+  }, [recorder]);
 
   /**
    * Stage a picked photo: normalize + compress it now, so send stays fast.
@@ -367,6 +465,10 @@ export const useChat = () => {
       : [],
     /** True while a picked photo is being converted/compressed. */
     preparing,
+    /** True while a finished recording is being transcribed. */
+    transcribing,
+    isRecording: recorder.isRecording,
+    recordingMs: recorder.elapsedMs,
 
     // Actions
     initializeSession,
@@ -378,5 +480,8 @@ export const useChat = () => {
     pickPhotoFromLibrary,
     takePhoto,
     removeAttachment,
+    startRecording,
+    stopAndTranscribe,
+    cancelRecording,
   };
 };
