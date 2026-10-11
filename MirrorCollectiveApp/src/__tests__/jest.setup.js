@@ -55,7 +55,32 @@ jest.mock('react-native', () => {
     ActivityIndicator: 'ActivityIndicator',
     Switch: 'Switch',
     Alert: { alert: jest.fn() },
-    Linking: { openURL: jest.fn() },
+    // openSettings is what a denied-permission flow sends the user to
+    // (src/utils/permissions/media.ts). Without it here, any code path that
+    // handles a permission denial throws on an undefined function.
+    Linking: { openURL: jest.fn(), openSettings: jest.fn() },
+    // Android runtime permissions. Absent from this mock until now, so any
+    // code touching PermissionsAndroid crashed in tests. Shapes mirror the
+    // real module closely enough for assertions on grant results.
+    PermissionsAndroid: {
+      PERMISSIONS: {
+        RECORD_AUDIO: 'android.permission.RECORD_AUDIO',
+        CAMERA: 'android.permission.CAMERA',
+        READ_EXTERNAL_STORAGE: 'android.permission.READ_EXTERNAL_STORAGE',
+        WRITE_EXTERNAL_STORAGE: 'android.permission.WRITE_EXTERNAL_STORAGE',
+        READ_MEDIA_IMAGES: 'android.permission.READ_MEDIA_IMAGES',
+        READ_MEDIA_VIDEO: 'android.permission.READ_MEDIA_VIDEO',
+        READ_MEDIA_AUDIO: 'android.permission.READ_MEDIA_AUDIO',
+      },
+      RESULTS: {
+        GRANTED: 'granted',
+        DENIED: 'denied',
+        NEVER_ASK_AGAIN: 'never_ask_again',
+      },
+      check: jest.fn(() => Promise.resolve(true)),
+      request: jest.fn(() => Promise.resolve('granted')),
+      requestMultiple: jest.fn(() => Promise.resolve({})),
+    },
     StatusBar: Object.assign(jest.fn(() => null), { 
       currentHeight: 0, 
       setBarStyle: jest.fn(), 
@@ -234,6 +259,13 @@ jest.mock('react-native-document-picker', () => ({
       pdf: 'pdf',
       doc: 'doc',
       docx: 'docx',
+      // The real module also exposes these. Omitting them meant any code
+      // referencing DocumentPicker.types.audio/images/video got `undefined`
+      // in tests and the assertion silently passed against undefined.
+      audio: 'audio',
+      images: 'images',
+      video: 'video',
+      allFiles: 'allFiles',
     },
     isCancel: jest.fn(() => false),
   },
@@ -289,6 +321,11 @@ jest.mock('react-native-blob-util', () => {
         // sees an empty pending list in tests. Override per-test as
         // needed for resume-flow scenarios.
         exists: jest.fn().mockResolvedValue(false),
+        // Chat media reads a prepared photo as base64 at send time
+        // (src/features/chat-media/prepareChatPhoto.ts). Default to a tiny
+        // valid payload; override per-test to assert on the path or to
+        // simulate a read failure.
+        readFile: jest.fn().mockResolvedValue('QUJD'),
       },
     },
   };
@@ -308,6 +345,67 @@ jest.mock('react-native-compressor', () => ({
   createVideoThumbnail: jest.fn(() =>
     Promise.reject(new Error('not mocked')),
   ),
+}));
+
+// Mock react-native-image-picker — native module. Defaults to the
+// user-cancelled shape (`didCancel: true`) so a test that doesn't opt in
+// never gets a surprise asset. Override per-test:
+//   jest.requireMock('react-native-image-picker').launchImageLibrary
+//     .mockResolvedValue({ assets: [{ uri: 'file:///p.jpg', type: 'image/jpeg' }] })
+jest.mock('react-native-image-picker', () => ({
+  __esModule: true,
+  launchImageLibrary: jest.fn(() => Promise.resolve({ didCancel: true })),
+  launchCamera: jest.fn(() => Promise.resolve({ didCancel: true })),
+}));
+
+// Mock react-native-audio-recorder-player.
+//
+// IMPORTANT: the default export must be an OBJECT, not a function. The
+// library ships a singleton *instance*, and consumers do
+// `useRef(AudioRecorderPlayer).current` — a function default would be
+// treated as a lazy initialiser by useRef and produce a broken ref.
+// (Same reasoning as the local mock in NewEchoComposeScreen.test.tsx.)
+jest.mock('react-native-audio-recorder-player', () => ({
+  __esModule: true,
+  default: {
+    startRecorder: jest.fn(() => Promise.resolve('file:///cache/rec.m4a')),
+    stopRecorder: jest.fn(() => Promise.resolve('file:///cache/rec.m4a')),
+    addRecordBackListener: jest.fn(),
+    removeRecordBackListener: jest.fn(),
+    startPlayer: jest.fn(() => Promise.resolve()),
+    stopPlayer: jest.fn(() => Promise.resolve()),
+    pausePlayer: jest.fn(() => Promise.resolve()),
+    resumePlayer: jest.fn(() => Promise.resolve()),
+    addPlaybackEndListener: jest.fn(),
+    removePlaybackEndListener: jest.fn(),
+    addPlayBackListener: jest.fn(),
+    removePlayBackListener: jest.fn(),
+  },
+}));
+
+// Mock react-native-vision-camera. Used in this codebase as much for its
+// cross-platform permission statics (src/utils/permissions/media.ts) as for
+// the camera view itself, so both the statics and the hooks are stubbed.
+// Defaults to granted so permission-indifferent tests don't have to care;
+// permission-specific tests mock the module locally instead.
+jest.mock('react-native-vision-camera', () => ({
+  __esModule: true,
+  Camera: Object.assign('Camera', {
+    getCameraPermissionStatus: jest.fn(() => 'granted'),
+    requestCameraPermission: jest.fn(() => Promise.resolve('granted')),
+    getMicrophonePermissionStatus: jest.fn(() => 'granted'),
+    requestMicrophonePermission: jest.fn(() => Promise.resolve('granted')),
+  }),
+  useCameraPermission: jest.fn(() => ({
+    hasPermission: true,
+    requestPermission: jest.fn(() => Promise.resolve(true)),
+  })),
+  useMicrophonePermission: jest.fn(() => ({
+    hasPermission: true,
+    requestPermission: jest.fn(() => Promise.resolve(true)),
+  })),
+  useCameraDevice: jest.fn(() => ({ id: 'mock-back', position: 'back' })),
+  useCameraFormat: jest.fn(() => undefined),
 }));
 
 // Mock expo-image — its native module touches a TurboModule registry
