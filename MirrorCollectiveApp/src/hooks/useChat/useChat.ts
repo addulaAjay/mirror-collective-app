@@ -1,24 +1,39 @@
-import type { Message } from '@types';
 import { useCallback, useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ScrollView } from 'react-native';
+import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 
 import { useUser } from '@context/UserContext';
+import {
+  prepareChatPhoto,
+  readPhotoAsBase64,
+  type PreparedChatPhoto,
+} from '@features/chat-media';
 import { chatApiService, sessionApiService } from '@services/api';
 import { SessionManager } from '@services/sessionManager';
+import type { ChatAttachment, Message } from '@types';
 import { getApiErrorMessage } from '@utils/apiErrorUtils';
+import { ensureCameraPermission } from '@utils/permissions/media';
 
 /**
  * Custom hook for managing chat functionality with MirrorGPT integration
  */
-const createMessage = (text: string, sender: 'user' | 'system'): Message => ({
+const createMessage = (
+  text: string,
+  sender: 'user' | 'system',
+  attachments?: ChatAttachment[],
+): Message => ({
   id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
   text,
   sender,
   timestamp: new Date(),
+  ...(attachments && attachments.length > 0 ? { attachments } : {}),
 });
 
-const toFirstNameOnly = (text: string, fullName: string | undefined): string => {
+const toFirstNameOnly = (
+  text: string,
+  fullName: string | undefined,
+): string => {
   if (!fullName) return text;
   const firstName = fullName.trim().split(' ')[0];
   const full = fullName.trim();
@@ -32,6 +47,11 @@ export const useChat = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [draft, setDraft] = useState('');
   const [loading, setLoading] = useState(false);
+  // Staged photo, V1 allows at most one. Holds the PREPARED (HEIC-converted,
+  // compressed) local file — the expensive work happens at pick time so the
+  // send tap stays responsive. The bytes are only read at send time.
+  const [prepared, setPrepared] = useState<PreparedChatPhoto | null>(null);
+  const [preparing, setPreparing] = useState(false);
   const [greetingLoaded, setGreetingLoaded] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
   // Synchronous in-flight guard. `greetingLoaded` alone can't prevent
@@ -69,7 +89,10 @@ export const useChat = () => {
           await SessionManager.clearConversation();
         }
 
-        const greetingText = toFirstNameOnly(response.data.greeting_message, user?.fullName);
+        const greetingText = toFirstNameOnly(
+          response.data.greeting_message,
+          user?.fullName,
+        );
         const greetingMessage = createMessage(greetingText, 'system');
         setMessages([greetingMessage]);
         setGreetingLoaded(true);
@@ -97,14 +120,116 @@ export const useChat = () => {
   }, [user?.fullName]);
 
   /**
+   * Stage a picked photo: normalize + compress it now, so send stays fast.
+   *
+   * Failures surface as a system message in the thread rather than an Alert —
+   * the chat surface already speaks to the user that way, and the message
+   * ("too large", "unsupported type") is actionable.
+   */
+  const stagePickedAsset = useCallback(
+    async (asset: {
+      uri?: string;
+      type?: string | null;
+      fileName?: string | null;
+    }) => {
+      if (!asset?.uri) return;
+      try {
+        setPreparing(true);
+        const result = await prepareChatPhoto({
+          uri: asset.uri,
+          mimeType: asset.type,
+          fileName: asset.fileName,
+        });
+        setPrepared(result);
+      } catch (error) {
+        const message =
+          error instanceof Error
+            ? error.message
+            : 'Could not use that photo. Try another one.';
+        setMessages(msgs => [...msgs, createMessage(message, 'system')]);
+      } finally {
+        setPreparing(false);
+      }
+    },
+    [],
+  );
+
+  /**
+   * Pick from the camera roll.
+   *
+   * No explicit permission request: `launchImageLibrary` goes through the
+   * system picker, which carries its own implicit grant on both platforms.
+   * Asking would add a prompt the user should never see.
+   */
+  const pickPhotoFromLibrary = useCallback(async () => {
+    const result = await launchImageLibrary({
+      mediaType: 'photo',
+      selectionLimit: 1,
+      assetRepresentationMode: 'current',
+      includeExtra: false,
+    });
+    if (result?.didCancel) return;
+    await stagePickedAsset(result?.assets?.[0] ?? {});
+  }, [stagePickedAsset]);
+
+  /** Take a new photo. Unlike the library, this DOES need permission. */
+  const takePhoto = useCallback(async () => {
+    const granted = await ensureCameraPermission();
+    if (!granted) return;
+
+    const result = await launchCamera({
+      mediaType: 'photo',
+      saveToPhotos: false,
+      includeExtra: false,
+    });
+    if (result?.didCancel) return;
+    await stagePickedAsset(result?.assets?.[0] ?? {});
+  }, [stagePickedAsset]);
+
+  /** Discard the staged photo. */
+  const removeAttachment = useCallback(() => setPrepared(null), []);
+
+  /**
    * Send a message to the chat API using MirrorGPT format
    */
   const sendMessage = async () => {
     const text = draft.trim();
-    if (!text) return;
+    // A photo with no caption is a valid turn, so emptiness alone no longer
+    // blocks the send — but nothing at all still does.
+    if (!text && !prepared) return;
+
+    // Read the photo's bytes now rather than at pick time, so a staged-but-
+    // never-sent photo doesn't sit in JS memory as a ~400KB string.
+    let requestAttachments;
+    if (prepared) {
+      try {
+        const data_base64 = await readPhotoAsBase64(prepared.localUri);
+        requestAttachments = [
+          { kind: 'image' as const, mime_type: prepared.mimeType, data_base64 },
+        ];
+      } catch (error) {
+        // Keep the photo staged so the user can retry without re-picking.
+        const message =
+          error instanceof Error
+            ? error.message
+            : 'Could not read that photo. Try picking it again.';
+        setMessages(msgs => [...msgs, createMessage(message, 'system')]);
+        return;
+      }
+    }
+
+    const sentAttachments: ChatAttachment[] | undefined = prepared
+      ? [
+          {
+            kind: 'image',
+            localUri: prepared.localUri,
+            mimeType: prepared.mimeType,
+          },
+        ]
+      : undefined;
 
     // 1) Create and add user message optimistically
-    const userMessage = createMessage(text, 'user');
+    const userMessage = createMessage(text, 'user', sentAttachments);
     setMessages(msgs => [...msgs, userMessage]);
     setDraft('');
     setLoading(true);
@@ -132,6 +257,9 @@ export const useChat = () => {
         conversation_id: conversationId,
         include_archetype_analysis: true,
         use_enhanced_response: true,
+        // Omitted entirely for a text-only turn — sending [] would be a
+        // needless schema edge for the backend to special-case.
+        ...(requestAttachments ? { attachments: requestAttachments } : {}),
       });
 
       // 4) Handle API response
@@ -145,8 +273,16 @@ export const useChat = () => {
           );
         }
 
+        // The turn landed — drop the staged photo. Deliberately NOT in a
+        // finally block: on failure we keep it staged so the user can retry
+        // without re-picking.
+        setPrepared(null);
+
         // Create system message with main response
-        const systemMessage = createMessage(toFirstNameOnly(chatResponse.response, user?.fullName), 'system');
+        const systemMessage = createMessage(
+          toFirstNameOnly(chatResponse.response, user?.fullName),
+          'system',
+        );
         setMessages(msgs => [...msgs, systemMessage]);
 
         // Add archetype analysis if available
@@ -219,6 +355,18 @@ export const useChat = () => {
     loading,
     greetingLoaded,
     scrollViewRef,
+    /** Staged photo(s) for the next send. V1: at most one. */
+    attachments: prepared
+      ? [
+          {
+            kind: 'image' as const,
+            localUri: prepared.localUri,
+            mimeType: prepared.mimeType,
+          },
+        ]
+      : [],
+    /** True while a picked photo is being converted/compressed. */
+    preparing,
 
     // Actions
     initializeSession,
@@ -227,5 +375,8 @@ export const useChat = () => {
     scrollToBottom,
     clearDraft,
     clearMessages,
+    pickPhotoFromLibrary,
+    takePhoto,
+    removeAttachment,
   };
 };

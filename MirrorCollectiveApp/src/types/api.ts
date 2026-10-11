@@ -136,12 +136,32 @@ export interface SessionGreetingResponse {
 }
 
 // MirrorGPT Chat Types
+
+/**
+ * An inline media attachment on a chat request.
+ *
+ * Carries the bytes themselves rather than a reference: chat media is never
+ * uploaded or stored, so there is nothing to reference. Mirrors the backend's
+ * `ChatAttachment` pydantic model. See docs/CHAT_MEDIA_V1_PLAN.md D6/D7.
+ */
+export interface ChatRequestAttachment {
+  kind: 'image';
+  mime_type: string;
+  data_base64: string;
+}
+
 export interface ChatRequest {
+  /**
+   * May be empty ONLY when `attachments` is non-empty — an image with no
+   * caption is a valid turn. The backend enforces the same rule.
+   */
   message: string;
   session_id: string;
   conversation_id?: string | null;
   include_archetype_analysis?: boolean;
   use_enhanced_response?: boolean;
+  /** V1 accepts at most one. */
+  attachments?: ChatRequestAttachment[];
 }
 
 export interface ArchetypeAnalysis {

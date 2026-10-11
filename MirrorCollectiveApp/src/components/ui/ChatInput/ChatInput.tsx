@@ -1,16 +1,24 @@
-import { theme, palette, spacing, shadows, moderateScale, scale } from '@theme';
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
+  ActivityIndicator,
   Alert,
+  Image,
+  Modal,
+  Pressable,
+  Text,
   TextInput,
   TouchableOpacity,
   StyleSheet,
+  View,
   type NativeSyntheticEvent,
   type TextInputContentSizeChangeEventData,
 } from 'react-native';
 import DocumentPicker from 'react-native-document-picker';
 import LinearGradient from 'react-native-linear-gradient';
 import Svg, { ClipPath, Defs, G, Path, Rect } from 'react-native-svg';
+
+import { theme, palette, spacing, shadows, moderateScale, scale } from '@theme';
+import type { ChatAttachment } from '@types';
 
 interface ChatInputProps {
   value: string;
@@ -26,6 +34,23 @@ interface ChatInputProps {
   onContentSizeChange?: (
     event: NativeSyntheticEvent<TextInputContentSizeChangeEventData>,
   ) => void;
+
+  // ── Chat media (Phase 3) ───────────────────────────────────────────────
+  //
+  // All optional: when the photo handlers are absent the sheet offers only
+  // the pre-existing File option, which is how the feature flag being off
+  // renders. The attach button itself never disappears.
+
+  /** Staged photo(s) awaiting send. V1 renders at most one. */
+  attachments?: ChatAttachment[];
+  /** Open the camera roll. Omit to hide the photo options. */
+  onPickPhoto?: () => void;
+  /** Open the camera. Omit to hide the camera option. */
+  onTakePhoto?: () => void;
+  /** Discard the staged photo. */
+  onRemoveAttachment?: () => void;
+  /** True while a picked photo is being converted/compressed. */
+  preparing?: boolean;
 }
 
 export const ChatInput: React.FC<ChatInputProps> = ({
@@ -35,8 +60,29 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   placeholder = 'Ask me anything...',
   disabled = false,
   onContentSizeChange,
+  attachments,
+  onPickPhoto,
+  onTakePhoto,
+  onRemoveAttachment,
+  preparing = false,
 }) => {
   const [isPicking, setIsPicking] = useState(false);
+  const [sheetVisible, setSheetVisible] = useState(false);
+  // iOS will not present a picker while a Modal is still dismissing, so the
+  // choice is recorded here and launched from the Modal's onDismiss. See
+  // handleSheetDismiss below — this is the same fix CreateEchoScreen uses.
+  const [pendingChoice, setPendingChoice] = useState<
+    'library' | 'camera' | 'file' | null
+  >(null);
+
+  const stagedPhoto = attachments?.[0];
+  const photoOptionsAvailable = Boolean(onPickPhoto);
+
+  // A photo alone is a valid turn, so an empty draft no longer blocks send.
+  // `preparing` does block it: sending mid-prepare would race the staged
+  // state and quietly send a text-only turn, dropping the photo.
+  const canSend =
+    !disabled && !preparing && (Boolean(value.trim()) || Boolean(stagedPhoto));
 
   const handlePickDocument = useCallback(async () => {
     try {
@@ -63,37 +109,115 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     }
   }, [onChangeText]);
 
+  /**
+   * Record the choice and close the sheet. The action itself runs in
+   * onDismiss (iOS) or a short timeout (Android) — never synchronously here.
+   *
+   * Launching a picker from inside this handler fails on iOS, because the
+   * sheet Modal is still dismissing when the picker tries to present. RN's
+   * Modal does not fire onDismiss on Android, hence the two paths.
+   */
+  const chooseAndClose = useCallback(
+    (choice: 'library' | 'camera' | 'file') => {
+      setPendingChoice(choice);
+      setSheetVisible(false);
+    },
+    [],
+  );
+
+  const runPendingChoice = useCallback(() => {
+    if (!pendingChoice) return;
+    const choice = pendingChoice;
+    // Cleared first, so the onDismiss path and the timeout fallback below
+    // cannot both fire the same choice.
+    setPendingChoice(null);
+
+    if (choice === 'library') onPickPhoto?.();
+    else if (choice === 'camera') onTakePhoto?.();
+    else void handlePickDocument();
+  }, [pendingChoice, onPickPhoto, onTakePhoto, handlePickDocument]);
+
+  // Fallback for the onDismiss path. React Native's Modal does not fire
+  // onDismiss on Android at all, so without this the Android sheet would
+  // record a choice and never act on it. Harmless on iOS: onDismiss
+  // normally wins and clears pendingChoice before this fires, and
+  // runPendingChoice is a no-op once cleared.
+  useEffect(() => {
+    if (sheetVisible || !pendingChoice) return;
+    const timer = setTimeout(runPendingChoice, SHEET_DISMISS_MS);
+    return () => clearTimeout(timer);
+  }, [sheetVisible, pendingChoice, runPendingChoice]);
+
   return (
-    <LinearGradient
-      colors={['rgba(253, 253, 249, 0.03)', 'rgba(253, 253, 249, 0.20)']}
-      start={{ x: 0.5, y: 0 }}
-      end={{ x: 0.5, y: 1 }}
-      style={styles.container}
-    >
-      <TouchableOpacity
-        style={styles.iconButton}
-        onPress={handlePickDocument}
-        disabled={disabled || isPicking}
+    <View>
+      {/* Staged photo strip, above the input row. Only rendered when
+          something is staged or in flight, so the input keeps its exact
+          existing layout for a text-only turn. */}
+      {(stagedPhoto || preparing) && (
+        <View style={styles.stagedRow}>
+          {preparing && !stagedPhoto ? (
+            <View style={styles.stagedBox} testID="chat-attachment-preparing">
+              <ActivityIndicator size="small" color={palette.gold.DEFAULT} />
+            </View>
+          ) : (
+            stagedPhoto && (
+              <View style={styles.stagedBox}>
+                <Image
+                  source={{ uri: stagedPhoto.localUri }}
+                  style={styles.stagedThumb}
+                  testID="chat-staged-thumbnail"
+                />
+                <TouchableOpacity
+                  onPress={onRemoveAttachment}
+                  style={styles.removeBadge}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  accessibilityRole="button"
+                  accessibilityLabel="Remove photo"
+                  testID="chat-remove-attachment"
+                >
+                  <Text style={styles.removeGlyph} allowFontScaling={false}>
+                    ×
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )
+          )}
+        </View>
+      )}
+
+      <LinearGradient
+        colors={['rgba(253, 253, 249, 0.03)', 'rgba(253, 253, 249, 0.20)']}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
+        style={styles.container}
       >
-        <Svg width={22} height={22} viewBox="0 0 22 22" fill="none">
-          <Defs>
-            <ClipPath id="clip0_8_390">
-              <Rect width={22} height={22} fill="white" />
-            </ClipPath>
-          </Defs>
-          <G clipPath="url(#clip0_8_390)">
-            <Path
-              d="M11.0176 0.000118047C17.1144 0.0279573 22.028 4.95551 22.0002 11.0175C21.9723 17.1213 17.0587 22.014 10.9828 22.0001C4.89294 21.9862 -0.0346159 17.0378 0.000183189 10.9827C0.0349823 4.87199 4.95558 -0.0277212 11.0176 0.000118047ZM0.91888 10.9897C0.91888 16.5367 5.42885 21.0675 10.9758 21.0814C16.5367 21.0953 21.0815 16.5715 21.0884 11.0036C21.0954 5.4427 16.5646 0.911855 10.9967 0.911855C5.44972 0.911855 0.92584 5.43574 0.91888 10.9897Z"
-              fill={isPicking ? palette.gold.DEFAULT : palette.navy.muted}
-            />
-            <Path
-              d="M10.5442 13.3698C10.5442 12.8269 10.5373 12.2841 10.5442 11.7412C10.5442 11.5185 10.4746 11.4489 10.2519 11.4489C9.18706 11.4559 8.12221 11.4489 7.05736 11.4489C6.88336 11.4489 6.71633 11.4489 6.58409 11.3097C6.45881 11.1705 6.41705 11.0104 6.48665 10.8364C6.57017 10.6207 6.73721 10.5372 6.96688 10.5372C7.83686 10.5372 8.7138 10.5372 9.58377 10.5372C9.80649 10.5372 10.0292 10.5232 10.2519 10.5372C10.4746 10.5511 10.5442 10.4676 10.5442 10.2449C10.5373 9.18 10.5442 8.11515 10.5442 7.0503C10.5442 6.86934 10.5442 6.68838 10.7113 6.55615C10.8574 6.43783 11.0175 6.41695 11.1915 6.49351C11.3864 6.58399 11.4629 6.74406 11.4629 6.95982C11.4629 7.73932 11.4629 8.51186 11.4629 9.29136C11.4629 9.61151 11.4768 9.93166 11.4629 10.2518C11.449 10.4745 11.5325 10.5441 11.7552 10.5441C12.8271 10.5372 13.9058 10.5441 14.9776 10.5441C15.1516 10.5441 15.3187 10.558 15.437 10.7112C15.5553 10.8573 15.5762 11.0174 15.4996 11.1914C15.4091 11.3863 15.2491 11.4628 15.0333 11.4628C14.2329 11.4628 13.4395 11.4628 12.6391 11.4628C12.3399 11.4628 12.0406 11.4767 11.7483 11.4628C11.5256 11.4489 11.456 11.5324 11.4629 11.7551C11.4699 12.7852 11.4629 13.8222 11.4629 14.8523C11.4629 14.9567 11.4699 15.068 11.449 15.1724C11.4003 15.4299 11.2333 15.5622 10.9688 15.5413C10.7113 15.5204 10.5581 15.3673 10.5512 15.1028C10.5442 14.5251 10.5512 13.9544 10.5512 13.3768L10.5442 13.3698Z"
-              fill={isPicking ? palette.gold.DEFAULT : palette.navy.muted}
-            />
-          </G>
-        </Svg>
-      </TouchableOpacity>
-      {/*
+        <TouchableOpacity
+          style={styles.iconButton}
+          onPress={() => setSheetVisible(true)}
+          disabled={disabled || isPicking}
+          accessibilityRole="button"
+          accessibilityLabel="Add an attachment"
+          testID="chat-attach-button"
+        >
+          <Svg width={22} height={22} viewBox="0 0 22 22" fill="none">
+            <Defs>
+              <ClipPath id="clip0_8_390">
+                <Rect width={22} height={22} fill="white" />
+              </ClipPath>
+            </Defs>
+            <G clipPath="url(#clip0_8_390)">
+              <Path
+                d="M11.0176 0.000118047C17.1144 0.0279573 22.028 4.95551 22.0002 11.0175C21.9723 17.1213 17.0587 22.014 10.9828 22.0001C4.89294 21.9862 -0.0346159 17.0378 0.000183189 10.9827C0.0349823 4.87199 4.95558 -0.0277212 11.0176 0.000118047ZM0.91888 10.9897C0.91888 16.5367 5.42885 21.0675 10.9758 21.0814C16.5367 21.0953 21.0815 16.5715 21.0884 11.0036C21.0954 5.4427 16.5646 0.911855 10.9967 0.911855C5.44972 0.911855 0.92584 5.43574 0.91888 10.9897Z"
+                fill={isPicking ? palette.gold.DEFAULT : palette.navy.muted}
+              />
+              <Path
+                d="M10.5442 13.3698C10.5442 12.8269 10.5373 12.2841 10.5442 11.7412C10.5442 11.5185 10.4746 11.4489 10.2519 11.4489C9.18706 11.4559 8.12221 11.4489 7.05736 11.4489C6.88336 11.4489 6.71633 11.4489 6.58409 11.3097C6.45881 11.1705 6.41705 11.0104 6.48665 10.8364C6.57017 10.6207 6.73721 10.5372 6.96688 10.5372C7.83686 10.5372 8.7138 10.5372 9.58377 10.5372C9.80649 10.5372 10.0292 10.5232 10.2519 10.5372C10.4746 10.5511 10.5442 10.4676 10.5442 10.2449C10.5373 9.18 10.5442 8.11515 10.5442 7.0503C10.5442 6.86934 10.5442 6.68838 10.7113 6.55615C10.8574 6.43783 11.0175 6.41695 11.1915 6.49351C11.3864 6.58399 11.4629 6.74406 11.4629 6.95982C11.4629 7.73932 11.4629 8.51186 11.4629 9.29136C11.4629 9.61151 11.4768 9.93166 11.4629 10.2518C11.449 10.4745 11.5325 10.5441 11.7552 10.5441C12.8271 10.5372 13.9058 10.5441 14.9776 10.5441C15.1516 10.5441 15.3187 10.558 15.437 10.7112C15.5553 10.8573 15.5762 11.0174 15.4996 11.1914C15.4091 11.3863 15.2491 11.4628 15.0333 11.4628C14.2329 11.4628 13.4395 11.4628 12.6391 11.4628C12.3399 11.4628 12.0406 11.4767 11.7483 11.4628C11.5256 11.4489 11.456 11.5324 11.4629 11.7551C11.4699 12.7852 11.4629 13.8222 11.4629 14.8523C11.4629 14.9567 11.4699 15.068 11.449 15.1724C11.4003 15.4299 11.2333 15.5622 10.9688 15.5413C10.7113 15.5204 10.5581 15.3673 10.5512 15.1028C10.5442 14.5251 10.5512 13.9544 10.5512 13.3768L10.5442 13.3698Z"
+                fill={isPicking ? palette.gold.DEFAULT : palette.navy.muted}
+              />
+            </G>
+          </Svg>
+        </TouchableOpacity>
+        {/*
         editable stays `true` even while the parent is loading. Toggling
         editable to false on a focused TextInput is what dismisses the iOS
         keyboard — so doing so on every send made the keyboard close right
@@ -102,40 +226,89 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         usable so the user can type their next message while waiting for
         a response, matching ChatGPT / Claude / iMessage behaviour.
       */}
-      <TextInput
-        style={styles.input}
-        value={value}
-        onChangeText={onChangeText}
-        onContentSizeChange={onContentSizeChange}
-        placeholder={placeholder}
-        placeholderTextColor="rgba(186, 194, 207, 0.5)"
-        multiline
-        scrollEnabled
-      />
-      <TouchableOpacity
-        style={[
-          styles.sendButton,
-          (disabled || !value.trim()) && styles.sendButtonDisabled,
-        ]}
-        onPress={onSend}
-        disabled={disabled || !value.trim()}
-        testID="send-button"
+        <TextInput
+          style={styles.input}
+          value={value}
+          onChangeText={onChangeText}
+          onContentSizeChange={onContentSizeChange}
+          placeholder={placeholder}
+          placeholderTextColor="rgba(186, 194, 207, 0.5)"
+          multiline
+          scrollEnabled
+        />
+        <TouchableOpacity
+          style={[styles.sendButton, !canSend && styles.sendButtonDisabled]}
+          onPress={onSend}
+          disabled={!canSend}
+          accessibilityRole="button"
+          accessibilityLabel="Send message"
+          testID="send-button"
+        >
+          <Svg width={18} height={18} viewBox="0 0 18 18" fill="none">
+            <Defs>
+              <ClipPath id="clip0_8_397">
+                <Rect width={18} height={18} fill="white" />
+              </ClipPath>
+            </Defs>
+            <G clipPath="url(#clip0_8_397)">
+              <Path
+                d="M0.892988 18.0002H0.492988C0.0429882 17.7575 -0.0641546 17.4219 0.0644168 16.9149C0.564417 14.8586 1.0287 12.8023 1.49299 10.7388C1.59299 10.2819 1.85013 10.0534 2.30727 10.0105C4.0287 9.83918 5.75727 9.66782 7.4787 9.48932C8.47156 9.38936 9.46442 9.28226 10.4644 9.1823C10.6144 9.16802 10.793 9.16088 10.8001 8.96096C10.8001 8.76104 10.6358 8.73962 10.4787 8.7182C10.3787 8.70392 10.2787 8.70392 10.1787 8.69678C7.54299 8.43974 4.90727 8.17556 2.27156 7.9328C1.81442 7.88996 1.59299 7.66862 1.49299 7.24022C1.01442 5.13391 0.52156 3.04188 0.0358454 0.956994C-0.0570118 0.564293 0.0287025 0.264412 0.392988 0.0716309C0.707274 -0.0925896 0.97156 0.0644909 1.24299 0.200151C6.6287 2.89908 12.0216 5.59087 17.4073 8.2898C17.6573 8.41118 17.8501 8.56826 18.0001 8.79674V9.29654C17.7787 9.52502 17.5216 9.68924 17.2358 9.83204C14.0287 11.4243 10.8216 13.0165 7.62156 14.6159C5.37156 15.7368 3.13585 16.8721 0.885845 18.0002H0.892988Z"
+                fill={palette.navy.muted}
+              />
+            </G>
+          </Svg>
+        </TouchableOpacity>
+      </LinearGradient>
+
+      <Modal
+        visible={sheetVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setSheetVisible(false)}
+        // iOS only. Android never fires this, so the timeout below covers it.
+        onDismiss={runPendingChoice}
+        testID="chat-attachment-modal"
       >
-        <Svg width={18} height={18} viewBox="0 0 18 18" fill="none">
-          <Defs>
-            <ClipPath id="clip0_8_397">
-              <Rect width={18} height={18} fill="white" />
-            </ClipPath>
-          </Defs>
-          <G clipPath="url(#clip0_8_397)">
-            <Path
-              d="M0.892988 18.0002H0.492988C0.0429882 17.7575 -0.0641546 17.4219 0.0644168 16.9149C0.564417 14.8586 1.0287 12.8023 1.49299 10.7388C1.59299 10.2819 1.85013 10.0534 2.30727 10.0105C4.0287 9.83918 5.75727 9.66782 7.4787 9.48932C8.47156 9.38936 9.46442 9.28226 10.4644 9.1823C10.6144 9.16802 10.793 9.16088 10.8001 8.96096C10.8001 8.76104 10.6358 8.73962 10.4787 8.7182C10.3787 8.70392 10.2787 8.70392 10.1787 8.69678C7.54299 8.43974 4.90727 8.17556 2.27156 7.9328C1.81442 7.88996 1.59299 7.66862 1.49299 7.24022C1.01442 5.13391 0.52156 3.04188 0.0358454 0.956994C-0.0570118 0.564293 0.0287025 0.264412 0.392988 0.0716309C0.707274 -0.0925896 0.97156 0.0644909 1.24299 0.200151C6.6287 2.89908 12.0216 5.59087 17.4073 8.2898C17.6573 8.41118 17.8501 8.56826 18.0001 8.79674V9.29654C17.7787 9.52502 17.5216 9.68924 17.2358 9.83204C14.0287 11.4243 10.8216 13.0165 7.62156 14.6159C5.37156 15.7368 3.13585 16.8721 0.885845 18.0002H0.892988Z"
-              fill={palette.navy.muted}
-            />
-          </G>
-        </Svg>
-      </TouchableOpacity>
-    </LinearGradient>
+        <Pressable
+          style={styles.sheetBackdrop}
+          onPress={() => setSheetVisible(false)}
+          accessibilityRole="button"
+          accessibilityLabel="Dismiss attachment options"
+        >
+          <View style={styles.sheet} testID="chat-attachment-sheet">
+            {photoOptionsAvailable && (
+              <>
+                <TouchableOpacity
+                  style={styles.sheetRow}
+                  onPress={() => chooseAndClose('library')}
+                  testID="chat-attach-library"
+                >
+                  <Text style={styles.sheetLabel}>Choose a photo</Text>
+                </TouchableOpacity>
+                {Boolean(onTakePhoto) && (
+                  <TouchableOpacity
+                    style={styles.sheetRow}
+                    onPress={() => chooseAndClose('camera')}
+                    testID="chat-attach-camera"
+                  >
+                    <Text style={styles.sheetLabel}>Take a photo</Text>
+                  </TouchableOpacity>
+                )}
+              </>
+            )}
+            {/* Pre-existing behaviour: reads a document's TEXT into the
+                draft. Kept so nothing regresses for users who rely on it. */}
+            <TouchableOpacity
+              style={styles.sheetRow}
+              onPress={() => chooseAndClose('file')}
+              testID="chat-attach-file"
+            >
+              <Text style={styles.sheetLabel}>Attach text from a file</Text>
+            </TouchableOpacity>
+          </View>
+        </Pressable>
+      </Modal>
+    </View>
   );
 };
 
@@ -150,6 +323,10 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 // visually low. Leave paddingTop/paddingBottom unset; iOS's 8px built-in
 // inset handles the visual spacing. Only set them on Android via
 // platform-specific overrides if needed.
+// Long enough for the sheet's fade-out to finish before a picker is asked
+// to present. Only load-bearing on Android, where Modal has no onDismiss.
+const SHEET_DISMISS_MS = 300;
+
 const FONT_SIZE = moderateScale(17);
 const LINE_HEIGHT = moderateScale(24);
 const MAX_LINES = 6;
@@ -162,6 +339,75 @@ const MAX_LINES = 6;
 const MAX_INPUT_HEIGHT = LINE_HEIGHT * MAX_LINES + moderateScale(36);
 
 const styles = StyleSheet.create({
+  // ── Staged photo strip (chat media) ──────────────────────────────────────
+  stagedRow: {
+    flexDirection: 'row',
+    paddingHorizontal: scale(8),
+    paddingTop: spacing.xs,
+  },
+
+  stagedBox: {
+    width: moderateScale(56),
+    height: moderateScale(56),
+    borderRadius: spacing.xs,
+    backgroundColor: 'rgba(253, 253, 249, 0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  stagedThumb: {
+    width: '100%',
+    height: '100%',
+    borderRadius: spacing.xs,
+  },
+
+  removeBadge: {
+    position: 'absolute',
+    top: -moderateScale(6),
+    right: -moderateScale(6),
+    width: moderateScale(20),
+    height: moderateScale(20),
+    borderRadius: moderateScale(10),
+    backgroundColor: palette.navy.DEFAULT,
+    borderWidth: 1,
+    borderColor: palette.gold.DEFAULT,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  removeGlyph: {
+    color: palette.gold.DEFAULT,
+    fontSize: moderateScale(14),
+    lineHeight: moderateScale(16),
+    textAlign: 'center',
+  },
+
+  // ── Attachment sheet ────────────────────────────────────────────────────
+  sheetBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(11, 15, 28, 0.6)',
+    justifyContent: 'flex-end',
+  },
+
+  sheet: {
+    backgroundColor: palette.navy.DEFAULT,
+    borderTopLeftRadius: spacing.m,
+    borderTopRightRadius: spacing.m,
+    paddingVertical: spacing.s,
+    paddingBottom: spacing.l,
+  },
+
+  sheetRow: {
+    paddingVertical: spacing.m,
+    paddingHorizontal: spacing.l,
+  },
+
+  sheetLabel: {
+    fontFamily: 'CormorantGaramond-Regular',
+    fontSize: moderateScale(18),
+    color: palette.gold.subtlest,
+  },
+
   // Container is a row holding the icon + multiline input + send button.
   // alignItems: 'center' vertically centers all children. Reasoning:
   //   - Single-line state: content sits visually centered (no top-heavy
@@ -182,7 +428,7 @@ const styles = StyleSheet.create({
   },
 
   iconButton: {
-    paddingLeft: scale(6),                                                                                            
+    paddingLeft: scale(6),
     paddingRight: scale(6),
   },
 
