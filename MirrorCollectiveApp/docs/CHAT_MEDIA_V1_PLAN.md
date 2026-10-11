@@ -988,3 +988,34 @@ things remain genuinely unknown and are the first things staging should answer:
 Incidental fix: the global Vision Camera jest mock added in Phase 0 repaired
 `CreateEchoScreen.test.tsx`, which was failing on `main` with
 `TypeError: Cannot read properties of undefined (reading 'CameraView')`.
+
+---
+
+## 12. Decisions resolved after the build (2026-10-11)
+
+Four of §9's open questions were answered. Recorded here with what each
+actually changed.
+
+| § | Decision | Change |
+|---|---|---|
+| 9.6 | **The File option stays** on the attachment sheet. | None — the pre-existing document-to-text behaviour was already preserved as a sheet row. |
+| 9.2 | **Image turns do NOT feed the archetype engine.** | `process_mirror_chat` now sets `persist_signals = not attachments`. An image turn is still analysed far enough to pick a register for the reply, but nothing derived from it is persisted, no profile update runs, and no Mirror Moment can fire. Rationale: D4 persists a *model-written* sentence about the photo, and `analyze_message` is pure text regex — feeding it that sentence would drift the user's archetype profile on vocabulary they never supplied. |
+| — | **Daily caps are not enforced for now.** | New `MIRRORGPT_MEDIA_CAPS_ENABLED`, default `false`. The counters still increment on every chargeable turn, so the real usage distribution accumulates and a calibrated limit can be chosen later; only the `ConditionExpression` that blocks is dropped. One env var re-enables it. |
+| — | **`CHAT_PHOTO_ENABLED` defaults ON for this branch**, so the feature is visible in the UI and trackable at branch level. | `featureFlag.ts` default flipped `'false'` → `'true'`. **This is a branch-level choice, not the shipping default** — revisit before merge. |
+
+### Carry-forward risk from the cap decision
+
+With `MEDIA_CAPS_ENABLED=false` there is **no per-user limit of any kind** on
+either media path. The only backstop is the global API Gateway throttle
+(1000 rps), which does nothing about a single account running up OpenAI spend:
+vision is ~$0.0004/turn and transcription ~$0.006/minute. That is fine for
+branch-level tracking with a known, small group of users. **It must be flipped
+on before any public launch**, and the Phase 6 checklist should carry it.
+
+Still open from §9: the image-turn prompt register (9.1), the STT model
+benchmark (9.3), the consent dialog (9.4), and — the one that could invalidate
+shipped code — re-confirming that visible chat history stays off the roadmap
+(9.5), since D7 and all of Phase 3 rest on it. Content moderation also remains
+un-owned, and D7 makes it harder rather than easier: with nothing stored there
+is no object to scan asynchronously, so moderation would have to run inline
+inside the 30s-capped request.
