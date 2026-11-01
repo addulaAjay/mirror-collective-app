@@ -90,6 +90,19 @@ export const LEGAL_LINKS = {
   PRIVACY: 'https://www.themirrorcollective.com/privacy',
 } as const;
 
+/**
+ * The app's marketing version, sent to the API as `X-App-Version`.
+ *
+ * The server gates the `subscription_required` 403 on this: builds before the
+ * alert-race fix crash when they receive it, so anything that doesn't identify
+ * as new enough gets a plain error string instead
+ * (see src/app/core/entitlements.py).
+ *
+ * MUST match MARKETING_VERSION in ios/MirrorCollectiveApp.xcodeproj. Bumping
+ * one without the other is caught by appVersion.test.ts.
+ */
+export const APP_VERSION = '1.0.2';
+
 export const APP_CONFIG = {
   CHAT: {
     MAX_MESSAGE_LENGTH: 1000,

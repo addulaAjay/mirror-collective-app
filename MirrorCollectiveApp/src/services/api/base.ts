@@ -1,8 +1,8 @@
-import type { ApiResponse, ApiError } from '@types';
 
-import { API_CONFIG } from '@constants/config';
+import { API_CONFIG, APP_VERSION } from '@constants/config';
 import { authEvents } from '@services/authEvents';
 import { tokenManager } from '@services/tokenManager';
+import type { ApiResponse, ApiError } from '@types';
 
 import { ApiErrorHandler } from './errorHandler';
 
@@ -157,6 +157,11 @@ export class BaseApiService {
     try {
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
+        // Lets the server tell old clients from new ones. It gates the
+        // `subscription_required` 403 on this, because builds before the
+        // alert-race fix crash on receiving it. Spread last so an explicit
+        // extraHeaders override still wins.
+        'X-App-Version': APP_VERSION,
         ...(extraHeaders ?? {}),
       };
 
