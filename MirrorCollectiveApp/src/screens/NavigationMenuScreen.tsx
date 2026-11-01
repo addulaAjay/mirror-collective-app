@@ -18,6 +18,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import Svg, { Path } from 'react-native-svg';
 
 import CircularLogoMark from '@components/CircularLogoMark';
+import { useSubscription } from '@context/SubscriptionContext';
 import {
   palette,
   fontFamily,
@@ -121,6 +122,10 @@ const MirrorSideMenu: React.FC<MirrorSideMenuProps> = ({
   // Returning null synchronously when isOpen flips false (the previous
   // implementation) cancelled the closing animation before it could run
   // — that's the abrupt vanish the user reported.
+  // Must sit with the other hooks, above the `if (!mounted) return null`
+  // early return — a hook after it would run conditionally.
+  const { features } = useSubscription();
+
   const [mounted, setMounted] = React.useState(isOpen);
   const slideAnim     = React.useRef(new Animated.Value(isOpen ? 0 : -DRAWER_WIDTH)).current;
   const backdropAnim  = React.useRef(new Animated.Value(isOpen ? 1 : 0)).current;
@@ -175,6 +180,15 @@ const MirrorSideMenu: React.FC<MirrorSideMenuProps> = ({
   }, [isOpen, slideAnim, backdropAnim]);
 
   if (!mounted) return null;
+
+  // Reflection Room is gated by a server-side rollout flag, not by tier.
+  // Fails closed: a failed status call leaves `features` undefined and the
+  // item stays hidden. See src/app/core/feature_flags.py.
+  const primaryItems = PRIMARY_ITEMS.filter(
+    item =>
+      item.route !== 'ReflectionRoom' ||
+      features?.reflection_room_enabled === true,
+  );
 
   return (
     <Modal
@@ -267,7 +281,7 @@ const MirrorSideMenu: React.FC<MirrorSideMenuProps> = ({
             {/* Primary items — gap-[12px], with 100px dividers */}
             {/* Figma node 2336:3805 */}
             <View style={styles.primaryList}>
-              {PRIMARY_ITEMS.map((item, idx) => (
+              {primaryItems.map((item, idx) => (
                 <React.Fragment key={item.label}>
                   <TouchableOpacity
                     activeOpacity={0.75}
@@ -280,7 +294,7 @@ const MirrorSideMenu: React.FC<MirrorSideMenuProps> = ({
                   >
                     <Text style={styles.primaryText}>{item.label}</Text>
                   </TouchableOpacity>
-                  {idx < PRIMARY_ITEMS.length - 1 && <NavDivider />}
+                  {idx < primaryItems.length - 1 && <NavDivider />}
                 </React.Fragment>
               ))}
             </View>

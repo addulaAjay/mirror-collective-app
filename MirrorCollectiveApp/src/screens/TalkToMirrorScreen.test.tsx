@@ -26,7 +26,7 @@ jest.mock('@components/UpgradePrompt', () => {
     visible ? react.createElement(Text, null, `UPGRADE_PROMPT:${reason}`) : null;
 });
 // Drive subscription status per-test.
-let mockSubscription = {
+let mockSubscription: any = {
   status: 'active',
   loading: false,
   isInTrial: false,
@@ -51,7 +51,53 @@ describe('TalkToMirrorScreen', () => {
       loading: false,
       isInTrial: false,
       trialDaysRemaining: 0,
+      // Reflection Room visibility is decided server-side; most tests here
+      // predate it and assume the category is present.
+      features: { reflection_room_enabled: true },
     };
+  });
+
+  describe('Reflection Room server flag', () => {
+    // TestFlight and the App Store ship the identical binary, so nothing
+    // compiled in can be on for testers and off for everyone else. The server
+    // decides per user — see src/app/core/feature_flags.py.
+    it('hides REFLECTION ROOM when the server flag is off', () => {
+      mockSubscription = {
+        ...mockSubscription,
+        features: { reflection_room_enabled: false },
+      };
+
+      const { queryByText } = render(
+        <TalkToMirrorScreen navigation={mockNavigation} />,
+      );
+
+      expect(queryByText('REFLECTION ROOM')).toBeNull();
+    });
+
+    it('hides it when the server sends no features at all', () => {
+      // Status call failed, or an older backend. Fail closed.
+      mockSubscription = { ...mockSubscription, features: undefined };
+
+      const { queryByText } = render(
+        <TalkToMirrorScreen navigation={mockNavigation} />,
+      );
+
+      expect(queryByText('REFLECTION ROOM')).toBeNull();
+    });
+
+    it('leaves the other categories alone when hidden', () => {
+      mockSubscription = {
+        ...mockSubscription,
+        features: { reflection_room_enabled: false },
+      };
+
+      const { getByText } = render(
+        <TalkToMirrorScreen navigation={mockNavigation} />,
+      );
+
+      expect(getByText('ECHO VAULT')).toBeTruthy();
+      expect(getByText('MIRROR PLEDGE')).toBeTruthy();
+    });
   });
 
   it('renders greeting, talk button, and all three categories', () => {

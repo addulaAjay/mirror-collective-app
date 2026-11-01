@@ -109,7 +109,16 @@ const TalkToMirrorScreen: React.FC<Props> = ({ navigation }) => {
   // the 403 wall). Shown once per mount — Home stays mounted at the root of the
   // stack, so this fires once per login session and resets on the next login,
   // not on every navigate-back.
-  const { status, loading: subscriptionLoading } = useSubscription();
+  const { status, loading: subscriptionLoading, features } = useSubscription();
+
+  // Reflection Room is gated by a server-side rollout flag, not by tier.
+  // TestFlight and the App Store ship the same binary, so visibility has to be
+  // decided server-side (see core/feature_flags.py). Fails closed: a failed
+  // status call or an older backend leaves `features` undefined and the
+  // category stays hidden.
+  const visibleCategories = CATEGORIES.filter(
+    c => c.key !== 'reflection-room' || features?.reflection_room_enabled === true,
+  );
   const [expiredPromptVisible, setExpiredPromptVisible] = useState(false);
   const expiredPromptShownRef = useRef(false);
 
@@ -227,7 +236,7 @@ const TalkToMirrorScreen: React.FC<Props> = ({ navigation }) => {
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.categoryScrollContent}
             >
-              {CATEGORIES.map(({ key, label, route }) => (
+              {visibleCategories.map(({ key, label, route }) => (
                 <CategoryCard
                   key={key}
                   icon={renderCategoryIcon(key)}
