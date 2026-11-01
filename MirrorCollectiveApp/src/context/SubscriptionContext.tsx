@@ -19,6 +19,8 @@ interface SubscriptionFeatures {
   used_gb: number;
   mirror_gpt_enabled: boolean;
   echo_map_enabled: boolean;
+  /** Server-driven rollout flag, not tier-gated. See core/feature_flags.py. */
+  reflection_room_enabled: boolean;
 }
 
 interface SubscriptionInfo {
@@ -49,6 +51,8 @@ const defaultFeatures: SubscriptionFeatures = {
   used_gb: 0,
   mirror_gpt_enabled: true,
   echo_map_enabled: false,
+  // Fails closed: hidden unless the server says otherwise.
+  reflection_room_enabled: false,
 };
 
 /** A 401 from the status call means the session is invalid (not a transient
@@ -109,7 +113,18 @@ export const SubscriptionProvider = ({
         setTier(response.data.tier || 'free');
         setStatus(response.data.status || 'none');
         setTrialDaysRemaining(response.data.trial_days_remaining || 0);
-        setFeatures(response.data.features || defaultFeatures);
+        // The server field is optional (older backends omit it) but the
+        // context type is strict. Normalize to a real boolean, defaulting
+        // hidden — a missing flag must never read as enabled.
+        setFeatures(
+          response.data.features
+            ? {
+                ...response.data.features,
+                reflection_room_enabled:
+                  response.data.features.reflection_room_enabled === true,
+              }
+            : defaultFeatures,
+        );
         setCoreSubscription(response.data.core_subscription || null);
         setStorageSubscription(response.data.storage_subscription || null);
         setHasUsedTrial(response.data.has_used_trial || false);

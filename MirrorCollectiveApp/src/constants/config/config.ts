@@ -74,12 +74,19 @@ export const REFLECTION_ROOM_ENABLED =
   String(process.env.REFLECTION_ROOM_ENABLED ?? 'true').toLowerCase() !== 'false';
 
 /**
- * Reflection Room mock-API mode. When true, the FE talks to an in-memory
- * mock client instead of staging. Flipped to false in Phase 8 backend wiring.
- * Override via env: REFLECTION_ROOM_USE_MOCK=false
+ * Reflection Room mock-API mode. When true, the FE talks to an in-memory mock
+ * client instead of the real backend.
+ *
+ * Default flipped to false on 2026-11-01, when the V1 backend hardening
+ * (practice catalog / recommender / safety filter, reflection + practice
+ * routes) deployed and the Reflection Room entry points were pointed at the
+ * real screens instead of the "coming soon" placeholder. Leaving it on would
+ * have meant testing in-memory fixtures while believing it was live data.
+ *
+ * Override via env: REFLECTION_ROOM_USE_MOCK=true to go back to fixtures.
  */
 export const REFLECTION_ROOM_USE_MOCK =
-  String(process.env.REFLECTION_ROOM_USE_MOCK ?? 'true').toLowerCase() !== 'false';
+  String(process.env.REFLECTION_ROOM_USE_MOCK ?? 'false').toLowerCase() === 'true';
 
 /**
  * Public legal pages, opened in the device browser via Linking.openURL.
