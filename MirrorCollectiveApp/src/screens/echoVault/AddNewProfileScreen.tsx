@@ -21,19 +21,6 @@
  */
 
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import {
-  borderWidth,
-  fontFamily,
-  fontSize,
-  fontWeight,
-  moderateScale,
-  palette,
-  scale,
-  spacing,
-  textShadow,
-  verticalScale,
-} from '@theme';
-import type { RootStackParamList } from '@types';
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
@@ -56,6 +43,20 @@ import Button from '@components/Button/Button';
 import LogoHeader from '@components/LogoHeader';
 import TextInputField from '@components/TextInputField';
 import { echoApiService } from '@services/api/echo';
+import { authEvents } from '@services/authEvents';
+import {
+  borderWidth,
+  fontFamily,
+  fontSize,
+  fontWeight,
+  moderateScale,
+  palette,
+  scale,
+  spacing,
+  textShadow,
+  verticalScale,
+} from '@theme';
+import type { RootStackParamList } from '@types';
 import { pickProfilePhoto } from '@utils/media/pickProfilePhoto';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AddNewProfileScreen'>;
@@ -132,11 +133,17 @@ const AddNewProfileScreen: React.FC<Props> = ({ navigation, route }) => {
         Alert.alert('Success', `${isGuardian ? 'Guardian' : 'Recipient'} added successfully`, [
           { text: 'OK', onPress: () => navigation.goBack() },
         ]);
-      } else {
+      } else if (!authEvents.isSubscriptionRedirectInFlight()) {
+        // Suppressed when the API layer just signalled a lapsed subscription:
+        // App.tsx is already pushing the paywall, and presenting an alert
+        // mid-transition is a hard crash on iOS. The paywall explains the
+        // situation better than this alert would. See the 2026-10-11 incident.
         Alert.alert('Error', response.error || `Failed to add ${isGuardian ? 'guardian' : 'recipient'}`);
       }
     } catch (err: any) {
-      Alert.alert('Error', err?.message ?? 'An unexpected error occurred');
+      if (!authEvents.isSubscriptionRedirectInFlight()) {
+        Alert.alert('Error', err?.message ?? 'An unexpected error occurred');
+      }
     } finally {
       setLoading(false);
     }
@@ -173,11 +180,15 @@ const AddNewProfileScreen: React.FC<Props> = ({ navigation, route }) => {
         Alert.alert('Success', 'Photo updated', [
           { text: 'OK', onPress: () => navigation.goBack() },
         ]);
-      } else {
+      } else if (!authEvents.isSubscriptionRedirectInFlight()) {
+        // Same paywall race as handleAdd — this path hits the entitlement
+        // guard too, via getUploadUrl or updateRecipientPhoto.
         Alert.alert('Error', response.error || 'Failed to update photo');
       }
     } catch (err: any) {
-      Alert.alert('Error', err?.message ?? 'An unexpected error occurred');
+      if (!authEvents.isSubscriptionRedirectInFlight()) {
+        Alert.alert('Error', err?.message ?? 'An unexpected error occurred');
+      }
     } finally {
       setLoading(false);
     }
