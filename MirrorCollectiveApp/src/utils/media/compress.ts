@@ -42,6 +42,21 @@ const VIDEO_SKIP_BYTES = 10 * 1024 * 1024; // 10 MB
 const IMAGE_SKIP_BYTES = 1 * 1024 * 1024; // 1 MB
 
 /**
+ * Longest-edge cap for a photo attached to a MirrorGPT chat message.
+ *
+ * Deliberately larger than `compressImageIfNeeded`'s 1024px: that cap is
+ * tuned for avatars and inline thumbnails, where detail loss is invisible.
+ * A chat photo is the thing the model is being asked to *look at*, so it
+ * keeps more detail. 1536px is the sweet spot — comfortably above the
+ * ~768px short edge that vision models sample at `detail: 'low'`, while
+ * still landing a typical camera photo in the 200-500 KB range.
+ */
+export const CHAT_PHOTO_MAX_EDGE = 1536;
+
+/** Skip chat-photo compression below this size. */
+const CHAT_PHOTO_SKIP_BYTES = 256 * 1024; // 256 KB
+
+/**
  * Make a picked photo web-safe. Browsers and most email clients can't render
  * HEIC/HEIF (the default iOS camera format), so re-encode those to JPEG
  * (react-native-compressor decodes HEIC natively and outputs JPEG). Always
@@ -137,6 +152,60 @@ export async function compressImageIfNeeded(
     originalBytes: sizeBefore,
     resultBytes: sizeAfter,
   };
+}
+
+/**
+ * Shrink a photo for sending to MirrorGPT chat.
+ *
+ * Differs from `compressImageIfNeeded` in three ways, all deliberate:
+ *   - caps the longest edge at CHAT_PHOTO_MAX_EDGE (1536) rather than 1024,
+ *     because the model is being asked to interpret the image;
+ *   - uses a lower skip threshold (256 KB vs 1 MB), because chat uploads
+ *     happen inline while the user waits to send;
+ *   - never throws. A photo the user can see should still send even if we
+ *     failed to transcode it — blocking a message on a failed optimisation
+ *     is the wrong trade. On failure the original uri is returned with
+ *     `compressed: false` and the caller uploads the original bytes.
+ *
+ * Call AFTER `ensureWebSafePhoto`, which handles the HEIC→JPEG conversion
+ * that `Image.compress` cannot do for every HEIC variant.
+ */
+export async function compressChatPhoto(uri: string): Promise<CompressResult> {
+  const sizeBefore = await getSize(uri);
+  if (sizeBefore !== null && sizeBefore < CHAT_PHOTO_SKIP_BYTES) {
+    return {
+      uri,
+      compressed: false,
+      originalBytes: sizeBefore,
+      resultBytes: sizeBefore,
+    };
+  }
+
+  try {
+    const newUri = await Image.compress(uri, {
+      compressionMethod: 'auto',
+      maxWidth: CHAT_PHOTO_MAX_EDGE,
+      maxHeight: CHAT_PHOTO_MAX_EDGE,
+      quality: 0.85,
+      output: 'jpg',
+    });
+
+    const sizeAfter = await getSize(newUri);
+    return {
+      uri: newUri,
+      compressed: true,
+      originalBytes: sizeBefore,
+      resultBytes: sizeAfter,
+    };
+  } catch (err) {
+    console.warn('compressChatPhoto failed, sending original:', err);
+    return {
+      uri,
+      compressed: false,
+      originalBytes: sizeBefore,
+      resultBytes: sizeBefore,
+    };
+  }
 }
 
 /**

@@ -15,12 +15,23 @@ import { ApiErrorHandler } from '../errorHandler';
  * AbortController before the reply arrived, surfacing as
  * "abort error" on the chat input.
  *
- * 60 s gives the server room to complete on tail latency while still
- * surfacing a clear "request hung" if the Lambda itself stalled. The
- * OpenAI tier limits + Lambda 60 s default execution cap make a
- * longer client wait pointless.
+ * ## Why 30 s and not 60
+ *
+ * This was 60_000, which was never reachable: the api Lambda is configured
+ * with `timeout: 30` (serverless.yml) and API Gateway HTTP API caps its
+ * integration at 30 s regardless. Anything slower than 30 s comes back as a
+ * gateway 504, not as a slow success — so a 60 s client timeout just meant
+ * the user stared at a spinner for an extra 30 s after the request had
+ * already failed.
+ *
+ * 30 s matches the real server ceiling, so a timeout here means the same
+ * thing the server means by it.
+ *
+ * Note an attachment turn spends part of this budget transferring the photo
+ * (~400 KB), which is why the client compresses hard before sending — see
+ * features/chat-media/prepareChatPhoto.ts.
  */
-const MIRROR_CHAT_TIMEOUT_MS = 60_000;
+const MIRROR_CHAT_TIMEOUT_MS = 30_000;
 
 
 export class ChatApiService extends BaseApiService {

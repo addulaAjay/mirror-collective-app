@@ -1,12 +1,15 @@
 import React, { useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Svg, { Path, Rect } from 'react-native-svg';
 
-import { TTS_FEATURE_ENABLED, ttsService, useTtsActiveId } from '@services/speech';
+import {
+  TTS_FEATURE_ENABLED,
+  ttsService,
+  useTtsActiveId,
+} from '@services/speech';
 import { theme, spacing, radius, shadows, palette } from '@theme';
 import type { Message } from '@types';
-
 
 interface MessageBubbleProps {
   message: Message;
@@ -46,10 +49,7 @@ const SaveIcon: React.FC = () => (
 
 const SpeakerPlayIcon: React.FC = () => (
   <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M11 5L6 9H2v6h4l5 4V5z"
-      fill={palette.gold.DEFAULT}
-    />
+    <Path d="M11 5L6 9H2v6h4l5 4V5z" fill={palette.gold.DEFAULT} />
     <Path
       d="M15.54 8.46a5 5 0 0 1 0 7.07"
       stroke={palette.gold.DEFAULT}
@@ -69,7 +69,14 @@ const SpeakerPlayIcon: React.FC = () => (
 
 const SpeakerStopIcon: React.FC = () => (
   <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
-    <Rect x={5} y={5} width={14} height={14} rx={2} fill={palette.gold.DEFAULT} />
+    <Rect
+      x={5}
+      y={5}
+      width={14}
+      height={14}
+      rx={2}
+      fill={palette.gold.DEFAULT}
+    />
   </Svg>
 );
 
@@ -78,6 +85,9 @@ const MessageBubbleComponent: React.FC<MessageBubbleProps> = ({
   onSave,
 }) => {
   const isUser = message.sender === 'user';
+  // V1 carries at most one. Renders from the local file — nothing is uploaded
+  // or stored, so there is no remote url and no expired-media state.
+  const photo = message.attachments?.[0];
   const activeUtteranceId = useTtsActiveId();
   const isSpeaking = activeUtteranceId === message.id;
 
@@ -108,11 +118,34 @@ const MessageBubbleComponent: React.FC<MessageBubbleProps> = ({
           end={{ x: 0.5, y: 1 }}
           style={[styles.bubble, styles.userBubble, styles.gradientBubble]}
         >
-          <Text style={[styles.text, styles.userText]}>{message.text}</Text>
+          {photo && (
+            <Image
+              source={{ uri: photo.localUri }}
+              style={styles.attachmentImage}
+              resizeMode="cover"
+              accessibilityLabel="Photo you shared with the Mirror"
+              testID={`message-image-${message.id}`}
+            />
+          )}
+          {/* A photo with no caption is a valid turn, so the text node is
+              omitted rather than rendered empty — an empty Text still
+              occupies a line's height, which reads as a gap under the photo.
+              Only skipped when there IS a photo: an empty text-only bubble
+              keeps its previous shape (pinned by MessageBubble.test.tsx's
+              'handles empty message text'). */}
+          {(Boolean(message.text) || !photo) && (
+            <Text style={[styles.text, styles.userText]}>{message.text}</Text>
+          )}
         </LinearGradient>
       ) : (
         <View style={styles.systemColumn}>
-          <View style={[styles.bubble, styles.systemBubble, styles.systemBubbleWidth]}>
+          <View
+            style={[
+              styles.bubble,
+              styles.systemBubble,
+              styles.systemBubbleWidth,
+            ]}
+          >
             <Text style={[styles.text, styles.systemText]}>{message.text}</Text>
             {TTS_FEATURE_ENABLED && (
               <TouchableOpacity
@@ -158,6 +191,15 @@ const MessageBubbleComponent: React.FC<MessageBubbleProps> = ({
 export const MessageBubble = React.memo(MessageBubbleComponent);
 
 const styles = StyleSheet.create({
+  // Sits above the caption inside the user bubble. Fixed aspect box so a
+  // portrait and a landscape photo occupy the same footprint in the thread.
+  attachmentImage: {
+    width: '100%',
+    aspectRatio: 4 / 3,
+    borderRadius: radius.s,
+    marginBottom: spacing.xs,
+  },
+
   // Full-width row so bubbles never render "outside" the scroll area
   row: {
     width: '100%',

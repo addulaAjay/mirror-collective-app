@@ -61,7 +61,7 @@ describe('ChatApiService', () => {
       expect(fetchCall).toBeDefined();
     });
 
-    it('passes a 60s timeoutMs override to makeRequest, not the 10s default', async () => {
+    it('passes a 30s timeoutMs override to makeRequest, not the 10s default', async () => {
       // Pin the timeout contract by spying on the underlying
       // makeRequest call. A behavioral test against AbortController
       // timing is unreliable inside jest's fake-timer model — RN's
@@ -85,7 +85,11 @@ describe('ChatApiService', () => {
 
       // 6th positional arg is the per-call options bag.
       const callArgs = spy.mock.calls[0];
-      expect(callArgs[5]).toEqual({ timeoutMs: 60_000 });
+      // 30s, matching the real server ceiling: the api Lambda is configured
+      // with timeout: 30 and API Gateway caps its integration there, so a
+      // longer client timeout was unreachable — anything slower came back as
+      // a gateway 504 while the user watched a spinner for another 30s.
+      expect(callArgs[5]).toEqual({ timeoutMs: 30_000 });
 
       spy.mockRestore();
     });

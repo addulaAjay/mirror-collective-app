@@ -20,6 +20,7 @@ import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
 import MirrorGptInfoModal from '@components/MirrorGptInfoModal';
 import { MessageBubble, ChatInput, TypingIndicator } from '@components/ui';
+import { CHAT_PHOTO_ENABLED, CHAT_VOICE_ENABLED } from '@features/chat-media';
 import { useChat } from '@hooks/useChat';
 import {
   TTS_FEATURE_ENABLED,
@@ -61,6 +62,17 @@ export function MirrorChatContent() {
     initializeSession,
     sendMessage,
     setDraft,
+    attachments,
+    preparing,
+    pickPhotoFromLibrary,
+    takePhoto,
+    removeAttachment,
+    transcribing,
+    isRecording,
+    recordingMs,
+    startRecording,
+    stopAndTranscribe,
+    cancelRecording,
   } = useChat();
   // Read the preference unconditionally so the hook call shape is
   // stable across renders; only wire it into the auto-read effect
@@ -207,6 +219,26 @@ export function MirrorChatContent() {
                   onSend={sendMessage}
                   onContentSizeChange={handleInputContentSizeChange}
                   disabled={loading}
+                  attachments={attachments}
+                  preparing={preparing}
+                  // Passing undefined when the flag is off is what hides the
+                  // photo options; the attach button itself stays, because
+                  // the pre-existing File option still works.
+                  onPickPhoto={
+                    CHAT_PHOTO_ENABLED ? pickPhotoFromLibrary : undefined
+                  }
+                  onTakePhoto={CHAT_PHOTO_ENABLED ? takePhoto : undefined}
+                  onRemoveAttachment={removeAttachment}
+                  // Same pattern as the photo handlers: passing undefined is
+                  // what hides the mic when voice is flagged off.
+                  onStartRecording={
+                    CHAT_VOICE_ENABLED ? startRecording : undefined
+                  }
+                  onStopRecording={stopAndTranscribe}
+                  onCancelRecording={cancelRecording}
+                  isRecording={isRecording}
+                  recordingMs={recordingMs}
+                  transcribing={transcribing}
                 />
               </View>
             </LinearGradient>

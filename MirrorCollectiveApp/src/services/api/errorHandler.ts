@@ -15,6 +15,7 @@ export type ApiErrorType =
   | 'QuizSubmissionError'
   | 'SessionError'
   | 'ChatError'
+  | 'TranscriptionError'
   | 'UnknownError';
 
 export interface ErrorContext {
@@ -190,6 +191,8 @@ export class ApiErrorHandler {
       QuizSubmissionError: 'Failed to submit quiz results. Please try again.',
       SessionError: 'Session error. Please try again.',
       ChatError: 'Chat error. Please try again.',
+      TranscriptionError:
+        "The Mirror couldn't hear that. Please try recording again.",
       UnknownError: 'An unexpected error occurred. Please try again.',
     };
 
