@@ -142,11 +142,15 @@ describe('ReflectionRoomEchoMapScreen', () => {
 
     it('tapping a node opens the per-loop overlay with §12.9 5 elements', async () => {
       mockGetSnapshot.mockResolvedValue(snap);
-      const { getByLabelText, getByText } = renderWithJourney({ snapshot: snap });
+      const { getByLabelText, getByText, getAllByText } = renderWithJourney({
+        snapshot: snap,
+      });
       await waitFor(() => getByLabelText('pressure steady, intensity High'));
       fireEvent.press(getByLabelText('pressure steady, intensity High'));
       await waitFor(() => {
-        expect(getByText('Pressure')).toBeTruthy();
+        // "Pressure" now appears both as the map node label (Figma 7128:2411)
+        // and inside the opened overlay — assert at least the overlay copy.
+        expect(getAllByText('Pressure').length).toBeGreaterThanOrEqual(1);
         expect(getByText('Steady')).toBeTruthy();
         expect(getByText('HIGH INTENSITY')).toBeTruthy();
         expect(getByText('click anywhere to continue')).toBeTruthy();

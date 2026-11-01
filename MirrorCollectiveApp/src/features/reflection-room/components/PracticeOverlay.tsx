@@ -28,11 +28,13 @@ import {
   Text,
   View,
 } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 
 import {
   borderWidth,
   fontFamily,
   fontSize,
+  glassGradient,
   lineHeight,
   palette,
   radius,
@@ -49,6 +51,9 @@ import {
 import { MIRROR_MOMENT } from '../copy/strings';
 import { useReflectionRoomPrefs } from '../state/useReflectionRoomPrefs';
 import type { LoopId, PracticeSurface, ToneState } from '../types/ids';
+
+// Figma "Component 9" glass CTA fill — Transparent White Gradient (4% → 1%).
+const GLASS_GRADIENT = [glassGradient.button.start, glassGradient.button.end];
 
 export interface PracticeOverlayProps {
   sessionId: string;
@@ -189,6 +194,13 @@ const PracticeOverlay: React.FC<PracticeOverlayProps> = ({
               accessibilityLabel="Try again"
               style={({ pressed }) => [styles.button, pressed && styles.pressed]}
             >
+              <LinearGradient
+                colors={GLASS_GRADIENT}
+                start={{ x: 0.5, y: 0 }}
+                end={{ x: 0.5, y: 1 }}
+                style={StyleSheet.absoluteFill}
+                pointerEvents="none"
+              />
               <Text style={styles.buttonText}>TRY AGAIN</Text>
             </Pressable>
           </View>
@@ -211,6 +223,13 @@ const PracticeOverlay: React.FC<PracticeOverlayProps> = ({
                     pressed && styles.pressed,
                   ]}
                 >
+                  <LinearGradient
+                    colors={GLASS_GRADIENT}
+                    start={{ x: 0.5, y: 0 }}
+                    end={{ x: 0.5, y: 1 }}
+                    style={StyleSheet.absoluteFill}
+                    pointerEvents="none"
+                  />
                   <Text style={styles.buttonText}>REVEAL</Text>
                 </Pressable>
               </View>
@@ -252,6 +271,13 @@ const PracticeOverlay: React.FC<PracticeOverlayProps> = ({
                     status.kind === 'submitting' && styles.buttonDisabled,
                   ]}
                 >
+                  <LinearGradient
+                    colors={GLASS_GRADIENT}
+                    start={{ x: 0.5, y: 0 }}
+                    end={{ x: 0.5, y: 1 }}
+                    style={StyleSheet.absoluteFill}
+                    pointerEvents="none"
+                  />
                   {status.kind === 'submitting' ? (
                     <ActivityIndicator
                       size="small"
@@ -440,23 +466,37 @@ const styles = StyleSheet.create({
     lineHeight: lineHeight.l,
     color: palette.gold.subtlest,
   },
+  // Figma "Component 9" glass CTA — Radius/M (16), 0.5px Border/Subtle
+  // (#a3b3cc), Transparent White Gradient fill, warm glow shadow. Matches the
+  // Practice Complete screen's CTAs so the practice flow reads as one system.
   button: {
     minWidth: 200,
-    paddingVertical: spacing.s,
-    paddingHorizontal: spacing.xl,
-    borderRadius: radius.s,
-    borderWidth: borderWidth.thin,
-    borderColor: palette.gold.DEFAULT,
+    paddingVertical: spacing.s, // Figma: Spacing/S (12)
+    paddingHorizontal: spacing.m, // Figma: Spacing/M (16)
+    borderRadius: radius.m, // Figma: Radius/M (16)
+    borderWidth: borderWidth.thin, // Figma: 0.5px
+    borderColor: palette.navy.light, // Figma: Border/Subtle (#a3b3cc)
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 44,
+    minHeight: 52, // Figma: Component 9 height
+    overflow: 'hidden',
+    shadowColor: palette.gold.warm,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.25, // Figma: shadow rgba(242,226,177,0.25) blur 16
+    shadowRadius: 16,
+    elevation: 6,
   },
   buttonDisabled: { opacity: 0.6 },
   buttonText: {
     fontFamily: fontFamily.heading,
-    fontSize: fontSize.xl,
+    fontSize: fontSize.xl, // Figma: font/size/XL (24)
+    lineHeight: fontSize['2xl'], // Figma: lineHeight 28
     color: palette.gold.DEFAULT,
     letterSpacing: 2,
+    textTransform: 'uppercase',
+    textShadowColor: textShadow.warmGlow.color,
+    textShadowOffset: textShadow.warmGlow.offset,
+    textShadowRadius: textShadow.warmGlow.radius,
   },
   pressed: { opacity: 0.7 },
 });

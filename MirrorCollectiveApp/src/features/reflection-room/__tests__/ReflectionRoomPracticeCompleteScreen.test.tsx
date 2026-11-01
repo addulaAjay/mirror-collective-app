@@ -10,6 +10,12 @@ import React from 'react';
 (jest.requireMock('react-native') as Record<string, unknown>).Pressable =
   'Pressable';
 
+// The global react-native-svg mock omits SvgXml; register it here (matches the
+// pattern used by the Mirror Moment + Echo Signature card tests) so the
+// decorative echo-signature waveform renders as a stub instead of undefined.
+(jest.requireMock('react-native-svg') as Record<string, unknown>).SvgXml =
+  'SvgXml';
+
 const mockNavigate = jest.fn();
 
 jest.mock('@react-navigation/native', () => {

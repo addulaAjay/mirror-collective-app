@@ -1,11 +1,17 @@
 /**
  * Reusable Echo Signature card.
  *
- * One per top-3 loop, per UI handoff §4.1 + §12.8 + Figma node 4654-3274.
+ * One per top-3 loop, per UI handoff §4.1 + §12.8 + Figma node 7128-6439
+ * (nodes 7938:2850 / 7938:2858 / 7938:2867 — the tone-coloured cards).
  *
- * Card layout (matches Figma — single-line header, italic body):
- *   [icon] LOOP_NAME - Tone
- *          reflection line (italic)
+ * Card layout (matches Figma):
+ *   ┃ [icon]  LOOP_NAME - Tone
+ *   ┃         reflection line (italic)
+ *
+ * The left edge carries a 2px tone-coloured accent border (rising = gold,
+ * steady = lavender, softening = aqua). The card fill is a vertical
+ * transparent-white glass gradient. Fixed height (120px) with the content
+ * vertically centred, matching the Figma frame.
  *
  * Tapping the card invokes `onPress`, which navigates to the practice
  * overlay (UI handoff §4.2) with `surface = "echo_signature"` and the
@@ -23,31 +29,38 @@ import {
   View,
   type AccessibilityRole,
 } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import { SvgXml } from 'react-native-svg';
 
 import {
   borderWidth,
   fontFamily,
   fontSize,
+  glassGradient,
   lineHeight,
+  moderateScale,
   palette,
   radius,
   spacing,
+  verticalScale,
 } from '@theme';
 
+import type { LoopState } from '../api/types';
 import {
   displayLoopUpper,
   toneSignatureLabel,
 } from '../copy/strings';
-import type { LoopState } from '../api/types';
+
 import { loopIconXml } from './loopIcons';
+import { toneColor } from './toneColors';
 
 interface EchoSignatureCardProps {
   loop: LoopState;
   onPress: (loop: LoopState) => void;
 }
 
-const ICON_SIZE = 32;
+const ICON_SIZE = moderateScale(40);
+const CARD_HEIGHT = verticalScale(120);
 const ROLE: AccessibilityRole = 'button';
 
 const EchoSignatureCard: React.FC<EchoSignatureCardProps> = ({
@@ -64,20 +77,33 @@ const EchoSignatureCard: React.FC<EchoSignatureCardProps> = ({
       accessibilityRole={ROLE}
       accessibilityLabel={`Try a 2-min practice for ${upper}, ${tone}`}
       accessibilityHint={reflection}
-      style={({ pressed }) => [styles.card, pressed && styles.pressed]}
+      style={({ pressed }) => [styles.pressable, pressed && styles.pressed]}
     >
-      <View style={styles.row}>
-        <View style={styles.iconContainer}>
-          <SvgXml xml={loopIconXml(loop.loop_id)} width={ICON_SIZE} height={ICON_SIZE} />
+      <LinearGradient
+        colors={[glassGradient.echoSecondary.start, glassGradient.echoSecondary.end]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        style={[styles.card, { borderLeftColor: toneColor(loop.tone_state) }]}
+      >
+        <View style={styles.row}>
+          <View style={styles.iconContainer}>
+            <SvgXml
+              xml={loopIconXml(loop.loop_id)}
+              width={ICON_SIZE}
+              height={ICON_SIZE}
+            />
+          </View>
+          <Text style={styles.heading}>
+            <Text style={styles.headingName}>{upper}</Text>
+            <Text style={styles.headingTone}> {tone}</Text>
+          </Text>
         </View>
-        <Text style={styles.heading}>
-          <Text style={styles.headingName}>{upper}</Text>
-          <Text style={styles.headingTone}> {tone}</Text>
-        </Text>
-      </View>
-      {reflection !== '' && (
-        <Text style={styles.reflection}>{reflection}</Text>
-      )}
+        {reflection !== '' && (
+          <Text style={styles.reflection} numberOfLines={2}>
+            {reflection}
+          </Text>
+        )}
+      </LinearGradient>
     </Pressable>
   );
 };
@@ -85,21 +111,28 @@ const EchoSignatureCard: React.FC<EchoSignatureCardProps> = ({
 export default EchoSignatureCard;
 
 const styles = StyleSheet.create({
-  card: {
+  pressable: {
     width: '100%',
-    paddingHorizontal: spacing.m,
-    paddingVertical: spacing.m,
-    borderRadius: radius.m,
-    borderWidth: borderWidth.thin,
-    borderColor: 'rgba(163, 179, 204, 0.3)',
-    backgroundColor: 'rgba(10, 18, 40, 0.6)',
-    gap: spacing.xs,
   },
   pressed: { opacity: 0.7 },
+  card: {
+    width: '100%',
+    height: CARD_HEIGHT,
+    paddingHorizontal: spacing.m,
+    paddingVertical: spacing.s,
+    borderLeftWidth: borderWidth.thick,
+    justifyContent: 'center',
+    gap: spacing.xs,
+    // Figma: bottom corners squared, subtle rounding elsewhere is carried by
+    // the accent edge only; keep a small radius so the gradient clips cleanly.
+    borderTopRightRadius: radius.xs,
+    borderBottomRightRadius: radius.xs,
+    overflow: 'hidden',
+  },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.s,
+    gap: spacing.m,
   },
   iconContainer: {
     width: ICON_SIZE,
@@ -113,22 +146,22 @@ const styles = StyleSheet.create({
   },
   headingName: {
     fontFamily: fontFamily.heading,
-    fontSize: fontSize.l,
+    fontSize: fontSize.xl,
     lineHeight: lineHeight.l,
     color: palette.gold.DEFAULT,
     letterSpacing: 1,
   },
   headingTone: {
     fontFamily: fontFamily.headingItalic,
-    fontSize: fontSize.l,
+    fontSize: fontSize.xl,
     lineHeight: lineHeight.l,
     color: palette.gold.DEFAULT,
   },
   reflection: {
     fontFamily: fontFamily.bodyItalic,
-    fontSize: fontSize.xs,
-    lineHeight: lineHeight.s,
+    fontSize: fontSize.s,
+    lineHeight: lineHeight.m,
     color: palette.gold.subtlest,
-    paddingLeft: ICON_SIZE + spacing.s,
+    paddingLeft: ICON_SIZE + spacing.m,
   },
 });
