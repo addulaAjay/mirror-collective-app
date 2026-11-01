@@ -74,7 +74,7 @@ describe('TalkToMirrorScreen', () => {
 
   it.each([
     ['ECHO VAULT',      'MirrorEchoVaultHome'],
-    ['REFLECTION ROOM', 'ReflectionRoomCommingsoon'],
+    ['REFLECTION ROOM', 'ReflectionRoom'],
     ['MIRROR PLEDGE',   'TheMirrorPledge'],
   ])('navigates to the correct route when %s is pressed', (label, route) => {
     const { getByText } = render(<TalkToMirrorScreen navigation={mockNavigation} />);

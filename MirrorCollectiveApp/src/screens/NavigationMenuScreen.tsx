@@ -56,7 +56,7 @@ const PRIMARY_ITEMS = [
   { label: 'Home',            route: 'TalkToMirror' },
   { label: 'MirrorGPT',       route: 'MirrorChat' },
   { label: 'Echo Vault',      route: 'MirrorEchoVaultHome' },
-  { label: 'Reflection Room', route: 'ReflectionRoomCommingsoon' },
+  { label: 'Reflection Room', route: 'ReflectionRoom' },
   { label: 'Pledge',          route: 'TheMirrorPledge' },
 ] as const;
 
