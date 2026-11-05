@@ -108,7 +108,7 @@ export const LEGAL_LINKS = {
  * MUST match MARKETING_VERSION in ios/MirrorCollectiveApp.xcodeproj. Bumping
  * one without the other is caught by appVersion.test.ts.
  */
-export const APP_VERSION = '1.0.2';
+export const APP_VERSION = '1.1.0';
 
 export const APP_CONFIG = {
   CHAT: {
