@@ -51,6 +51,7 @@ interface SubscriptionStatusResponse extends ApiResponse {
       mirror_gpt_enabled: boolean;
       echo_map_enabled: boolean;
       reflection_room_enabled?: boolean;
+      echo_inbox_enabled?: boolean;
     };
     core_subscription?: any;
     storage_subscription?: any;
