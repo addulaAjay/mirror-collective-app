@@ -27,19 +27,6 @@
 
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import {
-  borderWidth,
-  fontFamily,
-  fontSize,
-  fontWeight,
-  moderateScale,
-  palette,
-  radius,
-  scale,
-  spacing,
-  verticalScale,
-} from '@theme';
-import type { RootStackParamList } from '@types';
 import React, { useCallback, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -74,6 +61,7 @@ import BackgroundWrapper from '@components/BackgroundWrapper';
 import Button from '@components/Button/Button';
 import { CachedImage } from '@components/CachedImage';
 import LogoHeader from '@components/LogoHeader';
+import { useSubscription } from '@context/SubscriptionContext';
 import { useInfiniteList } from '@hooks/useInfiniteList';
 import { echoApiService, type EchoResponse } from '@services/api/echo';
 import { resumeMediaMultipart } from '@services/api/multipart';
@@ -82,6 +70,19 @@ import {
   listResumableUploads,
   removePending,
 } from '@services/api/pendingUploads';
+import {
+  borderWidth,
+  fontFamily,
+  fontSize,
+  fontWeight,
+  moderateScale,
+  palette,
+  radius,
+  scale,
+  spacing,
+  verticalScale,
+} from '@theme';
+import type { RootStackParamList } from '@types';
 
 
 import { ResumeUploadBanner } from './ResumeUploadBanner';
@@ -373,6 +374,11 @@ function renderEchoRow(
 
 export function EchoLibraryContent() {
   const navigation = useNavigation<EchoLibraryNavigationProp>();
+  // Echo Inbox entry point is gated server-side. Echoes still arrive by
+  // email with a web-viewer link regardless; this only controls the in-app
+  // view. See src/app/core/feature_flags.py.
+  const { features } = useSubscription();
+
   const [activeTab, setActiveTab] = useState<'RECIPIENT' | 'CATEGORY'>('RECIPIENT');
 
   // Bound to the new paginated /api/echoes contract. Page size 50 matches
@@ -601,11 +607,11 @@ export function EchoLibraryContent() {
             onDismiss={handleResumeDismiss}
           />
 
-          {/* ── Echo Inbox link — temporarily hidden ───────────────────
-              Feature is on hold pending design/product discussion. Keep
-              the JSX intact (with styles below) so we can restore by
-              flipping the flag below to `true`. */}
-          {false && (
+          {/* ── Echo Inbox link ────────────────────────────────────────
+              Gated on features.echo_inbox_enabled from the subscription
+              status payload, so it can be opened to testers and then to
+              everyone without an App Store release. Fails closed. */}
+          {features?.echo_inbox_enabled === true && (
             <TouchableOpacity
               style={styles.inboxRow}
               onPress={() => navigation.navigate('EchoInboxScreen')}

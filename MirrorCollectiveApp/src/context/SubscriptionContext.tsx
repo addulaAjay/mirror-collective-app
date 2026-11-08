@@ -21,6 +21,9 @@ interface SubscriptionFeatures {
   echo_map_enabled: boolean;
   /** Server-driven rollout flag, not tier-gated. See core/feature_flags.py. */
   reflection_room_enabled: boolean;
+  /** Entry-point visibility for the Echo Inbox. Echoes still arrive by email
+   *  regardless; this only controls the in-app view. */
+  echo_inbox_enabled: boolean;
 }
 
 interface SubscriptionInfo {
@@ -53,6 +56,7 @@ const defaultFeatures: SubscriptionFeatures = {
   echo_map_enabled: false,
   // Fails closed: hidden unless the server says otherwise.
   reflection_room_enabled: false,
+  echo_inbox_enabled: false,
 };
 
 /** A 401 from the status call means the session is invalid (not a transient
@@ -122,6 +126,8 @@ export const SubscriptionProvider = ({
                 ...response.data.features,
                 reflection_room_enabled:
                   response.data.features.reflection_room_enabled === true,
+                echo_inbox_enabled:
+                  response.data.features.echo_inbox_enabled === true,
               }
             : defaultFeatures,
         );
