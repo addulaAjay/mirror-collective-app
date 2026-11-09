@@ -126,6 +126,13 @@ export type RootStackParamList = {
     category?: string;
     recipientId?: string;
     recipientName?: string;
+    /**
+     * Multi-recipient send. Present only when more than one was chosen;
+     * recipientId/recipientName still carry the first, so existing header and
+     * label code keeps working untouched.
+     */
+    recipientIds?: string[];
+    recipientNames?: string[];
     guardianId?: string;
     lockDate?: string;
     unlockOnDeath?: boolean;
