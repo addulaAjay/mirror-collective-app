@@ -1,5 +1,6 @@
+import Clipboard from '@react-native-clipboard/clipboard';
 import { useNavigation } from '@react-navigation/native';
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -21,6 +22,11 @@ import LogoHeader from '@components/LogoHeader';
 import MirrorGptInfoModal from '@components/MirrorGptInfoModal';
 import { MessageBubble, ChatInput, TypingIndicator } from '@components/ui';
 import { CHAT_PHOTO_ENABLED, CHAT_VOICE_ENABLED } from '@features/chat-media';
+import {
+  SelectionBar,
+  joinMessages,
+  useMessageSelection,
+} from '@features/chat-selection';
 import { useChat } from '@hooks/useChat';
 import {
   TTS_FEATURE_ENABLED,
@@ -118,6 +124,26 @@ export function MirrorChatContent() {
     [navigation],
   );
 
+  // Selection mode: long-press a bubble to enter, tap others to toggle. The
+  // bar below replaces the composer and acts on the whole selection.
+  const selection = useMessageSelection();
+
+  // Order comes from `messages`, never from the tap order held in the Set.
+  const selectedText = useMemo(
+    () => joinMessages(messages, selection.selectedIds),
+    [messages, selection.selectedIds],
+  );
+
+  const handleCopySelection = useCallback(() => {
+    if (selectedText) Clipboard.setString(selectedText);
+  }, [selectedText]);
+
+  const handleSaveSelectionToEcho = useCallback(() => {
+    if (!selectedText) return;
+    selection.cancel();
+    handleSaveToEcho(selectedText);
+  }, [selectedText, selection, handleSaveToEcho]);
+
   // Re-anchor to the bottom whenever the keyboard appears. KeyboardAvoidingView
   // (from keyboard-controller) handles the layout shift — it adds bottom padding
   // equal to the keyboard height — but it does NOT adjust the ScrollView's
@@ -202,6 +228,10 @@ export function MirrorChatContent() {
                     <MessageBubble
                       key={message.id}
                       message={message}
+                      isSelecting={selection.isSelecting}
+                      isSelected={selection.selectedIds.has(message.id)}
+                      onBeginSelection={selection.beginSelection}
+                      onToggle={selection.toggle}
                       // Pass the STABLE handler (not a per-message closure) so
                       // MessageBubble's React.memo actually holds — the bubble
                       // binds message.text internally.
@@ -213,6 +243,14 @@ export function MirrorChatContent() {
                   {loading && <TypingIndicator />}
                 </ScrollView>
 
+                {selection.isSelecting ? (
+                  <SelectionBar
+                    count={selection.selectedIds.size}
+                    onCopy={handleCopySelection}
+                    onSaveToEcho={handleSaveSelectionToEcho}
+                    onCancel={selection.cancel}
+                  />
+                ) : (
                 <ChatInput
                   value={draft}
                   onChangeText={setDraft}
@@ -240,6 +278,7 @@ export function MirrorChatContent() {
                   recordingMs={recordingMs}
                   transcribing={transcribing}
                 />
+                )}
               </View>
             </LinearGradient>
           </View>

@@ -464,3 +464,13 @@ jest.mock('@react-native-firebase/messaging', () => {
   };
   return { __esModule: true, default: messaging };
 });
+
+// Clipboard is a native module — TurboModuleRegistry.getEnforcing throws in
+// jest without this. Added when chat message selection introduced copy.
+jest.mock('@react-native-clipboard/clipboard', () => ({
+  __esModule: true,
+  default: {
+    setString: jest.fn(),
+    getString: jest.fn(() => Promise.resolve('')),
+  },
+}));

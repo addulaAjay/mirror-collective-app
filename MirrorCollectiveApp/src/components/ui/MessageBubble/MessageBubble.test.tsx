@@ -226,4 +226,81 @@ describe('MessageBubble', () => {
       expect(getByLabelText('Stop reading reply aloud')).toBeTruthy();
     });
   });
+
+  describe('selection', () => {
+    // Long-press enters selection mode; tap toggles once selecting. Both work
+    // on user AND assistant bubbles — the existing action row (speaker,
+    // save-to-Echo) renders only on assistant messages, which is why a second
+    // icon there would not have covered "copy my own message".
+
+    it('long-press begins selection on a user message', () => {
+      const onBeginSelection = jest.fn();
+      const { getByText } = render(
+        <MessageBubble
+          message={mockUserMessage}
+          onBeginSelection={onBeginSelection}
+        />,
+      );
+
+      fireEvent(getByText(mockUserMessage.text), 'longPress');
+
+      expect(onBeginSelection).toHaveBeenCalledWith(mockUserMessage.id);
+    });
+
+    it('long-press begins selection on an assistant message too', () => {
+      const onBeginSelection = jest.fn();
+      const { getByText } = render(
+        <MessageBubble
+          message={mockSystemMessage}
+          onBeginSelection={onBeginSelection}
+        />,
+      );
+
+      fireEvent(getByText(mockSystemMessage.text), 'longPress');
+
+      expect(onBeginSelection).toHaveBeenCalledWith(mockSystemMessage.id);
+    });
+
+    it('tap toggles while selecting', () => {
+      const onToggle = jest.fn();
+      const { getByText } = render(
+        <MessageBubble message={mockUserMessage} isSelecting onToggle={onToggle} />,
+      );
+
+      fireEvent.press(getByText(mockUserMessage.text));
+
+      expect(onToggle).toHaveBeenCalledWith(mockUserMessage.id);
+    });
+
+    it('tap does nothing outside selection mode', () => {
+      const onToggle = jest.fn();
+      const { getByText } = render(
+        <MessageBubble message={mockUserMessage} onToggle={onToggle} />,
+      );
+
+      fireEvent.press(getByText(mockUserMessage.text));
+
+      expect(onToggle).not.toHaveBeenCalled();
+    });
+
+    it('announces itself as selected to assistive tech', () => {
+      const { getByLabelText } = render(
+        <MessageBubble message={mockUserMessage} isSelecting isSelected />,
+      );
+
+      expect(getByLabelText(/selected/i)).toBeTruthy();
+    });
+
+    it('text is selectable so part of a message can be copied by hand', () => {
+      const { getByText } = render(<MessageBubble message={mockSystemMessage} />);
+
+      expect(getByText(mockSystemMessage.text).props.selectable).toBe(true);
+    });
+
+    it('renders unchanged when no selection props are passed', () => {
+      const { getByText } = render(<MessageBubble message={mockSystemMessage} />);
+
+      expect(getByText(mockSystemMessage.text)).toBeTruthy();
+    });
+  });
 });
