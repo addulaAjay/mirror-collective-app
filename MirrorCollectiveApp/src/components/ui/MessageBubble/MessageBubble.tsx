@@ -21,6 +21,14 @@ interface MessageBubbleProps {
    * which would defeat React.memo below).
    */
   onSave?: (text: string) => void;
+  /** True while the chat is in selection mode. Tap then toggles. */
+  isSelecting?: boolean;
+  /** True when this bubble is part of the current selection. */
+  isSelected?: boolean;
+  /** Long-press handler — enters selection mode with this message selected. */
+  onBeginSelection?: (id: string) => void;
+  /** Tap handler, honoured only while `isSelecting`. */
+  onToggle?: (id: string) => void;
 }
 
 // content_copy glyph (Figma 7811-2866) — the "copy this reply into an Echo"
@@ -83,6 +91,10 @@ const SpeakerStopIcon: React.FC = () => (
 const MessageBubbleComponent: React.FC<MessageBubbleProps> = ({
   message,
   onSave,
+  isSelecting,
+  isSelected,
+  onBeginSelection,
+  onToggle,
 }) => {
   const isUser = message.sender === 'user';
   // V1 carries at most one. Renders from the local file — nothing is uploaded
@@ -109,8 +121,27 @@ const MessageBubbleComponent: React.FC<MessageBubbleProps> = ({
     }
   }, [isSpeaking, message.id, message.text]);
 
+  // Long-press enters selection mode; tap only acts once selecting, so an
+  // ordinary tap on a bubble stays inert as it always was.
+  const handleLongPress = useCallback(
+    () => onBeginSelection?.(message.id),
+    [onBeginSelection, message.id],
+  );
+  const handlePress = useCallback(() => {
+    if (isSelecting) onToggle?.(message.id);
+  }, [isSelecting, onToggle, message.id]);
+
+  // Screen readers get the state, since the visual cue alone does not carry.
+  const selectionLabel = isSelected ? 'Selected message' : undefined;
+
   return (
-    <View style={[styles.row, isUser ? styles.rowUser : styles.rowSystem]}>
+    <View
+      style={[
+        styles.row,
+        isUser ? styles.rowUser : styles.rowSystem,
+        isSelected && styles.rowSelected,
+      ]}
+    >
       {isUser ? (
         <LinearGradient
           colors={['rgba(253, 253, 249, 0.03)', 'rgba(253, 253, 249, 0.20)']}
@@ -134,7 +165,15 @@ const MessageBubbleComponent: React.FC<MessageBubbleProps> = ({
               keeps its previous shape (pinned by MessageBubble.test.tsx's
               'handles empty message text'). */}
           {(Boolean(message.text) || !photo) && (
-            <Text style={[styles.text, styles.userText]}>{message.text}</Text>
+            <Text
+              style={[styles.text, styles.userText]}
+              selectable
+              onLongPress={handleLongPress}
+              onPress={handlePress}
+              accessibilityLabel={selectionLabel}
+            >
+              {message.text}
+            </Text>
           )}
         </LinearGradient>
       ) : (
@@ -146,7 +185,15 @@ const MessageBubbleComponent: React.FC<MessageBubbleProps> = ({
               styles.systemBubbleWidth,
             ]}
           >
-            <Text style={[styles.text, styles.systemText]}>{message.text}</Text>
+            <Text
+              style={[styles.text, styles.systemText]}
+              selectable
+              onLongPress={handleLongPress}
+              onPress={handlePress}
+              accessibilityLabel={selectionLabel}
+            >
+              {message.text}
+            </Text>
             {TTS_FEATURE_ENABLED && (
               <TouchableOpacity
                 onPress={handleSpeakerPress}
@@ -211,6 +258,12 @@ const styles = StyleSheet.create({
   },
   rowSystem: {
     justifyContent: 'flex-start',
+  },
+  /** Selection highlight. Subtle on purpose — the bubble already
+   *  carries the conversation's visual weight. */
+  rowSelected: {
+    backgroundColor: 'rgba(253, 253, 249, 0.07)',
+    borderRadius: radius.s,
   },
   // Assistant messages stack the bubble + an action row (save icon) beneath it,
   // left-aligned to the bubble edge. The column carries the 80% width cap.

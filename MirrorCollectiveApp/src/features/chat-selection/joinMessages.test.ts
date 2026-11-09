@@ -22,6 +22,11 @@ import type { Message } from '@types';
 
 import { joinMessages } from './joinMessages';
 
+/** A photo-only turn: the attachment carries no caption text. */
+const PHOTO_ATTACHMENTS: Message['attachments'] = [
+  { kind: 'image', localUri: 'file:///x.jpg', mimeType: 'image/jpeg' },
+];
+
 const msg = (
   id: string,
   sender: 'user' | 'system',
@@ -91,7 +96,7 @@ describe('joinMessages', () => {
   it('skips a message with no text rather than emitting a bare label', () => {
     // A photo-only turn carries no text; "Me:" on its own is noise.
     const withPhoto = [
-      msg('p', 'user', '', { photo: { localUri: 'file:///x.jpg' } as never }),
+      msg('p', 'user', '', { attachments: PHOTO_ATTACHMENTS }),
       msg('q', 'system', 'I see it.'),
     ];
 
@@ -110,7 +115,7 @@ describe('joinMessages', () => {
   });
 
   it('returns empty when every selected message is textless', () => {
-    const photoOnly = [msg('p', 'user', '', { photo: {} as never })];
+    const photoOnly = [msg('p', 'user', '', { attachments: PHOTO_ATTACHMENTS })];
 
     expect(joinMessages(photoOnly, new Set(['p']))).toBe('');
   });
