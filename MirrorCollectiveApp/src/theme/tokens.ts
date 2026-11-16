@@ -43,6 +43,7 @@ export const palette = {
     // colour like navy.deep, or it reads as a differently-coloured edge.
     screenTop: '#080911',    // Code-defined: top stop of the app background ramp
     screenBottom: '#1a2238', // = navy.DEFAULT — bottom stop of the app background ramp
+    screen: '#0c0f1a',       // Code-defined: flat app background fill (BackgroundWrapper)
     card: '#1a1f2e',     // Code-defined: popup/card background dark navy (add to Figma — Phase 8 follow-up)
     // TODO: confirm with designer — glass card inner background (no Figma token yet); consolidating #191A23/#191B24 variants
     cardInner: '#191A23',  // Code-defined: glass card inner fill (slightly darker than navy.card)

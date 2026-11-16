@@ -23,7 +23,6 @@ import {
   ScrollView,
   type ViewStyle,
   type TextStyle,
-  type ImageStyle,
   Alert,
   StatusBar,
 } from 'react-native';
@@ -99,7 +98,7 @@ const QuizWelcomeScreen = () => {
 
   // const route = useRoute<QuizWelcomeScreenRouteProp>();
   return (
-    <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage}>
+    <BackgroundWrapper style={styles.bg}>
       <SafeAreaView style={styles.safe}>
         <StatusBar
           barStyle="light-content"
@@ -173,7 +172,6 @@ export default QuizWelcomeScreen;
 const styles = StyleSheet.create<{
   bg: ViewStyle;
   safe: ViewStyle;
-  bgImage: ImageStyle;
   scrollContent: ViewStyle;
   logoWelcomeGroup: ViewStyle;
   welcomeContainer: ViewStyle;
@@ -191,9 +189,6 @@ const styles = StyleSheet.create<{
   safe: {
     flex: 1,
     backgroundColor: palette.neutral.transparent,
-  },
-  bgImage: {
-    resizeMode: 'cover',
   },
   scrollContent: {
     paddingHorizontal: scale(40), // Figma left:40 scaled

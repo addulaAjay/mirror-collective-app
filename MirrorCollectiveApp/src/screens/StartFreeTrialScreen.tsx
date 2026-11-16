@@ -143,7 +143,6 @@ const StartFreeTrialScreen = () => {
         */
       <BackgroundWrapper
         style={styles.bg}
-        imageStyle={styles.bgImage}
         scrollable
       >
         <SafeAreaView style={styles.safe}>
@@ -396,7 +395,6 @@ export default StartFreeTrialScreen;
 
 const styles = StyleSheet.create<{
   bg: ViewStyle;
-  bgImage: ImageStyle;
   safe: ViewStyle;
   headerBleed: ViewStyle;
   headerRow: ViewStyle;
@@ -441,9 +439,6 @@ const styles = StyleSheet.create<{
 }>({
   bg: {
     flex: 1,
-  },
-  bgImage: {
-    resizeMode: 'cover',
   },
 
   // SafeAreaView — sole flex container, all children are direct siblings.

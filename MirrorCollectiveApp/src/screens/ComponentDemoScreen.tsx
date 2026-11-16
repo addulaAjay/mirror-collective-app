@@ -48,7 +48,7 @@ const ComponentDemoScreen: React.FC = () => {
   const [roundedStyle, setRoundedStyle] = useState<'Primary' | 'Secondary' | 'Link'>('Primary');
 
   return (
-    <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage}>
+    <BackgroundWrapper style={styles.bg}>
       <SafeAreaView style={styles.safe}>
         <LogoHeader />
         
@@ -561,9 +561,6 @@ export default ComponentDemoScreen;
 const styles = StyleSheet.create({
   bg: {
     flex: 1,
-  },
-  bgImage: {
-    opacity: 0.2,
   },
   safe: {
     flex: 1,
