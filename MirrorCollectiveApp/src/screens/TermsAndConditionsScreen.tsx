@@ -64,7 +64,6 @@ const TermsAndConditionsScreen = () => {
     return (
       <BackgroundWrapper
         style={styles.bg}
-        imageStyle={styles.bgImage}
         scrollable
       >
         {/*
@@ -335,7 +334,6 @@ export default TermsAndConditionsScreen;
 
 const styles = StyleSheet.create<{
   bg: ViewStyle;
-  bgImage: ImageStyle;
   safe: ViewStyle;
   headerBleed: ViewStyle;
   headerRow: ViewStyle;
@@ -361,9 +359,6 @@ const styles = StyleSheet.create<{
 }>({
   bg: {
     flex: 1,
-  },
-  bgImage: {
-    resizeMode: 'cover',
   },
 
   // SafeAreaView is the single flex container — all children are siblings.

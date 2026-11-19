@@ -147,7 +147,7 @@ const AddStorageScreen = () => {
   };
 
   return (
-    <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage} scrollable>
+    <BackgroundWrapper style={styles.bg} scrollable>
       <SafeAreaView style={styles.safe}>
         <LogoHeader wrapperStyle={styles.headerBleed} />
 
@@ -366,7 +366,6 @@ export default AddStorageScreen;
 
 const styles = StyleSheet.create<{
   bg: ViewStyle;
-  bgImage: ImageStyle;
   safe: ViewStyle;
   headerBleed: ViewStyle;
   headerRow: ViewStyle;
@@ -409,7 +408,6 @@ const styles = StyleSheet.create<{
   footerLinkText: TextStyle;
 }>({
   bg: { flex: 1 },
-  bgImage: { resizeMode: 'cover' },
   safe: {
     flex: 1,
     backgroundColor: 'transparent',

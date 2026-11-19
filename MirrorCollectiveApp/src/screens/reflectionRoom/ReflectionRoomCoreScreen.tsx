@@ -57,7 +57,7 @@ const ReflectionRoomCoreScreen: React.FC = () => {
     motifId != null ? MOTIF_ROOM_COPY[motifId] : LANDING.subhead;
 
   return (
-    <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage}>
+    <BackgroundWrapper style={styles.bg}>
       <SafeAreaView style={styles.safe}>
         <LogoHeader />
         <ScrollView
@@ -146,9 +146,6 @@ export default ReflectionRoomCoreScreen;
 const styles = StyleSheet.create({
   bg: {
     flex: 1,
-  },
-  bgImage: {
-    resizeMode: 'cover',
   },
   safe: {
     flex: 1,

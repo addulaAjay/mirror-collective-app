@@ -66,7 +66,7 @@ const ReflectionRoomLandingScreen: React.FC = () => {
 
   if (failState) {
     return (
-      <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage}>
+      <BackgroundWrapper style={styles.bg}>
         <SafeAreaView style={styles.safe}>
           <LogoHeader />
           <ScrollView
@@ -126,7 +126,7 @@ const ReflectionRoomLandingScreen: React.FC = () => {
   }
 
   return (
-    <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage}>
+    <BackgroundWrapper style={styles.bg}>
       <SafeAreaView style={styles.safe}>
         <LogoHeader />
         <ScrollView
@@ -257,9 +257,6 @@ const CONTENT_WIDTH = Math.min(screenWidth - 40, 345);
 const styles = StyleSheet.create({
   bg: {
     flex: 1,
-  },
-  bgImage: {
-    resizeMode: 'cover',
   },
   safe: {
     flex: 1,

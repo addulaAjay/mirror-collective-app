@@ -60,7 +60,7 @@ const ArchetypeScreen: React.FC<ArchetypeScreenProps> = ({ route }) => {
   const para2 = descParts[1]?.trim() ?? null;
 
   return (
-    <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage} scrollable>
+    <BackgroundWrapper style={styles.bg} scrollable>
       <SafeAreaView style={styles.safe}>
         <StatusBar
           barStyle="light-content"
@@ -134,9 +134,6 @@ const styles = StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: palette.neutral.transparent,
-  },
-  bgImage: {
-    resizeMode: 'cover',
   },
 
   // ScrollView holds the scrollable middle (title + image + description).

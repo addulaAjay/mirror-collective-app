@@ -16,9 +16,6 @@
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="AppBackground" translatesAutoresizingMaskIntoConstraints="NO" id="tWc-Dq-123">
-                                <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
-                            </imageView>
                             <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="AppLogo" translatesAutoresizingMaskIntoConstraints="NO" id="abc-12-def">
                                 <rect key="frame" x="87.5" y="233.5" width="200" height="200"/>
                                 <constraints>
@@ -28,14 +25,10 @@
                             </imageView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="Bcu-3y-fUS"/>
-                        <color key="backgroundColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <color key="backgroundColor" red="0.047058823529411764" green="0.058823529411764705" blue="0.10196078431372549" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
-                            <constraint firstItem="tWc-Dq-123" firstAttribute="bottom" secondItem="Ze5-6b-2t3" secondAttribute="bottom" id="bot-con"/>
                             <constraint firstItem="abc-12-def" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="cx-con"/>
                             <constraint firstItem="abc-12-def" firstAttribute="centerY" secondItem="Ze5-6b-2t3" secondAttribute="centerY" id="cy-con"/>
-                            <constraint firstItem="tWc-Dq-123" firstAttribute="leading" secondItem="Ze5-6b-2t3" secondAttribute="leading" id="lead-con"/>
-                            <constraint firstItem="tWc-Dq-123" firstAttribute="top" secondItem="Ze5-6b-2t3" secondAttribute="top" id="top-con"/>
-                            <constraint firstItem="tWc-Dq-123" firstAttribute="trailing" secondItem="Ze5-6b-2t3" secondAttribute="trailing" id="trail-con"/>
                         </constraints>
                     </view>
                 </viewController>
@@ -45,7 +38,6 @@
         </scene>
     </scenes>
     <resources>
-        <image name="AppBackground" width="786" height="1704"/>
         <image name="AppLogo" width="478" height="478"/>
     </resources>
 </document>

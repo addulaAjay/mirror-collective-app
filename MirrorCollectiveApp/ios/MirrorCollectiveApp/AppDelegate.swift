@@ -68,13 +68,13 @@ class AppDelegate: ExpoAppDelegate {
     // incoming card's rounded corner briefly exposes the native UIWindow. With
     // no explicit color the window defaults to a light/system fill, which
     // flashed as a pale/gold sliver at the right corner on every transition.
-    // Anchor it to the app's darkest ramp stop (#080911 == navTheme.card) so any
-    // reveal reads as shadow, not a seam. `contentStyle` on the navigator paints
+    // Set it to the flat app background (#0c0f1a == navy.screen == navTheme.card)
+    // so any reveal matches the screen exactly. `contentStyle` on the navigator paints
     // the JS scene; this covers the native layer the JS tree can't reach.
     let groundColor = UIColor(
-      red: 8.0 / 255.0,
-      green: 9.0 / 255.0,
-      blue: 17.0 / 255.0,
+      red: 12.0 / 255.0,
+      green: 15.0 / 255.0,
+      blue: 26.0 / 255.0,
       alpha: 1.0
     )
     window?.backgroundColor = groundColor

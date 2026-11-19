@@ -180,7 +180,7 @@ const ProfileScreen: React.FC = () => {
   }, [performDelete]);
 
   return (
-    <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage}>
+    <BackgroundWrapper style={styles.bg}>
       <SafeAreaView style={styles.safe}>
         <LogoHeader />
         <KeyboardAvoidingView
@@ -334,7 +334,7 @@ const ProfileScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create<{
-  bg: ViewStyle; bgImage: ImageStyle; safe: ViewStyle;
+  bg: ViewStyle; safe: ViewStyle;
   kav: ViewStyle; scroll: ViewStyle; scrollContent: ViewStyle; inner: ViewStyle;
   titleRow: ViewStyle; backBtn: ViewStyle; title: TextStyle;
   subtitle: TextStyle; avatarRing: ViewStyle;
@@ -343,7 +343,6 @@ const styles = StyleSheet.create<{
   deleteButton: ViewStyle; deleteButtonText: TextStyle;
 }>({
   bg:   { flex: 1 },
-  bgImage: { resizeMode: 'cover' },
   safe: { flex: 1, backgroundColor: 'transparent' },
   kav:  { flex: 1 },
   scroll: { flex: 1 },
