@@ -28,24 +28,27 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import BackgroundWrapper from '@components/BackgroundWrapper';
 import GlassCard from '@components/_internal/GlassCard';
+import BackgroundWrapper from '@components/BackgroundWrapper';
 import LogoHeader from '@components/LogoHeader';
 import StarIcon from '@components/StarIcon';
+import { WELCOME_OVERLAYS } from '@features/reflection-room/copy/strings';
+import { useJourney } from '@features/reflection-room/state/JourneyContext';
 import {
   fontFamily,
   fontSize,
   lineHeight,
   modalColors,
+  moderateScale,
   palette,
   radius,
+  scale,
   spacing,
   textShadow,
+  verticalScale,
 } from '@theme';
 import type { RootStackParamList } from '@types';
 
-import { WELCOME_OVERLAYS } from '@features/reflection-room/copy/strings';
-import { useJourney } from '@features/reflection-room/state/JourneyContext';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -213,21 +216,21 @@ const styles = StyleSheet.create({
   closeRow: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    paddingHorizontal: spacing.l,
-    paddingTop: spacing.s,
+    paddingHorizontal: scale(spacing.l),
+    paddingTop: verticalScale(spacing.s),
   },
   closeButton: {
-    width: 32,
-    height: 32,
-    borderRadius: radius.full,
+    width: scale(32),
+    height: scale(32),
+    borderRadius: scale(radius.full),
     backgroundColor: modalColors.closeButtonBg,
     alignItems: 'center',
     justifyContent: 'center',
   },
   closeText: {
     color: palette.gold.DEFAULT,
-    fontSize: fontSize.xl,
-    lineHeight: lineHeight.xl,
+    fontSize: moderateScale(fontSize.xl),
+    lineHeight: moderateScale(lineHeight.xl),
     fontFamily: fontFamily.body,
   },
   scroll: {
@@ -235,7 +238,7 @@ const styles = StyleSheet.create({
   },
   page: {
     width: PAGE_WIDTH,
-    paddingHorizontal: spacing.l,
+    paddingHorizontal: scale(spacing.l),
     alignItems: 'center',
     justifyContent: 'center',
     flexGrow: 1,
@@ -246,73 +249,73 @@ const styles = StyleSheet.create({
   },
   eyebrow: {
     fontFamily: fontFamily.heading,
-    fontSize: fontSize['2xl'],
-    lineHeight: lineHeight.xl,
+    fontSize: moderateScale(fontSize['2xl']),
+    lineHeight: moderateScale(lineHeight.xl),
     color: palette.gold.DEFAULT,
     textAlign: 'center',
     letterSpacing: 1,
-    marginBottom: spacing.m,
+    marginBottom: verticalScale(spacing.m),
     textShadowColor: textShadow.glow.color,
     textShadowOffset: textShadow.glow.offset,
     textShadowRadius: textShadow.glow.radius,
   },
   headline: {
     fontFamily: fontFamily.headingItalic,
-    fontSize: fontSize.xl,
-    lineHeight: lineHeight.l,
+    fontSize: moderateScale(fontSize.xl),
+    lineHeight: moderateScale(lineHeight.l),
     color: palette.gold.DEFAULT,
     textAlign: 'center',
-    marginBottom: spacing.m,
+    marginBottom: verticalScale(spacing.m),
   },
   body: {
     fontFamily: fontFamily.body,
-    fontSize: fontSize.s,
-    lineHeight: lineHeight.m,
+    fontSize: moderateScale(fontSize.s),
+    lineHeight: moderateScale(lineHeight.m),
     color: palette.gold.subtlest,
     textAlign: 'center',
-    marginBottom: spacing.l,
+    marginBottom: verticalScale(spacing.l),
   },
   sparkle: {
-    marginVertical: spacing.s,
+    marginVertical: verticalScale(spacing.s),
     alignItems: 'center',
   },
   tagline: {
     fontFamily: fontFamily.bodyItalic,
-    fontSize: fontSize.xs,
-    lineHeight: lineHeight.s,
+    fontSize: moderateScale(fontSize.xs),
+    lineHeight: moderateScale(lineHeight.s),
     color: palette.gold.DEFAULT,
     textAlign: 'center',
-    marginBottom: spacing.l,
+    marginBottom: verticalScale(spacing.l),
   },
   navRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignSelf: 'stretch',
-    paddingHorizontal: spacing.l,
-    marginTop: spacing.s,
+    paddingHorizontal: scale(spacing.l),
+    marginTop: verticalScale(spacing.s),
   },
   navButton: {
-    width: 32,
-    height: 32,
+    width: scale(32),
+    height: scale(32),
     alignItems: 'center',
     justifyContent: 'center',
   },
-  navPlaceholder: { width: 32, height: 32 },
-  arrow: { width: 24, height: 24, tintColor: palette.gold.DEFAULT },
+  navPlaceholder: { width: scale(32), height: scale(32)},
+  arrow: { width: scale(24), height: scale(24), tintColor: palette.gold.DEFAULT },
   dotsRow: {
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: spacing.xs,
-    paddingBottom: spacing.l,
+    gap: scale(spacing.xs),
+    paddingBottom: verticalScale(spacing.l),
   },
   dot: {
-    width: 6,
-    height: 6,
-    borderRadius: radius.full,
+    width: scale(6),
+    height: scale(6),
+    borderRadius: scale(radius.full),
     backgroundColor: 'rgba(242, 226, 177, 0.3)',
   },
   dotActive: {
     backgroundColor: palette.gold.DEFAULT,
-    width: 18,
+    width: scale(18),
   },
 });
