@@ -33,24 +33,53 @@ describe('MirrorSideMenu — Reflection Room server flag', () => {
     expect(queryByText('Reflection Room')).toBeTruthy();
   });
 
-  it('hides Reflection Room when the server flag is off', () => {
+  // The item is ALWAYS listed. Filtering it out meant that when the gate
+  // shipped in 1.1.0, a menu entry users had been looking at since launch
+  // simply disappeared — which is what got reported. Non-flagged users now go
+  // to the Coming Soon screen they saw before the real one was built, so a
+  // rollout changes where the item leads, never whether it is there.
+  it('still shows Reflection Room when the server flag is off', () => {
     mockSubscription = { features: { reflection_room_enabled: false } };
 
     const { queryByText } = render(<MirrorSideMenu {...baseProps} />);
 
-    expect(queryByText('Reflection Room')).toBeNull();
+    expect(queryByText('Reflection Room')).toBeTruthy();
   });
 
-  it('hides it when the server sends no features at all', () => {
-    // Status call failed, or an older backend. Fail closed.
+  it('sends a non-flagged user to Coming Soon', () => {
+    mockSubscription = { features: { reflection_room_enabled: false } };
+
+    const { getByText } = render(<MirrorSideMenu {...baseProps} />);
+    fireEvent.press(getByText('Reflection Room'));
+
+    expect(baseProps.onNavigate).toHaveBeenCalledWith(
+      'ReflectionRoomCommingsoon',
+    );
+  });
+
+  it('sends a flagged user to the real Reflection Room', () => {
+    mockSubscription = { features: { reflection_room_enabled: true } };
+
+    const { getByText } = render(<MirrorSideMenu {...baseProps} />);
+    fireEvent.press(getByText('Reflection Room'));
+
+    expect(baseProps.onNavigate).toHaveBeenCalledWith('ReflectionRoom');
+  });
+
+  it('falls back to Coming Soon when the server sends no features', () => {
+    // Status call failed, or an older backend. Still fail closed — but to the
+    // placeholder, not to nothing.
     mockSubscription = { features: undefined };
 
-    const { queryByText } = render(<MirrorSideMenu {...baseProps} />);
+    const { getByText } = render(<MirrorSideMenu {...baseProps} />);
+    fireEvent.press(getByText('Reflection Room'));
 
-    expect(queryByText('Reflection Room')).toBeNull();
+    expect(baseProps.onNavigate).toHaveBeenCalledWith(
+      'ReflectionRoomCommingsoon',
+    );
   });
 
-  it('leaves the other primary items alone when hidden', () => {
+  it('leaves the other primary items alone', () => {
     mockSubscription = { features: { reflection_room_enabled: false } };
 
     const { getByText } = render(<MirrorSideMenu {...baseProps} />);

@@ -182,12 +182,18 @@ const MirrorSideMenu: React.FC<MirrorSideMenuProps> = ({
   if (!mounted) return null;
 
   // Reflection Room is gated by a server-side rollout flag, not by tier.
-  // Fails closed: a failed status call leaves `features` undefined and the
-  // item stays hidden. See src/app/core/feature_flags.py.
-  const primaryItems = PRIMARY_ITEMS.filter(
-    item =>
-      item.route !== 'ReflectionRoom' ||
-      features?.reflection_room_enabled === true,
+  //
+  // The item is always listed — only its destination changes. An earlier
+  // version filtered it out, so when the gate shipped in 1.1.0 a menu entry
+  // users had seen since launch vanished with no explanation. Routing to the
+  // Coming Soon screen instead puts them back where they were before the real
+  // one was built. Still fails closed: a failed status call leaves `features`
+  // undefined and the placeholder wins. See src/app/core/feature_flags.py.
+  const primaryItems = PRIMARY_ITEMS.map(item =>
+    item.route === 'ReflectionRoom' &&
+    features?.reflection_room_enabled !== true
+      ? { ...item, route: 'ReflectionRoomCommingsoon' as const }
+      : item,
   );
 
   return (
