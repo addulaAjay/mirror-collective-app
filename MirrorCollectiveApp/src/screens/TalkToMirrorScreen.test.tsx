@@ -61,7 +61,12 @@ describe('TalkToMirrorScreen', () => {
     // TestFlight and the App Store ship the identical binary, so nothing
     // compiled in can be on for testers and off for everyone else. The server
     // decides per user — see src/app/core/feature_flags.py.
-    it('hides REFLECTION ROOM when the server flag is off', () => {
+    // The card is ALWAYS rendered. Filtering it out meant that when the gate
+    // shipped in 1.1.0, an entry users had been looking at since launch simply
+    // disappeared — which is what got reported. Non-flagged users now land on
+    // the same Coming Soon screen they saw before the real one was built, so a
+    // rollout changes where the card leads, never whether it is there.
+    it('still shows REFLECTION ROOM when the server flag is off', () => {
       mockSubscription = {
         ...mockSubscription,
         features: { reflection_room_enabled: false },
@@ -71,21 +76,55 @@ describe('TalkToMirrorScreen', () => {
         <TalkToMirrorScreen navigation={mockNavigation} />,
       );
 
-      expect(queryByText('REFLECTION ROOM')).toBeNull();
+      expect(queryByText('REFLECTION ROOM')).toBeTruthy();
     });
 
-    it('hides it when the server sends no features at all', () => {
-      // Status call failed, or an older backend. Fail closed.
-      mockSubscription = { ...mockSubscription, features: undefined };
+    it('sends a non-flagged user to Coming Soon', () => {
+      mockSubscription = {
+        ...mockSubscription,
+        features: { reflection_room_enabled: false },
+      };
 
-      const { queryByText } = render(
+      const { getByText } = render(
         <TalkToMirrorScreen navigation={mockNavigation} />,
       );
+      fireEvent.press(getByText('REFLECTION ROOM'));
 
-      expect(queryByText('REFLECTION ROOM')).toBeNull();
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        'ReflectionRoomCommingsoon',
+      );
     });
 
-    it('leaves the other categories alone when hidden', () => {
+    it('sends a flagged user to the real Reflection Room', () => {
+      mockSubscription = {
+        ...mockSubscription,
+        features: { reflection_room_enabled: true },
+      };
+
+      const { getByText } = render(
+        <TalkToMirrorScreen navigation={mockNavigation} />,
+      );
+      fireEvent.press(getByText('REFLECTION ROOM'));
+
+      expect(mockNavigation.navigate).toHaveBeenCalledWith('ReflectionRoom');
+    });
+
+    it('falls back to Coming Soon when the server sends no features', () => {
+      // Status call failed, or an older backend. Still fail closed — but to
+      // the placeholder, not to nothing.
+      mockSubscription = { ...mockSubscription, features: undefined };
+
+      const { getByText } = render(
+        <TalkToMirrorScreen navigation={mockNavigation} />,
+      );
+      fireEvent.press(getByText('REFLECTION ROOM'));
+
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        'ReflectionRoomCommingsoon',
+      );
+    });
+
+    it('leaves the other categories alone', () => {
       mockSubscription = {
         ...mockSubscription,
         features: { reflection_room_enabled: false },

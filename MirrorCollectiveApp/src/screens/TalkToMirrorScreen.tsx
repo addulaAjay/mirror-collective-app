@@ -112,12 +112,19 @@ const TalkToMirrorScreen: React.FC<Props> = ({ navigation }) => {
   const { status, loading: subscriptionLoading, features } = useSubscription();
 
   // Reflection Room is gated by a server-side rollout flag, not by tier.
-  // TestFlight and the App Store ship the same binary, so visibility has to be
-  // decided server-side (see core/feature_flags.py). Fails closed: a failed
-  // status call or an older backend leaves `features` undefined and the
-  // category stays hidden.
-  const visibleCategories = CATEGORIES.filter(
-    c => c.key !== 'reflection-room' || features?.reflection_room_enabled === true,
+  // TestFlight and the App Store ship the same binary, so which screen a user
+  // reaches has to be decided server-side (see core/feature_flags.py).
+  //
+  // The card itself is always rendered — only its destination changes. An
+  // earlier version filtered it out entirely, so when the gate shipped in
+  // 1.1.0 a card users had seen since launch vanished with no explanation.
+  // Routing to the Coming Soon screen instead puts them back where they were
+  // before the real one was built. Still fails closed: a failed status call or
+  // an older backend leaves `features` undefined and the placeholder wins.
+  const visibleCategories = CATEGORIES.map(c =>
+    c.key === 'reflection-room' && features?.reflection_room_enabled !== true
+      ? { ...c, route: 'ReflectionRoomCommingsoon' as const }
+      : c,
   );
   const [expiredPromptVisible, setExpiredPromptVisible] = useState(false);
   const expiredPromptShownRef = useRef(false);
