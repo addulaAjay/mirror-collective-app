@@ -1,3 +1,4 @@
+import { AppState } from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 
 import type { ApiResponse } from '@types';
@@ -9,7 +10,6 @@ import {
 } from '@utils/media/compress';
 import { uuidV4 } from '@utils/uuid';
 
-import { AppState } from 'react-native';
 
 import { BaseApiService } from './base';
 import { ApiErrorHandler } from './errorHandler';
@@ -66,6 +66,12 @@ export interface CreateEchoRequest {
   category: string;
   echo_type: 'TEXT' | 'AUDIO' | 'VIDEO';
   recipient_id?: string;
+  /**
+   * Multi-recipient send. The backend fans out to one echo row per recipient,
+   * sharing a `group_id` and the same S3 media. Additive — sending the
+   * singular `recipient_id` still works unchanged. Capped at 50 server-side.
+   */
+  recipient_ids?: string[];
   guardian_id?: string;
   content?: string; // For text echoes
   release_date?: string; // ISO 8601 date string for scheduled release
@@ -111,6 +117,11 @@ export interface Attachment {
 
 export interface EchoResponse {
   echo_id: string;
+  /** Present only for a multi-recipient send — ties the sibling rows together. */
+  group_id?: string;
+  /** Every row the send produced. Absent for a single recipient. */
+  echo_ids?: string[];
+  recipient_count?: number;
   title: string;
   category: string;
   echo_type: 'TEXT' | 'AUDIO' | 'VIDEO';
@@ -531,6 +542,35 @@ export class EchoApiService extends BaseApiService {
   async releaseEcho(echoId: string): Promise<ApiResponse<EchoResponse>> {
     const response = await this.makeRequest<EchoResponse>(
       `/api/echoes/${echoId}/release`,
+      'PATCH',
+      null,
+      true,
+      { 'Idempotency-Key': uuidV4() },
+    );
+    return ApiErrorHandler.handleApiResponse(response, 'Echo released successfully');
+  }
+
+  /**
+   * Release every echo in a multi-recipient send.
+   *
+   * The create flow uploads attachments to the FIRST row only, so releasing
+   * that one alone would leave the other recipients with attachment-less
+   * drafts that never arrive. The server copies the attachment metadata
+   * across the group (shared S3 objects, no re-upload) and releases each
+   * sibling, so every recipient gets their own email, push and read state.
+   *
+   * Same idempotency contract as releaseEcho — the notification emails are a
+   * user-visible side effect a 429 retry must not duplicate.
+   */
+  async releaseEchoGroup(
+    groupId: string,
+  ): Promise<ApiResponse<{ group_id: string; released: string[]; released_count: number }>> {
+    const response = await this.makeRequest<{
+      group_id: string;
+      released: string[];
+      released_count: number;
+    }>(
+      `/api/echoes/group/${groupId}/release`,
       'PATCH',
       null,
       true,

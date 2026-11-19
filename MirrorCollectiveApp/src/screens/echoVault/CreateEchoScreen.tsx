@@ -512,6 +512,7 @@ const CreateEchoScreen: React.FC = () => {
     title,
     category,
     recipientId,
+    recipientIds,
     guardianId,
     lockDate,
     unlockOnDeath,
@@ -552,6 +553,9 @@ const CreateEchoScreen: React.FC = () => {
   // Make SAVE retry-safe: create the echo once, and never re-upload an
   // attachment that already landed. Without this, a partial-failure retry
   // would create duplicate echoes and re-upload succeeded files.
+  // Set when the create fanned out, so the release below can release every
+  // sibling rather than only the row attachments were uploaded to.
+  const createdGroupId = useRef<string | null>(null);
   const createdEchoId = useRef<string | null>(null);
   const uploadedIds = useRef<Set<string>>(new Set());
 
@@ -913,6 +917,10 @@ const CreateEchoScreen: React.FC = () => {
             // create before the files exist.
             defer_release: true,
             recipient_id: recipientId,
+            // Fan out server-side when more than one was chosen.
+            ...(recipientIds && recipientIds.length > 1
+              ? { recipient_ids: recipientIds }
+              : {}),
             ...(guardianId && { guardian_id: guardianId }),
             ...(lockDate && { release_date: lockDate }),
             ...(unlockOnDeath !== undefined && {
@@ -926,6 +934,7 @@ const CreateEchoScreen: React.FC = () => {
             return;
           }
           createdEchoId.current = createResponse.data.echo_id;
+            createdGroupId.current = createResponse.data.group_id ?? null;
         }
         echoId = createdEchoId.current;
       }
@@ -961,7 +970,16 @@ const CreateEchoScreen: React.FC = () => {
       // Mirror the create-echo auto-release rule (recipient + no lock date).
       if (recipientId && !lockDate) {
         try {
-          await echoApiService.releaseEcho(echoId);
+          // A fan-out uploaded attachments to the FIRST row only, so
+          // releasing that one alone would leave the other recipients
+          // with attachment-less drafts that never arrive. The group
+          // endpoint copies attachment metadata across and releases
+          // every sibling.
+          if (createdGroupId.current) {
+            await echoApiService.releaseEchoGroup(createdGroupId.current);
+          } else {
+            await echoApiService.releaseEcho(echoId);
+          }
         } catch {
           /* backend preconditions guard this; non-fatal */
         }

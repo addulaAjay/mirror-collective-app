@@ -27,21 +27,6 @@
 
 import DateTimePicker from '@react-native-community/datetimepicker';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import {
-  borderWidth,
-  fontFamily,
-  fontSize,
-  fontWeight,
-  lineHeight,
-  moderateScale,
-  palette,
-  radius,
-  scale,
-  spacing,
-  theme,
-  verticalScale,
-} from '@theme';
-import type { RootStackParamList } from '@types';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -68,6 +53,21 @@ import Button from '@components/Button/Button';
 import LogoHeader from '@components/LogoHeader';
 import TextInputField from '@components/TextInputField';
 import { echoApiService, type Recipient } from '@services/api/echo';
+import {
+  borderWidth,
+  fontFamily,
+  fontSize,
+  fontWeight,
+  lineHeight,
+  moderateScale,
+  palette,
+  radius,
+  scale,
+  spacing,
+  theme,
+  verticalScale,
+} from '@theme';
+import type { RootStackParamList } from '@types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ChooseRecipientScreen'>;
 
@@ -97,21 +97,23 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
 
   const [recipients, setRecipients] = useState<Recipient[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedRecipient, setSelectedRecipient] = useState<Recipient | null>(
+  const [selectedRecipients, setSelectedRecipients] = useState<Recipient[]>(
     // Hydrate from prefill if present so the dropdown opens already filled.
     // We coerce the lightweight prefill payload into a Recipient — the picker
     // only displays name/profile_image_url so the missing fields don't matter.
     prefillRecipient
-      ? ({
-          recipient_id: prefillRecipient.recipient_id,
-          user_id: '',
-          name: prefillRecipient.name,
-          email: prefillRecipient.email,
-          motif: prefillRecipient.motif,
-          profile_image_url: prefillRecipient.profile_image_url,
-          created_at: '',
-        } as Recipient)
-      : null,
+      ? [
+          {
+            recipient_id: prefillRecipient.recipient_id,
+            user_id: '',
+            name: prefillRecipient.name,
+            email: prefillRecipient.email,
+            motif: prefillRecipient.motif,
+            profile_image_url: prefillRecipient.profile_image_url,
+            created_at: '',
+          } as Recipient,
+        ]
+      : [],
   );
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [lockDate, setLockDate] = useState<Date | null>(
@@ -170,15 +172,51 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
    * difference is whether `editEchoId` is propagated so compose PATCHes the
    * existing echo instead of creating a new one.
    */
+  /**
+   * Add or remove a recipient. The dropdown deliberately stays open - picking
+   * several people is the point, and closing after each tap would turn
+   * selecting five into a five-tap-reopen chore.
+   */
+  const toggleRecipient = useCallback((r: Recipient) => {
+    setSelectedRecipients(prev =>
+      prev.some(p => p.recipient_id === r.recipient_id)
+        ? prev.filter(p => p.recipient_id !== r.recipient_id)
+        : [...prev, r],
+    );
+  }, []);
+
+  const isSelected = useCallback(
+    (r: Recipient) =>
+      selectedRecipients.some(p => p.recipient_id === r.recipient_id),
+    [selectedRecipients],
+  );
+
+  // One name reads better than "1 recipient"; past that a count is the only
+  // thing that fits the trigger.
+  const triggerLabel =
+    selectedRecipients.length === 0
+      ? 'Choose from list'
+      : selectedRecipients.length === 1
+        ? selectedRecipients[0].name
+        : `${selectedRecipients.length} recipients`;
+
   const handleNext = () => {
-    if (!selectedRecipient) return;
+    if (selectedRecipients.length === 0) return;
     // Both create and edit now use the unified CreateEchoScreen; editEchoId
     // makes it load the existing draft (message + attachments) and PATCH.
     navigation.navigate('CreateEchoScreen', {
       title,
       category,
-      recipientId: selectedRecipient.recipient_id,
-      recipientName: selectedRecipient.name,
+      // The first recipient stays in the singular params so the compose
+      // screen's existing header and labels keep working untouched.
+      recipientId: selectedRecipients[0].recipient_id,
+      recipientName: selectedRecipients[0].name,
+      ...(selectedRecipients.length > 1
+        ? {
+            recipientIds: selectedRecipients.map(r => r.recipient_id),
+            recipientNames: selectedRecipients.map(r => r.name),
+          }
+        : {}),
       lockDate: lockDate?.toISOString(),
       ...(editEchoId ? { editEchoId } : {}),
       // Seed the compose box for both edit (existing draft) and the
@@ -250,11 +288,13 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
                 <Text
                   style={[
                     styles.dropdownTriggerText,
-                    selectedRecipient ? styles.dropdownTriggerSelected : null,
+                    selectedRecipients.length > 0
+                      ? styles.dropdownTriggerSelected
+                      : null,
                   ]}
                   numberOfLines={1}
                 >
-                  {selectedRecipient?.name ?? 'Choose from list'}
+                  {triggerLabel}
                 </Text>
                 <Svg
                   width={scale(16)}
@@ -312,11 +352,15 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
                             ]}
                             activeOpacity={0.85}
                             onPress={() => {
-                              setSelectedRecipient(r);
-                              setDropdownOpen(false);
+                              toggleRecipient(r);
+
                             }}
+                            accessibilityRole="checkbox"
+                            accessibilityState={{ checked: isSelected(r) }}
                           >
-                            <Text style={styles.optionName}>{r.name}</Text>
+                            <Text style={styles.optionName}>
+                              {isSelected(r) ? `✓  ${r.name}` : r.name}
+                            </Text>
                             <Text style={styles.optionEmail}>{r.email}</Text>
                           </TouchableOpacity>
                         );
@@ -439,8 +483,8 @@ const ChooseRecipientScreen: React.FC<Props> = ({ navigation, route }) => {
               size="L"
               title="NEXT"
               onPress={handleNext}
-              disabled={!selectedRecipient}
-              active={!!selectedRecipient}
+              disabled={selectedRecipients.length === 0}
+              active={selectedRecipients.length > 0}
             />
           </View>
         </KeyboardAwareScrollView>
