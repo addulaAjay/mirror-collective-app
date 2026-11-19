@@ -28,7 +28,7 @@ import StarIcon from '@components/StarIcon';
 
 const ReflectionRoomCommingsoonScreen: React.FC = () => {
   return (
-    <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage}>
+    <BackgroundWrapper style={styles.bg}>
       <SafeAreaView style={styles.safe}>
         <LogoHeader />
 
@@ -98,7 +98,7 @@ const STAIR_W  = scale(183);
 const STAIR_H  = verticalScale(172);
 
 const styles = StyleSheet.create<{
-  bg: ViewStyle; bgImage: ImageStyle; safe: ViewStyle; content: ViewStyle;
+  bg: ViewStyle; safe: ViewStyle; content: ViewStyle;
   title: TextStyle; imageContainer: ViewStyle;
   archLayer1: ImageStyle; archLayer2: ImageStyle;
   archLayer3: ImageStyle; stairsImage: ImageStyle;
@@ -106,7 +106,6 @@ const styles = StyleSheet.create<{
   spacer: ViewStyle; footerContainer: ViewStyle; footerText: TextStyle;
 }>({
   bg:     { flex: 1 },
-  bgImage: { resizeMode: 'cover' },
   safe:   { flex: 1, backgroundColor: 'transparent', width: '100%' },
 
   content: {

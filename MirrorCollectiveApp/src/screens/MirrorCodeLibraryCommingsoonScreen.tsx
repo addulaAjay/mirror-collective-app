@@ -26,7 +26,7 @@ import StarIcon from '@components/StarIcon';
 
 const MirrorCodeLibraryCommingsoonScreen: React.FC = () => {
   return (
-    <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage}>
+    <BackgroundWrapper style={styles.bg}>
       <SafeAreaView style={styles.safe}>
         <LogoHeader />
 
@@ -72,7 +72,6 @@ export default MirrorCodeLibraryCommingsoonScreen;
 
 const styles = StyleSheet.create<{
   bg: ViewStyle;
-  bgImage: ImageStyle;
   safe: ViewStyle;
   content: ViewStyle;
   title: TextStyle;
@@ -86,9 +85,6 @@ const styles = StyleSheet.create<{
 }>({
   bg: {
     flex: 1,
-  },
-  bgImage: {
-    resizeMode: 'cover',
   },
   safe: {
     flex: 1,

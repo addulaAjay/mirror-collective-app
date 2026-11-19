@@ -48,7 +48,7 @@ const QuizTuningScreen = () => {
   }, [navigation, archetype, quizResult]);
 
   return (
-    <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage}>
+    <BackgroundWrapper style={styles.bg}>
       <SafeAreaView style={styles.safe}>
         <StatusBar
           barStyle="light-content"
@@ -91,9 +91,6 @@ const styles = StyleSheet.create({
     paddingBottom: verticalScale(24),
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  bgImage: {
-    resizeMode: 'cover',
   },
   titleContainer: {
     alignItems: 'center',

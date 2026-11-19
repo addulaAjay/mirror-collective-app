@@ -102,36 +102,33 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 // the screen's top edge during a native-stack push/pop — a transient pale/tinted
 // outline before the incoming screen's background paints.
 //
-// Anchor it to the TOP stop of the app background ramp, not to a mid-ramp colour
-// like navy.deep. Screens paint a #080911 → #1a2238 gradient, so no single flat
-// colour matches them everywhere; navy.deep only lined up ~18% down the screen
-// and sat rgb(16,20,29) darker than the screen at the bottom edge, which showed
-// as a differently-coloured band wherever the container was revealed. The
-// darkest stop is the safe choice: the only place the container still shows is
-// the transition seam, where iOS draws its own shadow, so a too-dark sliver
-// reads as shadow while a too-light one reads as a seam.
+// Match it to the flat colour screens paint via BackgroundWrapper
+// (palette.navy.screen, #0c0f1a). Because that is a single solid fill, this
+// matches the screens exactly and there is no edge or band to mismatch wherever
+// the container is revealed. (Before the flat background, screens painted a
+// #080911 → #1a2238 gradient and no single colour could match everywhere, so
+// this was anchored to the darkest ramp stop instead.)
 const navTheme: Theme = {
   ...DarkTheme,
   colors: {
     ...DarkTheme.colors,
-    background: palette.navy.screenTop, // #080911 — top stop of the app ramp
-    card: palette.navy.screenTop,
+    background: palette.navy.screen, // #0c0f1a — the flat fill screens paint
+    card: palette.navy.screen,
   },
 };
 
-// Paint the native-stack scene with the app's darkest background stop rather
+// Paint the native-stack scene with the app's flat background colour rather
 // than leaving it transparent. A transparent scene reveals whatever sits behind
 // the native stack DURING a push/pop — and the native-stack animation runs
 // above the JS NavigationContainer background, so the layer it exposes is the
 // native iOS window (default ~white), which flashed as a pale/gold sliver at the
 // screen edges and rounded phone corners on every transition. An opaque scene
-// anchored to screenTop (#080911, == navTheme.card) means there is nothing
-// see-through to reveal; screens still paint their own full-bleed
-// BackgroundWrapper on top, so this colour only shows at the transition seam,
-// where it reads as shadow.
+// set to navy.screen (#0c0f1a, == navTheme.card) means there is nothing
+// see-through to reveal, and it is the same colour as the BackgroundWrapper the
+// screens paint on top, so the transition seam matches the screen exactly.
 const screenOptions = {
   headerShown: false,
-  contentStyle: { backgroundColor: palette.navy.screenTop },
+  contentStyle: { backgroundColor: palette.navy.screen },
 } as const;
 // Wrapped MirrorChat component with error boundary
 const MirrorChatWithErrorBoundary = () => (
@@ -355,8 +352,8 @@ const AppNavigator = () => {
   // Hold a splash while the onboarding read is in flight so the navigator
   // doesn't mount with the stale default initialRoute.
   if (isAuthenticated && !routeReady) {
-    // Same gradient + starfield the first real screen paints, so handing over to
-    // the navigator is invisible. A flat fill here would step to the gradient.
+    // Same flat background the first real screen paints (BackgroundWrapper), so
+    // handing over to the navigator is invisible.
     return (
       <BackgroundWrapper scrollable style={styles.loadingScreen}>
         <ActivityIndicator size="large" color={palette.gold.DEFAULT} />

@@ -20,7 +20,6 @@ import {
   ScrollView,
   type ViewStyle,
   type TextStyle,
-  type ImageStyle,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -44,7 +43,7 @@ const MirrorPledgeIntroScreen = () => {
   const navigation = useNavigation<NavigationProp>();
 
   return (
-    <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage}>
+    <BackgroundWrapper style={styles.bg}>
       <SafeAreaView style={styles.safe}>
         <LogoHeader />
         
@@ -89,7 +88,6 @@ const MirrorPledgeIntroScreen = () => {
 
 const styles = StyleSheet.create<{
   bg: ViewStyle;
-  bgImage: ImageStyle;
   safe: ViewStyle;
   scrollContent: ViewStyle;
   titleContainer: ViewStyle;
@@ -100,9 +98,6 @@ const styles = StyleSheet.create<{
 }>({
   bg: {
     flex: 1,
-  },
-  bgImage: {
-    resizeMode: 'cover',
   },
   safe: {
     flex: 1,

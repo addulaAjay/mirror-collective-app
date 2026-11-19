@@ -100,7 +100,7 @@ const QuizQuestionsScreen = () => {
 
   if (isLoading) {
     return (
-      <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage} scrollable>
+      <BackgroundWrapper style={styles.bg} scrollable>
         <SafeAreaView style={styles.safe}>
           <StatusBar
             barStyle="light-content"
@@ -122,7 +122,7 @@ const QuizQuestionsScreen = () => {
   // Ensure questions exist
   if (!questions || questions.length === 0) {
     return (
-      <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage} scrollable>
+      <BackgroundWrapper style={styles.bg} scrollable>
         <SafeAreaView style={styles.safe}>
           <StatusBar
             barStyle="light-content"
@@ -256,7 +256,7 @@ const QuizQuestionsScreen = () => {
   };
 
   return (
-    <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage}>
+    <BackgroundWrapper style={styles.bg}>
       <SafeAreaView style={styles.safe}>
         <StatusBar
           barStyle="light-content"
@@ -386,9 +386,6 @@ const styles = StyleSheet.create({
     color: palette.gold.warm,
     fontSize: moderateScale(fontSize.s),
     fontFamily: fontFamily.heading,
-  },
-  bgImage: {
-    resizeMode: 'cover',
   },
   scrim: {
     ...StyleSheet.absoluteFillObject,

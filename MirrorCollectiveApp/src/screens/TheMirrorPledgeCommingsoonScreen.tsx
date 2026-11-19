@@ -17,7 +17,6 @@ import {
   View,
   type ViewStyle,
   type TextStyle,
-  type ImageStyle,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -31,7 +30,7 @@ const ILLUSTRATION_HEIGHT = verticalScale(280);
 
 const TheMirrorPledgeCommingsoonScreen: React.FC = () => {
   return (
-    <BackgroundWrapper style={styles.bg} imageStyle={styles.bgImage}>
+    <BackgroundWrapper style={styles.bg}>
       <SafeAreaView style={styles.safe}>
         <LogoHeader />
 
@@ -73,7 +72,6 @@ export default TheMirrorPledgeCommingsoonScreen;
 
 const styles = StyleSheet.create<{
   bg: ViewStyle;
-  bgImage: ImageStyle;
   safe: ViewStyle;
   content: ViewStyle;
   title: TextStyle;
@@ -86,9 +84,6 @@ const styles = StyleSheet.create<{
 }>({
   bg: {
     flex: 1,
-  },
-  bgImage: {
-    resizeMode: 'cover',
   },
   safe: {
     flex: 1,
